@@ -218,7 +218,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('\n=== LEADS Dashboard — Super User Setup ===');
+  console.log('\n=== RTBI Portal — Super User Setup ===');
   console.log('No accounts exist yet on this instance. Create the one real Super User account below.');
   console.log('Everyone else gets added from the Directory after you log in.\n');
 

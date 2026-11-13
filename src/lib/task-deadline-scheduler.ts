@@ -54,7 +54,7 @@ export async function runTaskDeadlineReminderCheck(): Promise<{ checked: number;
       const { subject, bodyText, bodyHtml } = generateTaskDeadlineReminderEmailTemplate(
         recipient.name,
         task.title,
-        task.event || 'LEADS Operations',
+        task.event || 'RTBI Operations',
         task.dueDate
       );
       const result = await dispatchEmail({

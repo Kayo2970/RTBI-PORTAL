@@ -578,8 +578,8 @@ export async function readCollection<T = any>(key: keyof DbSchema): Promise<T[]>
 // Stored on globalThis: Next.js bundles this module separately per route/instrumentation
 // chunk, and a module-level Map would give each copy its own lock — letting two writers hit
 // the same file at once and corrupt it.
-const globalForDb = globalThis as unknown as { __leadsWriteLocks?: Map<keyof DbSchema, Promise<void>> };
-const writeLocks: Map<keyof DbSchema, Promise<void>> = (globalForDb.__leadsWriteLocks ??= new Map());
+const globalForDb = globalThis as unknown as { __rtbiWriteLocks?: Map<keyof DbSchema, Promise<void>> };
+const writeLocks: Map<keyof DbSchema, Promise<void>> = (globalForDb.__rtbiWriteLocks ??= new Map());
 
 /**
  * Apply a mutation to a single collection and write only that collection's file.
@@ -634,4 +634,30 @@ export async function mutateCollection<T = any>(
   touchMeta(); // best-effort, not awaited — never blocks or fails a mutation
   if (mutationError) throw mutationError;
   return result;
+}
+
+/**
+ * Clean wipe of all database collections, uploads, and in-memory lock states.
+ */
+export async function wipeAllData(): Promise<void> {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  for (const key of COLLECTION_KEYS) {
+    const target = collectionPath(key);
+    const initialVal = (SEED_DB[key] as any[]) ?? [];
+    const encryptedPayload = encryptData(JSON.stringify(initialVal));
+    await fs.writeFile(target, JSON.stringify(encryptedPayload, null, 2), 'utf-8');
+  }
+
+  const uploadsDir = path.join(DATA_DIR, 'uploads');
+  try {
+    await fs.rm(uploadsDir, { recursive: true, force: true });
+  } catch {}
+
+  try {
+    await fs.rm(LEGACY_DB_PATH, { force: true });
+    await fs.rm(RETIRED_LEGACY_DB_PATH, { force: true });
+  } catch {}
+
+  writeLocks.clear();
+  await touchMeta();
 }

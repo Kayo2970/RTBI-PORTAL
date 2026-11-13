@@ -49,7 +49,7 @@ import {
   Lightbulb,
   Users,
 } from 'lucide-react';
-import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders } from '@/lib/local-data';
+import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
@@ -869,6 +869,31 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     window.location.reload();
   };
 
+  const isLocalhost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '[::1]'
+  );
+
+  const handleWipeLocalhostData = async () => {
+    if (!window.confirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/wipe-data', {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      clearAllLocalMemory();
+      alert(data.message || 'Application data and memory wiped clean.');
+      window.location.href = '/setup';
+    } catch {
+      clearAllLocalMemory();
+      window.location.href = '/setup';
+    }
+  };
+
   const quickSwitchResults = allMembers.filter(m => {
     const q = quickSwitchSearch.toLowerCase();
     return !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || m.role.toLowerCase().includes(q);
@@ -1477,6 +1502,16 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </Link>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          {isLocalhost && (
+            <button
+              onClick={handleWipeLocalhostData}
+              className="h-8 w-8 flex items-center justify-center text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
+              title="Wipe data (Localhost)"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+
           <button
             onClick={toggleTheme}
             className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
@@ -1593,6 +1628,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-3 justify-end shrink-0">
+            {/* Localhost Data Wipe button */}
+            {isLocalhost && (
+              <button
+                onClick={handleWipeLocalhostData}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                title="Wipe all data and reset memory (Localhost only)"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Wipe Data</span>
+              </button>
+            )}
+
             {/* Interactive Guided Tour button */}
             <button
               onClick={() => setIsTourOpen(true)}

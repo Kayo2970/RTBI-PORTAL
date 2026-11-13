@@ -1293,7 +1293,7 @@ export function generateNewMemberWelcomeTemplate(member: {
         </a>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you have any questions or require assistance, please reach out to your Centre Head or System Administrator.</p>
+      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you have any questions or require assistance, please reach out to your Administrator.</p>
     `
   });
 
@@ -1574,7 +1574,7 @@ export function findApprovalRecipients(members: Array<{ id?: string; name: strin
   // established precedent for the same ambiguity.
   const centreHead = active.find(m => {
     const role = (m.role || '').toLowerCase();
-    return role.includes('centre head') || role.includes('center head');
+    return m.tier === 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
   }) || active.find(m => m.tier === 1);
 
   // Whole-word "advisor" match, mirroring permissions.ts's isCentreHead()

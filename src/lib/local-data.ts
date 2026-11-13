@@ -37,6 +37,17 @@ export function signOutClient(): void {
   localStorage.removeItem('user');
 }
 
+/**
+ * Clean wipe of all local client storage (localStorage + sessionStorage).
+ */
+export function clearAllLocalMemory(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch {}
+}
+
 export function authHeaders(extra?: Record<string, string>): Record<string, string> {
   const token = getSessionToken();
   return { ...(extra || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
@@ -1172,9 +1183,9 @@ export interface AccessLevelSettings {
   id: string; // always 'default'
   baseLeadershipMaxTier: number; // tier <= this counts as "Base Leadership"
   coreCommitteeTier: number; // tier === this counts as "Core Committee"
-  sectorHeadMaxTier: number; // tier <= this counts as Sector/Centre Head outright
+  sectorHeadMaxTier: number; // tier <= this counts as Leadership / CEO outright
   headKeyword: string; // whole-word, case-insensitive match against Member.role
-  sectorHeadKeywords: string; // comma-separated phrases, e.g. "sector head, centre head, center head"
+  sectorHeadKeywords: string; // comma-separated phrases, e.g. "ceo, director, head, lead"
   financeKeyword: string; // whole-word, case-insensitive match against role or department
   updatedAt?: string;
   updatedBy?: string;
@@ -1183,10 +1194,10 @@ export interface AccessLevelSettings {
 export const DEFAULT_ACCESS_LEVEL_SETTINGS: AccessLevelSettings = {
   id: 'default',
   baseLeadershipMaxTier: 3,
-  coreCommitteeTier: 5,
+  coreCommitteeTier: 3,
   sectorHeadMaxTier: 2,
   headKeyword: 'head',
-  sectorHeadKeywords: 'sector head, centre head, center head',
+  sectorHeadKeywords: 'ceo, director, head, lead',
   financeKeyword: 'finance',
 };
 
@@ -1347,7 +1358,7 @@ export const initialFormTemplates: FormTemplateItem[] = [
   {
     id: FEEDBACK_FORM_TEMPLATE_ID,
     name: 'Feedback Form Template',
-    description: 'The standard LEADS event feedback form — matches the official Feedback_Events.docx exactly, including the option to download each response as a filled copy of that Word document.',
+    description: 'The standard RTBI event feedback form — matches the official feedback form, including the option to download each response as a filled copy of that Word document.',
     createdBy: 'System',
     createdAt: '2026-01-01',
     fields: [
@@ -3533,7 +3544,7 @@ function spawnEventReportRequestTask(eventId: string, eventTitle: string | undef
   const members = getMembers().filter(m => m.status !== 'Terminated');
   const centreHead = members.find(m => {
     const role = (m.role || '').toLowerCase();
-    return role.includes('centre head') || role.includes('center head');
+    return m.tier <= 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
   }) || members.find(m => m.tier === 1);
   const advisor = members.find(m => /\badvisor\b/.test((m.role || '').toLowerCase()));
   const eventsHeadGg = members.find(m => {
@@ -5020,14 +5031,14 @@ export function saveProcurementRequests(items: ProcurementRequestItem[]): void {
 
 function isProcurementAutoApprover(user?: { role?: string; tier?: number; division?: string } | null): boolean {
   if (!user) return false;
-  if (user.tier === 1) return true;
+  if (user.tier === 1 || user.tier === 2) return true;
   const role = (user.role || '').toLowerCase();
   const division = (user.division || '').toLowerCase();
   return (
-    role.includes('centre head') ||
-    role.includes('center head') ||
-    role.includes('advisor') ||
-    division.includes('advisory')
+    role.includes('ceo') ||
+    role.includes('director') ||
+    role.includes('head') ||
+    division.includes('leadership')
   );
 }
 
@@ -5038,13 +5049,13 @@ export function createProcurementTask(
   tasks: TaskItem[]
 ): TaskItem {
   const active = members.filter(m => m.status !== 'Terminated' && m.email);
-  const centreHead = active.find(m => {
+  const ceoUser = active.find(m => {
     const role = (m.role || '').toLowerCase();
-    return role.includes('centre head') || role.includes('center head');
+    return m.tier === 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
   }) || active.find(m => m.tier === 1) || active[0];
 
   const itemsSummary = request.items.map(i => `${i.quantity} ${i.unit || ''} ${i.name}`.replace(/\s+/g, ' ').trim()).join(', ');
-  const title = `Procure items for ${request.eventName || request.taskTitle || 'Centre'}: ${itemsSummary.length > 80 ? itemsSummary.slice(0, 77) + '...' : itemsSummary}`;
+  const title = `Procure items for ${request.eventName || request.taskTitle || 'Operations'}: ${itemsSummary.length > 80 ? itemsSummary.slice(0, 77) + '...' : itemsSummary}`;
 
   let dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   if (request.eventId) {
@@ -5059,16 +5070,16 @@ export function createProcurementTask(
     .map(i => `• ${i.quantity} ${i.unit || ''} ${i.name}${i.notes ? ` (${i.notes})` : ''}`)
     .join('\n');
 
-  const briefDescription = `This is for the Centre Head to procure:\n${itemsDetail}\n\nRequested by: ${request.requesterName}${request.justification ? `\nJustification: ${request.justification}` : ''}\n\nNote: Procurement tasks are administrative operations and not subject to ratings or reviews.`;
+  const briefDescription = `Procurement Request:\n${itemsDetail}\n\nRequested by: ${request.requesterName}${request.justification ? `\nJustification: ${request.justification}` : ''}\n\nNote: Procurement tasks are administrative operations and not subject to ratings or reviews.`;
 
   return {
     id: `task_procurement_${request.id}`,
     title,
     event: request.eventName,
     eventId: request.eventId,
-    assignee: centreHead ? centreHead.name : 'Centre Head',
-    assigneeId: centreHead?.id,
-    assigneeEmail: centreHead?.email,
+    assignee: ceoUser ? ceoUser.name : 'CEO',
+    assigneeId: ceoUser?.id,
+    assigneeEmail: ceoUser?.email,
     assigneeType: 'individual',
     dueDate,
     status: 'Assigned',

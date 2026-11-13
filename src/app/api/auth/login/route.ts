@@ -42,8 +42,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: terminatedDate
-            ? `You have been terminated from RTBI Portal effective ${terminatedDate}. You have lost access to the portal. Contact your Centre Head if you believe this is a mistake.`
-            : 'You have been terminated from RTBI Portal and have lost access to the portal. Contact your Centre Head if you believe this is a mistake.',
+            ? `You have been terminated from RTBI Portal effective ${terminatedDate}. You have lost access to the portal. Contact your Administrator if you believe this is a mistake.`
+            : 'You have been terminated from RTBI Portal and have lost access to the portal. Contact your Administrator if you believe this is a mistake.',
         },
         { status: 403 }
       );

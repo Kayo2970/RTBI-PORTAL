@@ -1205,7 +1205,7 @@ export default function EmailManagementPage() {
                             {q.tasks.map(t => (
                               <div key={t.id} className="p-2.5 bg-theme-background/60 rounded-xl border border-theme-border/20 text-xs">
                                 <span className="font-bold text-theme-text-primary block">{t.title}</span>
-                                <span className="text-[10px] text-theme-text-secondary block">Context: {t.event || 'LEADS Operations'} &middot; Due: {t.dueDate}</span>
+                                <span className="text-[10px] text-theme-text-secondary block">Context: {t.event || 'RTBI Operations'} &middot; Due: {t.dueDate}</span>
                               </div>
                             ))}
                           </div>
@@ -1481,7 +1481,7 @@ export default function EmailManagementPage() {
                   required
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
-                  placeholder="e.g. [LEADS Announcement] General Body Meeting Schedule & Deliverables"
+                  placeholder="e.g. [RTBI Announcement] General Body Meeting Schedule & Deliverables"
                   className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold"
                 />
               </div>

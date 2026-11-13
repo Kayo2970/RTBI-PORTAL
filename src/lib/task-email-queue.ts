@@ -105,7 +105,7 @@ export async function enqueueTaskEmailNotification(task: {
   const item: PendingTaskItem = {
     id: task.id,
     title: task.title,
-    event: task.event || task.eventName || 'LEADS Operations',
+    event: task.event || task.eventName || 'RTBI Operations',
     dueDate: task.dueDate || 'Flexible',
     creatorName: task.creatorName || 'Committee Lead',
     assigneeName: task.assigneeName || 'Member',
@@ -179,7 +179,7 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
           </span>
         </div>
         <div style="font-size: 12px; color: #a1a1aa; line-height: 1.5;">
-          <span>📌 <strong>Context:</strong> ${escapeHtml(item.event || 'LEADS Operations')}</span><br/>
+          <span>📌 <strong>Context:</strong> ${escapeHtml(item.event || 'RTBI Operations')}</span><br/>
           <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'Committee Lead')}</span>
         </div>
       </div>
@@ -189,7 +189,7 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
 
   const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) / committee role(s) in RTBI Portal:\n\n` +
     itemsToSend.map(i => `- ${i.title} (Context: ${i.event}, Due: ${i.dueDate})`).join('\n') +
-    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nLEADS Committee Management`;
+    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRTBI Portal Management`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,

@@ -87,7 +87,7 @@ function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
 const fmtDate = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 const REVIEWER_LABEL: Record<string, string> = {
   SUPER_USER: 'Super User',
-  CENTRE_HEAD: 'Centre Head',
+  CENTRE_HEAD: 'CEO',
   ADVISOR: 'Advisor',
   GG_HEAD: 'GG Campus Head',
   DESIGN_HEAD: 'Design Head',
@@ -825,5 +825,5 @@ export function generatePerformanceReportPdf(params: PerformanceReportParams): v
   footers(doc);
   const stamp = new Date().toISOString().split('T')[0];
   const who = params.subject ? `_${params.subject.replace(/[^\w]+/g, '_')}` : '';
-  doc.save(`leads_performance_report_${params.reportType}${who}_${stamp}.pdf`);
+  doc.save(`rtbi_performance_report_${params.reportType}${who}_${stamp}.pdf`);
 }

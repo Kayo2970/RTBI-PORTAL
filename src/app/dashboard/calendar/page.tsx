@@ -137,7 +137,7 @@ export default function CalendarPage() {
         <div className="lg:col-span-2 glass-panel rounded-2xl p-6 flex flex-col space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-theme-text-primary">LEADS Event Calendar</h3>
+              <h3 className="text-base font-bold text-theme-text-primary">RTBI Event Calendar</h3>
               <p className="text-xs text-theme-text-secondary">Click a highlighted day to see what's scheduled</p>
             </div>
 

@@ -27,7 +27,7 @@ export interface AccessLevelSettings {
 
 const DEFAULT_ACCESS_LEVEL_SETTINGS: AccessLevelSettings = {
   headKeyword: 'head',
-  sectorHeadKeywords: 'sector head,centre head,department head,base leadership',
+  sectorHeadKeywords: 'ceo,director,head,lead',
   sectorHeadMaxTier: 2,
   financeKeyword: 'finance',
   baseLeadershipMaxTier: 3,

@@ -31,7 +31,7 @@ export async function POST(
     const settings = await getAccessLevelSettingsServer();
     requirePermission(
       isCentreHead(actor, settings) || isAdvisor(actor) || isSuperUser(actor),
-      'Only the Centre Head, Advisor, or Super User can manually send a task-allotment email.'
+      'Only the CEO or Super User can manually send a task-allotment email.'
     );
 
     const tasks = await readCollection<any>('tasks');

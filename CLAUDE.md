@@ -10,6 +10,7 @@ npm run dev        # dev server on :3030
 npx tsc --noEmit   # type-check
 npm run build      # production build — must pass before any push
 npm run setup      # one-time Super User + DATA_ENCRYPTION_KEY bootstrap (or use /setup in the browser)
+npm run wipe       # clean wipe all application data, memory, and uploads
 ```
 No test suite: type-check + build passing is the acceptance bar.
 

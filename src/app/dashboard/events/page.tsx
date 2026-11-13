@@ -167,7 +167,7 @@ export default function EventsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'leads_events_template.csv');
+    link.setAttribute('download', 'rtbi_events_template.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

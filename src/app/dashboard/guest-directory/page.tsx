@@ -392,7 +392,7 @@ export default function GuestDirectoryPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'leads_guest_directory_template.csv');
+    link.setAttribute('download', 'rtbi_guest_directory_template.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

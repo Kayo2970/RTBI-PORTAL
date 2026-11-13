@@ -73,14 +73,14 @@
         background-color: #1e293b;
         border: 1px solid #334155;
         border-radius: 12px;
-        padding: 18px 20px;
-        margin: 18px 0;
+        padding: 16px 20px;
+        margin: 14px 0;
     }
     .status-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     .status-label {
         font-size: 11px;
@@ -124,18 +124,18 @@
     .dot-stopped { background-color: #f87171; }
 
     .status-message {
-        font-size: 13.5px;
+        font-size: 13px;
         color: #cbd5e1;
-        line-height: 1.45;
-        min-height: 38px;
+        line-height: 1.4;
+        min-height: 36px;
     }
     .info-grid {
         display: flex;
         justify-content: space-between;
-        margin-top: 12px;
-        padding-top: 12px;
+        margin-top: 10px;
+        padding-top: 10px;
         border-top: 1px solid #334155;
-        font-size: 12px;
+        font-size: 11.5px;
         color: #94a3b8;
     }
     .info-grid span b {
@@ -143,13 +143,14 @@
     }
     .actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
+        margin-top: 2px;
     }
     button {
         flex: 1;
-        padding: 11px 16px;
+        padding: 10px 12px;
         border-radius: 8px;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 600;
         cursor: pointer;
         border: none;
@@ -172,16 +173,16 @@
         background-color: #475569;
     }
     .btn-danger {
-        background-color: #7f1d1d;
-        color: #fca5a5;
-        border: 1px solid #991b1b;
+        background-color: #881337;
+        color: #fecdd3;
+        border: 1px solid #be123c;
     }
     .btn-danger:hover {
-        background-color: #991b1b;
+        background-color: #be123c;
         color: #ffffff;
     }
     .btn-icon {
-        margin-right: 5px;
+        margin-right: 4px;
     }
     .footer {
         display: flex;
@@ -189,7 +190,7 @@
         align-items: center;
         font-size: 11px;
         color: #64748b;
-        margin-top: 6px;
+        margin-top: 4px;
     }
     .footer a {
         color: #60a5fa;
@@ -207,7 +208,7 @@
         <div class="logo-badge">R</div>
         <div class="title-area">
             <h1>RTBI Portal Launcher</h1>
-            <p>LEADS Next Gen Centre &bull; Local Environment</p>
+            <p>Rural Technology & Business Incubator &bull; Local Environment</p>
         </div>
     </div>
 
@@ -230,12 +231,15 @@
 
     <div class="actions">
         <button id="btnOpen" class="btn-primary" onclick="openBrowser()">
-            <span class="btn-icon">&#127760;</span> Open in Browser
+            <span class="btn-icon">&#127760;</span> Open App
         </button>
         <button id="btnToggle" class="btn-secondary" onclick="toggleServer()">
             <span class="btn-icon">&#9654;</span> Start Server
         </button>
-        <button id="btnClose" class="btn-secondary" style="flex:0.6;" onclick="window.close()">
+        <button id="btnWipe" class="btn-danger" style="flex:0.9;" onclick="wipeData()">
+            <span class="btn-icon">&#128465;</span> Wipe Data
+        </button>
+        <button id="btnClose" class="btn-secondary" style="flex:0.5;" onclick="window.close()">
             Close
         </button>
     </div>
@@ -252,12 +256,12 @@
     var isRunning = false;
     var pollTimer = null;
     var pollAttempts = 0;
-    var maxPollAttempts = 45; // ~45 seconds timeout
+    var maxPollAttempts = 45;
     var browserAlreadyOpened = false;
 
     function resizeWindow() {
-        var w = 520;
-        var h = 370;
+        var w = 550;
+        var h = 390;
         window.resizeTo(w, h);
         var left = Math.max(0, (screen.availWidth - w) / 2);
         var top = Math.max(0, (screen.availHeight - h) / 2);
@@ -274,13 +278,11 @@
             fso = new ActiveXObject("Scripting.FileSystemObject");
             
             var path = unescape(location.pathname);
-            // On Windows mshta, location.pathname might be like "/C:/Users/..." or "C:\Users\..."
             if (path.charAt(0) === "/" || path.charAt(0) === "\\") {
                 path = path.substring(1);
             }
             appDir = fso.GetParentFolderName(path);
 
-            // Check if server is already running
             if (checkHttp()) {
                 onServerReady();
                 openBrowser();
@@ -319,7 +321,7 @@
             badge.className = "badge badge-running";
             dot.className = "indicator-dot dot-running";
             bText.innerText = "Online";
-            btnToggle.className = "btn-danger";
+            btnToggle.className = "btn-secondary";
             btnToggle.innerHTML = "<span class='btn-icon'>&#9632;</span> Stop Server";
             btnOpen.disabled = false;
             btnOpen.style.opacity = "1";
@@ -351,7 +353,6 @@
         browserAlreadyOpened = false;
 
         try {
-            // Check if node_modules exists
             if (!fso.FolderExists(appDir + "\\node_modules")) {
                 updateStatus("starting", "First-time setup: Installing dependencies in background. Please wait...");
                 var installCmd = 'cmd.exe /c cd /d "' + appDir + '" && npm install';
@@ -359,7 +360,7 @@
             }
 
             var startCmd = 'cmd.exe /c cd /d "' + appDir + '" && npm run dev';
-            shell.Run(startCmd, 0, false); // 0 = Hidden window, false = Async (don't block)
+            shell.Run(startCmd, 0, false);
 
             startPolling();
         } catch(e) {
@@ -427,6 +428,21 @@
         setTimeout(function() {
             startServerProcess();
         }, 1000);
+    }
+
+    function wipeData() {
+        if (!confirm("WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will purge all members, events, tasks, uploads, and sessions so you can start fresh.")) {
+            return;
+        }
+        try {
+            updateStatus("stopped", "Purging database and memory collections...");
+            var wipeCmd = 'cmd.exe /c cd /d "' + appDir + '" && node scripts/wipe-data.js';
+            shell.Run(wipeCmd, 0, true);
+            updateStatus("stopped", "Application data wiped clean. Fresh setup ready at /setup.");
+            alert("All application memory and data have been wiped clean.\nNext startup will prompt for initial Super User setup.");
+        } catch(e) {
+            alert("Error wiping data: " + e.message);
+        }
     }
 </script>
 </body>

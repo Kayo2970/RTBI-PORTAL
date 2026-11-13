@@ -7,8 +7,8 @@ import { apiError } from '@/lib/api-error';
 import { gateTaskAction, taskEditKeys, holdEditForApproval, stampPendingCreate, isSystemTask, isPendingState } from '@/lib/approval-gate';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
-  pending_create: 'This task needs sign-off from the Centre Head, Advisor, or GG Campus Events Head before it is allotted.',
-  pending_edit: 'An edit to this task needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
+  pending_create: 'This task needs sign-off from the CEO or Administrator before it is allotted.',
+  pending_edit: 'An edit to this task needs sign-off from the CEO or Administrator.',
 };
 
 export async function GET(request: Request) {
