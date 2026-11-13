@@ -74,10 +74,6 @@ export function isChiefCoordinator(user: SessionUser): boolean {
   return false;
 }
 
-export function canReviewDesignProofread(user: SessionUser, design?: { assignedProofreaderIds?: string[]; assignedProofreaderEmail?: string; assignedProofreaderId?: string }): boolean {
-  return isSuperUser(user);
-}
-
 export function isAlumniRole(user: SessionUser): boolean {
   return false;
 }
@@ -144,27 +140,17 @@ export function canManageFestivals(user: SessionUser): boolean {
   return isSuperUser(user);
 }
 
-export function canEvaluateEventStudent(user: SessionUser, eventCampus?: string, isDesignDeliverable?: boolean): boolean {
+export function canEvaluateEventStudent(user: SessionUser): boolean {
   return isSuperUser(user);
 }
 
-export function isTaskRatable(task: { workflowType?: string; isProcurement?: boolean; procurementId?: string; title?: string } | null | undefined): boolean {
-  if (!task) return false;
-  if (task.workflowType === 'holiday_social_approval' || task.workflowType === 'procurement' || task.isProcurement || task.procurementId) return false;
-  if (typeof task.title === 'string' && /procure items|procurement/i.test(task.title)) return false;
-  return true;
-}
+export type RatingReviewerRole = 'SUPER_USER' | 'CEO';
 
-export type RatingReviewerRole = 'SUPER_USER' | 'CENTRE_HEAD' | 'ADVISOR' | 'GG_HEAD' | 'DESIGN_HEAD';
-
-export function resolveRatingReviewerRole(user: SessionUser, isDesignDeliverable?: boolean): RatingReviewerRole | null {
+export function resolveRatingReviewerRole(user: SessionUser): RatingReviewerRole | null {
   if (!user) return null;
   if (user.tier === 1) return 'SUPER_USER';
+  if (user.tier === 2) return 'CEO';
   return null;
-}
-
-export function isDesignHead(user: SessionUser): boolean {
-  return false;
 }
 
 export function canManageCanvaLibrary(user: SessionUser): boolean {
@@ -511,43 +497,6 @@ export function canTerminateMember(user: SessionUser): boolean {
 
 export function canSetMemberPassword(user: SessionUser): boolean {
   return isSuperUser(user);
-}
-
-export function isFaculty(user: SessionUser): boolean {
-  return false;
-}
-
-export function isSocialMediaTeamMember(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaPostTask(task: {
-  title?: string;
-  workflowType?: string;
-  taskCategory?: string;
-  isSocialMediaPost?: boolean;
-  platform?: string;
-} | null | undefined): boolean {
-  if (!task) return false;
-  if (task.workflowType === 'design_social_posting' || task.workflowType === 'holiday_design_social' || task.workflowType === 'event_social_post') {
-    return true;
-  }
-  if (task.isSocialMediaPost === true) return true;
-  if (task.platform === 'instagram' || task.platform === 'linkedin') return true;
-  const title = (task.title || '').toLowerCase();
-  return title.includes('social media') || title.includes('[social media posting]');
 }
 
 export function canAccessGuestDirectory(user: SessionUser): boolean {

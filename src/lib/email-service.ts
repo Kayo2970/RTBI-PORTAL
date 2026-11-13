@@ -1597,179 +1597,45 @@ export function generateBirthdayEmailTemplate(memberName: string): { subject: st
 }
 
 /**
- * Template Generator: Design Captions Approved (sent with the design asset
- * re-attached and the approved Instagram/LinkedIn caption text inline, once
- * the caption reviewer marks captionStatus 'approved' — see
- * reviewDesignCaptions in local-data.ts).
- */
-export function generateCaptionsApprovedEmailTemplate(
-  designTitle: string,
-  designerName: string,
-  instagramCaption?: string,
-  linkedinCaption?: string
-): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `Captions Approved: ${designTitle}`;
-  const captionBlockText = [
-    instagramCaption ? `Instagram caption:\n${instagramCaption}` : '',
-    linkedinCaption ? `LinkedIn caption:\n${linkedinCaption}` : '',
-  ].filter(Boolean).join('\n\n');
-  const bodyText = `Hello,\n\n` +
-    `The captions for design "${designTitle}", submitted by ${designerName}, have been approved and the design is now ready to post.\n\n` +
-    `${captionBlockText}\n\n` +
-    `The final asset is attached to this email.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
-
-  const captionBlockHtml = (label: string, text?: string) => text ? `
-      <div style="background: #FEF7F6; border-left: 3px solid #E86848; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">${label}</p>
-        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${text}</p>
-      </div>
-    ` : '';
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: `Captions Approved`,
-    headerSubtitle: designTitle,
-    badgeText: `Ready to Post`,
-    badgeColor: `#15803d`,
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The captions for design <strong>${designTitle}</strong>, submitted by <strong>${designerName}</strong>, have been approved and the design is now ready to post.</p>
-      ${captionBlockHtml('Instagram Caption', instagramCaption)}
-      ${captionBlockHtml('LinkedIn Caption', linkedinCaption)}
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The final asset is attached to this email.</p>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-/**
- * Template Generator: Design Style Approved (sent with the design asset
- * attached once the Design Head marks it Style Approved). Doubles as the
- * Centre Head's approval-of-record notice, so it names who submitted the
- * design, when, and who approved it, alongside the attached final asset.
- */
-export function generateDesignApprovedEmailTemplate(
-  designTitle: string,
-  designerName: string,
-  submittedAt?: string,
-  approvedByName?: string
-): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `Design Approved: ${designTitle}`;
-  const submittedAtFormatted = submittedAt ? new Date(submittedAt).toLocaleString() : undefined;
-
-  const bodyText = `Hello,\n\n` +
-    `The design "${designTitle}", submitted by ${designerName}` +
-    (submittedAtFormatted ? ` on ${submittedAtFormatted}` : '') +
-    `, has been Style Approved` +
-    (approvedByName ? ` by ${approvedByName}` : '') +
-    `.\n\n` +
-    `The final asset is attached to this email.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: `Design Approved`,
-    headerSubtitle: designTitle,
-    badgeText: `Style Approved`,
-    badgeColor: `#15803d`,
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The design <strong>${designTitle}</strong> has been Style Approved${approvedByName ? ` by <strong>${approvedByName}</strong>` : ''}.</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Submitted by <strong>${designerName}</strong>${submittedAtFormatted ? ` on <strong>${submittedAtFormatted}</strong>` : ''}.</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The final asset is attached to this email.</p>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-
-/**
  * Template Generator: Design Decision Notification (sent to the designer who
- * submitted the file, every time a proofread or style decision is recorded
- * against their submission — approved or rejected/changes requested). This
- * is the designer-facing counterpart to generateDesignApprovedEmailTemplate
- * (which notifies the Centre Head/Advisor/GG Campus Head of Events instead).
+ * submitted the file when a reviewer approves or rejects their submission).
  */
 export function generateDesignDecisionEmailTemplate(
   designTitle: string,
   designerName: string,
-  stage: 'Proofreading' | 'Style Approval',
   approved: boolean,
   decidedByName: string,
   comments?: string
 ): { subject: string; bodyText: string; bodyHtml: string } {
-  const outcome = approved ? 'Approved' : (stage === 'Proofreading' ? 'Changes Requested' : 'Rejected');
-  const subject = `${stage} ${outcome}: ${designTitle}`;
+  const outcome = approved ? 'Approved' : 'Rejected';
+  const subject = `Design ${outcome}: ${designTitle}`;
   const bodyText = `Hello ${designerName},\n\n` +
-    `Your design submission "${designTitle}" has been reviewed at the ${stage} stage by ${decidedByName}.\n\n` +
+    `Your design submission "${designTitle}" has been reviewed by ${decidedByName}.\n\n` +
     `Decision: ${outcome}\n` +
     (comments ? `Comments:\n${comments}\n\n` : '\n') +
     (approved
-      ? `No further action is needed from you at this stage.\n\n`
+      ? `No further action is needed from you.\n\n`
       : `Please review the feedback above and resubmit or update your design accordingly.\n\n`) +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRTBI Portal`;
 
   const badgeColor = approved ? '#15803d' : '#be123c';
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
-    headerTitle: `${stage} ${outcome}`,
+    headerTitle: `Design ${outcome}`,
     headerSubtitle: designTitle,
     badgeText: outcome,
     badgeColor,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${designerName}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your design submission <strong>${designTitle}</strong> has been reviewed at the <strong>${stage}</strong> stage by <strong>${decidedByName}</strong>.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your design submission <strong>${designTitle}</strong> has been reviewed by <strong>${decidedByName}</strong>.</p>
       <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
       ${comments ? `
       <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
         <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Comments</p>
         <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
       </div>` : ''}
-      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'No further action is needed from you at this stage.' : 'Please review the feedback above and resubmit or update your design accordingly.'}</p>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-/**
- * Template Generator: Design Resubmitted Notification (sent to the same
- * reviewers who rejected a design — faculty proofreaders, or the Centre
- * Head/Advisor/GG Campus Head of Events panel — once the designer replaces
- * the file to address the feedback). Counterpart to the request/approved
- * templates above, but for the "revised and resubmitted" step in between.
- */
-export function generateDesignResubmittedEmailTemplate(
-  designTitle: string,
-  designerName: string,
-  stage: 'Proofreading' | 'Style Approval',
-  designLink: string
-): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `Design Resubmitted: ${designTitle}`;
-  const feedbackLabel = stage === 'Proofreading' ? 'proofread feedback' : 'style feedback';
-  const bodyText = `Hello,\n\n` +
-    `${designerName} has revised and resubmitted the design "${designTitle}" following your earlier ${feedbackLabel}.\n\n` +
-    `Please review the updated asset here:\n${designLink}\n\n` +
-    `Regards,\nRTBI Design Portal`;
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: 'Design Resubmitted',
-    headerSubtitle: designTitle,
-    badgeText: 'Revised & Resubmitted',
-    badgeColor: '#EA7153',
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;"><strong>${designerName}</strong> has revised and resubmitted the design <strong>${designTitle}</strong> following your earlier ${feedbackLabel}.</p>
-      <div style="text-align: center; margin: 24px 0 12px;">
-        <a href="${designLink}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px;">
-          Review Updated Design
-        </a>
-      </div>
+      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'No further action is needed from you.' : 'Please review the feedback above and resubmit or update your design accordingly.'}</p>
     `
   });
 

@@ -11,7 +11,7 @@ import {
   ExternalLink,
   TrendingUp
 } from 'lucide-react';
-import { getStudentProfile, formatEventDateRange, StudentProfileData, Member, isFacultyMember } from '@/lib/local-data';
+import { getStudentProfile, formatEventDateRange, StudentProfileData, Member } from '@/lib/local-data';
 import Link from 'next/link';
 
 interface StudentProfileModalProps {
@@ -28,7 +28,6 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
   if (!targetId || !profile) return null;
 
   const { member, stats, tasks, assignedEvents, ratings } = profile;
-  const isFaculty = false; // ERP faculty distinction does not apply to the RTBI tiers
 
   return (
     <div
@@ -105,12 +104,12 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
             <div className="mt-2">
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-black text-theme-text-primary">
-                  {ratings.length > 0 ? stats.averageRating.toFixed(1) : isFaculty ? 'Oversight' : '5.0'}
+                  {ratings.length > 0 ? stats.averageRating.toFixed(1) : '5.0'}
                 </span>
                 {ratings.length > 0 && <span className="text-[10px] text-theme-text-secondary">/ 5.0</span>}
               </div>
               <span className="text-[9px] text-theme-text-secondary">
-                {ratings.length > 0 ? `${ratings.length} task reviews` : isFaculty ? 'Faculty / Advisory' : 'Baseline score'}
+                {ratings.length > 0 ? `${ratings.length} task reviews` : 'Baseline score'}
               </span>
             </div>
           </div>

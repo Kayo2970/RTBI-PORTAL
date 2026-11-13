@@ -648,13 +648,6 @@ export interface TaskItem {
   acknowledgedByEmail?: string;
 }
 
-/** Check if a member belongs to Faculty or holds a professor title. */
-export function isFacultyMember(member: { division?: string; role?: string } | null | undefined): boolean {
-  if (!member) return false;
-  const role = (member.role || '').toLowerCase();
-  return role.includes('faculty') || role.includes('professor') || role.includes('prof.');
-}
-
 export interface TaskDelegationEvent {
   action: 'submitted_for_review' | 'approved' | 'rejected' | 'delegated';
   actorName: string;
@@ -727,14 +720,13 @@ export interface RatingItem {
   targetName: string; // Member Name
   raterName: string;
   // Which reviewer slot this rating fills — see permissions.ts's
-  // resolveRatingReviewerRole. SUPER_USER, CENTRE_HEAD, ADVISOR, and GG_HEAD are
-  // averaged together into the task's ratingScore (see recomputeTaskAggregateScore below);
-  // DESIGN_HEAD is the design-deliverable lane.
-  reviewerRole?: 'SUPER_USER' | 'CENTRE_HEAD' | 'ADVISOR' | 'GG_HEAD' | 'DESIGN_HEAD';
+  // resolveRatingReviewerRole. Super User and CEO reviews are averaged together
+  // into the task's ratingScore (see recomputeTaskAggregateScore below).
+  reviewerRole?: 'SUPER_USER' | 'CEO';
   // Which 5-criterion rubric this rating was scored against (see
-  // rating-criteria.ts) — General/Design/Report Writing. Undefined on
+  // rating-criteria.ts) — General/Design. Undefined on
   // ratings created before this field existed.
-  criteriaSet?: 'general' | 'design' | 'reportWriting';
+  criteriaSet?: 'general' | 'design';
   // The actual per-criterion scores (keyed by RATING_CRITERIA[criteriaSet]'s
   // `key`s), populated for every rating submitted after this field existed.
   scores?: Record<string, number>;
@@ -3717,7 +3709,6 @@ export interface TaskAssigneeStatus {
   name: string;
   email?: string;
   acknowledged: boolean;
-  isFaculty?: boolean;
 }
 
 /**
@@ -3745,12 +3736,6 @@ export function getTaskAssigneeStatuses(
     return false;
   };
 
-  const checkIsFaculty = (m?: Member, name?: string) => {
-    if (m && isFacultyMember(m)) return true;
-    if (name && /prof\.|professor|faculty/i.test(name)) return true;
-    return false;
-  };
-
   // Group task with explicit assigneeIds
   if (task.assigneeType === 'group' && Array.isArray(task.assigneeIds) && task.assigneeIds.length > 0) {
     return task.assigneeIds.map(id => {
@@ -3761,7 +3746,6 @@ export function getTaskAssigneeStatuses(
         name,
         email: m?.email,
         acknowledged: checkAck(id, m?.email, name),
-        isFaculty: checkIsFaculty(m, name),
       };
     });
   }
@@ -3780,7 +3764,6 @@ export function getTaskAssigneeStatuses(
           name: m?.name || rawName,
           email: m?.email,
           acknowledged: checkAck(id, m?.email, rawName),
-          isFaculty: checkIsFaculty(m, rawName),
         };
       });
     }
@@ -3797,7 +3780,6 @@ export function getTaskAssigneeStatuses(
     name,
     email: m?.email || task.assigneeEmail,
     acknowledged: checkAck(id, m?.email, name),
-    isFaculty: checkIsFaculty(m, name),
   }];
 }
 
@@ -3865,14 +3847,16 @@ export function saveRatings(ratings: RatingItem[]): void {
 
 /**
  * Recomputes a task's single ratingScore summary field as the average of its
- * SUPER_USER, CENTRE_HEAD, ADVISOR, and GG_HEAD reviews (see
+ * Super User and CEO reviews (see
  * permissions.ts's resolveRatingReviewerRole) for the given targetId (the
  * parent rating's target — the actual assignee for an individual task, or
  * the group identifier for a fan-out task). The score is the live average
  * of whichever reviewers have submitted so far.
  */
 function isReviewerRole(role?: string): boolean {
-  return role === 'SUPER_USER' || role === 'CENTRE_HEAD' || role === 'ADVISOR' || role === 'GG_HEAD';
+  // Ratings stored before the reviewer roles were simplified may carry a
+  // legacy role name; any reviewer role counts.
+  return !!role && role !== 'DESIGN_HEAD';
 }
 
 function recomputeTaskAggregateScore(taskId: string, targetId: string, actorName: string): void {
@@ -3891,12 +3875,7 @@ function recomputeTaskAggregateScore(taskId: string, targetId: string, actorName
     return;
   }
   const relevant = getRatings().filter(
-    r => r.taskId === taskId && r.targetId === targetId && (
-      r.reviewerRole === 'SUPER_USER' ||
-      r.reviewerRole === 'CENTRE_HEAD' ||
-      r.reviewerRole === 'ADVISOR' ||
-      r.reviewerRole === 'GG_HEAD'
-    )
+    r => r.taskId === taskId && r.targetId === targetId && isReviewerRole(r.reviewerRole)
   );
   if (relevant.length === 0) return;
   const avg = parseFloat((relevant.reduce((sum, r) => sum + r.overallScore, 0) / relevant.length).toFixed(2));
@@ -3917,7 +3896,6 @@ function propagateGroupRating(task: TaskItem, parentRating: RatingItem): void {
   task.assigneeIds.forEach(mId => {
     const memberObj = members.find(m => m.id === mId);
     if (!memberObj) return;
-    if (isFacultyMember(memberObj)) return;
 
     // Same same-reviewer-role scoping as the other fan-out ratings.
     const existingIdx = ratings.findIndex(
@@ -3994,7 +3972,7 @@ export function rateTaskMembers(
 
   memberIds.forEach(mId => {
     const memberObj = members.find(m => m.id === mId);
-    if (!memberObj || isFacultyMember(memberObj)) return;
+    if (!memberObj) return;
 
     const existingIdx = ratings.findIndex(
       r => r.taskId === task.id && !r.isGroupPlaceholder && r.targetId === memberObj.id &&
@@ -4043,9 +4021,6 @@ export function addRating(rating: Omit<RatingItem, 'id' | 'createdAt'>): RatingI
 
   const members = getMembers();
   const targetMember = members.find(m => m.id === rating.targetId || m.name.toLowerCase() === rating.targetName.toLowerCase());
-  if ((targetMember && isFacultyMember(targetMember)) || /prof\.|professor|faculty/i.test(rating.targetName)) {
-    throw new Error('Professors and faculty members cannot receive performance ratings.');
-  }
   const ratings = getRatings();
   const newRating: RatingItem = {
     ...rating,

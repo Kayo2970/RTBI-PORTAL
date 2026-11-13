@@ -37,9 +37,6 @@ import {
   initialBudgets,
   initialIncomeSources,
   FEEDBACK_FORM_TEMPLATE_ID,
-  isFacultyMember,
-  isSocialMediaTeamMember,
-  isSocialMediaPostTask,
 } from './local-data';
 
 const DATA_DIR = path.join(process.cwd(), 'data');

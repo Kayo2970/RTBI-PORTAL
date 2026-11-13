@@ -226,11 +226,9 @@ async function policyOnlyGate(user: ServerUser, capabilities: string[], trusted:
 
 const TASK_EDIT_KEYS = new Set([
   'title', 'event', 'eventName', 'eventId', 'assignee', 'assigneeId', 'assigneeEmail',
-  'assigneeIds', 'assigneeType', 'dueDate', 'taskCategory', 'designCategory', 'briefDescription', 'canvaLink', 'isSocialMediaPost',
+  'assigneeIds', 'assigneeType', 'dueDate', 'taskCategory', 'designCategory', 'briefDescription', 'canvaLink',
 ]);
 export const taskEditKeys = (u: Record<string, unknown>) => Object.keys(u).filter((k) => TASK_EDIT_KEYS.has(k));
-/** Tasks the app creates for itself (procurement etc.) are not "someone assigning a task". */
-export const isSystemTask = (t: any) => !!(t && (t.workflowType || t.isProcurement || t.procurementId));
 
 export async function gateTaskAction(user: ServerUser, action: 'CREATE' | 'EDIT'): Promise<GateDecision> {
   if (!user) return { allowed: true, requiresApproval: false };
@@ -253,7 +251,7 @@ export async function gateFormAction(user: ServerUser, action: 'CREATE' | 'EDIT'
   if (!user) return { allowed: false, requiresApproval: false };
   const p = await import('./permissions-server');
   const settings = await getAccessLevelSettingsServer();
-  const trusted = user.tier === 1 || p.isCentreHead(user, settings) || p.isFinanceHead(user, settings) || p.isDesignHead(user, settings) || p.isHeadOfEvents(user);
+  const trusted = user.tier === 1 || p.isCentreHead(user, settings) || p.isFinanceHead(user, settings) || p.isHeadOfEvents(user);
   if (trusted) return { allowed: true, requiresApproval: false };
   const caps = action === 'DELETE' ? ['FORMS_DELETE', 'BUILD_FORMS'] : ['BUILD_FORMS'];
   const builtInAccess = action === 'DELETE' ? await p.canDeleteForms(user, settings) || p.canCreateForms(user, settings) : p.canCreateForms(user, settings);
