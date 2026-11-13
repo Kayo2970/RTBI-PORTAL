@@ -131,8 +131,8 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
     if (!canPickMembers) return;
     const read = () => { setMembers(getMembers()); setTaskList(getTasks()); };
     read();
-    window.addEventListener('leads-data-sync', read);
-    return () => window.removeEventListener('leads-data-sync', read);
+    window.addEventListener('rtbi-data-sync', read);
+    return () => window.removeEventListener('rtbi-data-sync', read);
   }, [canPickMembers]);
   const [openStep, setOpenStep] = useState(1);
   const [attendees, setAttendees] = useState<Attendee[]>([]);

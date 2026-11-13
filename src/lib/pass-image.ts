@@ -214,7 +214,7 @@ export async function renderBoardingPassPng(
   let qrLogo: any;
   if (qrOptionsFromPass(pass).logo) {
     try {
-      qrLogo = await loadImage(path.join(process.cwd(), 'public', 'images', 'rtbi-icon.png'));
+      qrLogo = await loadImage(path.join(process.cwd(), 'public', 'card', 'rtbi-logo-clean.png'));
     } catch {
       /* no logo */
     }

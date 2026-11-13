@@ -103,7 +103,7 @@ export default function PublicEventPassPage({
   const handleAddToCalendar = () => {
     if (!pass) return;
     const title = `${pass.eventName} (${pass.passType})`;
-    const location = pass.roomOrVenue || pass.eventVenue || 'Main Auditorium, RUAS GG Campus';
+    const location = pass.roomOrVenue || pass.eventVenue || 'Main Auditorium, RUAS';
     const description = `Official admission pass for ${pass.attendeeName}.\nPass Serial: ${pass.serialNumber}\nView digital pass: ${passUrl}`;
     
     // All-day event spanning the pass's valid days (falls back to a single day today if unknown)

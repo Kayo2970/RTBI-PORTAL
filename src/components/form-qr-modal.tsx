@@ -30,7 +30,7 @@ interface FormQrModalProps {
 }
 
 /**
- * Every generated QR always gets the LEADS mark stamped in the center —
+ * Every generated QR always gets the RTBI mark stamped in the center —
  * drawn directly onto the same canvas the QR itself was rendered to, at
  * errorCorrectionLevel 'H' (tolerates up to ~30% obstruction), well inside
  * the ~20% area this occupies. Callers pass the target canvas (the small
@@ -69,7 +69,7 @@ function drawCenterLogo(canvas: HTMLCanvasElement | null): Promise<void> {
       resolve();
     };
     logo.onerror = () => {
-      console.error('Failed to load LEADS logo for QR center overlay.');
+      console.error('Failed to load RTBI logo for QR center overlay.');
       resolve();
     };
     logo.src = RTBI_LOGO_SRC;
@@ -179,7 +179,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`MSRUAS LEADS — OFFICIAL ${formTypeLabel.toUpperCase()}`, width / 2, 55);
+      ctx.fillText(`RTBI — OFFICIAL ${formTypeLabel.toUpperCase()}`, width / 2, 55);
 
       // Form Title
       ctx.fillStyle = '#0f172a';
@@ -257,7 +257,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
       // Footer notice
       ctx.fillStyle = '#94a3b8';
       ctx.font = '11px system-ui, -apple-system, sans-serif';
-      ctx.fillText('Powered by MSRUAS LEADS Operations Portal', width / 2, height - 35);
+      ctx.fillText('Powered by RTBI Portal', width / 2, height - 35);
 
       // Trigger Download — iOS Safari doesn't reliably honor <a download>;
       // tapping it just opens/navigates to the image instead of saving a
@@ -348,7 +348,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
         </head>
         <body>
           <div class="poster">
-            <p><strong>MSRUAS LEADS &bull; PUBLIC ${formTypeLabel.toUpperCase()}</strong></p>
+            <p><strong>RTBI &bull; PUBLIC ${formTypeLabel.toUpperCase()}</strong></p>
             <h1>${form.title}</h1>
             ${form.eventName ? `<p>Event: <strong>${form.eventName}</strong></p>` : ''}
             <img src="${qrDataUrl}" alt="Form QR Code" />

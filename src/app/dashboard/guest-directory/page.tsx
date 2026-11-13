@@ -95,10 +95,10 @@ export default function GuestDirectoryPage() {
     refresh();
     setUserHydrated(true);
 
-    window.addEventListener('leads-data-sync', refresh);
+    window.addEventListener('rtbi-data-sync', refresh);
     window.addEventListener('storage', refresh);
     return () => {
-      window.removeEventListener('leads-data-sync', refresh);
+      window.removeEventListener('rtbi-data-sync', refresh);
       window.removeEventListener('storage', refresh);
     };
   }, []);
@@ -392,7 +392,7 @@ export default function GuestDirectoryPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'leads_guest_directory_template.csv');
+    link.setAttribute('download', 'rtbi_guest_directory_template.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -403,14 +403,14 @@ export default function GuestDirectoryPage() {
   const handleDownloadFullBackup = () => {
     const header = toCsvRow(['Name', 'Organization', 'Designation', 'Phone', 'Email', 'Website', 'Address', 'LinkedIn', 'Notes', 'Met By']);
     const rows = visibleGuests.map(g => toCsvRow([g.name, g.organization, g.designation, g.phone, g.email, g.website, g.address, g.linkedin, g.notes, g.metBy]));
-    downloadCsv(`leads_guest_directory_backup_${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows].join('\n'));
+    downloadCsv(`rtbi_guest_directory_backup_${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows].join('\n'));
     triggerToast('success', `Downloaded a backup of ${visibleGuests.length} guest records.`);
   };
 
   const handleDownloadEmailConflicts = () => {
     const header = toCsvRow(['Name', 'Organization', 'Designation', 'Phone', 'Email', 'Website', 'Address', 'LinkedIn', 'Notes', 'Met By', 'Conflict Reason']);
     const rows = emailConflicts.map(c => toCsvRow([c.name, c.organization, c.designation, c.phone, c.email, c.website, c.address, c.linkedin, c.notes, c.metBy, 'Email already exists in the guest directory']));
-    downloadCsv(`leads_guest_directory_email_conflicts_${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows].join('\n'));
+    downloadCsv(`rtbi_guest_directory_email_conflicts_${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows].join('\n'));
   };
 
   const handleCsvUploadClick = () => {

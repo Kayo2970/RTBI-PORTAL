@@ -55,5 +55,5 @@ export function downloadEventDetailsCsv(event: EventItem, members: Member[]) {
   ];
   const slug = event.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').toLowerCase() || 'event';
   // Leading BOM so Excel reads names/accents as UTF-8.
-  downloadCsv(`leads_event_${slug}_${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + lines.join('\n'));
+  downloadCsv(`rtbi_event_${slug}_${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + lines.join('\n'));
 }

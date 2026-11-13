@@ -137,10 +137,10 @@ export default function EventsPage() {
       }
     }
 
-    window.addEventListener('leads-data-sync', refreshData);
+    window.addEventListener('rtbi-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
-      window.removeEventListener('leads-data-sync', refreshData);
+      window.removeEventListener('rtbi-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, []);
@@ -167,7 +167,7 @@ export default function EventsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'leads_events_template.csv');
+    link.setAttribute('download', 'rtbi_events_template.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -107,7 +107,7 @@ function ActivateAccountForm() {
   };
 
   if (status === 'done') {
-    const dynamicQr = cardSlug ? `/api/card/${cardSlug}/qr` : '/card/leads-qr-code.png';
+    const dynamicQr = cardSlug ? `/api/card/${cardSlug}/qr` : '/card/rtbi-qr-code.png';
     return (
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 py-10 relative z-0 overflow-x-hidden">
         {/* Top Celebration Header */}
@@ -187,7 +187,7 @@ function ActivateAccountForm() {
         <Link
           href="/"
           className="flex flex-col items-center text-center space-y-2 md:space-y-3 hover:opacity-90 transition-all cursor-pointer select-none"
-          title="LEADS Home"
+          title="RTBI Home"
         >
           <div className="h-12 w-12 md:h-16 md:w-16 flex items-center justify-center">
             <img

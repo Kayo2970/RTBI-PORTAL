@@ -83,7 +83,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/home',
         icon: Sparkles,
         color: 'accent',
-        summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'LEADS Committee'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
+        summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'RTBI Committee'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
         whatYouCanDo: [
           'Navigate through your assigned workspaces from the sidebar',
           'Track live committee tasks, events, and performance metrics',

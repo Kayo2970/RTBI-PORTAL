@@ -121,7 +121,7 @@ export async function POST(request: Request) {
 
         for (const faculty of selectedFaculty) {
           if (!faculty.email) continue;
-          const bodyText = `Dear ${faculty.name},\n\nA design asset has been submitted and assigned to you for faculty proofreading: "${created.title}".\n\nCategory: ${created.category || 'Design Asset'}\nEvent: ${created.eventTitle || 'LEADS Event'}\nSubmitted By: ${created.designerName || 'Designer'} (${created.designerEmail || 'N/A'})\n\nPlease inspect and complete your proofread review here:\n${designLink}\n\nRegards,\nLEADS Design Portal`;
+          const bodyText = `Dear ${faculty.name},\n\nA design asset has been submitted and assigned to you for faculty proofreading: "${created.title}".\n\nCategory: ${created.category || 'Design Asset'}\nEvent: ${created.eventTitle || 'RTBI Event'}\nSubmitted By: ${created.designerName || 'Designer'} (${created.designerEmail || 'N/A'})\n\nPlease inspect and complete your proofread review here:\n${designLink}\n\nRegards,\nRTBI Design Portal`;
 
           const bodyHtml = wrapInMasterEmailTemplate({
             pageTitle: subject,
@@ -138,7 +138,7 @@ export async function POST(request: Request) {
               <strong style="color: #6366f1; font-size: 15px;">🎨 ${created.title}</strong>
               <div style="font-size: 12px; color: #64748b; margin-top: 8px; line-height: 1.5;">
                 <span><strong>Category:</strong> ${created.category || 'Poster'}</span><br/>
-                <span><strong>Event:</strong> ${created.eventTitle || 'LEADS Operations'}</span><br/>
+                <span><strong>Event:</strong> ${created.eventTitle || 'RTBI Operations'}</span><br/>
                 <span><strong>Designer:</strong> ${created.designerName} (${created.designerEmail})</span>
               </div>
             </div>

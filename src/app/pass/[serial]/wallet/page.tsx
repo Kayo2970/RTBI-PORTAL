@@ -29,7 +29,7 @@ function WalletInner() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center">
-      <img src="/images/rtbi-icon.png" alt="RTBI" className="h-14 w-14 object-contain mb-5" />
+      <img src="/card/rtbi-logo.png" alt="RTBI" className="h-14 w-14 object-contain mb-5" />
       {error ? (
         <div className="max-w-md space-y-4">
           <p className="text-rose-300 text-sm font-semibold">{error}</p>

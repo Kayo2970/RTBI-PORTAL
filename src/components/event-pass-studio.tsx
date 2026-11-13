@@ -237,7 +237,7 @@ export function EventPassStudio({
   const resolvedEventVenue =
     selectedEvent?.location || roomOrVenue.trim() || 'RTBI Auditorium';
 
-  const previewSerial = `LEADS-EVT-2026-${(attendeeName || 'GUEST').slice(0, 3).toUpperCase()}-99`;
+  const previewSerial = `RTBI-EVT-2026-${(attendeeName || 'GUEST').slice(0, 3).toUpperCase()}-99`;
   const displayRoom = roomOrVenue.trim() || selectedEvent?.location || 'Main Auditorium';
   useEffect(() => {
     setSelectedValidDays(null);
@@ -281,7 +281,7 @@ export function EventPassStudio({
     link.setAttribute('href', url);
     link.setAttribute(
       'download',
-      `leads_event_passes_template_${(targetEvt?.title || 'event').toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`
+      `rtbi_event_passes_template_${(targetEvt?.title || 'event').toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`
     );
     document.body.appendChild(link);
     link.click();

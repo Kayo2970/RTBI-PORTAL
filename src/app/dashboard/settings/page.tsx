@@ -214,7 +214,7 @@ export default function SettingsPage() {
     const updatedUser = { ...user, email: res.newEmail };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event('leads-data-sync'));
+    window.dispatchEvent(new Event('rtbi-data-sync'));
     setAuditLogs(getAuditLogs());
 
     resetEmailChangeFlow();
@@ -264,7 +264,7 @@ export default function SettingsPage() {
     const updatedUser = { ...user, avatarUrl: result.avatarUrl };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event('leads-data-sync'));
+    window.dispatchEvent(new Event('rtbi-data-sync'));
     logAuditEvent('MEMBER_UPDATED', user.name, 'Updated profile photo', user.email);
     triggerSuccess('Profile photo updated successfully.');
   });
@@ -371,7 +371,7 @@ export default function SettingsPage() {
     const updatedUser = { ...user, ...changes };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event('leads-data-sync'));
+    window.dispatchEvent(new Event('rtbi-data-sync'));
     setAuditLogs(getAuditLogs());
 
     setCurrentPassword('');
@@ -466,7 +466,7 @@ export default function SettingsPage() {
     filteredAuditLogs.forEach(log => {
       csv += toCsvRow([log.timestamp, log.action, log.actorName, log.actorEmail, log.details]) + '\n';
     });
-    downloadCsv(`leads_audit_trail_${new Date().toISOString().split('T')[0]}.csv`, csv);
+    downloadCsv(`rtbi_audit_trail_${new Date().toISOString().split('T')[0]}.csv`, csv);
   };
 
   return (
@@ -968,7 +968,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="text-[11px] text-theme-text-secondary space-y-1">
-              <p>MSRUAS LEADS Next Gen Portal</p>
+              <p>RTBI Next Gen Portal</p>
               <p>Build version: v2026.8.19-email-sync</p>
             </div>
           </div>
@@ -1061,7 +1061,7 @@ export default function SettingsPage() {
         <div className="glass-panel rounded-2xl p-6 space-y-5">
           <div>
             <h3 className="text-base font-bold text-theme-text-primary">System Access & Permission Hierarchy</h3>
-            <p className="text-xs text-theme-text-secondary">Governing access rules across the 6 role tiers defined in LEADS PRD</p>
+            <p className="text-xs text-theme-text-secondary">Governing access rules across the 6 role tiers defined in RTBI PRD</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1206,7 +1206,7 @@ export default function SettingsPage() {
                     required
                     value={testSubject}
                     onChange={(e) => setTestSubject(e.target.value)}
-                    placeholder="[Test] LEADS System Verification"
+                    placeholder="[Test] RTBI System Verification"
                     className="w-full px-3.5 py-2 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent text-xs"
                   />
                 </div>

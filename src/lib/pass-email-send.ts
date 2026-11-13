@@ -32,7 +32,7 @@ export async function buildPassImageAttachment(pass: EventPassItem, origin: stri
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const png = await renderBoardingPassPng(pass, `${origin}/pass/${pass.serialNumber}`, await getPassTheme(pass.eventId));
-      return { attachments: [{ filename: `${pass.serialNumber}.png`, content: png, contentType: 'image/png', cid: 'leads-pass-image' }], bodyHtml };
+      return { attachments: [{ filename: `${pass.serialNumber}.png`, content: png, contentType: 'image/png', cid: 'rtbi-pass-image' }], bodyHtml };
     } catch (err) {
       lastErr = err;
     }
@@ -40,7 +40,7 @@ export async function buildPassImageAttachment(pass: EventPassItem, origin: stri
   console.warn('[pass-email] Boarding-pass image could not be rendered, using hosted image link:', lastErr);
   return {
     attachments: undefined,
-    bodyHtml: bodyHtml?.split('cid:leads-pass-image').join(`${origin}/api/pass/${encodeURIComponent(pass.serialNumber)}/image`),
+    bodyHtml: bodyHtml?.split('cid:rtbi-pass-image').join(`${origin}/api/pass/${encodeURIComponent(pass.serialNumber)}/image`),
   };
 }
 

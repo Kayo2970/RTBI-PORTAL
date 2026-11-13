@@ -101,8 +101,8 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
   useEffect(() => {
     const read = () => setEvents(getEvents());
     read();
-    window.addEventListener('leads-data-sync', read);
-    return () => window.removeEventListener('leads-data-sync', read);
+    window.addEventListener('rtbi-data-sync', read);
+    return () => window.removeEventListener('rtbi-data-sync', read);
   }, []);
 
   const groups = useMemo<Group[]>(() => {

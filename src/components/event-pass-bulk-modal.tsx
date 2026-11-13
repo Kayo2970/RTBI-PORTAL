@@ -127,7 +127,7 @@ export function EventPassBulkModal({
     ];
 
     const csvContent = [toCsvRow(headers), ...sampleRows].join('\n');
-    const filename = `leads_event_passes_template_${eventTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`;
+    const filename = `rtbi_event_passes_template_${eventTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`;
     downloadCsv(filename, csvContent);
   };
 

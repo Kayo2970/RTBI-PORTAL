@@ -258,7 +258,7 @@ export interface EventItem {
   campus?: 'GG Campus' | 'RTC Campus' | 'Both Campuses';
   committees: EventCommittee[];
   // True for an auto-synced Indian public holiday / festival (see
-  // src/lib/holiday-scheduler.ts) rather than a real LEADS event — the
+  // src/lib/holiday-scheduler.ts) rather than a real RTBI event — the
   // Calendar page badges these differently and they're excluded from
   // event-approval/committee/sponsor workflows.
   isHoliday?: boolean;
@@ -456,7 +456,7 @@ export interface PassQrOptions {
   /** Colour of the three corner eyes; '' = same as the dots. */
   eye: string;
   shape: PassQrShape;
-  /** LEADS logo in the centre of the QR. */
+  /** RTBI logo in the centre of the QR. */
   logo: boolean;
   /** Draw the styled QR into the wallet artwork instead of Apple/Google's native black-on-white barcode. */
   inWallet: boolean;
@@ -1545,7 +1545,7 @@ export const initialFormTemplates: FormTemplateItem[] = [
   {
     id: FEEDBACK_FORM_TEMPLATE_ID,
     name: 'Feedback Form Template',
-    description: 'The standard LEADS event feedback form — matches the official Feedback_Events.docx exactly, including the option to download each response as a filled copy of that Word document.',
+    description: 'The standard RTBI event feedback form — matches the official Feedback_Events.docx exactly, including the option to download each response as a filled copy of that Word document.',
     createdBy: 'System',
     createdAt: '2026-01-01',
     fields: [
@@ -1753,7 +1753,7 @@ async function doSyncWithServer(): Promise<boolean> {
     if (res.status === 401 && getSessionToken()) {
       // The server no longer recognises this session (signed out elsewhere, password reset by an admin, terminated...).
       // Tell the app shell so it can send the person back to the login page instead of showing stale data forever.
-      window.dispatchEvent(new Event('leads-session-expired'));
+      window.dispatchEvent(new Event('rtbi-session-expired'));
       return false;
     }
     if (!res.ok) return false;
@@ -1787,7 +1787,7 @@ async function doSyncWithServer(): Promise<boolean> {
       // fires in the tab that made the write, so this custom event is the only
       // signal same-tab pages get that a poll just pulled in fresh server data.
       // Skipped on polls where nothing changed (first sync always notifies).
-      if (changed || !hasSyncedOnce) window.dispatchEvent(new Event('leads-data-sync'));
+      if (changed || !hasSyncedOnce) window.dispatchEvent(new Event('rtbi-data-sync'));
       hasSyncedOnce = true;
       return true;
     }
@@ -2195,7 +2195,7 @@ export function syncActiveSessionUser(member: Member): void {
       };
       delete (updatedSessionUser as any).passwordHash;
       localStorage.setItem('user', JSON.stringify(updatedSessionUser));
-      window.dispatchEvent(new Event('leads-data-sync'));
+      window.dispatchEvent(new Event('rtbi-data-sync'));
     }
   } catch (e) {
     console.error('Failed to sync active session user:', e);
@@ -3119,7 +3119,7 @@ export async function reconcilePassesFromServer(): Promise<void> {
     const rows = await res.json();
     if (Array.isArray(rows)) {
       saveEventPasses(rows);
-      window.dispatchEvent(new Event('leads-data-sync'));
+      window.dispatchEvent(new Event('rtbi-data-sync'));
     }
   } catch {
     /* offline — keep the local copy */
@@ -3129,7 +3129,7 @@ export async function reconcilePassesFromServer(): Promise<void> {
 /** Surface the outcome of the server-side approval gate (held for approval / refused) to whichever screen is open. */
 export function notifyPassApproval(message: string, kind: 'pending' | 'error'): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent('leads-pass-approval', { detail: { message, kind } }));
+  window.dispatchEvent(new CustomEvent('rtbi-pass-approval', { detail: { message, kind } }));
 }
 
 /** Issuing a pass NEVER sends email (emailStatus starts 'Not Sent'); dispatch is always an explicit action. */
@@ -3138,7 +3138,7 @@ export function addEventPass(
 ): EventPassItem {
   const passes = getEventPasses();
   const id = `pass-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-  const serialNumber = `LEADS-EVT-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const serialNumber = `RTBI-EVT-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   const issuedAt = new Date().toISOString();
   
   // Cryptographic/verification token payload
@@ -3469,7 +3469,7 @@ export function buildPassEmail(
     ['Serial ID', pass.serialNumber],
   ];
 
-  const imageSrc = opts.forPreview ? `${origin}/api/pass/${encodeURIComponent(pass.serialNumber)}/image` : 'cid:leads-pass-image';
+  const imageSrc = opts.forPreview ? `${origin}/api/pass/${encodeURIComponent(pass.serialNumber)}/image` : 'cid:rtbi-pass-image';
   const imageBlock = `<div style="text-align:center;margin:18px 0;"><a href="${passUrl}"><img src="${imageSrc}" alt="Your event pass — ${esc(pass.serialNumber)}" width="552" style="display:block;width:100%;max-width:552px;height:auto;margin:0 auto;border-radius:16px;" /></a></div>`;
   const detailsBlock = `<table role="presentation" style="width:100%;font-size:13px;color:#cbd5e1;border-collapse:collapse;margin:14px 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">${detailRows
     .map(
@@ -3503,7 +3503,7 @@ export function buildPassEmail(
       <div style="text-align:center;margin-bottom:20px;">
         <span style="display:inline-block;padding:4px 12px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#38bdf8;background:rgba(56,189,248,0.15);border-radius:20px;">Official Event Pass</span>
         <h1 style="margin:16px 0 8px 0;font-size:22px;color:#ffffff;">${esc(pass.eventName)}</h1>
-        <p style="margin:0;color:#94a3b8;font-size:14px;">LEADS Next Gen Centre • RUAS</p>
+        <p style="margin:0;color:#94a3b8;font-size:14px;">RTBI • RUAS</p>
       </div>
       ${hasImage ? '' : imageBlock}
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:8px;">
@@ -3513,7 +3513,7 @@ export function buildPassEmail(
       ${passEmailButtonsHtml(origin, pass.serialNumber, { mapUrl, whatsappUrl })}
       <p style="margin:0;font-size:12px;color:#64748b;text-align:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
         Please present your digital pass or QR code at official event turnstiles upon arrival.<br/>
-        &copy; ${new Date().getFullYear()} LEADS Next Gen Centre &bull; MSRUAS
+        &copy; ${new Date().getFullYear()} RTBI &bull; MSRUAS
       </p>
       ${opts.forPreview ? '' : `<img src="${trackPixelUrl}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:none;outline:none;" />`}
     </div>
@@ -3555,7 +3555,7 @@ export async function dispatchPassEmail(
         category: 'EVENT_INVITATION',
         badgeText: 'Official Event Pass',
         badgeColor: '#0284c7',
-        passSerial: pass.serialNumber, // server renders + attaches the boarding-pass image (cid:leads-pass-image)
+        passSerial: pass.serialNumber, // server renders + attaches the boarding-pass image (cid:rtbi-pass-image)
         ...(background ? { background } : {}),
         metadata: {
           passId: pass.id,
@@ -3876,7 +3876,7 @@ export function saveApprovalRequests(requests: ApprovalRequest[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem('leads_approval_requests', JSON.stringify(requests));
   markLocalWrite('leads_approval_requests');
-  window.dispatchEvent(new CustomEvent('leads-data-sync'));
+  window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
 }
 
 /**
@@ -4072,7 +4072,7 @@ export function saveTasks(tasks: TaskItem[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem('leads_tasks', JSON.stringify(tasks));
   markLocalWrite('leads_tasks');
-  window.dispatchEvent(new CustomEvent('leads-data-sync'));
+  window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
 }
 
 /**
@@ -6787,7 +6787,7 @@ export function saveDesigns(designs: DesignSubmissionItem[]): void {
     });
     localStorage.setItem('leads_designs', JSON.stringify(cleaned));
     markLocalWrite('leads_designs');
-    window.dispatchEvent(new CustomEvent('leads-data-sync'));
+    window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
   } catch (e) {
     console.warn('[saveDesigns] Local storage quota exceeded or unavailable:', e);
   }

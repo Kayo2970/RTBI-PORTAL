@@ -194,10 +194,10 @@ const FALLBACK_COLOR = '#f8fafc';
  * inline CSS carry the picture (the widest-supported way), with a solid-colour fallback. Idempotent.
  */
 export function applyEmailBackground(html: string, url: string): string {
-  if (!html || !url || html.includes('data-leads-bg')) return html;
+  if (!html || !url || html.includes('data-rtbi-bg')) return html;
   const safe = url.replace(/["'()<>\s\\]/g, (c) => encodeURIComponent(c));
   const open =
-    `<table role="presentation" data-leads-bg="1" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${FALLBACK_COLOR}" background="${safe}" ` +
+    `<table role="presentation" data-rtbi-bg="1" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${FALLBACK_COLOR}" background="${safe}" ` +
     `style="width:100%;background-color:${FALLBACK_COLOR};background-image:url('${safe}');background-size:cover;background-position:center;background-repeat:no-repeat;">` +
     `<tr><td align="center" style="padding:24px 12px;">`;
   const close = `</td></tr></table>`;

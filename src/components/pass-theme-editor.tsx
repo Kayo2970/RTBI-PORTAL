@@ -155,9 +155,9 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
       roomOrVenue="Main Auditorium"
       eventName={eventName}
       validity="10 Oct – 12 Oct 2026"
-      serialNumber="LEADS-EVT-2026-XXXXXX"
+      serialNumber="RTBI-EVT-2026-XXXXXX"
       validDaysCount={3}
-      logoUrl={merged.logoUrl || '/images/rtbi-icon.png'}
+      logoUrl={merged.logoUrl || '/card/rtbi-logo.png'}
       theme={{ ...merged, walletBackgroundUrl: pendingBg || draft.walletBackgroundUrl }}
       passColor={val.bg}
     />

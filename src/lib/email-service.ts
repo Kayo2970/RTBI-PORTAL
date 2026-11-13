@@ -8,13 +8,13 @@ import { getAppBaseUrl } from './app-url';
 import { applyEmailBackground, resolveEmailBackgroundUrl, type EmailBackgroundChoice, type EmailBackgroundSetting } from './email-background';
 import { CAPABILITY_CATALOG, MODULE_CATALOG } from './permissions';
 
-// Referenced as cid:leads-logo in wrapInMasterEmailTemplate — attach this
+// Referenced as cid:rtbi-logo in wrapInMasterEmailTemplate — attach this
 // to every sendMail() call so the header logo is embedded, not fetched
 // from a remote URL.
 const EMAIL_LOGO_ATTACHMENT = {
-  filename: 'leads-logo.png',
-  path: path.join(process.cwd(), 'src', 'assets', 'leads-email-logo.png'),
-  cid: 'leads-logo',
+  filename: 'rtbi-logo.png',
+  path: path.join(process.cwd(), 'src', 'assets', 'rtbi-email-logo.png'),
+  cid: 'rtbi-logo',
 };
 
 export type EmailCategory =
@@ -271,7 +271,7 @@ function escapeHtmlForTitle(text: string): string {
 /**
  * Master Institutional Email Wrapper Template
  * Clean, standard corporate email layout (inspired by PayPal/Stripe transactional notices) with:
- * 1. Minimalist Institution Header Banner & LEADS Logo
+ * 1. Minimalist Institution Header Banner & RTBI Logo
  * 2. Styled Content Area (plain white container, high contrast, clean typography)
  * 3. Optional Badge Header Tag (can be omitted completely for clean direct emails & invites)
  * 4. Standardized Institutional Footer with Copyright & IP Licensing Notice for Kayomarz Pavri
@@ -401,7 +401,7 @@ export async function testEmailConnection(testRecipient: string, draftSettings?:
     const from = `${settings.fromName || 'RTBI Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
 
     const bodyHtml = wrapInMasterEmailTemplate({
-      pageTitle: `[LEADS Test Email] SMTP Client Verification`,
+      pageTitle: `[RTBI Test Email] SMTP Client Verification`,
       headerTitle: `SMTP Connection Verified`,
       headerSubtitle: `Diagnostic Health Check Successful`,
       badgeText: `SMTP Operational`,
@@ -420,7 +420,7 @@ export async function testEmailConnection(testRecipient: string, draftSettings?:
     const info = await t.sendMail({
       from,
       to: testRecipient,
-      subject: `[LEADS Test Email] SMTP Client Verification`,
+      subject: `[RTBI Test Email] SMTP Client Verification`,
       text: `Hello,\n\nThis is a test notification verifying that your RTBI Portal email client and SMTP server (${settings.provider.toUpperCase()} @ ${effectiveHost}) are properly configured and operational.\n\nSent at: ${new Date().toLocaleString()}`,
       html: bodyHtml,
       xMailer: false,
@@ -459,16 +459,16 @@ interface BufferedEmailEntry {
 // Shared via globalThis: Next.js loads this module once per route chunk, and separate copies
 // each had their own "already sending" set — so one email could be dispatched twice.
 const globalForEmail = globalThis as unknown as {
-  __leadsBufferedEmails?: Map<string, BufferedEmailEntry>;
-  __leadsSendingInProgress?: Set<string>;
-  __leadsSweeperStarted?: boolean;
+  __rtbiBufferedEmails?: Map<string, BufferedEmailEntry>;
+  __rtbiSendingInProgress?: Set<string>;
+  __rtbiSweeperStarted?: boolean;
 };
-const bufferedEmails: Map<string, BufferedEmailEntry> = (globalForEmail.__leadsBufferedEmails ??= new Map());
-const sendingInProgress: Set<string> = (globalForEmail.__leadsSendingInProgress ??= new Set());
+const bufferedEmails: Map<string, BufferedEmailEntry> = (globalForEmail.__rtbiBufferedEmails ??= new Map());
+const sendingInProgress: Set<string> = (globalForEmail.__rtbiSendingInProgress ??= new Set());
 
 function ensureSweeperInterval(): void {
-  if (globalForEmail.__leadsSweeperStarted || typeof setInterval === 'undefined') return;
-  globalForEmail.__leadsSweeperStarted = true;
+  if (globalForEmail.__rtbiSweeperStarted || typeof setInterval === 'undefined') return;
+  globalForEmail.__rtbiSweeperStarted = true;
   const interval = setInterval(() => {
     sweepExpiredBufferedEmails().catch(err => {
       console.error('[email-service] Background sweeper tick error:', err);
@@ -563,7 +563,7 @@ async function executeSmtpSend(payload: SendEmailPayload): Promise<{
     const { transporter: t, settings } = await buildTransporter();
     transporter = t;
     const from = `${settings.fromName || 'RTBI Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
-    const domain = (settings.fromEmail || 'leadsnextgencentre.online').split('@')[1] || 'leadsnextgencentre.online';
+    const domain = (settings.fromEmail || 'example.com').split('@')[1] || 'example.com';
     const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2, 9)}@${domain}>`;
 
     const isBulkCategory = payload.category === 'ANNOUNCEMENT' || payload.category === 'EVENT_ROSTER' || payload.category === 'GUEST_INVITE' || payload.category === 'CERTIFICATE';
@@ -641,7 +641,7 @@ async function withBackground(html: string, payload: SendEmailPayload): Promise<
 }
 
 /**
- * The finished HTML of an e-mail exactly as it will be sent: the caller's own HTML, or the standard LEADS template around the
+ * The finished HTML of an e-mail exactly as it will be sent: the caller's own HTML, or the standard RTBI template around the
  * text, with the blurred background (this send's choice, else the Email Settings default). Also used for the send-dialog preview.
  */
 export async function buildEmailHtml(payload: SendEmailPayload): Promise<string> {
@@ -1042,7 +1042,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     }
   }
 
-  const subject = `[LEADS Special Access] ${policy.name} (${policy.tag})`;
+  const subject = `[RTBI Special Access] ${policy.name} (${policy.tag})`;
 
   const capsText = capabilitiesList.length > 0
     ? capabilitiesList.map(c => `  - ${c.label} [${c.module}]: ${c.description}`).join('\n')
@@ -1063,7 +1063,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     (modAccessText ? `\nMODULE ACCESS PERMISSIONS:\n${modAccessText}\n` : '') +
     `\nPlease access your elevated dashboard here:\n${dashboardUrl}\n\n` +
     `Security Note: If you believe this access was allotted in error, please immediately contact your Centre Administrator.\n\n` +
-    `Regards,\nLEADS Access Management & Information Security`;
+    `Regards,\nRTBI Access Management & Information Security`;
 
   const capsHtml = capabilitiesList.map(c => `
     <div style="padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;">
@@ -1138,7 +1138,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     </div>
 
     <p style="margin: 16px 0 0; font-size: 11px; color: #64748b; text-align: center; line-height: 1.5;">
-      Security Notice: This elevated privilege was provisioned by ${escapeHtml(allottedByName)} via LEADS Group Policy Management. If you believe this grant was allotted in error, please report this immediately to your Centre Administrator.
+      Security Notice: This elevated privilege was provisioned by ${escapeHtml(allottedByName)} via RTBI Group Policy Management. If you believe this grant was allotted in error, please report this immediately to your Centre Administrator.
     </p>
   `;
 
@@ -1170,9 +1170,9 @@ export function resolvePolicyRecipients(policy: any, members: any[]): Array<{ id
 }
 
 export function generateOtpEmailTemplate(name: string, otp: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Portal Security Code: ${otp}`;
+  const subject = `RTBI Portal Security Code: ${otp}`;
   const bodyText = `Hello ${name},\n\n` +
-    `You requested a password reset for your LEADS Next Gen Dashboard account.\n\n` +
+    `You requested a password reset for your RTBI Portal account.\n\n` +
     `Verification Code: ${otp}\n\n` +
     `This code is valid for 5 minutes. If you did not request this code, please ignore this email.\n\n` +
     `Regards,\nRTBI Portal, MSRUAS`;
@@ -1185,7 +1185,7 @@ export function generateOtpEmailTemplate(name: string, otp: string): { subject: 
     badgeColor: `#0284c7`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You requested a password reset for your LEADS account. Use the verification code below to complete your password update:</p>
+      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You requested a password reset for your RTBI account. Use the verification code below to complete your password update:</p>
 
       <div style="text-align: center; margin: 28px 0;">
         <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
@@ -1211,7 +1211,7 @@ export function generateOtpEmailTemplate(name: string, otp: string): { subject: 
  * clicked from an inbox rather than typed in.
  */
 export function generateWelcomeActivationEmailTemplate(name: string, activationLink: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Portal Account Activation: ${name}`;
+  const subject = `RTBI Portal Account Activation: ${name}`;
   const bodyText = `Hello ${name},\n\n` +
     `An account has been created for you on the RTBI Portal Operations Dashboard.\n\n` +
     `Set your password and activate your account:\n${activationLink}\n\n` +
@@ -1220,7 +1220,7 @@ export function generateWelcomeActivationEmailTemplate(name: string, activationL
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     headerTitle: `Account Activation`,
-    headerSubtitle: `LEADS Operations Portal`,
+    headerSubtitle: `RTBI Portal`,
     badgeText: `Account Setup`,
     badgeColor: `#0284c7`,
     bodyContentHtml: `
@@ -1255,9 +1255,9 @@ export function generateNewMemberWelcomeTemplate(member: {
   const departmentStr = member.department ? ` (${member.department})` : '';
   const baseUrl = getAppBaseUrl();
 
-  const subject = `LEADS Portal Account Created: ${member.name}`;
+  const subject = `RTBI Portal Account Created: ${member.name}`;
   const bodyText = `Hello ${member.name},\n\n` +
-    `Welcome to RTBI Portal. You have officially been registered as a member on the LEADS Operations Dashboard.\n\n` +
+    `Welcome to RTBI Portal. You have officially been registered as a member on the RTBI Portal.\n\n` +
     `Account Summary:\n` +
     `• Designation / Role: ${roleStr}\n` +
     `• Division: ${divisionStr}${departmentStr}\n` +
@@ -1304,7 +1304,7 @@ export function generateNewMemberWelcomeTemplate(member: {
  * Template Generator: Email Change Confirmation OTP.
  */
 export function generateEmailChangeOtpTemplate(name: string, otp: string, newEmail: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Portal Email Verification Code: ${otp}`;
+  const subject = `RTBI Portal Email Verification Code: ${otp}`;
   const bodyText = `Hello ${name},\n\n` +
     `A request was made to update your login email to: ${newEmail}\n\n` +
     `Verification Code: ${otp}\n\n` +
@@ -1343,9 +1343,9 @@ export function generateEmailChangeOtpTemplate(name: string, otp: string, newEma
  * with this account before.
  */
 export function generateNewEmailConfirmationOtpTemplate(name: string, otp: string, oldEmail: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Portal — Confirm This Is Your New Email: ${otp}`;
+  const subject = `RTBI Portal — Confirm This Is Your New Email: ${otp}`;
   const bodyText = `Hello ${name},\n\n` +
-    `This is the second and final step of moving your LEADS Portal login email away from ${oldEmail} to this address.\n\n` +
+    `This is the second and final step of moving your RTBI Portal login email away from ${oldEmail} to this address.\n\n` +
     `Verification Code: ${otp}\n\n` +
     `Valid for 5 minutes. If you did not request this, please ignore this email — no change will be made without this code.\n\n` +
     `Regards,\nRTBI Portal, MSRUAS`;
@@ -1358,7 +1358,7 @@ export function generateNewEmailConfirmationOtpTemplate(name: string, otp: strin
     badgeColor: `#0284c7`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">This is the second and final step of moving your LEADS Portal login email away from <strong style="color: #0f172a;">${oldEmail}</strong> to this address. Use the code below to confirm you can receive mail here:</p>
+      <p style="color: #334155; font-size: 14px; line-height: 1.6;">This is the second and final step of moving your RTBI Portal login email away from <strong style="color: #0f172a;">${oldEmail}</strong> to this address. Use the code below to confirm you can receive mail here:</p>
 
       <div style="text-align: center; margin: 28px 0;">
         <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
@@ -1378,7 +1378,7 @@ export function generateNewEmailConfirmationOtpTemplate(name: string, otp: strin
  * Template Generator: Announcement Alert
  */
 export function generateAnnouncementEmailTemplate(memberName: string, title: string, content: string, author: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Notice: ${title}`;
+  const subject = `RTBI Notice: ${title}`;
   const baseUrl = getAppBaseUrl();
   const bodyText = `Hello ${memberName},\n\nA new announcement has been published on the RTBI Portal by ${author}:\n\n` +
     `Title: ${title}\n\n` +
@@ -1407,11 +1407,11 @@ export function generateAnnouncementEmailTemplate(memberName: string, title: str
  * Template Generator: Task Assignment Alert
  */
 export function generateTaskEmailTemplate(memberName: string, taskTitle: string, eventName: string, dueDate: string, creatorName: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Task Assignment: ${taskTitle}`;
+  const subject = `RTBI Task Assignment: ${taskTitle}`;
   const baseUrl = getAppBaseUrl();
   const bodyText = `Hello ${memberName},\n\nYou have been assigned a new task on RTBI Portal.\n\n` +
     `Task: ${taskTitle}\n` +
-    `Context: ${eventName || 'LEADS Operations'}\n` +
+    `Context: ${eventName || 'RTBI Operations'}\n` +
     `Due Date: ${dueDate}\n` +
     `Assigned By: ${creatorName || 'Committee Admin'}\n\n` +
     `Please log in to your dashboard to view details and update progress.`;
@@ -1429,7 +1429,7 @@ export function generateTaskEmailTemplate(memberName: string, taskTitle: string,
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155; margin: 16px 0;">
         <tr>
           <td style="padding: 8px 0; color: #64748b; width: 120px;">Context:</td>
-          <td style="padding: 8px 0; font-weight: 600; color: #0f172a;">${eventName || 'LEADS Operations'}</td>
+          <td style="padding: 8px 0; font-weight: 600; color: #0f172a;">${eventName || 'RTBI Operations'}</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #64748b;">Due Date:</td>
@@ -1453,7 +1453,7 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
   const subject = `Deadline Tomorrow: ${taskTitle}`;
   const bodyText = `Hello ${memberName},\n\nThis is a reminder that the following task is due tomorrow.\n\n` +
     `Task: ${taskTitle}\n` +
-    `Context: ${eventName || 'LEADS Operations'}\n` +
+    `Context: ${eventName || 'RTBI Operations'}\n` +
     `Due Date: ${dueDate}\n\n` +
     `Please log in to your dashboard to review and complete it in time.`;
 
@@ -1470,7 +1470,7 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155; margin: 16px 0;">
         <tr>
           <td style="padding: 8px 0; color: #64748b; width: 120px;">Context:</td>
-          <td style="padding: 8px 0; font-weight: 600; color: #0f172a;">${eventName || 'LEADS Operations'}</td>
+          <td style="padding: 8px 0; font-weight: 600; color: #0f172a;">${eventName || 'RTBI Operations'}</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #64748b;">Due Date:</td>
@@ -1479,7 +1479,7 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
       </table>
 
       <div style="margin-top: 20px; text-align: center;">
-        <a href="https://leadsnextgencentre.online/dashboard/tasks" style="background: #d97706; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">Open Tasks Desk &rarr;</a>
+        <a href="${getAppBaseUrl()}/dashboard/tasks" style="background: #d97706; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">Open Tasks Desk &rarr;</a>
       </div>
     `
   });
@@ -1491,7 +1491,7 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
  * Template Generator: Event Committee Roster Assignment
  */
 export function generateEventRosterEmailTemplate(memberName: string, eventTitle: string, committeeName: string, startDate: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `LEADS Event Assignment: ${eventTitle}`;
+  const subject = `RTBI Event Assignment: ${eventTitle}`;
   const baseUrl = getAppBaseUrl();
   const bodyText = `Hello ${memberName},\n\nYou have been added to the "${committeeName}" committee for the upcoming event "${eventTitle}".\n\n` +
     `Event Start Date: ${startDate}\n\n` +
@@ -1850,7 +1850,7 @@ export function generateDesignResubmittedEmailTemplate(
   const bodyText = `Hello,\n\n` +
     `${designerName} has revised and resubmitted the design "${designTitle}" following your earlier ${feedbackLabel}.\n\n` +
     `Please review the updated asset here:\n${designLink}\n\n` +
-    `Regards,\nLEADS Design Portal`;
+    `Regards,\nRTBI Design Portal`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,

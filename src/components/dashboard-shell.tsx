@@ -194,7 +194,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotionData, setPromotionData] = useState<PromotionData | null>(null);
-  // Tracks the current user for the 'leads-data-sync' handler below, which is
+  // Tracks the current user for the 'rtbi-data-sync' handler below, which is
   // registered once on mount and would otherwise only ever see this initial
   // (pre-login) placeholder user via a stale closure.
   const userRef = useRef(user);
@@ -609,8 +609,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       localStorage.setItem('logoutReason', 'session_expired');
       router.replace('/');
     };
-    window.addEventListener('leads-session-expired', onExpired);
-    return () => window.removeEventListener('leads-session-expired', onExpired);
+    window.addEventListener('rtbi-session-expired', onExpired);
+    return () => window.removeEventListener('rtbi-session-expired', onExpired);
   }, [router]);
 
   // Re-check the lockdown flag and rebuild notifications every time a server
@@ -727,8 +727,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         return rebuilt.map(n => readIds.has(n.id) ? { ...n, read: true } : n);
       });
     };
-    window.addEventListener('leads-data-sync', handleSync);
-    return () => window.removeEventListener('leads-data-sync', handleSync);
+    window.addEventListener('rtbi-data-sync', handleSync);
+    return () => window.removeEventListener('rtbi-data-sync', handleSync);
   }, [router]);
 
   // Click outside to close dropdowns. The notification bell renders twice (desktop

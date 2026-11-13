@@ -197,17 +197,17 @@ export default function EventPassesPage() {
       setEvents(getPassIssuableEvents());
       setEventPasses(getEventPasses());
     };
-    window.addEventListener('leads-data-sync', handleSync);
+    window.addEventListener('rtbi-data-sync', handleSync);
     // Outcome of the server-side Group Policy approval gate (held for approval / refused)
     const handleApproval = (e: Event) => {
       const d = (e as CustomEvent).detail as { message: string; kind: 'pending' | 'error' };
       if (d?.kind === 'error') triggerError(d.message);
       else if (d?.message) triggerSuccess(`⏳ ${d.message}`);
     };
-    window.addEventListener('leads-pass-approval', handleApproval);
+    window.addEventListener('rtbi-pass-approval', handleApproval);
     return () => {
-      window.removeEventListener('leads-data-sync', handleSync);
-      window.removeEventListener('leads-pass-approval', handleApproval);
+      window.removeEventListener('rtbi-data-sync', handleSync);
+      window.removeEventListener('rtbi-pass-approval', handleApproval);
     };
   }, []);
 
@@ -396,7 +396,7 @@ export default function EventPassesPage() {
         ? (events.find((e) => e.id === targetEventId)?.title || 'event').replace(/[^a-zA-Z0-9]+/g, '_')
         : 'all_events';
     link.setAttribute('href', url);
-    link.setAttribute('download', `leads_attendance_${eventNameSlug}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `rtbi_attendance_${eventNameSlug}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

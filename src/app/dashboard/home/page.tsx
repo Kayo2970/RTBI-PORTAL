@@ -105,10 +105,10 @@ export default function DashboardHome() {
       }
     }
 
-    window.addEventListener('leads-data-sync', refreshData);
+    window.addEventListener('rtbi-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
-      window.removeEventListener('leads-data-sync', refreshData);
+      window.removeEventListener('rtbi-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, []);
@@ -274,7 +274,7 @@ export default function DashboardHome() {
             </p>
           </div>
           <span className="text-xs font-semibold text-accent px-3.5 py-1.5 bg-accent/15 rounded-xl border border-accent/20">
-            {user.role || user.division || 'LEADS Member'}
+            {user.role || user.division || 'RTBI Member'}
           </span>
         </div>
       )}
@@ -402,7 +402,7 @@ export default function DashboardHome() {
         {/* Calendar Quick-Access Card */}
         <div className="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
           <div>
-            <h3 className="text-base font-bold text-theme-text-primary">LEADS Event Calendar</h3>
+            <h3 className="text-base font-bold text-theme-text-primary">RTBI Event Calendar</h3>
             <p className="text-xs text-theme-text-secondary">Explore scheduled symposiums, workshops, and milestones</p>
           </div>
 

@@ -556,8 +556,8 @@ export async function readCollection<T = any>(key: keyof DbSchema): Promise<T[]>
 // Stored on globalThis: Next.js bundles this module separately per route/instrumentation
 // chunk, and a module-level Map would give each copy its own lock — letting two writers hit
 // the same file at once and corrupt it.
-const globalForDb = globalThis as unknown as { __leadsWriteLocks?: Map<keyof DbSchema, Promise<void>> };
-const writeLocks: Map<keyof DbSchema, Promise<void>> = (globalForDb.__leadsWriteLocks ??= new Map());
+const globalForDb = globalThis as unknown as { __rtbiWriteLocks?: Map<keyof DbSchema, Promise<void>> };
+const writeLocks: Map<keyof DbSchema, Promise<void>> = (globalForDb.__rtbiWriteLocks ??= new Map());
 
 /**
  * Apply a mutation to a single collection and write only that collection's file.

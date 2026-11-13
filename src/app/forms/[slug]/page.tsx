@@ -303,7 +303,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
               className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-semibold"
             >
               <ChevronLeft className="h-4 w-4" />
-              Return to MSRUAS LEADS
+              Return to RTBI
             </Link>
           </div>
         </div>
@@ -516,7 +516,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
 
             <div className="flex items-center justify-center gap-1.5 text-[10px] text-theme-text-secondary pt-2">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Encrypted & Verified &bull; LEADS Next Gen MSRUAS</span>
+              <span>Encrypted & Verified &bull; RTBI, MSRUAS</span>
             </div>
           </form>
         </div>

@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
     const key = await getWalletWalletApiKey();
     if (!key) return NextResponse.json({ ok: false, message: 'No API key is saved yet.' });
-    const res = await fetch('https://api.walletwallet.dev/api/passes/leads-key-check', {
+    const res = await fetch('https://api.walletwallet.dev/api/passes/rtbi-key-check', {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${key}` },
     });

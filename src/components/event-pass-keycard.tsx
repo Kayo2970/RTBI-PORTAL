@@ -62,7 +62,7 @@ export function EventPassKeycard({
         ...(pass.labelColor ? { labelColor: pass.labelColor } : {}),
       }}
       cardUrl={`${base}/pass/${pass.serialNumber}`}
-      qrUrl="/card/leads-qr-code.png"
+      qrUrl="/card/rtbi-qr-code.png"
       {...holderProps}
     />
   );

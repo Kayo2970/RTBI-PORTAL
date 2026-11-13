@@ -177,7 +177,7 @@ export async function renderWalletPosterJpeg(input: PosterRenderInput, theme: Pa
     let logo: any;
     if (options.logo) {
       try {
-        logo = await loadImage(path.join(process.cwd(), 'public', 'images', 'rtbi-icon.png'));
+        logo = await loadImage(path.join(process.cwd(), 'public', 'card', 'rtbi-logo-clean.png'));
       } catch {
         /* no logo */
       }

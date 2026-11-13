@@ -193,7 +193,7 @@ export function EventPassScanner({
         else if (json.passId) parsedQuery = json.passId;
       } catch (e) {}
     } else if (/^https?:\/\//i.test(parsedQuery)) {
-      // Handle a scanned pass URL, e.g. https://.../pass/LEADS-EVT-XXXX or ?pass=LEADS-EVT-XXXX
+      // Handle a scanned pass URL, e.g. https://.../pass/RTBI-EVT-XXXX or ?pass=RTBI-EVT-XXXX
       try {
         const url = new URL(parsedQuery);
         const queryParam = url.searchParams.get('pass');
@@ -582,7 +582,7 @@ export function EventPassScanner({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Scan barcode/QR payload or enter serial ID (e.g. LEADS-EVT-2026-XXXX)"
+            placeholder="Scan barcode/QR payload or enter serial ID (e.g. RTBI-EVT-2026-XXXX)"
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 font-medium focus:outline-none focus:border-accent text-xs"
           />
         </div>

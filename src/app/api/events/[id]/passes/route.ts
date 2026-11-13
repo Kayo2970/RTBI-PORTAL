@@ -234,7 +234,7 @@ export async function PUT(
     }
 
     let rawTarget = parsedPayload?.serial || query.trim();
-    // If a full pass URL slipped through unparsed (e.g. https://.../pass/LEADS-EVT-XXXX),
+    // If a full pass URL slipped through unparsed (e.g. https://.../pass/RTBI-EVT-XXXX),
     // fall back to extracting the serial from the URL server-side too.
     if (/^https?:\/\//i.test(rawTarget)) {
       try {

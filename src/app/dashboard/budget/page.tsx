@@ -166,10 +166,10 @@ export default function BudgetPage() {
     refresh();
     setUserHydrated(true);
 
-    window.addEventListener('leads-data-sync', refresh);
+    window.addEventListener('rtbi-data-sync', refresh);
     window.addEventListener('storage', refresh);
     return () => {
-      window.removeEventListener('leads-data-sync', refresh);
+      window.removeEventListener('rtbi-data-sync', refresh);
       window.removeEventListener('storage', refresh);
     };
   }, []);

@@ -42,7 +42,7 @@ export interface ApplePosterPreviewProps {
 export function AppleWalletPosterPreview(props: ApplePosterPreviewProps) {
   const {
     attendeeName, guestCategory, passType, roomOrVenue = 'Main Auditorium', eventName, validity, serialNumber, validDaysCount = 0, validDays,
-    logoUrl = '/images/rtbi-icon.png', theme, passColor, passGradient, textColor, labelColor, fontScale, showEventTitle,
+    logoUrl = '/card/rtbi-logo.png', theme, passColor, passGradient, textColor, labelColor, fontScale, showEventTitle,
     barcodeFormat = 'QR', altText = 'serial', passUrl, qr: qrOpts,
   } = props;
   const inWallet = Boolean(qrOpts?.inWallet);

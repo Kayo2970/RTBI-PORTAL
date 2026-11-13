@@ -6,6 +6,7 @@ import type { PassQrShape } from '@/lib/local-data';
 import styles from './interactive-keycard.module.css';
 import type { PassTheme } from '@/lib/local-data';
 import { passThemeStyle } from '@/lib/pass-theme-style';
+import { FALLBACK_ORIGIN } from '@/lib/app-origin';
 
 const CARD_EXTRACT_DURATION = 850;
 const CARD_TUCK_DURATION = 800;
@@ -65,19 +66,19 @@ export interface InteractiveKeycardProps {
 
 export function InteractiveKeycardHolder({
   memberName = 'Executive Member',
-  memberRole = 'LEADS Member',
+  memberRole = 'RTBI Member',
   memberIdNumber,
   joinDate,
   tier,
   phone = '+91 9608768647',
-  email = 'member@leads-centre.org',
+  email = 'member@example.com',
   photoUrl,
   serialNumber,
   accessLevel = 'Executive & Alumni Fellow (Tier 1)',
   validityPeriod,
   issuingAuthority = 'RTBI Portal',
   cardUrl,
-  qrUrl = '/card/leads-qr-code.png',
+  qrUrl = '/card/rtbi-qr-code.png',
   fontScale = 1,
   qrDark = '#0B1B2E',
   qrLight = '#ffffff',
@@ -117,8 +118,8 @@ export function InteractiveKeycardHolder({
   const dragInfo = useRef({ isDragging: false, startY: 0, currentDeltaY: 0, hasDragged: false });
   const holderDragInfo = useRef({ isDragging: false, startY: 0, hasDragged: false });
 
-  const cardLogo = logoUrl || '/card/leads-logo.png';
-  const markLogo = logoUrl || '/card/leads-logo-clean.png';
+  const cardLogo = logoUrl || '/card/rtbi-logo.png';
+  const markLogo = logoUrl || '/card/rtbi-logo-clean.png';
 
   const isEvent = Boolean(isEventPass || eventName || passType);
 
@@ -151,7 +152,7 @@ export function InteractiveKeycardHolder({
       .toUpperCase()
       .padStart(5, '0')
       .slice(0, 5);
-    return `LEADS-DIR-${hash}`;
+    return `RTBI-DIR-${hash}`;
   }, [serialNumber, memberName, email]);
 
   // Compute unique Member ID Number (Sequence: Joining Date + Tier Level + Unique Serial Hash)
@@ -185,10 +186,10 @@ export function InteractiveKeycardHolder({
     );
     const seqNum = String((hashNum % 9000) + 1000); // 4-digit unique sequence number
 
-    return `LEADS-${datePart}-${tierCode}-${seqNum}`;
+    return `RTBI-${datePart}-${tierCode}-${seqNum}`;
   }, [memberIdNumber, joinDate, tier, memberName, email, serialNumber, accessLevel, memberRole]);
 
-  // Dynamically generate QR code with LEADS logo in center
+  // Dynamically generate QR code with RTBI logo in center
   useEffect(() => {
     let isMounted = true;
 
@@ -201,7 +202,7 @@ export function InteractiveKeycardHolder({
         } else if (typeof window !== 'undefined') {
           targetUrl = window.location.href;
         } else {
-          targetUrl = 'https://leads-centre.org';
+          targetUrl = FALLBACK_ORIGIN;
         }
       }
 
@@ -422,7 +423,7 @@ export function InteractiveKeycardHolder({
       {/* SVG Mask Definition for Clean Blind Debossed Leather Mark */}
       <svg width="0" height="0" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
         <defs>
-          <mask id="leads-deboss-mask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+          <mask id="rtbi-deboss-mask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
             <image href={markLogo} width="1" height="1" preserveAspectRatio="xMidYMid meet" />
           </mask>
         </defs>
@@ -537,7 +538,7 @@ export function InteractiveKeycardHolder({
                     <div className={styles.eventPassBody}>
                       <div className={styles.eventPassHeader}>
                         <div className={styles.eventBrandWrap}>
-                          <img src={cardLogo} alt="LEADS Logo" className={styles.eventBrandLogo} />
+                          <img src={cardLogo} alt="RTBI Logo" className={styles.eventBrandLogo} />
                           <div className={styles.eventBrandText}>
                             <span className={styles.eventBrandTitle}>{brandHeader || 'RTBI Portal'}</span>
                             <span className={styles.eventBrandSubtitle}>RUAS Executive Credential</span>
@@ -552,7 +553,7 @@ export function InteractiveKeycardHolder({
                       <div className={styles.eventInfoSection}>
                         {!hideEventTitle && (
                           <div className={styles.eventTitleHeader}>
-                            {eventName || 'Official LEADS Event'}
+                            {eventName || 'Official RTBI Event'}
                           </div>
                         )}
                         <div className={styles.eventDateBadge}>
@@ -586,7 +587,7 @@ export function InteractiveKeycardHolder({
                       {/* Turnstile QR Code Module */}
                       <div className={styles.turnstileQrContainer}>
                         <img
-                          src={dynamicQrUrl || qrUrl || '/card/leads-qr-code.png'}
+                          src={dynamicQrUrl || qrUrl || '/card/rtbi-qr-code.png'}
                           alt="Turnstile QR"
                           className={styles.turnstileQrImage}
                         />
@@ -623,7 +624,7 @@ export function InteractiveKeycardHolder({
 
                     <div>
                       <div className={styles.passHeader}>
-                        <img src={cardLogo} alt="LEADS Logo" className={styles.passMiniLogo} />
+                        <img src={cardLogo} alt="RTBI Logo" className={styles.passMiniLogo} />
                         <span className={styles.passBadgePill}>EXECUTIVE PASS</span>
                       </div>
 
@@ -640,7 +641,7 @@ export function InteractiveKeycardHolder({
                           <div className={styles.passLabel}>{memberRole}</div>
                           <div className={styles.passName} style={{ fontSize: '15px' }}>{memberName}</div>
                         </div>
-                        <img src={markLogo} alt="LEADS RUAS" className={styles.passSideLogo} />
+                        <img src={markLogo} alt="RTBI RUAS" className={styles.passSideLogo} />
                       </div>
 
                       <div className={styles.passGrid}>
@@ -655,7 +656,7 @@ export function InteractiveKeycardHolder({
                       </div>
 
                       <div className={styles.passQrBox}>
-                        <img src={dynamicQrUrl || qrUrl || '/card/leads-qr-code.png'} alt="Card QR Code" />
+                        <img src={dynamicQrUrl || qrUrl || '/card/rtbi-qr-code.png'} alt="Card QR Code" />
                       </div>
                     </div>
 
@@ -677,7 +678,7 @@ export function InteractiveKeycardHolder({
                   <div className={styles.passBackHeader}>
                     <div>
                       <div className={styles.passLabel}>{isEvent ? 'PASS TERMS & PROTOCOL' : 'EXECUTIVE CREDENTIALS'}</div>
-                      <div className={styles.passBackTitle}>{isEvent ? 'RUAS Secure Event Pass' : 'LEADS Pass Info'}</div>
+                      <div className={styles.passBackTitle}>{isEvent ? 'RUAS Secure Event Pass' : 'RTBI Pass Info'}</div>
                     </div>
                     <button className={styles.btnFlipPill} onClick={toggleFlip} title="Flip to front">
                       <span>↺</span>
@@ -769,7 +770,7 @@ export function InteractiveKeycardHolder({
               <div className={styles.coverBackStitch} />
               <div className={styles.leftPanelHeader}>
                 <div>
-                  <div className={styles.leftPanelTitle}>LEADS Centre</div>
+                  <div className={styles.leftPanelTitle}>RTBI</div>
                   <div className={styles.leftPanelSub}>{isEvent ? 'Official Event Pass' : 'Executive Pass'}</div>
                 </div>
                 <span className={styles.leftBadgeTag}>{isEvent ? 'Verified' : 'Official'}</span>
@@ -798,7 +799,7 @@ export function InteractiveKeycardHolder({
                   <>
                     <div className={styles.formSlot}>
                       <span className={styles.formSlotLabel}>Event / Occasion</span>
-                      <div className={styles.formSlotPill}>{eventName || 'LEADS Official Event'}</div>
+                      <div className={styles.formSlotPill}>{eventName || 'RTBI Official Event'}</div>
                     </div>
                     <div className={styles.formSlot}>
                       <span className={styles.formSlotLabel}>Assigned Room / Venue</span>

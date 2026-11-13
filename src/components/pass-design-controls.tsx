@@ -494,13 +494,13 @@ function QrLivePreview({ value }: { value: PassQrOptions }) {
     if (!c || !ctx) return;
     let cancelled = false;
     const draw = (logo?: HTMLImageElement) => {
-      if (!cancelled) drawStyledQr(ctx, `${FALLBACK_ORIGIN}/pass/LEADS-EVT-2026-SAMPLE`, 0, 0, 240, { dark: value.dark, light: value.light, eye: value.eye || undefined, shape: value.shape, logo });
+      if (!cancelled) drawStyledQr(ctx, `${FALLBACK_ORIGIN}/pass/RTBI-EVT-2026-SAMPLE`, 0, 0, 240, { dark: value.dark, light: value.light, eye: value.eye || undefined, shape: value.shape, logo });
     };
     if (!value.logo) return draw();
     const img = new Image();
     img.onload = () => draw(img);
     img.onerror = () => draw();
-    img.src = '/images/rtbi-icon.png';
+    img.src = '/card/rtbi-logo.png';
     return () => {
       cancelled = true;
     };

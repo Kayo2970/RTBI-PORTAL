@@ -14,9 +14,10 @@ import type { PassBarcodeFormat } from '@/lib/local-data';
 // double-check these before relying on them (the office email/phone as
 // given look like they may have a stray character — see docs/wallet-setup.md).
 const ORG_NAME = 'RTBI';
-const ORG_EMAIL = 'LEADS.NGC.@MSRUAS.AC.IN'; // TODO(RTBI): replace with the incubator's contact email
-const ORG_PHONE = '+91 804536666';
-const ORG_ADDRESS = 'RTBI M. S. Ramaiah University of Applied Sciences is University House, New BEL Road, MSR Nagar, Bengaluru - 560054.';
+// Set WALLET_ORG_EMAIL / WALLET_ORG_PHONE to show RTBI's office contact on the back of passes (rows are omitted when unset).
+const ORG_EMAIL = process.env.WALLET_ORG_EMAIL || '';
+const ORG_PHONE = process.env.WALLET_ORG_PHONE || '';
+const ORG_ADDRESS = 'RTBI, M. S. Ramaiah University of Applied Sciences, University House, New BEL Road, MSR Nagar, Bengaluru - 560054.';
 
 // Pass branding — pale-blue-on-green design finalized in the WalletWallet
 // dashboard (see the "Style" tab there to tweak further).
@@ -57,7 +58,7 @@ export interface WalletWalletPass {
  * Uses the member's VPS-hosted photo for the pass thumbnail & icon when available.
  */
 export async function createWalletPass(apiKey: string, member: WalletCardMember, cardUrl: string): Promise<WalletWalletPass> {
-  const logoUrl = `${SITE_ORIGIN}/images/rtbi-icon.png`;
+  const logoUrl = `${SITE_ORIGIN}/card/rtbi-logo.png`;
   const memberPhoto = member.photoUrl
     ? (member.photoUrl.startsWith('http') ? member.photoUrl : `${SITE_ORIGIN}${member.photoUrl}`)
     : logoUrl;
@@ -67,8 +68,8 @@ export async function createWalletPass(apiKey: string, member: WalletCardMember,
   if (member.email) secondaryFields.push({ label: 'Email ID', value: member.email });
 
   const backFields = [
-    { label: 'Email ID', value: ORG_EMAIL },
-    { label: 'Office Mobile Number', value: ORG_PHONE },
+    ...(ORG_EMAIL ? [{ label: 'Email ID', value: ORG_EMAIL }] : []),
+    ...(ORG_PHONE ? [{ label: 'Office Mobile Number', value: ORG_PHONE }] : []),
     { label: 'Address', value: ORG_ADDRESS },
   ] as { label: string; value: string; changeMessage?: string }[];
   if (member.linkedin) backFields.push({ label: 'LinkedIn', value: member.linkedin });
@@ -127,7 +128,7 @@ export interface WalletEventPassData {
   passGradient?: string;
   /**
    * Event pass theme. Images are sent to WalletWallet as PUBLIC HTTPS URLs (it fetches and re-hosts them
-   * once at creation — same approach as the LEADS logo). Values are storage paths such as
+   * once at creation — same approach as the RTBI logo). Values are storage paths such as
    * "/api/files/pass-themes/<eventId>/2__wallet-<ts>.jpg" or absolute https URLs.
    */
   themeBackgroundUrl?: string;
@@ -296,7 +297,7 @@ export function buildPassBody(
   passUrl: string,
   opts: { live: boolean; notification?: string }
 ): Record<string, unknown> {
-  const logoUrl = `${SITE_ORIGIN}/images/rtbi-icon.png`;
+  const logoUrl = `${SITE_ORIGIN}/card/rtbi-logo.png`;
   const themed = themeBody(eventPass);
   const poster = Boolean(themed.backgroundURL);
   return {

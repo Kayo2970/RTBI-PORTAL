@@ -48,7 +48,7 @@ export function AppleWalletPassPreview({
   serialNumber,
   interactive = true,
   logoText = 'RTBI',
-  logoUrl = '/images/rtbi-icon.png',
+  logoUrl = '/card/rtbi-logo.png',
   passColor = '#0f1a2e',
   theme,
   layout = 'poster',
@@ -66,7 +66,7 @@ export function AppleWalletPassPreview({
   const [isFlipped, setIsFlipped] = useState(false);
 
   const displayValidity = validityDate || eventDate;
-  const displaySerial = serialNumber || `LEADS-EVT-2026-${(attendeeName || 'GUEST').slice(0, 3).toUpperCase()}-99`;
+  const displaySerial = serialNumber || `RTBI-EVT-2026-${(attendeeName || 'GUEST').slice(0, 3).toUpperCase()}-99`;
 
   const baseBackground = passColor ? `linear-gradient(180deg, ${passColor} 0%, #060c18 100%)` : undefined;
   const frontStyle: React.CSSProperties = passThemeStyle(theme, baseBackground) || {};
@@ -157,7 +157,7 @@ export function AppleWalletPassPreview({
           {/* Barcode / QR Box */}
           <div className={styles.barcodeCard}>
             <div className={styles.qrContainer}>
-              <img src="/card/leads-qr-code.png" alt="Wallet QR" />
+              <img src="/card/rtbi-qr-code.png" alt="Wallet QR" />
             </div>
             <span className={styles.barcodeAltText}>{displaySerial}</span>
           </div>

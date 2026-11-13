@@ -125,10 +125,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       }
     }
 
-    window.addEventListener('leads-data-sync', refreshData);
+    window.addEventListener('rtbi-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
-      window.removeEventListener('leads-data-sync', refreshData);
+      window.removeEventListener('rtbi-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, [eventId]);

@@ -225,7 +225,7 @@ export async function walletDataForPass(pass: EventPassItem): Promise<WalletEven
     passColor: pass.passColor,
     passGradient: pass.passGradient,
     themeColor: theme.backgroundColor,
-    // Public URLs (not data URIs): WalletWallet fetches + re-hosts them once, like the LEADS logo
+    // Public URLs (not data URIs): WalletWallet fetches + re-hosts them once, like the RTBI logo
     themeBackgroundUrl: theme.walletBackgroundUrl,
     themeLogoUrl: theme.logoUrl,
   };
