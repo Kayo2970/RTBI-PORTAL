@@ -664,7 +664,7 @@ export default function DesignPortalPage() {
   // a submission here — visible to the assigned designer, plus anyone who
   // can see the whole portal (Centre Head / Design Head / etc). Stays in the
   // queue until its status flips to 'Completed', which syncDesignTask() does
-  // automatically the moment the linked submission's proofread is approved.
+  // automatically the moment the linked submission's review is approved.
   const designTaskRequests = tasks.filter(t => {
     if (!(t.taskCategory === 'design' || t.isDesignDeliverable || t.designCategory) || t.status === 'Completed') return false;
     if (canViewAllDesigns(user)) return true;
@@ -688,10 +688,10 @@ export default function DesignPortalPage() {
             <div className="p-2.5 rounded-2xl bg-accent/20 border border-accent/30 text-accent">
               <Palette className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-theme-text-primary">Design Portal & Proofreading Hub</h1>
+            <h1 className="text-2xl font-black tracking-tight text-theme-text-primary">Design Portal</h1>
           </div>
           <p className="text-xs text-theme-text-secondary">
-            Submit event artwork, posters & media assets (Max <span className="font-bold text-theme-text-primary">25 MB</span>). Automatic <span className="font-bold text-theme-text-primary">30-day server retention policy</span>. Request peer & faculty proofreading.
+            Submit event artwork, posters & media assets (Max <span className="font-bold text-theme-text-primary">25 MB</span>). Automatic <span className="font-bold text-theme-text-primary">30-day server retention policy</span>. Designs are reviewed and approved by your approvers.
           </p>
         </div>
         <button
@@ -725,7 +725,7 @@ export default function DesignPortalPage() {
 
         <div className="glass-panel p-4 rounded-2xl space-y-1 border border-white/20">
           <div className="flex items-center justify-between text-xs text-theme-text-secondary">
-            <span className="font-semibold">Proofread Approved</span>
+            <span className="font-semibold">Approved</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </div>
           <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{approvedDesigns}</p>
@@ -870,7 +870,7 @@ export default function DesignPortalPage() {
                 : 'text-theme-text-secondary hover:bg-white/40 dark:hover:bg-white/5 hover:text-theme-text-primary'
             }`}
           >
-            Proofreading Desk
+            Review Queue
             {assignedToMeCount > 0 && (
               <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500 text-slate-950 font-black">
                 {assignedToMeCount}
@@ -1115,7 +1115,7 @@ export default function DesignPortalPage() {
           </div>
           <h3 className="text-base font-bold text-theme-text-primary">No design submissions found</h3>
           <p className="text-xs text-theme-text-secondary max-w-sm mx-auto">
-            Be the first to submit a design asset for proofreading and approval!
+            Be the first to submit a design asset for review and approval!
           </p>
           <button
             onClick={() => { setSubmitError(''); setShowUploadModal(true); }}
@@ -1598,7 +1598,7 @@ export default function DesignPortalPage() {
         </div>
       )}
 
-      {/* Design Inspector & Proofreader Review Modal */}
+      {/* Design Inspector & Review Modal */}
       {showInspectorModal && selectedDesign && (
         <div
           onClick={() => {
