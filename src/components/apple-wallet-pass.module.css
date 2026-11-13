@@ -1,0 +1,311 @@
+/* 98% Pixel-Accurate Native Apple Wallet Pass Visualizer */
+
+.walletContainer {
+  position: relative;
+  width: 100%;
+  max-width: 330px;
+  perspective: 1200px;
+  margin: 0 auto;
+}
+
+.walletCard {
+  position: relative;
+  width: 100%;
+  min-height: 460px;
+  transform-style: preserve-3d;
+  transition: transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: 16px;
+}
+
+.isFlipped {
+  transform: rotateY(180deg);
+}
+
+.passFace {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 460px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  box-shadow:
+    0 24px 48px -8px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 16px 14px;
+  box-sizing: border-box;
+}
+
+/* Front Face: Apple Wallet Generic Dark Midnight Pass */
+.passFront {
+  background: linear-gradient(180deg, #0f1a2e 0%, #080f1d 100%);
+  color: #ffffff;
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+
+/* Header: Logo (left) + Header Field (right) */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.passLogo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerField {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.headerLabel {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.headerValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+/* Primary Field: Large Central Attendee Name */
+.primarySection {
+  margin: 8px 0 14px 0;
+}
+
+.primaryLabel {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 2px;
+}
+
+.primaryValue {
+  font-size: 21px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+/* Secondary Fields: 2-Column Grid */
+.secondaryRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.fieldItem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1px;
+}
+
+.fieldValue {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.25;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.roomHighlight {
+  color: #38bdf8;
+  font-weight: 800;
+}
+
+/* Barcode Module: Apple Wallet Crisp White Rounded QR Box */
+.barcodeCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: auto;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.qrContainer {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.barcodeAltText {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.04em;
+}
+
+/* Card Bottom Info Button (Flip) */
+.footerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 4px;
+}
+
+.appleWalletTag {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.infoButton {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.infoButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Back Face: iOS Pass Details Sheet */
+.passBack {
+  background: #0f172a;
+  color: #ffffff;
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+.backHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.backTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.doneButton {
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.backList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 2px;
+}
+
+.backItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.backItemLabel {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+}
+
+.backItemValue {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+  overflow-wrap: anywhere;
+}

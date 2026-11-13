@@ -49,8 +49,11 @@ import {
   EventCommittee,
   Member,
   TaskItem,
+  EventPassItem,
+  getEventPasses,
 } from '@/lib/local-data';
-import { canExportEventDetails, canManageEvents, isCommitteeApprover, canDeleteTask } from '@/lib/permissions';
+import { canExportEventDetails, canManageEvents, isCommitteeApprover, canDeleteTask, canViewEventGuestList, canViewIssuedCertificates, canDeleteCertificates } from '@/lib/permissions';
+import { IssuedCertificatesPanel } from '@/components/issued-certificates-panel';
 import { downloadEventDetailsCsv } from '@/lib/event-participants-export';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { StudentProfileModal } from '@/components/student-profile-modal';
@@ -101,6 +104,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const [committeeRejectionReasonInput, setCommitteeRejectionReasonInput] = useState('');
   const [selectedStudentForProfile, setSelectedStudentForProfile] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
+  const [eventPasses, setEventPasses] = useState<EventPassItem[]>([]);
 
   useEffect(() => {
     const refreshData = () => {
@@ -108,6 +112,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       setEvent(loadedEvent);
       setMembers(getMembers());
       setTasks(getTasks().filter(t => t.eventId === eventId || t.event === loadedEvent?.title));
+      setEventPasses(getEventPasses(eventId).filter(p => !p.approvalStatus || p.approvalStatus === 'pending_edit'));
     };
     refreshData();
 
@@ -740,6 +745,63 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             )}
           </div>
+
+          {/* Section 2: Event Passes, guest list & certificates (Event Passes module) */}
+          {(canViewEventGuestList(user) || canViewIssuedCertificates(user)) && (
+            <div className="space-y-4 pt-4 border-t border-theme-border/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider flex items-center gap-2">
+                    <Ticket className="h-4 w-4 text-accent" />
+                    Event Passes & Guest List ({eventPasses.length})
+                  </h3>
+                  <p className="text-[11px] text-theme-text-secondary">Passes issued for this event and the certificates sent to attendees</p>
+                </div>
+                <Link href="/dashboard/event-passes" className="px-3 py-1.5 bg-accent/15 border border-accent/35 text-accent hover:bg-accent/25 text-xs font-bold rounded-xl flex items-center gap-1.5">
+                  <Ticket className="h-3.5 w-3.5" />
+                  Open Event Passes
+                </Link>
+              </div>
+              {canViewEventGuestList(user) && (eventPasses.length === 0 ? (
+                <div className="text-center py-8 text-theme-text-secondary text-xs bg-theme-border/5 rounded-xl border border-theme-border/20">
+                  No passes issued for this event yet.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-xs text-left">
+                    <thead>
+                      <tr className="text-theme-text-secondary border-b border-theme-border/40 text-xs">
+                        <th className="pb-2.5 font-semibold">Guest</th>
+                        <th className="pb-2.5 font-semibold">Pass Type</th>
+                        <th className="pb-2.5 font-semibold">Serial</th>
+                        <th className="pb-2.5 font-semibold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-theme-border/20">
+                      {eventPasses.map(p => (
+                        <tr key={p.id} className="hover:bg-theme-border/10 text-xs">
+                          <td className="py-2.5 font-semibold text-theme-text-primary">
+                            {p.attendeeName}
+                            {(p.attendeeOrg || p.attendeeEmail) && <span className="block text-[10px] font-normal text-theme-text-secondary">{p.attendeeOrg || p.attendeeEmail}</span>}
+                          </td>
+                          <td className="py-2.5 text-theme-text-secondary">{p.passType}</td>
+                          <td className="py-2.5 font-mono text-[10px] text-theme-text-secondary">{p.serialNumber}</td>
+                          <td className="py-2.5">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              p.status === 'Checked In' ? 'bg-success/15 text-success' :
+                              p.status === 'Cancelled' ? 'bg-danger/15 text-danger' :
+                              'bg-primary/15 text-primary-light'
+                            }`}>{p.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+              {canViewIssuedCertificates(user) && <IssuedCertificatesPanel eventId={eventId} compact canDelete={canDeleteCertificates(user)} />}
+            </div>
+          )}
 
           {/* Section 3: Student Organizer Directory for this Event */}
           <div className="space-y-3 pt-4 border-t border-theme-border/20">
