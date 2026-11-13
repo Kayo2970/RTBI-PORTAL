@@ -112,10 +112,10 @@ export default function ReimbursementsPage() {
       }
     }
 
-    window.addEventListener('leads-data-sync', refreshData);
+    window.addEventListener('rtbi-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
-      window.removeEventListener('leads-data-sync', refreshData);
+      window.removeEventListener('rtbi-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, []);
@@ -275,7 +275,7 @@ export default function ReimbursementsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'leads_reconciled_expenses.csv');
+    link.setAttribute('download', 'rtbi_reconciled_expenses.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -302,7 +302,7 @@ export default function ReimbursementsPage() {
     const deniedAmount = chartClaims.filter(r => r.status === 'Denied').reduce((sum, r) => sum + r.amount, 0);
 
     let csvContent = `==================================================\n`;
-    csvContent += `LEADS FINANCIAL REIMBURSEMENT SUMMARY CHART\n`;
+    csvContent += `RTBI FINANCIAL REIMBURSEMENT SUMMARY CHART\n`;
     csvContent += `Target Scope: ${titleName}\n`;
     csvContent += `Generated Date: ${new Date().toISOString().split('T')[0]}\n`;
     csvContent += `Total Claims Count: ${chartClaims.length}\n`;

@@ -534,8 +534,8 @@ export default function DesignPortalPage() {
     setHighlightDesignId(params.get('highlight'));
 
     const handleSync = () => refreshData();
-    window.addEventListener('leads-data-sync', handleSync);
-    return () => window.removeEventListener('leads-data-sync', handleSync);
+    window.addEventListener('rtbi-data-sync', handleSync);
+    return () => window.removeEventListener('rtbi-data-sync', handleSync);
   }, []);
 
   // Once the highlighted design has actually loaded, open its Inspector — retries on
@@ -823,7 +823,7 @@ export default function DesignPortalPage() {
   // the Design Head can see what's still missing one. This is the exact same
   // `tasks` array the Tasks page renders and edits, so a link added/edited
   // here shows up there immediately (and vice versa) via the shared
-  // `leads-data-sync` event updateTask/saveTasks already dispatch.
+  // `rtbi-data-sync` event updateTask/saveTasks already dispatch.
   const canvaLibraryTasks = tasks
     .filter(t => t.taskCategory === 'design')
     .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));

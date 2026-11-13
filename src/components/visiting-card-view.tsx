@@ -103,9 +103,9 @@ export function VisitingCardView({
 
   return (
     <ProfileCard
-      name={card.name || 'LEADS Member'}
+      name={card.name || 'RTBI Member'}
       title={card.designation || 'Executive Member'}
-      handle={card.name ? card.name.toLowerCase().replace(/\s+/g, '.') : 'leads.msruas'}
+      handle={card.name ? card.name.toLowerCase().replace(/\s+/g, '.') : 'rtbi.msruas'}
       status="Verified Member"
       contactText="Save Contact (vCard)"
       avatarUrl={card.photoUrl}

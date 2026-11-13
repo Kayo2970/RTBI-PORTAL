@@ -96,7 +96,7 @@ function ActivateAccountForm() {
   };
 
   if (status === 'done') {
-    const dynamicQr = cardSlug ? `/api/card/${cardSlug}/qr` : '/card/leads-qr-code.png';
+    const dynamicQr = cardSlug ? `/api/card/${cardSlug}/qr` : '/card/rtbi-qr-code.png';
     return (
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 py-10 relative z-0 overflow-x-hidden">
         {/* Top Celebration Header */}

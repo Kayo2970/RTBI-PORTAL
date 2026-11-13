@@ -19,7 +19,7 @@ import path from 'path';
 // secure. /api/setup's isKeyConfigured check already detects this exact
 // state and prompts an admin to rotate to a real key (see setup/route.ts);
 // this just makes the same condition impossible to miss in server logs too.
-const FALLBACK_KEY = 'LEADS_ERP_MASTER_SECRET_KEY_2026';
+const FALLBACK_KEY = 'RTBI_PORTAL_MASTER_SECRET_KEY_2026';
 let warnedFallback = false;
 
 export function getMasterKey(): string {
@@ -52,7 +52,7 @@ export function getMasterKey(): string {
   return FALLBACK_KEY;
 }
 
-const FIXED_SALT = Buffer.from('LEADS_NEXT_GEN_CENTRE_MSRUAS_SALT_2026', 'utf-8');
+const FIXED_SALT = Buffer.from('RTBI_PORTAL_MSRUAS_SALT_2026', 'utf-8');
 
 export interface EncryptedPayload {
   _encrypted: true;

@@ -8,13 +8,13 @@ import { getAppBaseUrl } from './app-url';
 import { applyEmailBackground, resolveEmailBackgroundUrl, type EmailBackgroundChoice, type EmailBackgroundSetting } from './email-background';
 import { CAPABILITY_CATALOG, MODULE_CATALOG } from './permissions';
 
-// Referenced as cid:leads-logo in wrapInMasterEmailTemplate — attach this
+// Referenced as cid:rtbi-logo in wrapInMasterEmailTemplate — attach this
 // to every sendMail() call so the header logo is embedded, not fetched
 // from a remote URL.
 const EMAIL_LOGO_ATTACHMENT = {
-  filename: 'leads-logo.png',
-  path: path.join(process.cwd(), 'src', 'assets', 'leads-email-logo.png'),
-  cid: 'leads-logo',
+  filename: 'rtbi-logo.png',
+  path: path.join(process.cwd(), 'src', 'assets', 'rtbi-email-logo.png'),
+  cid: 'rtbi-logo',
 };
 
 export type EmailCategory =
@@ -459,16 +459,16 @@ interface BufferedEmailEntry {
 // Shared via globalThis: Next.js loads this module once per route chunk, and separate copies
 // each had their own "already sending" set — so one email could be dispatched twice.
 const globalForEmail = globalThis as unknown as {
-  __leadsBufferedEmails?: Map<string, BufferedEmailEntry>;
-  __leadsSendingInProgress?: Set<string>;
-  __leadsSweeperStarted?: boolean;
+  __rtbiBufferedEmails?: Map<string, BufferedEmailEntry>;
+  __rtbiSendingInProgress?: Set<string>;
+  __rtbiSweeperStarted?: boolean;
 };
-const bufferedEmails: Map<string, BufferedEmailEntry> = (globalForEmail.__leadsBufferedEmails ??= new Map());
-const sendingInProgress: Set<string> = (globalForEmail.__leadsSendingInProgress ??= new Set());
+const bufferedEmails: Map<string, BufferedEmailEntry> = (globalForEmail.__rtbiBufferedEmails ??= new Map());
+const sendingInProgress: Set<string> = (globalForEmail.__rtbiSendingInProgress ??= new Set());
 
 function ensureSweeperInterval(): void {
-  if (globalForEmail.__leadsSweeperStarted || typeof setInterval === 'undefined') return;
-  globalForEmail.__leadsSweeperStarted = true;
+  if (globalForEmail.__rtbiSweeperStarted || typeof setInterval === 'undefined') return;
+  globalForEmail.__rtbiSweeperStarted = true;
   const interval = setInterval(() => {
     sweepExpiredBufferedEmails().catch(err => {
       console.error('[email-service] Background sweeper tick error:', err);

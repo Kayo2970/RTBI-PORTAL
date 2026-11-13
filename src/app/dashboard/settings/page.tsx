@@ -213,7 +213,7 @@ export default function SettingsPage() {
     const updatedUser = { ...user, email: res.newEmail };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event('leads-data-sync'));
+    window.dispatchEvent(new Event('rtbi-data-sync'));
     setAuditLogs(getAuditLogs());
 
     resetEmailChangeFlow();
@@ -263,7 +263,7 @@ export default function SettingsPage() {
     const updatedUser = { ...user, avatarUrl: result.avatarUrl };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event('leads-data-sync'));
+    window.dispatchEvent(new Event('rtbi-data-sync'));
     logAuditEvent('MEMBER_UPDATED', user.name, 'Updated profile photo', user.email);
     triggerSuccess('Profile photo updated successfully.');
   });
@@ -370,7 +370,7 @@ export default function SettingsPage() {
     const updatedUser = { ...user, ...changes };
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event('leads-data-sync'));
+    window.dispatchEvent(new Event('rtbi-data-sync'));
     setAuditLogs(getAuditLogs());
 
     setCurrentPassword('');
@@ -465,7 +465,7 @@ export default function SettingsPage() {
     filteredAuditLogs.forEach(log => {
       csv += toCsvRow([log.timestamp, log.action, log.actorName, log.actorEmail, log.details]) + '\n';
     });
-    downloadCsv(`leads_audit_trail_${new Date().toISOString().split('T')[0]}.csv`, csv);
+    downloadCsv(`rtbi_audit_trail_${new Date().toISOString().split('T')[0]}.csv`, csv);
   };
 
   return (

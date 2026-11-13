@@ -46,7 +46,7 @@ const MAX_PREVIEW_DIMENSION = 1400;
 // advisory pass, not a validator, so an occasional false positive is fine.
 // Indian English academic, institution, and regional term whitelist (checked FIRST)
 const INDIAN_ENGLISH_WHITELIST = [
-  'leads', 'msruas', 'ruas', 'ramaiah', 'bengaluru', 'bangalore', 'ms', 'msr',
+  'rtbi', 'msruas', 'ruas', 'ramaiah', 'bengaluru', 'bangalore', 'ms', 'msr',
   'peenya', 'mathikere', 'karnataka', 'kannada', 'lakh', 'lakhs', 'crore', 'crores',
   'rupee', 'rupees', 'paisa', 'paise', 'ugc', 'aicte', 'nba', 'naac', 'nirf',
   'centre', 'centres', 'colour', 'colours', 'organise', 'organised', 'organising',

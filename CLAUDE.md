@@ -2,7 +2,7 @@
 
 # CLAUDE.md — RTBI Portal
 
-Next.js (App Router) portal ported from the LEADS ERP. Flat encrypted JSON-file DB under `data/` (gitignored).
+Next.js (App Router) portal for RTBI. Flat encrypted JSON-file DB under `data/` (gitignored).
 
 ## Commands
 ```bash

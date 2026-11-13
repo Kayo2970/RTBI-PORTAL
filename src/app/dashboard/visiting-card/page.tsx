@@ -598,7 +598,7 @@ export default function VisitingCardPage() {
                 </div>
                 <div>
                   <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 flex-wrap">
-                    LEADS Executive Keycard
+                    RTBI Executive Keycard
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                       <ShieldCheck className="h-3 w-3" /> Authenticated Member View
                     </span>
@@ -624,17 +624,17 @@ export default function VisitingCardPage() {
             <div className="flex-1 flex flex-col items-center justify-center my-4 overflow-visible w-full max-w-4xl mx-auto">
               <InteractiveKeycardHolder
                 memberName={user?.name || 'Executive Member'}
-                memberRole={(isWalletAdmin && cardDesignationOverride.trim()) ? cardDesignationOverride.trim() : (user?.role || 'LEADS Member')}
+                memberRole={(isWalletAdmin && cardDesignationOverride.trim()) ? cardDesignationOverride.trim() : (user?.role || 'RTBI Member')}
                 phone={cardPhone || user?.phone || '+91 9608768647'}
-                email={user?.email || 'member@leads-centre.org'}
+                email={user?.email || 'member@rtbi.ac.in'}
                 photoUrl={cardPhotoPreviewUrl || cardPhotoUrl || user?.avatarUrl}
-                serialNumber={cardSlug ? `LEADS-DIR-${cardSlug.toUpperCase()}` : 'LEADS-DIR-2026-99'}
+                serialNumber={cardSlug ? `RTBI-DIR-${cardSlug.toUpperCase()}` : 'RTBI-DIR-2026-99'}
                 accessLevel={user?.division === 'Faculty' ? 'Faculty & Academic Leadership' : user?.tier === 1 ? 'Executive Super User (Tier 1)' : 'Core Committee & Executive Fellow'}
                 issuingAuthority="RTBI Portal • RUAS"
                 joinDate={user?.createdAt}
                 tier={user?.tier}
                 cardUrl={cardPublicUrl}
-                qrUrl="/card/leads-qr-code.png"
+                qrUrl="/card/rtbi-qr-code.png"
                 showActions={true}
                 autoOpen={false}
               />

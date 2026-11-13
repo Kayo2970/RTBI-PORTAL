@@ -119,7 +119,7 @@ const allSidebarItems = navSections.flatMap(s => s.items);
 
 const INACTIVITY_LOGOUT_MS = 30 * 60 * 1000; // 30 minutes
 
-const SEEN_ACTION_IDS_KEY = 'leads_notif_seen_action_ids';
+const SEEN_ACTION_IDS_KEY = 'rtbi_notif_seen_action_ids';
 
 function loadSeenActionIds(): Set<string> {
   if (typeof window === 'undefined') return new Set();
@@ -199,7 +199,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotionData, setPromotionData] = useState<PromotionData | null>(null);
-  // Tracks the current user for the 'leads-data-sync' handler below, which is
+  // Tracks the current user for the 'rtbi-data-sync' handler below, which is
   // registered once on mount and would otherwise only ever see this initial
   // (pre-login) placeholder user via a stale closure.
   const userRef = useRef(user);
@@ -437,7 +437,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   const loadDismissedNotifIds = (): Set<string> => {
     try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('leads_dismissed_notif_ids') : null;
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('rtbi_dismissed_notif_ids') : null;
       if (!raw) return new Set();
       const parsed = JSON.parse(raw);
       return new Set(Array.isArray(parsed) ? parsed : []);
@@ -448,7 +448,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   const saveDismissedNotifIds = (ids: Set<string>) => {
     try {
-      localStorage.setItem('leads_dismissed_notif_ids', JSON.stringify(Array.from(ids)));
+      localStorage.setItem('rtbi_dismissed_notif_ids', JSON.stringify(Array.from(ids)));
     } catch {}
   };
 
@@ -542,10 +542,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       // Auto-launch role-tailored Onboarding Tour ONLY on first-time initial account setup ever
       const isInitialSetup = parsedUser.isFirstLogin === true || (parsedUser as any).isNewAccount === true;
       const hasCompletedTour =
-        (parsedUser.id && localStorage.getItem(`leads_tour_completed_${parsedUser.id}`)) ||
-        (parsedUser.email && localStorage.getItem(`leads_tour_completed_${parsedUser.email}`)) ||
-        (parsedUser.name && localStorage.getItem(`leads_tour_completed_${parsedUser.name}`)) ||
-        (parsedUser.email && localStorage.getItem(`leads_has_logged_in_${parsedUser.email}`));
+        (parsedUser.id && localStorage.getItem(`rtbi_tour_completed_${parsedUser.id}`)) ||
+        (parsedUser.email && localStorage.getItem(`rtbi_tour_completed_${parsedUser.email}`)) ||
+        (parsedUser.name && localStorage.getItem(`rtbi_tour_completed_${parsedUser.name}`)) ||
+        (parsedUser.email && localStorage.getItem(`rtbi_has_logged_in_${parsedUser.email}`));
 
       const isImpersonatingSession = typeof window !== 'undefined' && sessionStorage.getItem('impersonator_original_user');
 
@@ -555,14 +555,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       // Mark that account has logged in so tutorial is not auto-shown repeatedly
       if (parsedUser.email) {
-        localStorage.setItem(`leads_has_logged_in_${parsedUser.email}`, 'true');
-        if (parsedUser.id) localStorage.setItem(`leads_has_logged_in_${parsedUser.id}`, 'true');
+        localStorage.setItem(`rtbi_has_logged_in_${parsedUser.email}`, 'true');
+        if (parsedUser.id) localStorage.setItem(`rtbi_has_logged_in_${parsedUser.id}`, 'true');
       }
 
       // Detect Promotion / Role Elevation on session load
       const userKey = parsedUser.email || parsedUser.id || parsedUser.name;
-      const storedLastTier = localStorage.getItem(`leads_seen_tier_${userKey}`);
-      const storedLastRole = localStorage.getItem(`leads_seen_role_${userKey}`);
+      const storedLastTier = localStorage.getItem(`rtbi_seen_tier_${userKey}`);
+      const storedLastRole = localStorage.getItem(`rtbi_seen_role_${userKey}`);
 
       if (storedLastTier !== null && storedLastRole !== null) {
         // parseFloat, not parseInt — tiers can be fractional (2.5 = GG Campus
@@ -589,8 +589,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       }
 
       // Record baseline seen role & tier
-      localStorage.setItem(`leads_seen_tier_${userKey}`, String(parsedUser.tier));
-      localStorage.setItem(`leads_seen_role_${userKey}`, parsedUser.role || '');
+      localStorage.setItem(`rtbi_seen_tier_${userKey}`, String(parsedUser.tier));
+      localStorage.setItem(`rtbi_seen_role_${userKey}`, parsedUser.role || '');
 
       return () => {
         clearInterval(pollInterval);
@@ -614,8 +614,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       localStorage.setItem('logoutReason', 'session_expired');
       router.replace('/');
     };
-    window.addEventListener('leads-session-expired', onExpired);
-    return () => window.removeEventListener('leads-session-expired', onExpired);
+    window.addEventListener('rtbi-session-expired', onExpired);
+    return () => window.removeEventListener('rtbi-session-expired', onExpired);
   }, [router]);
 
   // Re-check the lockdown flag and rebuild notifications every time a server
@@ -665,8 +665,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
         if (hasProfileChanges) {
           const userKey = liveRecord.email || liveRecord.id || liveRecord.name;
-          const storedLastTier = localStorage.getItem(`leads_seen_tier_${userKey}`);
-          const storedLastRole = localStorage.getItem(`leads_seen_role_${userKey}`);
+          const storedLastTier = localStorage.getItem(`rtbi_seen_tier_${userKey}`);
+          const storedLastRole = localStorage.getItem(`rtbi_seen_role_${userKey}`);
 
           if (storedLastTier !== null && storedLastRole !== null) {
             // parseFloat — see the matching fix/comment on the login-time
@@ -689,8 +689,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             }
           }
 
-          localStorage.setItem(`leads_seen_tier_${userKey}`, String(liveRecord.tier));
-          localStorage.setItem(`leads_seen_role_${userKey}`, liveRecord.role || '');
+          localStorage.setItem(`rtbi_seen_tier_${userKey}`, String(liveRecord.tier));
+          localStorage.setItem(`rtbi_seen_role_${userKey}`, liveRecord.role || '');
 
           const updatedSessionUser = {
             ...currentUser,
@@ -732,8 +732,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         return rebuilt.map(n => readIds.has(n.id) ? { ...n, read: true } : n);
       });
     };
-    window.addEventListener('leads-data-sync', handleSync);
-    return () => window.removeEventListener('leads-data-sync', handleSync);
+    window.addEventListener('rtbi-data-sync', handleSync);
+    return () => window.removeEventListener('rtbi-data-sync', handleSync);
   }, [router]);
 
   // Click outside to close dropdowns. The notification bell renders twice (desktop

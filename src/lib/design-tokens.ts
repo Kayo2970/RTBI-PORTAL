@@ -1,4 +1,4 @@
-// LEADS Design Tokens & Shared Formatters
+// RTBI Design Tokens & Shared Formatters
 
 export function getRatingColor(score: number): {
   bg: string;

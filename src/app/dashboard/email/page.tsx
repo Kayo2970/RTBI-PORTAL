@@ -1881,7 +1881,7 @@ export default function EmailManagementPage() {
                           type="text"
                           value={settings.dkimSelector || ''}
                           onChange={e => setSettings(prev => ({ ...prev, dkimSelector: e.target.value }))}
-                          placeholder="leads"
+                          placeholder="rtbi"
                           className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                         />
                       </div>

@@ -9,7 +9,7 @@ import { hashPassword } from '@/lib/password';
 import { parseJsonBody } from '@/lib/validation';
 import { apiError } from '@/lib/api-error';
 
-const FALLBACK_KEY = 'LEADS_ERP_MASTER_SECRET_KEY_2026';
+const FALLBACK_KEY = 'RTBI_PORTAL_MASTER_SECRET_KEY_2026';
 
 const SetupSchema = z.object({
   name: z.string().trim().min(1).max(200),
