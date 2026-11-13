@@ -6,6 +6,7 @@ import type { PassQrShape } from '@/lib/local-data';
 import styles from './interactive-keycard.module.css';
 import type { PassTheme } from '@/lib/local-data';
 import { passThemeStyle } from '@/lib/pass-theme-style';
+import { FALLBACK_ORIGIN } from '@/lib/app-origin';
 
 const CARD_EXTRACT_DURATION = 850;
 const CARD_TUCK_DURATION = 800;
@@ -201,7 +202,7 @@ export function InteractiveKeycardHolder({
         } else if (typeof window !== 'undefined') {
           targetUrl = window.location.href;
         } else {
-          targetUrl = 'https://rtbi.ac.in';
+          targetUrl = FALLBACK_ORIGIN;
         }
       }
 

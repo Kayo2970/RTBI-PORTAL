@@ -17,6 +17,20 @@ export async function purgeStoredKey(storageKey?: string | null): Promise<void> 
   if (storageKey) await deleteStoredFile(storageKey);
 }
 
+/** Pass deletion: removes the cached .pkpass file(s) and best-effort revokes the wallet pass. */
+export async function purgeEventPassArtifacts(pass: { id: string; walletSerialNumber?: string }): Promise<void> {
+  await purgeFolders([['event-passes', pass.id]]);
+  if (!pass.walletSerialNumber) return;
+  try {
+    const { getWalletWalletApiKey } = await import('@/lib/wallet/walletwallet-config');
+    const { revokeEventWalletPass } = await import('@/lib/wallet/walletwallet-client');
+    const apiKey = await getWalletWalletApiKey();
+    if (apiKey) await revokeEventWalletPass(apiKey, pass.walletSerialNumber);
+  } catch (err: any) {
+    console.warn('[cascade-delete] Wallet revoke skipped:', err?.message);
+  }
+}
+
 /** Member deletion: avatar, card photo, link icons, tokens and approval rows. */
 export async function purgeMemberArtifacts(memberId: string, email?: string): Promise<void> {
   await purgeFolders([
@@ -54,7 +68,7 @@ export async function cascadeDeleteEvent(eventId: string): Promise<{ removed: Re
   const byEvent = (r: any) => r.eventId === eventId;
 
   const passes = await takeByEvent('event_passes', byEvent);
-  for (const pass of passes) await purgeFolders([['event-passes', pass.id]]);
+  for (const pass of passes) await purgeEventPassArtifacts(pass);
 
   const reports = await takeByEvent('eventReports', byEvent);
   for (const r of reports) {

@@ -32,11 +32,12 @@ import { isCentreHead } from '@/lib/permissions';
 import { FileDropzone, useUploadTask, formatFileSize } from '@/components/ui/file-dropzone';
 import { ImageCropModal } from '@/components/image-crop-modal';
 import DOMPurify from 'isomorphic-dompurify';
+import { IntegrationsPanel } from '@/components/integrations-panel';
 
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'account' | 'reimbursement' | 'roles' | 'audit' | 'emails'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'reimbursement' | 'roles' | 'audit' | 'emails' | 'integrations'>('account');
   const [user, setUser] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [auditSearchQuery, setAuditSearchQuery] = useState('');
@@ -543,6 +544,19 @@ export default function SettingsPage() {
           <Mail className="h-4 w-4" />
           Email Logs & Dispatcher ({emailLogs.length})
         </button>
+        {user?.tier === 1 && (
+          <button
+            onClick={() => setActiveTab('integrations')}
+            className={`pb-3 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'integrations'
+                ? 'text-accent border-b-2 border-accent'
+                : 'text-theme-text-secondary hover:text-theme-text-primary'
+            }`}
+          >
+            <KeyRound className="h-4 w-4" />
+            Integrations
+          </button>
+        )}
 
 
         {isSuperAdmin && (
@@ -1230,6 +1244,7 @@ export default function SettingsPage() {
       )}
 
       {/* Integrations (Super User only): WalletWallet key + centre socials */}
+      {activeTab === 'integrations' && user?.tier === 1 && <IntegrationsPanel />}
 
       {/* Tab 4: Security & Audit Trail */}
       {activeTab === 'audit' && isSuperAdmin && (

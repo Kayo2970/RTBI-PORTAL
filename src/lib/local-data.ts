@@ -1,6 +1,10 @@
 import { trackSync } from './sync-status';
 import { averageScore } from './rating-criteria';
 import { buildStudentFinalScores } from './final-score';
+import type { StartupProfile } from './startup-profile';
+import { FALLBACK_ORIGIN } from './app-origin';
+import { passEmailButtonsHtml } from '@/lib/pass-email-buttons';
+import { mergePassTemplate, DEFAULT_PASS_EMAIL_SUBJECT, DEFAULT_PASS_EMAIL_BODY, IMAGE_MARKER, DETAILS_MARKER, safeHttpUrl } from '@/lib/pass-email-template';
 
 // -------------------------------------------------------------
 // Session token — attached to every authenticated API call so the server
@@ -120,6 +124,8 @@ export interface Member {
   // Digital Visiting Card (self-service, public share page at /card/[slug]).
   // Prefixed `card*` to avoid colliding with Guest.visitingCard* (a scanned
   // photo of someone else's physical card, unrelated feature).
+  // Startup (tier 4) company profile — logo, about-us, sector/stage etc. — built during account activation.
+  startupProfile?: StartupProfile;
   cardEnabled?: boolean; // public page 404s until true
   cardSlug?: string;     // stable URL segment, generated once server-side, immutable
   // Designation normally mirrors `role` (the Directory-set designation) so
@@ -396,6 +402,198 @@ export const DEFAULT_PASS_THEME: Required<Pick<PassTheme, 'backgroundColor' | 'f
 };
 
 export type PassQrShape = 'square' | 'rounded' | 'dots';
+
+export type EventPassType =
+  | 'VIP Pass'
+  | 'Guest Pass'
+  | 'Executive Delegate'
+  | 'Student Delegate'
+  | 'Keynote Speaker'
+  | 'Press / Media'
+  | 'Organizer'
+  | 'Other'
+  | string;
+
+export interface PassAttendanceRecord {
+  day: string; // e.g. "Day 1", "Day 2", "2026-10-13"
+  date?: string;
+  timestamp: string;
+  scannedBy: string;
+  checkedInBy?: string;
+  session?: string;
+}
+
+/** Days a pass is valid on. Legacy passes (no validDays) return []. */
+export function getPassValidDays(pass: Pick<EventPassItem, 'validDays'>): string[] {
+  return Array.isArray(pass.validDays) ? pass.validDays.filter((d) => ISO_DAY_RE.test(d)).sort() : [];
+}
+
+/** Attendance progress for a pass, used for "Checked In (2/3 days)" style badges. */
+export function getPassAttendanceSummary(pass: EventPassItem): { attended: number; total: number } {
+  const validDays = getPassValidDays(pass);
+  const attended = (pass.attendance || []).length;
+  return { attended, total: validDays.length || Math.max(attended, 1) };
+}
+
+/** Merge attendance records by day key (case-insensitive); later records win. */
+export function mergeAttendance(
+  current: PassAttendanceRecord[] = [],
+  incoming: PassAttendanceRecord[] = []
+): PassAttendanceRecord[] {
+  const out = [...current];
+  incoming.forEach((rec) => {
+    const idx = out.findIndex((a) => a.day.toLowerCase() === rec.day.toLowerCase());
+    if (idx >= 0) out[idx] = { ...out[idx], ...rec, timestamp: out[idx].timestamp };
+    else out.push(rec);
+  });
+  return out;
+}
+
+export function isPassValidOn(pass: EventPassItem, isoDay: string): boolean {
+  const days = getPassValidDays(pass);
+  return days.length === 0 || days.includes(isoDay);
+}
+
+export type PassEmailStatus = 'Not Sent' | 'Email Sent' | 'Email Received' | 'Pass Viewed';
+
+export type PassBarcodeFormat = 'QR' | 'PDF417' | 'Aztec' | 'Code128';
+
+/** Everything about a pass's QR that a designer can change. */
+export interface PassQrOptions {
+  format: PassBarcodeFormat;
+  altText: 'serial' | 'name' | 'none';
+  dark: string;
+  light: string;
+  /** Colour of the three corner eyes; '' = same as the dots. */
+  eye: string;
+  shape: PassQrShape;
+  /** RTBI logo in the centre of the QR. */
+  logo: boolean;
+  /** Draw the styled QR into the wallet artwork instead of Apple/Google's native black-on-white barcode. */
+  inWallet: boolean;
+}
+
+export const DEFAULT_QR_OPTIONS: PassQrOptions = {
+  format: 'QR', altText: 'serial', dark: '#0B1B2E', light: '#ffffff', eye: '', shape: 'square', logo: true, inWallet: true,
+};
+
+type PassQrFields = Pick<EventPassItem, 'qrFormat' | 'qrAltText' | 'qrDark' | 'qrLight' | 'qrEyeColor' | 'qrShape' | 'qrLogo' | 'qrInWallet'>;
+
+export function qrOptionsFromPass(p: Partial<PassQrFields>): PassQrOptions {
+  return {
+    format: p.qrFormat || DEFAULT_QR_OPTIONS.format,
+    altText: p.qrAltText || DEFAULT_QR_OPTIONS.altText,
+    dark: p.qrDark || DEFAULT_QR_OPTIONS.dark,
+    light: p.qrLight || DEFAULT_QR_OPTIONS.light,
+    eye: p.qrEyeColor || '',
+    shape: p.qrShape || DEFAULT_QR_OPTIONS.shape,
+    logo: p.qrLogo !== false,
+    // Default ON: the QR you design is the one drawn on the portal card, the emailed ticket AND the wallet pass
+    inWallet: p.qrInWallet !== false,
+  };
+}
+
+/** Pass fields for the options; defaults are stored as undefined so a PATCH can clear a previous choice. */
+export function qrFieldsFromOptions(o: PassQrOptions): PassQrFields {
+  const d = DEFAULT_QR_OPTIONS;
+  return {
+    qrFormat: o.format !== d.format ? o.format : undefined,
+    qrAltText: o.altText !== d.altText ? o.altText : undefined,
+    qrDark: o.dark.toLowerCase() !== d.dark.toLowerCase() ? o.dark : undefined,
+    qrLight: o.light.toLowerCase() !== d.light.toLowerCase() ? o.light : undefined,
+    qrEyeColor: o.eye || undefined,
+    qrShape: o.shape !== d.shape ? o.shape : undefined,
+    qrLogo: o.logo ? undefined : false,
+    qrInWallet: o.inWallet ? undefined : false,
+  };
+}
+
+export interface EventPassItem {
+  id: string;
+  serialNumber: string;
+  eventId: string;
+  eventName: string;
+  eventDate?: string;
+  eventVenue?: string;
+  attendeeName: string;
+  guestCategory?: EventGuestCategory;
+  roomOrVenue?: string;
+  attendeeEmail?: string;
+  attendeePhone?: string;
+  attendeeOrg?: string;
+  passType: EventPassType;
+  accessTier?: string;
+  validityDate?: string;
+  /** ISO dates (YYYY-MM-DD) this single pass is valid on. One pass / one QR covers all of them. */
+  validDays?: string[];
+  seatOrZone?: string;
+  notes?: string;
+  issuedBy: string;
+  issuedByEmail?: string;
+  issuedAt: string;
+  status: 'Active' | 'Checked In' | 'Cancelled';
+  checkedInAt?: string;
+  checkedInBy?: string;
+  passColor?: string;
+  passGradient?: string;
+  /** Optional per-pass text/label colours (hex). Override the event theme; unset = auto. */
+  textColor?: string;
+  labelColor?: string;
+  /** Text size multiplier for the designed artwork (wallet poster, ticket). 1 = normal. */
+  fontScale?: number;
+  /** Print the event title on the wallet poster artwork. Unset = auto (only when the event has no artwork of its own). */
+  showEventTitle?: boolean;
+  /** Same idea for the portal 3D card: show (default) or hide the event title on its front. Pass overrides event. */
+  showPortalTitle?: boolean;
+  /** false = paint the portal card with the pass colours/gradient instead of the event artwork (unset = artwork shown). */
+  showCardArtwork?: boolean;
+  /** QR customisation: wallet barcode format, caption under it, and QR colours on the portal card / ticket. */
+  qrFormat?: PassBarcodeFormat;
+  qrAltText?: 'serial' | 'name' | 'none';
+  qrDark?: string;
+  qrLight?: string;
+  qrEyeColor?: string;
+  qrShape?: PassQrShape;
+  /** false hides the centre logo (default shown). */
+  qrLogo?: boolean;
+  qrInWallet?: boolean;
+  attendance?: PassAttendanceRecord[];
+  qrPayload: string;
+  walletAppleUrl?: string;
+  walletGoogleSaveUrl?: string;
+  /** Serial assigned by WalletWallet when the wallet pass was created (used for live updates / revoke). */
+  walletSerialNumber?: string;
+  /**
+   * Group Policy approval gate (same pattern as events): a pass created / edited / deleted by someone whose access comes
+   * only from a policy that requires approval stays in a pending state until the designated approver signs off.
+   * Enforced on the SERVER (lib/approval-gate.ts), not just in the browser.
+   */
+  approvalStatus?: 'pending_create' | 'pending_edit' | 'pending_delete';
+  /** Staged edit awaiting approval (applied on approval). */
+  pendingChanges?: Record<string, unknown>;
+  submittedBy?: string;
+  submittedByEmail?: string;
+  approvalPolicyName?: string;
+  approverName?: string;
+  /** First time the Apple/Google pass was served to a guest (after that, edits are pushed in place instead of re-issuing). */
+  walletInstalledAt?: string;
+  /** Edited after the wallet pass was created but before any guest took it: rebuilt on the next Add. */
+  walletStale?: boolean;
+  /** Last successful wallet create/update, and the last error text (cleared on success). */
+  walletSyncedAt?: string;
+  walletLastError?: string;
+  /** Set by the retention scheduler once cached wallet/theme files were removed (event end + 30 days). */
+  archivedAt?: string;
+
+  // Email delivery & pass viewing analytics
+  emailStatus?: PassEmailStatus;
+  emailSentAt?: string;
+  emailReceivedAt?: string;
+  passViewed?: boolean;
+  passViewedAt?: string;
+  lastPassViewedAt?: string;
+  passViewCount?: number;
+}
 
 export interface TaskItem {
   id: string;
@@ -2346,6 +2544,14 @@ export function deleteGuest(id: string, actorName: string): void {
  * Public holidays / festivals auto-synced from the holiday calendar feed are excluded.
  */
 
+/**
+ * Events that passes can be issued for: only events created in the Events module.
+ * Public holidays / festivals auto-synced from the holiday calendar feed are excluded.
+ */
+export function getPassIssuableEvents(): EventItem[] {
+  return getEvents().filter((e) => !e.isHoliday && !String(e.id).startsWith('holiday_'));
+}
+
 export function getEvents(): EventItem[] {
   if (typeof window === 'undefined') return initialEvents;
   const saved = localStorage.getItem('rtbi_events');
@@ -2884,6 +3090,576 @@ export function getCommittees(eventId?: string): string[] {
     return ['Logistics & Venue Committee', 'Technical & AV Committee', 'Design & Media Committee'];
   }
   return Array.from(names);
+}
+
+// -------------------------------------------------------------
+// Event Passes & Tickets (On-the-spot manual issuance + QR check-in)
+// -------------------------------------------------------------
+const EVENT_PASSES_STORAGE_KEY = 'rtbi_event_passes';
+
+export function getEventPasses(eventId?: string): EventPassItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(EVENT_PASSES_STORAGE_KEY);
+    const passes: EventPassItem[] = raw ? JSON.parse(raw) : [];
+    if (eventId) {
+      return passes.filter((p) => p.eventId === eventId);
+    }
+    return passes;
+  } catch (e) {
+    console.error('Failed to load event passes:', e);
+    return [];
+  }
+}
+
+export function saveEventPasses(passes: EventPassItem[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(EVENT_PASSES_STORAGE_KEY, JSON.stringify(passes));
+  } catch (e) {
+    console.error('Failed to save event passes:', e);
+  }
+}
+
+/** Pull the server's copy of every pass (it owns approval state) and tell open screens to re-render. */
+export async function reconcilePassesFromServer(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    const res = await fetch('/api/events/all/passes', { cache: 'no-store', headers: authHeaders() });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (Array.isArray(rows)) {
+      saveEventPasses(rows);
+      window.dispatchEvent(new Event('rtbi-data-sync'));
+    }
+  } catch {
+    /* offline — keep the local copy */
+  }
+}
+
+/** Surface the outcome of the server-side approval gate (held for approval / refused) to whichever screen is open. */
+export function notifyPassApproval(message: string, kind: 'pending' | 'error'): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('rtbi-pass-approval', { detail: { message, kind } }));
+}
+
+/** Issuing a pass NEVER sends email (emailStatus starts 'Not Sent'); dispatch is always an explicit action. */
+export function addEventPass(
+  passData: Omit<EventPassItem, 'id' | 'serialNumber' | 'issuedAt' | 'status' | 'qrPayload'>
+): EventPassItem {
+  const passes = getEventPasses();
+  const id = `pass-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const serialNumber = `RTBI-EVT-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const issuedAt = new Date().toISOString();
+  
+  // Cryptographic/verification token payload
+  const qrPayload = JSON.stringify({
+    passId: id,
+    serial: serialNumber,
+    eventId: passData.eventId,
+    attendee: passData.attendeeName,
+    type: passData.passType,
+    issuedAt,
+  });
+
+  const newPass: EventPassItem = {
+    ...passData,
+    id,
+    serialNumber,
+    issuedAt,
+    status: 'Active',
+    qrPayload,
+    emailStatus: 'Not Sent',
+    passViewed: false,
+    passViewCount: 0,
+  };
+
+  passes.unshift(newPass);
+  saveEventPasses(passes);
+
+  // Sync with backend API
+  fetch(`/api/events/${passData.eventId}/passes`, {
+    method: 'POST',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(newPass),
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        await reconcilePassesFromServer();
+        notifyPassApproval(data.error || 'The pass could not be issued.', 'error');
+        return;
+      }
+      const saved = await res.json().catch(() => null);
+      if (saved?.approvalStatus === 'pending_create') {
+        await reconcilePassesFromServer();
+        notifyPassApproval(`Pass for ${saved.attendeeName} is waiting for approval${saved.approverName ? ` from ${saved.approverName}` : ''}. It is not active until approved.`, 'pending');
+      }
+    })
+    .catch((err) => console.warn('Failed to sync event pass creation with server:', err));
+
+  logAuditEvent(
+    'EVENT_PASS_ISSUED' as any,
+    passData.issuedBy,
+    `Issued on-the-spot ${passData.passType} "${serialNumber}" to ${passData.attendeeName} for event "${passData.eventName}"`
+  );
+
+  return newPass;
+}
+
+export function updateEventPassStatus(
+  passId: string,
+  status: 'Active' | 'Checked In' | 'Cancelled',
+  actorName: string,
+  attendanceRecords?: PassAttendanceRecord[] | PassAttendanceRecord
+): EventPassItem | null {
+  const passes = getEventPasses();
+  const idx = passes.findIndex((p) => p.id === passId || p.serialNumber === passId);
+  if (idx === -1) return null;
+
+  const now = new Date().toISOString();
+  const currentAttendance = [...(passes[idx].attendance || [])];
+  if (attendanceRecords) {
+    const toAdd = Array.isArray(attendanceRecords) ? attendanceRecords : [attendanceRecords];
+    toAdd.forEach((rec) => {
+      const existingIdx = currentAttendance.findIndex((a) => a.day.toLowerCase() === rec.day.toLowerCase());
+      if (existingIdx >= 0) {
+        currentAttendance[existingIdx] = rec;
+      } else {
+        currentAttendance.push(rec);
+      }
+    });
+  }
+
+  passes[idx] = {
+    ...passes[idx],
+    status,
+    ...(status === 'Checked In' ? { checkedInAt: now, checkedInBy: actorName } : {}),
+    ...(currentAttendance.length > 0 ? { attendance: currentAttendance } : {}),
+  };
+
+  saveEventPasses(passes);
+
+  fetch(`/api/events/${passes[idx].eventId}/passes`, {
+    method: 'PATCH',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({
+      passId: passes[idx].id,
+      status,
+      checkedInBy: actorName,
+      checkedInAt: now,
+      attendance: currentAttendance,
+    }),
+  }).catch((err) => console.warn('Failed to sync pass status update with server:', err));
+
+  logAuditEvent(
+    'EVENT_PASS_STATUS_CHANGED' as any,
+    actorName,
+    `Marked pass "${passes[idx].serialNumber}" (${passes[idx].attendeeName}) as ${status}${
+      attendanceRecords ? ` for ${Array.isArray(attendanceRecords) ? attendanceRecords.map((a) => a.day).join(', ') : attendanceRecords.day}` : ''
+    }`
+  );
+
+  return passes[idx];
+}
+
+export function deleteEventPass(passId: string, actorName: string = 'Staff'): boolean {
+  const passes = getEventPasses();
+  const target = passes.find((p) => p.id === passId || p.serialNumber === passId);
+  if (!target) return false;
+
+  const updated = passes.filter((p) => p.id !== target.id);
+  saveEventPasses(updated);
+
+  fetch(`/api/events/${target.eventId}/passes/${target.id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        await reconcilePassesFromServer();
+        notifyPassApproval(data.error || 'The pass could not be deleted.', 'error');
+      } else if (data.approvalPending) {
+        await reconcilePassesFromServer();
+        notifyPassApproval(`Deleting ${target.attendeeName}'s pass is waiting for approval. The pass stays active until it is approved.`, 'pending');
+      }
+    })
+    .catch((err) => console.warn('Failed to sync event pass deletion with server:', err));
+
+  logAuditEvent(
+    'EVENT_PASS_DELETED' as any,
+    actorName,
+    `Deleted pass "${target.serialNumber}" (${target.attendeeName}) for event "${target.eventName}"`
+  );
+
+  return true;
+}
+
+export interface BulkPassDeleteResult {
+  /** Removed straight away. */
+  deleted: number;
+  /** Sent for approval — the pass stays active until it is approved. */
+  pending: number;
+  failed: Array<{ name: string; error: string }>;
+}
+
+/**
+ * Deletes many passes at once. They disappear locally straight away; the server then handles each one with its own
+ * permission / approval rules (so some may come back as "waiting for approval", or be refused), and the screen is
+ * reconciled with the server's copy once at the end instead of nagging per pass.
+ */
+export async function deleteEventPassesBulk(
+  passIds: string[],
+  actorName: string = 'Staff',
+  onProgress?: (done: number, total: number) => void
+): Promise<BulkPassDeleteResult> {
+  const all = getEventPasses();
+  const targets = passIds.map((id) => all.find((p) => p.id === id)).filter((p): p is EventPassItem => !!p);
+  const result: BulkPassDeleteResult = { deleted: 0, pending: 0, failed: [] };
+  if (targets.length === 0) return result;
+
+  const gone = new Set(targets.map((p) => p.id));
+  saveEventPasses(all.filter((p) => !gone.has(p.id)));
+
+  let done = 0;
+  for (let i = 0; i < targets.length; i += 4) {
+    await Promise.all(
+      targets.slice(i, i + 4).map(async (t) => {
+        try {
+          const res = await fetch(`/api/events/${t.eventId}/passes/${t.id}`, { method: 'DELETE', headers: authHeaders() });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) result.failed.push({ name: t.attendeeName, error: data.error || `HTTP ${res.status}` });
+          else if (data.approvalPending) result.pending++;
+          else result.deleted++;
+        } catch (err: any) {
+          result.failed.push({ name: t.attendeeName, error: err?.message || 'Network error' });
+        }
+        done++;
+        onProgress?.(done, targets.length);
+      })
+    );
+  }
+
+  if (result.failed.length > 0 || result.pending > 0) await reconcilePassesFromServer();
+  logAuditEvent(
+    'EVENT_PASS_DELETED' as any,
+    actorName,
+    `Bulk-deleted ${result.deleted} pass${result.deleted === 1 ? '' : 'es'}${result.pending ? `, ${result.pending} sent for approval` : ''}${result.failed.length ? `, ${result.failed.length} failed` : ''}: ${targets.slice(0, 5).map((t) => t.serialNumber).join(', ')}${targets.length > 5 ? ` and ${targets.length - 5} more` : ''}`
+  );
+  return result;
+}
+
+export async function updateEventPass(
+  passId: string,
+  updates: Partial<EventPassItem>,
+  actorName: string
+): Promise<{ pass: EventPassItem; walletUpdated?: boolean; walletAction?: 'none' | 'queued' | 'updated'; walletError?: string; approvalPending?: boolean; refused?: string } | null> {
+  const passes = getEventPasses();
+  const idx = passes.findIndex((p) => p.id === passId || p.serialNumber === passId);
+  if (idx === -1) return null;
+
+  const original = passes[idx];
+  const updated: EventPassItem = {
+    ...original,
+    ...updates,
+  };
+
+  // Re-generate QR payload if core fields changed
+  if (
+    updates.attendeeName !== undefined ||
+    updates.passType !== undefined ||
+    updates.eventId !== undefined
+  ) {
+    updated.qrPayload = JSON.stringify({
+      passId: updated.id,
+      serial: updated.serialNumber,
+      eventId: updated.eventId,
+      attendee: updated.attendeeName,
+      type: updated.passType,
+      issuedAt: updated.issuedAt,
+    });
+  }
+
+  passes[idx] = updated;
+  saveEventPasses(passes);
+
+  let walletUpdated = false;
+  let walletAction: 'none' | 'queued' | 'updated' = 'none';
+  let walletError: string | undefined;
+  let approvalPending = false;
+  let refused: string | undefined;
+
+  try {
+    const res = await fetch(`/api/events/${updated.eventId}/passes`, {
+      method: 'PATCH',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      // JSON drops `undefined`, so a cleared option (e.g. text colour back to auto) is sent as null and removed server-side
+      body: JSON.stringify({
+        passId: updated.id,
+        ...Object.fromEntries(Object.entries(updates).map(([k, v]) => [k, v === undefined ? null : v])),
+      }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      refused = data.error || `The change was refused (HTTP ${res.status}).`;
+      await reconcilePassesFromServer();
+      notifyPassApproval(refused as string, 'error');
+    } else {
+      const data = await res.json();
+      if (data.approvalPending) {
+        approvalPending = true;
+        await reconcilePassesFromServer();
+        notifyPassApproval(`Your change to ${original.attendeeName}'s pass is waiting for approval${data.approverName ? ` from ${data.approverName}` : ''}. The pass keeps its current design until it is approved.`, 'pending');
+      }
+      if (data.walletUpdated) walletUpdated = true;
+      if (data.walletAction) walletAction = data.walletAction;
+      if (data.walletNotice) walletError = data.walletNotice;
+    }
+  } catch (err: any) {
+    console.warn('Failed to sync event pass update with server:', err);
+    walletError = err?.message;
+  }
+
+  logAuditEvent(
+    'EVENT_PASS_UPDATED' as any,
+    actorName,
+    `Updated pass details for "${updated.serialNumber}" (${updated.attendeeName})`
+  );
+
+  return { pass: updated, walletUpdated, walletAction, walletError, approvalPending, refused };
+}
+
+
+/**
+ * Builds the pass invitation email. ONE message for every send path: an editable subject/body template
+ * (see lib/pass-email-template.ts) wrapped in the designed layout — header, wide boarding-pass ticket, details
+ * table, wallet / calendar buttons. Pure, so the preview in the dispatch screens is exactly what is sent.
+ * `forPreview` omits the tracking pixel and points the inline ticket at a real URL instead of `cid:`.
+ */
+export function buildPassEmail(
+  pass: EventPassItem,
+  origin: string,
+  opts: { forPreview?: boolean; subjectTemplate?: string; bodyTemplate?: string; includeMap?: boolean; mapUrl?: string; includeWhatsapp?: boolean; whatsappUrl?: string } = {}
+): { subject: string; bodyText: string; bodyHtml: string } {
+  const passUrl = `${origin}/pass/${pass.serialNumber}`;
+  const trackPixelUrl = `${origin}/api/pass/${pass.serialNumber}/track`;
+  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const days = getPassValidDays(pass);
+  const validDays = days.length > 0 ? formatValidDaysLabel(days) : pass.validityDate || pass.eventDate || '2026';
+  const venue = pass.roomOrVenue || pass.eventVenue || 'Main Auditorium';
+  const vars: Record<string, string> = {
+    name: pass.attendeeName,
+    first_name: (pass.attendeeName || '').trim().split(/\s+/)[0] || pass.attendeeName,
+    event_name: pass.eventName,
+    pass_type: String(pass.passType),
+    guest_category: pass.guestCategory || 'Guest Attendee',
+    room_or_venue: venue,
+    valid_days: validDays,
+    event_date: pass.validityDate || pass.eventDate || '2026',
+    serial_number: pass.serialNumber,
+    pass_link: passUrl,
+  };
+
+  const subject = mergePassTemplate(opts.subjectTemplate || DEFAULT_PASS_EMAIL_SUBJECT, vars)
+    .split(IMAGE_MARKER).join('').split(DETAILS_MARKER).join('').trim();
+  const merged = mergePassTemplate(opts.bodyTemplate || DEFAULT_PASS_EMAIL_BODY, vars);
+
+  // Optional extras: a venue map link (explicit link, else a Google Maps search of the venue) and a WhatsApp group invite
+  const mapUrl = opts.includeMap
+    ? safeHttpUrl(opts.mapUrl) || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([venue, pass.eventVenue].filter((v, i, a) => v && a.indexOf(v) === i).join(', '))}`
+    : undefined;
+  const whatsappUrl = opts.includeWhatsapp ? safeHttpUrl(opts.whatsappUrl) : undefined;
+
+  const detailRows: Array<[string, string]> = [
+    ['Pass Tier', String(pass.passType)],
+    ['Category', pass.guestCategory || 'Guest Attendee'],
+    ['Venue / Room', venue],
+    ['Valid On', validDays],
+    ['Serial ID', pass.serialNumber],
+  ];
+
+  const imageSrc = opts.forPreview ? `${origin}/api/pass/${encodeURIComponent(pass.serialNumber)}/image` : 'cid:rtbi-pass-image';
+  const imageBlock = `<div style="text-align:center;margin:18px 0;"><a href="${passUrl}"><img src="${imageSrc}" alt="Your event pass — ${esc(pass.serialNumber)}" width="552" style="display:block;width:100%;max-width:552px;height:auto;margin:0 auto;border-radius:16px;" /></a></div>`;
+  const detailsBlock = `<table role="presentation" style="width:100%;font-size:13px;color:#cbd5e1;border-collapse:collapse;margin:14px 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">${detailRows
+    .map(
+      ([k, v], i) =>
+        `<tr><td style="padding:9px 14px;color:#94a3b8;${i ? 'border-top:1px solid rgba(255,255,255,0.07);' : ''}">${k}</td><td style="padding:9px 14px;font-weight:bold;color:${k === 'Serial ID' ? '#f59e0b' : '#ffffff'};${k === 'Serial ID' ? 'font-family:monospace;' : ''}${i ? 'border-top:1px solid rgba(255,255,255,0.07);' : ''}">${esc(v)}</td></tr>`
+    )
+    .join('')}</table>`;
+
+  const paragraphs = (text: string) =>
+    text
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => `<p style="margin:0 0 14px 0;font-size:14px;color:#cbd5e1;line-height:1.6;">${esc(p).replace(/\n/g, '<br/>')}</p>`)
+      .join('');
+
+  const hasImage = merged.includes(IMAGE_MARKER);
+  const hasDetails = merged.includes(DETAILS_MARKER);
+  const messageHtml = merged
+    .split(/(\[\[PASS_IMAGE\]\]|\[\[PASS_DETAILS\]\])/)
+    .map((part) => (part === IMAGE_MARKER ? imageBlock : part === DETAILS_MARKER ? detailsBlock : paragraphs(part)))
+    .join('');
+
+  const detailsText = detailRows.map(([k, v]) => `• ${k}: ${v}`).join('\n');
+  const bodyText = (merged.split(IMAGE_MARKER).join('').split(DETAILS_MARKER).join(detailsText) + (hasDetails ? '' : `\n\n${detailsText}`))
+    .replace(/\n{3,}/g, '\n\n')
+    .trim() + `\n\nYour digital pass: ${passUrl}${mapUrl ? `\nVenue location: ${mapUrl}` : ''}${whatsappUrl ? `\nJoin the event WhatsApp group: ${whatsappUrl}` : ''}`;
+
+  const bodyHtml = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0f172a;color:#f8fafc;border-radius:16px;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <span style="display:inline-block;padding:4px 12px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#38bdf8;background:rgba(56,189,248,0.15);border-radius:20px;">Official Event Pass</span>
+        <h1 style="margin:16px 0 8px 0;font-size:22px;color:#ffffff;">${esc(pass.eventName)}</h1>
+        <p style="margin:0;color:#94a3b8;font-size:14px;">RTBI • RUAS</p>
+      </div>
+      ${hasImage ? '' : imageBlock}
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:8px;">
+        ${messageHtml}
+        ${hasDetails ? '' : detailsBlock}
+      </div>
+      ${passEmailButtonsHtml(origin, pass.serialNumber, { mapUrl, whatsappUrl })}
+      <p style="margin:0;font-size:12px;color:#64748b;text-align:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+        Please present your digital pass or QR code at official event turnstiles upon arrival.<br/>
+        &copy; ${new Date().getFullYear()} RTBI &bull; MSRUAS
+      </p>
+      ${opts.forPreview ? '' : `<img src="${trackPixelUrl}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:none;outline:none;" />`}
+    </div>
+  `;
+
+  return { subject, bodyText, bodyHtml };
+}
+
+/**
+ * Dispatches a personalized pass invitation email to the attendee
+ * with turnstile access details and digital wallet links.
+ */
+export async function dispatchPassEmail(
+  pass: EventPassItem,
+  targetEmail?: string,
+  template?: { subjectTemplate?: string; bodyTemplate?: string; includeMap?: boolean; mapUrl?: string; includeWhatsapp?: boolean; whatsappUrl?: string },
+  /** Blurred e-mail background for this send: 'none' or a custom picture; omit for the Email Settings default. */
+  background?: 'none' | { storageKey: string; blur: number }
+): Promise<{ success: boolean; error?: string; pending?: boolean }> {
+  const recipient = (targetEmail || pass.attendeeEmail || '').trim();
+  if (!recipient) {
+    return { success: false, error: 'No recipient email address provided.' };
+  }
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : FALLBACK_ORIGIN;
+  const { subject, bodyText, bodyHtml } = buildPassEmail(pass, origin, template || {});
+
+  try {
+    const res = await fetch('/api/email/send', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        scope: 'SINGLE',
+        recipientEmail: recipient,
+        to: recipient,
+        subject,
+        bodyText,
+        bodyHtml,
+        category: 'EVENT_INVITATION',
+        badgeText: 'Official Event Pass',
+        badgeColor: '#0284c7',
+        passSerial: pass.serialNumber, // server renders + attaches the boarding-pass image (cid:rtbi-pass-image)
+        ...(background ? { background } : {}),
+        metadata: {
+          passId: pass.id,
+          serialNumber: pass.serialNumber,
+          eventId: pass.eventId,
+          eventName: pass.eventName,
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || `HTTP ${res.status} error during dispatch.` };
+    }
+    const sendData = await res.json().catch(() => ({}));
+    if (sendData?.approvalPending) {
+      // Held for the designated approver — nothing was sent, so don't mark the pass as emailed.
+      notifyPassApproval(`Emailing ${pass.attendeeName}'s pass is waiting for approval. It is sent once the approver accepts.`, 'pending');
+      return { success: true, pending: true } as { success: boolean; error?: string; pending?: boolean };
+    }
+
+    // Record 'Email Sent' state
+    const now = new Date().toISOString();
+    const newStatus: PassEmailStatus = pass.emailStatus === 'Pass Viewed' ? 'Pass Viewed' : 'Email Sent';
+    
+    // Update local cache
+    const passes = getEventPasses();
+    const idx = passes.findIndex(p => p.id === pass.id);
+    if (idx >= 0) {
+      passes[idx] = {
+        ...passes[idx],
+        emailStatus: newStatus,
+        emailSentAt: now,
+      };
+      saveEventPasses(passes);
+    }
+
+    // Sync status to backend
+    fetch(`/api/events/${pass.eventId}/passes`, {
+      method: 'PATCH',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        passId: pass.id,
+        emailStatus: newStatus,
+        emailSentAt: now,
+      }),
+    }).catch(err => console.warn('Failed to sync pass email status with server:', err));
+
+    logAuditEvent(
+      'EVENT_PASS_EMAILED' as any,
+      pass.issuedBy || 'Staff',
+      `Dispatched pass ${pass.serialNumber} via email to ${recipient}`
+    );
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to dispatch pass email:', err);
+    return { success: false, error: err?.message || 'Network error dispatching email.' };
+  }
+}
+
+export function updateEventPassEmailStatus(
+  passId: string,
+  status: PassEmailStatus,
+  timestamp?: string
+): EventPassItem | null {
+  const passes = getEventPasses();
+  const idx = passes.findIndex(p => p.id === passId || p.serialNumber === passId);
+  if (idx === -1) return null;
+
+  const now = timestamp || new Date().toISOString();
+  passes[idx] = {
+    ...passes[idx],
+    emailStatus: status,
+    ...(status === 'Email Sent' ? { emailSentAt: now } : {}),
+    ...(status === 'Email Received' ? { emailReceivedAt: now } : {}),
+    ...(status === 'Pass Viewed' ? { passViewed: true, passViewedAt: passes[idx].passViewedAt || now, lastPassViewedAt: now } : {}),
+  };
+  saveEventPasses(passes);
+
+  fetch(`/api/events/${passes[idx].eventId}/passes`, {
+    method: 'PATCH',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({
+      passId: passes[idx].id,
+      emailStatus: status,
+      ...(status === 'Email Sent' ? { emailSentAt: now } : {}),
+      ...(status === 'Email Received' ? { emailReceivedAt: now } : {}),
+      ...(status === 'Pass Viewed' ? { passViewed: true, passViewedAt: passes[idx].passViewedAt, lastPassViewedAt: now } : {}),
+    }),
+  }).catch(err => console.warn('Failed to sync pass status update with server:', err));
+
+  return passes[idx];
 }
 
 // -------------------------------------------------------------

@@ -58,6 +58,7 @@ import {
   PublicFormItem,
   Member,
 } from '@/lib/local-data';
+import { reconcilePassesFromServer } from '@/lib/local-data';
 import { isEventsHeadGgCampus } from '@/lib/permissions';
 import { EmptyState } from '@/components/ui/empty-state';
 import { decideProposal } from '@/lib/proposals-client';
@@ -252,6 +253,10 @@ export default function ApprovalsPage() {
       }
     }
     decideApprovalRequest(id, decision, actorName, note);
+    // Event-pass requests are carried out (or discarded) by the server when it records the decision
+    if (req?.entityType === 'event-pass') {
+      setTimeout(() => { reconcilePassesFromServer(); }, 1500);
+    }
 
     setDecisionNoteFor(null);
     setDecisionNoteInput('');
