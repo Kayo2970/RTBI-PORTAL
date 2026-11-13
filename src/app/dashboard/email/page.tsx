@@ -1735,7 +1735,7 @@ export default function EmailManagementPage() {
                       required
                       value={settings.heloHostname || ''}
                       onChange={e => setSettings(prev => ({ ...prev, heloHostname: e.target.value }))}
-                      placeholder="e.g. mail.leadsnextgencentre.online"
+                      placeholder="e.g. mail.rtbi.ac.in"
                       className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                     />
                     <p className="text-[11px] text-theme-text-secondary">Must match the PTR (reverse-DNS) record on this VPS&apos;s outbound IP, or most receiving mail servers will reject the connection outright.</p>
@@ -1871,7 +1871,7 @@ export default function EmailManagementPage() {
                           type="text"
                           value={settings.dkimDomain || ''}
                           onChange={e => setSettings(prev => ({ ...prev, dkimDomain: e.target.value }))}
-                          placeholder="leadsnextgencentre.online"
+                          placeholder="rtbi.ac.in"
                           className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                         />
                       </div>

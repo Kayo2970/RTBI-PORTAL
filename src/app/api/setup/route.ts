@@ -44,8 +44,25 @@ function writeEncryptionKeyToEnv(key: string) {
  */
 export async function GET() {
   try {
-    const members = await readCollection<any>('members');
-    const hasAccounts = Array.isArray(members) && members.length > 0;
+    let hasAccounts = false;
+    let memberCount = 0;
+    let decryptionFailed = false;
+
+    try {
+      const members = await readCollection<any>('members');
+      hasAccounts = Array.isArray(members) && members.length > 0;
+      memberCount = members.length;
+    } catch (readErr: any) {
+      if (String(readErr?.message || '').includes('could not be decrypted')) {
+        console.warn('[setup-api-get] Existing database collection could not be decrypted with active key — allowing fresh setup.');
+        decryptionFailed = true;
+        hasAccounts = false;
+        memberCount = 0;
+      } else {
+        throw readErr;
+      }
+    }
+
     const isKeyConfigured = Boolean(
       process.env.DATA_ENCRYPTION_KEY &&
       process.env.DATA_ENCRYPTION_KEY.trim() !== '' &&
@@ -54,8 +71,9 @@ export async function GET() {
 
     return NextResponse.json({
       needsSetup: !hasAccounts,
-      memberCount: members.length,
+      memberCount,
       isKeyConfigured,
+      decryptionFailed,
       suggestedKey: crypto.randomBytes(32).toString('hex'),
     });
   } catch (err: any) {
@@ -68,8 +86,15 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const members = await readCollection<any>('members');
-    if (Array.isArray(members) && members.length > 0) {
+    let hasAccounts = false;
+    try {
+      const members = await readCollection<any>('members');
+      hasAccounts = Array.isArray(members) && members.length > 0;
+    } catch {
+      hasAccounts = false;
+    }
+
+    if (hasAccounts) {
       return NextResponse.json(
         { error: 'Initial setup has already been completed. Accounts already exist on this instance.' },
         { status: 400 }
@@ -91,7 +116,7 @@ export async function POST(request: Request) {
       writeEncryptionKeyToEnv(finalKey);
     }
 
-    // Re-encrypt any existing collections (seeded prior to key setup) under the new key
+    // Re-encrypt any existing collections under the new key, or clean unreadable ones
     const DATA_DIR = path.join(process.cwd(), 'data');
     if (fs.existsSync(DATA_DIR)) {
       const files = fs.readdirSync(DATA_DIR);
@@ -102,12 +127,17 @@ export async function POST(request: Request) {
           const raw = fs.readFileSync(filePath, 'utf-8');
           const parsed = JSON.parse(raw);
           if (isEncryptedPayload(parsed)) {
-            const decrypted = decryptData(parsed);
-            const reencrypted = encryptData(decrypted);
-            fs.writeFileSync(filePath, JSON.stringify(reencrypted, null, 2), 'utf-8');
+            try {
+              const decrypted = decryptData(parsed);
+              const reencrypted = encryptData(decrypted, finalKey);
+              fs.writeFileSync(filePath, JSON.stringify(reencrypted, null, 2), 'utf-8');
+            } catch {
+              // Undecryptable legacy collection during fresh setup — remove it so it reseeds cleanly
+              fs.unlinkSync(filePath);
+            }
           }
         } catch (e) {
-          console.warn(`[setup] Could not re-encrypt ${file}:`, e);
+          console.warn(`[setup] Could not process ${file}:`, e);
         }
       }
     }

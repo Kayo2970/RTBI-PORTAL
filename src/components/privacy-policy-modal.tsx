@@ -21,7 +21,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
             </div>
             <div>
               <h2 className="text-lg font-bold text-theme-text-primary">Privacy Policy</h2>
-              <p className="text-xs text-theme-text-secondary mt-0.5">LEADS Next Gen Portal & Operational Systems</p>
+              <p className="text-xs text-theme-text-secondary mt-0.5">RTBI Portal & Operational Systems</p>
             </div>
           </div>
           <button

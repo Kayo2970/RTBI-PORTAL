@@ -640,24 +640,33 @@ export async function mutateCollection<T = any>(
  * Clean wipe of all database collections, uploads, and in-memory lock states.
  */
 export async function wipeAllData(): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  for (const key of COLLECTION_KEYS) {
-    const target = collectionPath(key);
-    const initialVal = (SEED_DB[key] as any[]) ?? [];
-    const encryptedPayload = encryptData(JSON.stringify(initialVal));
-    await fs.writeFile(target, JSON.stringify(encryptedPayload, null, 2), 'utf-8');
-  }
+  writeLocks.clear();
 
-  const uploadsDir = path.join(DATA_DIR, 'uploads');
   try {
-    await fs.rm(uploadsDir, { recursive: true, force: true });
-  } catch {}
+    const entries = await fs.readdir(DATA_DIR);
+    for (const entry of entries) {
+      const fullPath = path.join(DATA_DIR, entry);
+      try {
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+          await fs.rm(fullPath, { recursive: true, force: true });
+        } else {
+          await fs.unlink(fullPath);
+        }
+      } catch (err: any) {
+        console.warn(`[server-db] Could not delete data/${entry}:`, err?.message);
+      }
+    }
+  } catch (err: any) {
+    if (err?.code !== 'ENOENT') {
+      console.warn('[server-db] Error reading DATA_DIR during wipe:', err?.message);
+    }
+  }
 
   try {
     await fs.rm(LEGACY_DB_PATH, { force: true });
     await fs.rm(RETIRED_LEGACY_DB_PATH, { force: true });
   } catch {}
 
-  writeLocks.clear();
   await touchMeta();
 }

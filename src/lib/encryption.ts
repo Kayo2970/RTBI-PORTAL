@@ -8,6 +8,8 @@
  * - Salt & IV: Cryptographically secure random bytes
  */
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 // This fallback key is committed in git history and readable by anyone with
 // the source — encryption "at rest" that silently uses it is cosmetic, not
@@ -21,8 +23,23 @@ const FALLBACK_KEY = 'LEADS_ERP_MASTER_SECRET_KEY_2026';
 let warnedFallback = false;
 
 export function getMasterKey(): string {
-  const key = process.env.DATA_ENCRYPTION_KEY;
-  if (key && key.trim()) return key;
+  let key = process.env.DATA_ENCRYPTION_KEY;
+  if (key && key.trim()) return key.trim();
+
+  // If process.env does not have it, attempt reading directly from .env
+  try {
+    const envPath = path.join(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      const match = content.match(/^DATA_ENCRYPTION_KEY=(.*)$/m);
+      if (match && match[1]?.trim()) {
+        key = match[1].trim();
+        process.env.DATA_ENCRYPTION_KEY = key;
+        return key;
+      }
+    }
+  } catch {}
+
   if (!warnedFallback) {
     warnedFallback = true;
     console.error(
