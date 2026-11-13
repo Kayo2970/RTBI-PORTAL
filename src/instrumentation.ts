@@ -1,9 +1,7 @@
 // Runs once when this Next.js server instance starts up — see
 // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation.md.
 // Used here to start the in-process daily birthday-email scheduler
-// (src/lib/birthday-scheduler.ts), the weekly Indian-holiday sync +
-// social-media approval-task scheduler (src/lib/holiday-scheduler.ts), the
-// daily event-lapse social-media/event-report task scheduler
+// (src/lib/birthday-scheduler.ts), the daily event-lapse social-media/event-report task scheduler
 // (src/lib/event-social-scheduler.ts), and the daily task-deadline-reminder
 // scheduler (src/lib/task-deadline-scheduler.ts), plus the event-pass retention,
 // certificate and pass-email schedulers, rather than requiring an

@@ -63,7 +63,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
               2. Intellectual Property Rights & Codebase Ownership
             </h3>
             <p className="text-theme-text-secondary">
-              The entire platform—including but not limited to source code, React/Next.js components, database schema, design tokens, Group Policy RBAC engine, form engines, report generators, visual assets, the Public Forms & Feedback engine (with QR code generation and Word-document export), the Design Portal's automated 30-day asset-retention system, the Guest Directory and Members Directory invite tooling, and the automated Indian Holiday Calendar sync and social-media task-approval workflow—is the sole and exclusive property of <strong>Kayomarz Pavri</strong>.
+              The entire platform—including but not limited to source code, React/Next.js components, database schema, design tokens, Group Policy RBAC engine, form engines, report generators, visual assets, the Public Forms & Feedback engine (with QR code generation and Word-document export), the Design Portal's automated 30-day asset-retention system, and the Guest Directory and Members Directory invite tooling—is the sole and exclusive property of <strong>Kayomarz Pavri</strong>.
             </p>
             <ul className="list-disc pl-5 text-theme-text-secondary space-y-1">
               <li>No part of this portal or software may be reproduced, modified, distributed, reverse-engineered, decompiled, or re-licensed without explicit prior written authorization from <strong>Kayomarz Pavri</strong>.</li>

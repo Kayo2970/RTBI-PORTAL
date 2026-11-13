@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, CalendarDays, PartyPopper, ClipboardCheck, DoorOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, ClipboardCheck, DoorOpen } from 'lucide-react';
 import { getEvents, getTasks, getEffectiveEventStatus, formatEventDateRange, hasEventPlanningPhase, getEventSortTime, EventItem, TaskItem } from '@/lib/local-data';
 import { canViewEvent, canApprovePendingEvent } from '@/lib/permissions';
 import { Booking } from '@/lib/billing';
@@ -127,7 +127,6 @@ export default function CalendarPage() {
   };
 
   const upcomingEvents = [...visibleEvents]
-    .filter(e => !e.isHoliday)
     .filter(e => {
       const effective = getEffectiveEventStatus(e);
       return effective !== 'completed' && effective !== 'archived';
@@ -146,11 +145,6 @@ export default function CalendarPage() {
   const upcomingTaskDeadlines = [...tasks]
     .filter(t => t.status !== 'Completed' && t.dueDate >= todayStr)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-    .slice(0, 6);
-
-  const upcomingHolidays = [...visibleEvents]
-    .filter(e => e.isHoliday && e.startDate >= todayStr)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))
     .slice(0, 6);
 
   return (
@@ -369,30 +363,19 @@ export default function CalendarPage() {
 
                   // 4. Regular Events
                   ...dayEvents.map(ev => (
-                    ev.isHoliday ? (
-                      <div
-                        key={ev.id}
-                        className="p-3 bg-warning/10 border border-warning/25 rounded-xl flex items-center gap-2"
-                      >
-                        <PartyPopper className="h-3.5 w-3.5 text-warning shrink-0" />
-                        <h5 className="font-semibold text-theme-text-primary text-xs">{ev.title}</h5>
-                        <span className="text-[10px] px-2 py-0.5 bg-warning/15 text-warning font-semibold rounded-md ml-auto shrink-0">Holiday</span>
+                    <Link
+                      key={ev.id}
+                      href={`/dashboard/events/${ev.id}`}
+                      className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex items-center justify-between gap-3 hover:bg-theme-border/20 transition-all block cursor-pointer"
+                    >
+                      <div>
+                        <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
+                        <p className="text-[10px] text-theme-text-secondary mt-0.5">{(ev.committees || []).length} Sub-Committees</p>
                       </div>
-                    ) : (
-                      <Link
-                        key={ev.id}
-                        href={`/dashboard/events/${ev.id}`}
-                        className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex items-center justify-between gap-3 hover:bg-theme-border/20 transition-all block cursor-pointer"
-                      >
-                        <div>
-                          <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
-                          <p className="text-[10px] text-theme-text-secondary mt-0.5">{(ev.committees || []).length} Sub-Committees</p>
-                        </div>
-                        <span className="text-[10px] px-2.5 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">
-                          {getEffectiveEventStatus(ev)}
-                        </span>
-                      </Link>
-                    )
+                      <span className="text-[10px] px-2.5 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">
+                        {getEffectiveEventStatus(ev)}
+                      </span>
+                    </Link>
                   )),
                 ];
               })()
@@ -495,28 +478,6 @@ export default function CalendarPage() {
                     </div>
                     <span className="text-[10px] text-danger font-semibold shrink-0">{t.dueDate}</span>
                   </Link>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Upcoming Holidays */}
-          <div className="space-y-3 pt-2 border-t border-theme-border/20">
-            <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
-              <PartyPopper className="h-4 w-4 text-warning" />
-              Upcoming Holidays
-            </h3>
-            <div className="space-y-2 text-xs">
-              {upcomingHolidays.length === 0 ? (
-                <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                  No upcoming holidays synced yet.
-                </div>
-              ) : (
-                upcomingHolidays.map(h => (
-                  <div key={h.id} className="p-3 bg-warning/10 border border-warning/25 rounded-xl flex items-center justify-between gap-2">
-                    <h5 className="font-semibold text-theme-text-primary text-xs">{h.title}</h5>
-                    <span className="text-[10px] text-warning font-semibold shrink-0">{h.startDate}</span>
-                  </div>
                 ))
               )}
             </div>
