@@ -33,12 +33,12 @@
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #cbd5e1;
+  color: #D5CBE1;
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(28, 15, 42, 0.85);
   padding: 6px 18px;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -49,17 +49,17 @@
 .statusDot {
   width: 8px;
   height: 8px;
-  background-color: #38bdf8;
+  background-color: #E86848;
   border-radius: 50%;
-  box-shadow: 0 0 10px #38bdf8;
+  box-shadow: 0 0 10px #E86848;
   flex-shrink: 0;
 }
 
 .mobileFlapToggle {
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(28, 15, 42, 0.9);
+  border: 1px solid rgba(232, 104, 72, 0.3);
   padding: 3px;
   border-radius: 999px;
   gap: 4px;
@@ -69,7 +69,7 @@
 .flapTab {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #A594B8;
   font-size: 11px;
   font-weight: 700;
   font-family: inherit;
@@ -80,9 +80,9 @@
 }
 
 .flapTabActive {
-  background: #38bdf8;
-  color: #0c1a30;
-  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+  background: #E86848;
+  color: #1D0C30;
+  box-shadow: 0 2px 8px rgba(232, 104, 72, 0.4);
 }
 
 .experienceStage {
@@ -133,7 +133,7 @@
 
 .leatherTexture {
   background-image:
-    linear-gradient(135deg, rgba(14, 25, 48, 0.35) 0%, rgba(5, 8, 16, 0.65) 100%),
+    linear-gradient(135deg, rgba(30, 14, 48, 0.35) 0%, rgba(10, 5, 16, 0.65) 100%),
     url('/card/dark-blue-leather.jpg');
   background-size: cover;
   background-position: center;
@@ -153,14 +153,14 @@
   transform-style: preserve-3d;
   transform: translateZ(0);
   overflow: visible;
-  background-color: #0b1526;
+  background-color: #180B26;
 }
 
 .baseStitch {
   position: absolute;
   inset: 8px;
   border-radius: 20px;
-  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border: 1px dashed rgba(165, 148, 184, 0.45);
   pointer-events: none;
   z-index: 5;
 }
@@ -174,7 +174,7 @@
   border-bottom-left-radius: 26px;
   border-bottom-right-radius: 26px;
   background-image:
-    linear-gradient(145deg, rgba(20, 42, 80, 0.45) 0%, rgba(6, 12, 24, 0.8) 100%),
+    linear-gradient(145deg, rgba(48, 20, 80, 0.45) 0%, rgba(14, 6, 24, 0.8) 100%),
     url('/card/dark-blue-leather.jpg');
   background-size: cover;
   background-position: center bottom;
@@ -190,7 +190,7 @@
   flex-direction: column;
   justify-content: flex-end;
   padding: 20px 22px;
-  border-top: 2px solid #060a14;
+  border-top: 2px solid #0D0614;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -200,7 +200,7 @@
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
   border-top-left-radius: 220px;
-  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border: 1px dashed rgba(165, 148, 184, 0.45);
   pointer-events: none;
 }
 
@@ -219,22 +219,22 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
-  color: #94a3b8;
+  color: #A594B8;
   text-transform: uppercase;
 }
 
 .pocketIcon {
   width: 15px;
   height: 15px;
-  color: #38bdf8;
+  color: #E86848;
 }
 
 .tapHintPill {
   font-size: 9.5px;
   font-weight: 700;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #E86848;
+  background: rgba(232, 104, 72, 0.12);
+  border: 1px solid rgba(232, 104, 72, 0.3);
   padding: 3px 10px;
   border-radius: 999px;
   letter-spacing: 0.05em;
@@ -345,8 +345,8 @@
 }
 
 .passFront {
-  background: #ebf9ff;
-  color: #0f172a;
+  background: #FDF0EC;
+  color: #1C0F2A;
   padding: 16px 16px 14px;
   display: flex;
   flex-direction: column;
@@ -368,7 +368,7 @@
     rgba(255, 255, 255, 0) 25%,
     rgba(255, 255, 255, 0.45) 42%,
     rgba(255, 215, 0, 0.38) 48%,
-    rgba(56, 189, 248, 0.42) 54%,
+    rgba(232, 104, 72, 0.42) 54%,
     rgba(236, 72, 153, 0.36) 60%,
     rgba(255, 255, 255, 0) 75%,
     transparent 100%
@@ -410,9 +410,9 @@
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #0284c7;
-  background: rgba(2, 132, 199, 0.12);
-  border: 1px solid rgba(2, 132, 199, 0.25);
+  color: #CC3D19;
+  background: rgba(204, 61, 25, 0.12);
+  border: 1px solid rgba(204, 61, 25, 0.25);
   padding: 2px 7px;
   border-radius: 999px;
 }
@@ -431,8 +431,8 @@
   height: 52px;
   border-radius: 14px;
   padding: 2px;
-  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #f59e0b 100%);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  background: linear-gradient(135deg, #CC3D19 0%, #E86848 50%, #f59e0b 100%);
+  box-shadow: 0 4px 12px rgba(204, 61, 25, 0.25);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -472,14 +472,14 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #76648B;
   margin-bottom: 2px;
 }
 
 .passName {
   font-size: 17px;
   font-weight: 800;
-  color: #090d16;
+  color: #0F0916;
   line-height: 1.2;
 }
 
@@ -500,7 +500,7 @@
 .passVal {
   font-size: 11px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1C0F2A;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -514,8 +514,8 @@
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 4px 14px -2px rgba(2, 132, 199, 0.15),
-    0 0 0 1px rgba(226, 232, 240, 0.8);
+    0 4px 14px -2px rgba(204, 61, 25, 0.15),
+    0 0 0 1px rgba(233, 226, 240, 0.8);
   margin: 10px auto 8px auto;
   width: 135px;
   height: 135px;
@@ -536,7 +536,7 @@
   flex-direction: column;
   gap: 3px;
   font-size: 9px;
-  color: #64748b;
+  color: #76648B;
   font-weight: 600;
 }
 
@@ -546,20 +546,20 @@
   gap: 5px;
   font-size: 9px;
   font-weight: 700;
-  color: #0284c7;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px dashed rgba(2, 132, 199, 0.35);
+  color: #CC3D19;
+  background: rgba(232, 104, 72, 0.12);
+  border: 1px dashed rgba(204, 61, 25, 0.35);
   padding: 3px 8px;
   border-radius: 6px;
 }
 
 /* BACK SIDE */
 .passBack {
-  background: #f8fafc;
+  background: #FEF7F6;
   background-image:
-    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
-    linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
-  color: #0f172a;
+    radial-gradient(circle at 100% 0%, rgba(232, 104, 72, 0.15) 0%, transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #FEF4F1 100%);
+  color: #1C0F2A;
   padding: 16px 16px 12px;
   display: flex;
   flex-direction: column;
@@ -569,14 +569,14 @@
   box-shadow:
     0 20px 45px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.95),
-    inset 0 0 20px rgba(56, 189, 248, 0.08);
+    inset 0 0 20px rgba(232, 104, 72, 0.08);
 }
 
 .passBackHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(2, 132, 199, 0.15);
+  border-bottom: 1px solid rgba(204, 61, 25, 0.15);
   padding-bottom: 8px;
   margin-bottom: 8px;
 }
@@ -584,15 +584,15 @@
 .passBackTitle {
   font-size: 13.5px;
   font-weight: 800;
-  color: #090d16;
+  color: #0F0916;
 }
 
 .btnFlipPill {
   font-size: 9px;
   font-weight: 800;
-  color: #0284c7;
-  background: rgba(56, 189, 248, 0.16);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #CC3D19;
+  background: rgba(232, 104, 72, 0.16);
+  border: 1px solid rgba(232, 104, 72, 0.4);
   padding: 4px 9px;
   border-radius: 999px;
   cursor: pointer;
@@ -616,7 +616,7 @@
   background: rgba(255, 255, 255, 0.85);
   padding: 4px 8px;
   border-radius: 8px;
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  border: 1px solid rgba(233, 226, 240, 0.9);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -625,13 +625,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: #76648B;
 }
 
 .backFieldVal {
   font-size: 10px;
   font-weight: 800;
-  color: #0f172a;
+  color: #1C0F2A;
   line-height: 1.25;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -639,19 +639,19 @@
 
 .backNoticeText {
   font-size: 8px;
-  color: #64748b;
+  color: #76648B;
   line-height: 1.35;
   font-weight: 500;
 }
 
 .passBackFooter {
-  border-top: 1px solid rgba(2, 132, 199, 0.12);
+  border-top: 1px solid rgba(204, 61, 25, 0.12);
   padding-top: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 8.5px;
-  color: #64748b;
+  color: #76648B;
   font-weight: 600;
 }
 
@@ -713,7 +713,7 @@
 
 .coverFront {
   background-image:
-    linear-gradient(135deg, rgba(20, 36, 68, 0.3) 0%, rgba(4, 7, 14, 0.7) 100%),
+    linear-gradient(135deg, rgba(42, 20, 68, 0.3) 0%, rgba(9, 4, 14, 0.7) 100%),
     url('/card/dark-blue-leather.jpg');
   background-size: cover;
   background-position: center;
@@ -734,7 +734,7 @@
   position: absolute;
   inset: 8px;
   border-radius: 20px;
-  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border: 1px dashed rgba(165, 148, 184, 0.45);
   pointer-events: none;
 }
 
@@ -761,7 +761,7 @@
   width: 100%;
   height: 100%;
   transform: translate(0px, 1.5px);
-  background-color: rgba(140, 210, 255, 0.55);
+  background-color: rgba(234, 113, 83, 0.55);
   -webkit-mask: url(#rtbi-deboss-mask);
   mask: url(#rtbi-deboss-mask);
   -webkit-mask-image: var(--holder-logo, url('/card/rtbi-logo-clean.png'));
@@ -773,7 +773,7 @@
   -webkit-mask-position: center;
   mask-position: center;
   pointer-events: none;
-  filter: drop-shadow(0px 1px 1px rgba(180, 230, 255, 0.4));
+  filter: drop-shadow(0px 1px 1px rgba(249, 198, 186, 0.4));
 }
 
 .debossShadowBevel {
@@ -802,7 +802,7 @@
   width: 100%;
   height: 100%;
   background-image:
-    linear-gradient(145deg, rgba(2, 6, 16, 0.75) 0%, rgba(6, 16, 36, 0.45) 100%),
+    linear-gradient(145deg, rgba(9, 2, 16, 0.75) 0%, rgba(20, 6, 36, 0.45) 100%),
     url('/card/dark-blue-leather.jpg');
   background-size: cover;
   background-position: center;
@@ -829,23 +829,23 @@
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #38bdf8;
+  color: #E86848;
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(10, 18, 32, 0.75);
+  background: rgba(20, 10, 32, 0.75);
   padding: 7px 18px;
   border-radius: 999px;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(232, 104, 72, 0.35);
 }
 
 .coverBack {
   background-image:
-    linear-gradient(150deg, rgba(14, 25, 48, 0.45) 0%, rgba(5, 8, 16, 0.75) 100%),
+    linear-gradient(150deg, rgba(30, 14, 48, 0.45) 0%, rgba(10, 5, 16, 0.75) 100%),
     url('/card/dark-blue-leather.jpg');
   background-size: cover;
   background-position: center;
-  color: #f8fafc;
+  color: #FEF7F6;
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
@@ -860,7 +860,7 @@
   position: absolute;
   inset: 8px;
   border-radius: 20px;
-  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border: 1px dashed rgba(165, 148, 184, 0.45);
   pointer-events: none;
 }
 
@@ -880,7 +880,7 @@
 
 .leftPanelSub {
   font-size: 10.5px;
-  color: #38bdf8;
+  color: #E86848;
   font-weight: 600;
 }
 
@@ -889,9 +889,9 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #E86848;
+  background: rgba(232, 104, 72, 0.15);
+  border: 1px solid rgba(232, 104, 72, 0.3);
   padding: 2px 7px;
   border-radius: 4px;
 }
@@ -912,14 +912,14 @@
 .formSlotLabel {
   font-size: 8px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #A594B8;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .formSlotPill {
   background: #ffffff;
-  color: #0f172a;
+  color: #1C0F2A;
   font-size: 10.5px;
   font-weight: 700;
   padding: 4px 9px;
@@ -933,7 +933,7 @@
 
 .leftPanelFooter {
   font-size: 8px;
-  color: #94a3b8;
+  color: #A594B8;
   line-height: 1.35;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 8px;
@@ -957,8 +957,8 @@
   gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  color: #e2e8f0;
-  background: rgba(15, 23, 42, 0.85);
+  color: #E9E2F0;
+  background: rgba(28, 15, 42, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 8px 16px;
   border-radius: 12px;
@@ -969,19 +969,19 @@
 }
 
 .btnAction:hover {
-  background: rgba(30, 41, 59, 0.95);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
+  background: rgba(43, 29, 60, 0.95);
+  border-color: rgba(232, 104, 72, 0.4);
+  color: #E86848;
 }
 
 .btnWallet {
-  background: #0284c7;
+  background: #CC3D19;
   color: #ffffff;
-  border-color: #38bdf8;
+  border-color: #E86848;
 }
 
 .btnWallet:hover {
-  background: #0369a1;
+  background: #CC3D19;
   color: #ffffff;
 }
 
@@ -991,14 +991,14 @@
 
 .eventPassFront {
   background-image:
-    linear-gradient(145deg, rgba(10, 22, 44, 0.94) 0%, rgba(4, 9, 20, 0.97) 100%),
+    linear-gradient(145deg, rgba(26, 10, 44, 0.94) 0%, rgba(11, 4, 20, 0.97) 100%),
     url('/card/dark-blue-leather.jpg');
   background-size: cover;
   background-position: center;
   color: var(--pass-fg, #ffffff);
   transform: rotateY(0deg);
   z-index: 2;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  border: 1px solid rgba(232, 104, 72, 0.3);
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.95),
     0 0 0 1px rgba(255, 255, 255, 0.15),
@@ -1049,7 +1049,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--pass-label, #38bdf8);
+  color: var(--pass-label, #E86848);
 }
 
 .eventPassTypeBadge {
@@ -1090,16 +1090,16 @@
   gap: 4px;
   font-size: 8.5px;
   font-weight: 700;
-  color: var(--pass-label, #38bdf8);
-  background: rgba(56, 189, 248, 0.1);
+  color: var(--pass-label, #E86848);
+  background: rgba(232, 104, 72, 0.1);
   padding: 1.5px 6px;
   border-radius: 6px;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(232, 104, 72, 0.25);
   width: fit-content;
 }
 
 .guestIdentityCard {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(28, 15, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 12px;
   padding: 6px 10px;
@@ -1155,13 +1155,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94a3b8;
+  color: #A594B8;
 }
 
 .guestMetaVal {
   font-size: calc(9px * var(--pass-font-scale, 1));
   font-weight: 700;
-  color: #f1f5f9;
+  color: #FDF0EC;
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -1206,7 +1206,7 @@
   font-size: 9.5px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: #0f172a;
+  color: #1C0F2A;
   line-height: 1.1;
   white-space: nowrap;
 }
@@ -1228,7 +1228,7 @@
 
 .turnstileHintSub {
   font-size: 7px;
-  color: #64748b;
+  color: #76648B;
   font-weight: 600;
   line-height: 1.1;
 }
@@ -1242,7 +1242,7 @@
   border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #D5CBE1;
   display: block;
 }
 
@@ -1256,7 +1256,7 @@
 .magneticStripeGraphic {
   width: 100%;
   height: 24px;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%);
+  background: linear-gradient(180deg, #2B1D3C 0%, #1C0F2A 50%, #0C0217 100%);
   margin: 6px 0 10px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

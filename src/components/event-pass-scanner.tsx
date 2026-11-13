@@ -443,17 +443,17 @@ export function EventPassScanner({
   };
 
   return (
-    <div className="glass-panel rounded-3xl p-6 md:p-8 space-y-6 border border-slate-200/90 dark:border-white/15 bg-white/95 dark:bg-[#0D1F38]/95 shadow-2xl max-w-2xl mx-auto text-xs">
-      <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-4">
+    <div className="glass-panel rounded-3xl p-6 md:p-8 space-y-6 border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-2xl max-w-2xl mx-auto text-xs">
+      <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
+          <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
             <QrCode className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-base font-black text-slate-900 dark:text-white">
+            <h2 className="text-base font-black text-theme-text-primary dark:text-white">
               Turnstile Camera &amp; QR Scanner
             </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+            <p className="text-xs text-theme-text-secondary dark:text-theme-text-secondary font-medium">
               Scan passes via smartphone camera or enter serial ID for instant admission.
             </p>
           </div>
@@ -465,7 +465,7 @@ export function EventPassScanner({
           onClick={() => (isCameraActive ? stopCamera() : startCamera())}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md ${
             isCameraActive
-              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+              ? 'bg-danger/20 text-danger border border-danger/40 hover:bg-danger/30'
               : 'bg-accent text-white hover:bg-accent/90 shadow-accent/25'
           }`}
         >
@@ -483,8 +483,8 @@ export function EventPassScanner({
 
       {/* CAMERA ERROR BANNER */}
       {cameraError && (
-        <div className="p-4 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-rose-300 text-xs flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+        <div className="p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger text-xs flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-danger shrink-0" />
           <span>{cameraError}</span>
         </div>
       )}
@@ -492,7 +492,7 @@ export function EventPassScanner({
       {/* LIVE CAMERA VIEWFINDER WITH HUD & RETICLE */}
       {isCameraActive && (
         <div className={`relative w-full aspect-[4/3] max-h-80 rounded-2xl overflow-hidden bg-black border-2 transition-colors duration-200 shadow-2xl ${
-          lastScannedFeedback ? 'border-emerald-400 ring-4 ring-emerald-400/40' : 'border-accent'
+          lastScannedFeedback ? 'border-success ring-4 ring-success/40' : 'border-accent'
         }`}>
           <video
             ref={videoRef}
@@ -510,7 +510,7 @@ export function EventPassScanner({
           {/* Top Camera Controls Overlay */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20">
             <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-black/70 text-white border border-white/20 backdrop-blur-md flex items-center gap-1.5">
-              <span className={`h-2 w-2 rounded-full ${lastScannedFeedback ? 'bg-emerald-400 scale-125' : 'bg-emerald-400 animate-ping'}`} />
+              <span className={`h-2 w-2 rounded-full ${lastScannedFeedback ? 'bg-success/30 scale-125' : 'bg-success/30 animate-ping'}`} />
               {lastScannedFeedback ? 'Pass Scanned!' : 'Scanning Turnstile QR'}
             </span>
 
@@ -521,7 +521,7 @@ export function EventPassScanner({
                   onClick={toggleTorch}
                   className={`p-2 rounded-xl backdrop-blur-md border transition-all cursor-pointer ${
                     torchOn
-                      ? 'bg-amber-500 text-black border-amber-400 shadow-lg shadow-amber-500/40'
+                      ? 'bg-warning text-black border-warning shadow-lg shadow-warning/40'
                       : 'bg-black/60 text-white border-white/20 hover:bg-black/80'
                   }`}
                   title="Toggle Flashlight / Torch"
@@ -546,7 +546,7 @@ export function EventPassScanner({
           {/* Viewfinder Target Reticle */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <div className={`relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl border-2 transition-all duration-300 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] ${
-              lastScannedFeedback ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/40'
+              lastScannedFeedback ? 'border-success bg-success/10' : 'border-white/40'
             }`}>
               {/* Corner brackets */}
               <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-accent rounded-tl-lg" />
@@ -555,7 +555,7 @@ export function EventPassScanner({
               <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-accent rounded-br-lg" />
 
               {/* Animated Laser Scanning Line */}
-              <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_#38bdf8] animate-[bounce_2s_infinite]" />
+              <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-secondary to-transparent shadow-[0_0_12px_#F26A44] animate-[bounce_2s_infinite]" />
             </div>
           </div>
 
@@ -577,13 +577,13 @@ export function EventPassScanner({
         className="flex gap-2"
       >
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Scan barcode/QR payload or enter serial ID (e.g. RTBI-EVT-2026-XXXX)"
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 font-medium focus:outline-none focus:border-accent text-xs"
+            className="w-full pl-10 pr-4 py-2.5 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-theme-text-primary dark:text-white placeholder-theme-text-secondary font-medium focus:outline-none focus:border-accent text-xs"
           />
         </div>
         <button
@@ -619,11 +619,11 @@ export function EventPassScanner({
 
             if (isCancelled) {
               return (
-                <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-3">
-                  <XCircle className="h-6 w-6 text-rose-400 shrink-0" />
+                <div className="p-6 rounded-2xl bg-danger/10 border border-danger/30 text-danger flex items-center gap-3">
+                  <XCircle className="h-6 w-6 text-danger shrink-0" />
                   <div>
-                    <div className="font-bold text-rose-200">Pass Cancelled — Do Not Admit</div>
-                    <div className="text-xs text-rose-300/80">
+                    <div className="font-bold text-danger">Pass Cancelled — Do Not Admit</div>
+                    <div className="text-xs text-danger/80">
                       {pass.attendeeName} · {pass.serialNumber}
                     </div>
                   </div>
@@ -635,10 +635,10 @@ export function EventPassScanner({
               <div
                 className={`p-6 rounded-2xl border space-y-4 ${
                   isAllAttended
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                    ? 'bg-success/10 border-success/30 text-success'
                     : attendance.length > 0
-                    ? 'bg-sky-500/10 border-sky-500/30 text-sky-200'
-                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                    ? 'bg-accent/10 border-accent/30 text-accent'
+                    : 'bg-success/10 border-success/30 text-success'
                 }`}
               >
                 {/* Header Status */}
@@ -646,15 +646,15 @@ export function EventPassScanner({
                   <div className="flex items-center gap-2">
                     {isAllAttended ? (
                       <>
-                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-                        <span className="font-bold text-emerald-300 text-sm">
+                        <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                        <span className="font-bold text-success text-sm">
                           {checkInSuccess ? 'Checked In Successfully!' : 'Pass Fully Checked In (All Days Attended)'}
                         </span>
                       </>
                     ) : attendance.length > 0 ? (
                       <>
-                        <Clock className="h-5 w-5 text-sky-400 shrink-0" />
-                        <span className="font-bold text-sky-300 text-sm">
+                        <Clock className="h-5 w-5 text-accent shrink-0" />
+                        <span className="font-bold text-accent text-sm">
                           {checkInSuccess
                             ? 'Checked In Successfully!'
                             : `Partially Attended (${attendance.length}/${availableDays.length} Days)`}
@@ -662,8 +662,8 @@ export function EventPassScanner({
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-                        <span className="font-bold text-emerald-300 text-sm">
+                        <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                        <span className="font-bold text-success text-sm">
                           {validToday ? 'Genuine & Verified Pass' : `Genuine pass — not valid today (${formatValidDaysLabel(validDays)})`}
                         </span>
                       </>
@@ -677,34 +677,34 @@ export function EventPassScanner({
                 {/* Attendee Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-black/30 border border-white/10 text-white">
                   <div className="space-y-0.5">
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">Attendee</span>
+                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Attendee</span>
                     <span className="text-sm font-extrabold block">{pass.attendeeName}</span>
                     {pass.guestCategory && (
-                      <span className="inline-block text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 mt-0.5">
+                      <span className="inline-block text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent border border-accent/30 mt-0.5">
                         {pass.guestCategory}
                       </span>
                     )}
                   </div>
 
                   <div className="space-y-0.5">
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">Assigned Room / Venue</span>
-                    <span className="text-xs font-bold text-sky-300 flex items-start gap-1 min-w-0">
-                      <MapPin className="h-3 w-3 text-sky-400 shrink-0 mt-0.5" />
+                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Assigned Room / Venue</span>
+                    <span className="text-xs font-bold text-accent flex items-start gap-1 min-w-0">
+                      <MapPin className="h-3 w-3 text-accent shrink-0 mt-0.5" />
                       <span className="min-w-0 break-words [overflow-wrap:anywhere]">{pass.roomOrVenue || pass.eventVenue || 'Main Auditorium'}</span>
                     </span>
-                    <span className="text-[10.5px] text-slate-300 block">
+                    <span className="text-[10.5px] text-theme-text-secondary block">
                       Tier: {pass.passType}
                     </span>
                   </div>
 
                   <div className="space-y-0.5 pt-2 border-t border-white/10">
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">Event</span>
+                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Event</span>
                     <span className="text-xs font-semibold block truncate">{pass.eventName}</span>
                   </div>
 
                   <div className="space-y-0.5 pt-2 border-t border-white/10">
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">Validity / Issued</span>
-                    <span className="text-xs text-slate-300 block">
+                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Validity / Issued</span>
+                    <span className="text-xs text-theme-text-secondary block">
                       {isStructured ? formatValidDaysLabel(validDays) : pass.validityDate || pass.eventDate || '2026'}
                     </span>
                   </div>
@@ -714,7 +714,7 @@ export function EventPassScanner({
                 <div className="space-y-3 p-4 rounded-xl bg-black/40 border border-white/10 text-white">
                   <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-sky-400" />
+                      <Calendar className="h-4 w-4 text-accent" />
                       <span className="font-extrabold text-xs text-white">
                         Multi-Day Attendance Roster
                       </span>
@@ -722,10 +722,10 @@ export function EventPassScanner({
                     <span
                       className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         isAllAttended
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          ? 'bg-success/20 text-success border border-success/30'
                           : attendance.length > 0
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                          : 'bg-slate-500/20 text-slate-300 border border-slate-500/30'
+                          ? 'bg-warning/20 text-warning border border-warning/30'
+                          : 'bg-theme-card/20 text-theme-text-secondary border border-theme-border/30'
                       }`}
                     >
                       {attendance.length} of {availableDays.length} Days Attended
@@ -743,16 +743,16 @@ export function EventPassScanner({
                         return (
                           <div
                             key={day}
-                            className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
+                            className="flex items-center justify-between p-2.5 rounded-xl bg-success/15 border border-success/30 text-success"
                           >
                             <div className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                               <span className="font-extrabold text-xs text-white">{dayLabel(day)}</span>
-                              <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                              <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-success/20 text-success font-semibold">
                                 Attended
                               </span>
                             </div>
-                            <div className="text-[10px] text-emerald-300/90 flex items-center gap-1 font-medium">
+                            <div className="text-[10px] text-success/90 flex items-center gap-1 font-medium">
                               <Clock className="h-3 w-3 shrink-0" />
                               <span>
                                 {new Date(record.timestamp).toLocaleTimeString([], {
@@ -770,7 +770,7 @@ export function EventPassScanner({
                         return (
                           <div
                             key={day}
-                            className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/[0.03] text-slate-500"
+                            className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/[0.03] text-theme-text-secondary"
                           >
                             <span className="font-bold text-xs">{dayLabel(day)}</span>
                             <span className="text-[10px] font-medium">{day < today ? 'Missed' : 'Not yet — valid on this date'}</span>
@@ -789,21 +789,21 @@ export function EventPassScanner({
                           }}
                           className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
                             isSelected
-                              ? 'bg-sky-500/25 border-sky-400 text-white shadow-md ring-1 ring-sky-400/40'
-                              : 'bg-white/5 border-white/10 hover:border-white/25 text-slate-300'
+                              ? 'bg-accent/25 border-accent text-white shadow-md ring-1 ring-accent/40'
+                              : 'bg-white/5 border-white/10 hover:border-white/25 text-theme-text-secondary'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
                             <div
                               className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all ${
-                                isSelected ? 'bg-sky-500 border-sky-400 text-white' : 'border-white/30'
+                                isSelected ? 'bg-accent border-accent text-white' : 'border-white/30'
                               }`}
                             >
                               {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                             </div>
                             <span className="font-bold text-xs">{dayLabel(day)}</span>
                           </div>
-                          <span className="text-[10px] text-slate-400 font-medium">
+                          <span className="text-[10px] text-theme-text-secondary font-medium">
                             {isSelected ? 'Selected for check-in' : 'Click to select'}
                           </span>
                         </button>
@@ -817,7 +817,7 @@ export function EventPassScanner({
                       <button
                         type="button"
                         onClick={() => setShowAddCustomDay(true)}
-                        className="text-[10.5px] text-sky-400 hover:text-sky-300 flex items-center gap-1 font-bold cursor-pointer transition-colors"
+                        className="text-[10.5px] text-accent hover:text-accent flex items-center gap-1 font-bold cursor-pointer transition-colors"
                       >
                         <Plus className="h-3.5 w-3.5" /> Add Day / Custom Session
                       </button>
@@ -834,13 +834,13 @@ export function EventPassScanner({
                             }
                           }}
                           placeholder="e.g. Day 4, Gala Dinner, Afternoon Session"
-                          className="flex-1 px-3 py-1.5 bg-black/50 border border-white/20 rounded-lg text-white text-xs placeholder-slate-400 focus:outline-none focus:border-sky-400"
+                          className="flex-1 px-3 py-1.5 bg-black/50 border border-white/20 rounded-lg text-white text-xs placeholder-theme-text-secondary focus:outline-none focus:border-accent"
                         />
                         <button
                           type="button"
                           onClick={handleAddCustomDay}
                           disabled={!customDayInput.trim()}
-                          className="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-lg cursor-pointer disabled:opacity-50"
+                          className="px-3 py-1.5 bg-accent hover:bg-accent/30 text-white text-xs font-bold rounded-lg cursor-pointer disabled:opacity-50"
                         >
                           Add
                         </button>
@@ -850,7 +850,7 @@ export function EventPassScanner({
                             setShowAddCustomDay(false);
                             setCustomDayInput('');
                           }}
-                          className="px-2.5 py-1.5 text-slate-400 hover:text-white text-xs cursor-pointer"
+                          className="px-2.5 py-1.5 text-theme-text-secondary hover:text-white text-xs cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -866,7 +866,7 @@ export function EventPassScanner({
                           type="button"
                           disabled={selectedDays.length === 0}
                           onClick={() => handleCheckInDays(selectedDays)}
-                          className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 py-3 bg-success hover:bg-success text-white font-extrabold rounded-xl transition-all shadow-lg shadow-success/30 flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           {selectedDays.length > 1
@@ -880,7 +880,7 @@ export function EventPassScanner({
                           <button
                             type="button"
                             onClick={() => handleCheckInDays(pendingDays)}
-                            className="py-3 px-4 bg-sky-600/20 hover:bg-sky-600/30 text-sky-200 border border-sky-500/40 font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
+                            className="py-3 px-4 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/40 font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
                             title="Mark all remaining days attended at once"
                           >
                             Check In All Remaining ({pendingDays.length} Days)
@@ -888,19 +888,19 @@ export function EventPassScanner({
                         )}
                       </>
                     ) : isStructured && pendingDays.length > 0 ? (
-                      <div className="w-full py-2.5 px-4 bg-amber-500/15 border border-amber-500/30 text-amber-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-amber-400" />
+                      <div className="w-full py-2.5 px-4 bg-warning/15 border border-warning/30 text-warning font-bold rounded-xl text-xs flex items-center justify-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-warning" />
                         {validToday ? 'Already checked in for today' : 'This pass is not valid today — no check-in possible'}
                       </div>
                     ) : (
-                      <div className="w-full py-2.5 px-4 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-extrabold rounded-xl text-xs flex items-center justify-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      <div className="w-full py-2.5 px-4 bg-success/20 border border-success/30 text-success font-extrabold rounded-xl text-xs flex items-center justify-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-success" />
                         Pass Checked In for All Registered Days
                       </div>
                     )}
                   </div>
                   {checkInError && (
-                    <div className="text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2">
+                    <div className="text-xs font-semibold text-danger bg-danger/10 border border-danger/30 rounded-lg px-3 py-2">
                       {checkInError}
                     </div>
                   )}
@@ -908,11 +908,11 @@ export function EventPassScanner({
               </div>
             );
           })() : (
-            <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 space-y-2 flex items-center gap-3">
-              <XCircle className="h-6 w-6 text-rose-400 shrink-0" />
+            <div className="p-6 rounded-2xl bg-danger/10 border border-danger/30 text-danger space-y-2 flex items-center gap-3">
+              <XCircle className="h-6 w-6 text-danger shrink-0" />
               <div>
-                <div className="font-bold text-rose-200">Verification Failed</div>
-                <div className="text-xs text-rose-300/80">{verificationResult.reason}</div>
+                <div className="font-bold text-danger">Verification Failed</div>
+                <div className="text-xs text-danger/80">{verificationResult.reason}</div>
               </div>
             </div>
           )}

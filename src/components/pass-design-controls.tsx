@@ -8,24 +8,24 @@ import { contrastRatio } from '@/lib/wallet-poster-spec';
 import { FALLBACK_ORIGIN } from '@/lib/app-origin';
 
 export const PASS_COLOR_PRESETS = [
-  { name: 'Obsidian Black', hex: '#0b1526', ring: 'ring-slate-500' },
-  { name: 'Sapphire Navy', hex: '#0d2342', ring: 'ring-sky-500' },
-  { name: 'Emerald Forest', hex: '#063024', ring: 'ring-emerald-500' },
-  { name: 'Amethyst Purple', hex: '#2b124c', ring: 'ring-purple-500' },
-  { name: 'Burgundy Wine', hex: '#3e0f1e', ring: 'ring-rose-500' },
-  { name: 'Amber Bronze', hex: '#3a2408', ring: 'ring-amber-500' },
-  { name: 'Titanium Slate', hex: '#1e2530', ring: 'ring-slate-400' },
+  { name: 'Obsidian Black', hex: '#160B2C', ring: 'ring-theme-border' },
+  { name: 'Sapphire Navy', hex: '#24113F', ring: 'ring-accent' },
+  { name: 'Emerald Forest', hex: '#063024', ring: 'ring-success' },
+  { name: 'Amethyst Purple', hex: '#2b124c', ring: 'ring-secondary' },
+  { name: 'Burgundy Wine', hex: '#3e0f1e', ring: 'ring-danger' },
+  { name: 'Amber Bronze', hex: '#3a2408', ring: 'ring-warning' },
+  { name: 'Titanium Slate', hex: '#261935', ring: 'ring-theme-border' },
 ];
 
 export const PASS_GRADIENT_PRESETS = [
-  { name: 'Deep Sapphire', value: 'linear-gradient(145deg, #0d2342 0%, #030712 100%)', baseColor: '#0d2342', endColor: '#030712' },
+  { name: 'Deep Sapphire', value: 'linear-gradient(145deg, #24113F 0%, #0F0623 100%)', baseColor: '#24113F', endColor: '#0F0623' },
   { name: 'Royal Emerald', value: 'linear-gradient(145deg, #063024 0%, #021a14 100%)', baseColor: '#063024', endColor: '#021a14' },
   { name: 'Ruby Crimson', value: 'linear-gradient(145deg, #3e0f1e 0%, #150207 100%)', baseColor: '#3e0f1e', endColor: '#150207' },
   { name: 'Obsidian Gold', value: 'linear-gradient(145deg, #1f1f23 0%, #78350f 100%)', baseColor: '#18181b', endColor: '#78350f' },
   { name: 'Amethyst Night', value: 'linear-gradient(145deg, #2b124c 0%, #0d0617 100%)', baseColor: '#2b124c', endColor: '#0d0617' },
-  { name: 'Ocean Cyan', value: 'linear-gradient(145deg, #0369a1 0%, #082f49 100%)', baseColor: '#0369a1', endColor: '#082f49' },
+  { name: 'Ocean Cyan', value: 'linear-gradient(145deg, #C23A14 0%, #2A1556 100%)', baseColor: '#C23A14', endColor: '#2A1556' },
   { name: 'Sunset Bronze', value: 'linear-gradient(145deg, #7c2d12 0%, #1c1917 100%)', baseColor: '#7c2d12', endColor: '#1c1917' },
-  { name: 'Titanium Slate', value: 'linear-gradient(145deg, #334155 0%, #0f172a 100%)', baseColor: '#1e293b', endColor: '#0f172a' },
+  { name: 'Titanium Slate', value: 'linear-gradient(145deg, #3A2160 0%, #1D1825 100%)', baseColor: '#24113F', endColor: '#1D1825' },
 ];
 
 /** Gradient / solid colour design of the pass card. Shared by the Studio and the Edit Pass dialog. */
@@ -45,23 +45,23 @@ export function PassColorControls({
   return (
     <>
             {/* 4.5. Pass Color & Gradient Customization */}
-            <div className="space-y-3 p-3.5 rounded-2xl bg-slate-50/70 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+            <div className="space-y-3 p-3.5 rounded-2xl bg-theme-background/70 dark:bg-white/5 border border-theme-card-border dark:border-white/10">
               <div className="flex items-center justify-between">
-                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                   <Palette className="h-3.5 w-3.5 text-accent" />
                   <span>Pass Color &amp; Gradient Customization</span>
                 </label>
               {activeTheme?.backgroundUrl && (
-                <p className="text-[10.5px] text-sky-400">Event background image is active on the card — the colour/gradient below is only the fallback.</p>
+                <p className="text-[10.5px] text-accent">Event background image is active on the card — the colour/gradient below is only the fallback.</p>
               )}
-                <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-white/10 p-0.5 rounded-lg text-[10px] font-bold">
+                <div className="flex items-center gap-1 bg-theme-border/80 dark:bg-white/10 p-0.5 rounded-lg text-[10px] font-bold">
                   <button
                     type="button"
                     onClick={() => setColorMode('gradient')}
                     className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                       colorMode === 'gradient'
                         ? 'bg-accent text-white shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-white'
+                        : 'text-theme-text-secondary dark:text-theme-text-secondary hover:text-white'
                     }`}
                   >
                     Gradient
@@ -72,7 +72,7 @@ export function PassColorControls({
                     className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                       colorMode === 'solid'
                         ? 'bg-accent text-white shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-white'
+                        : 'text-theme-text-secondary dark:text-theme-text-secondary hover:text-white'
                     }`}
                   >
                     Solid
@@ -82,7 +82,7 @@ export function PassColorControls({
 
               {colorMode === 'gradient' ? (
                 <div className="space-y-2.5">
-                  <div className="text-[10.5px] text-slate-500 dark:text-slate-400">
+                  <div className="text-[10.5px] text-theme-text-secondary dark:text-theme-text-secondary">
                     Select a luxury dual-tone gradient preset or customize both gradient stops:
                   </div>
                   {/* Gradient Presets */}
@@ -115,10 +115,10 @@ export function PassColorControls({
                   </div>
 
                   {/* Dual Tone Color Pickers */}
-                  <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-slate-200/80 dark:border-white/10">
+                  <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-theme-card-border/80 dark:border-white/10">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Start Color:</span>
-                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-200 dark:bg-white/10 border border-slate-300 dark:border-white/15 text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                      <span className="text-[10px] font-bold text-theme-text-secondary dark:text-theme-text-secondary">Start Color:</span>
+                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 border border-theme-card-border dark:border-white/15 text-[10px] font-bold text-theme-text-primary dark:text-theme-text-primary">
                         <div className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-inner" style={{ backgroundColor: passColor }} />
                         <span>{passColor}</span>
                         <input
@@ -135,8 +135,8 @@ export function PassColorControls({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">End Color:</span>
-                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-200 dark:bg-white/10 border border-slate-300 dark:border-white/15 text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                      <span className="text-[10px] font-bold text-theme-text-secondary dark:text-theme-text-secondary">End Color:</span>
+                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 border border-theme-card-border dark:border-white/15 text-[10px] font-bold text-theme-text-primary dark:text-theme-text-primary">
                         <div className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-inner" style={{ backgroundColor: gradientEndColor }} />
                         <span>{gradientEndColor}</span>
                         <input
@@ -155,7 +155,7 @@ export function PassColorControls({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="text-[10.5px] text-slate-500 dark:text-slate-400">
+                  <div className="text-[10.5px] text-theme-text-secondary dark:text-theme-text-secondary">
                     Solid pass theme (applied directly to digital card &amp; Apple Wallet pass):
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -167,7 +167,7 @@ export function PassColorControls({
                           key={cp.hex}
                           onClick={() => {
                             setPassColor(cp.hex);
-                            setPassGradient(`linear-gradient(145deg, ${cp.hex} 0%, #030712 100%)`);
+                            setPassGradient(`linear-gradient(145deg, ${cp.hex} 0%, #0F0623 100%)`);
                           }}
                           title={cp.name}
                           className={`h-7 w-7 rounded-xl transition-all cursor-pointer relative flex items-center justify-center border ${
@@ -183,14 +183,14 @@ export function PassColorControls({
                     })}
 
                     <div className="flex items-center gap-1.5 ml-auto">
-                      <label className="relative cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 border border-slate-300 dark:border-white/15 text-[10px] font-bold text-slate-700 dark:text-slate-200 transition-all">
+                      <label className="relative cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 hover:bg-theme-border/40 dark:hover:bg-white/20 border border-theme-card-border dark:border-white/15 text-[10px] font-bold text-theme-text-primary dark:text-theme-text-primary transition-all">
                         <span>Custom</span>
                         <input
                           type="color"
                           value={passColor}
                           onChange={(e) => {
                             setPassColor(e.target.value);
-                            setPassGradient(`linear-gradient(145deg, ${e.target.value} 0%, #030712 100%)`);
+                            setPassGradient(`linear-gradient(145deg, ${e.target.value} 0%, #0F0623 100%)`);
                           }}
                           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                         />
@@ -218,10 +218,10 @@ export function PassTextColorControls({
     <>
             {/* 4.6 Text colours */}
             <div className="space-y-2">
-              <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px] flex items-center justify-between">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center justify-between">
                 <span>Pass Text Colours</span>
                 {(textColor || labelColor) && (
-                  <button type="button" onClick={() => { setTextColor(''); setLabelColor(''); }} className="text-[10px] text-sky-400 hover:underline">
+                  <button type="button" onClick={() => { setTextColor(''); setLabelColor(''); }} className="text-[10px] text-accent hover:underline">
                     Reset to auto
                   </button>
                 )}
@@ -229,15 +229,15 @@ export function PassTextColorControls({
               <div className="grid grid-cols-2 gap-3">
                 {([
                   ['Text (name, event)', textColor, setTextColor, '#ffffff'],
-                  ['Labels & accents', labelColor, setLabelColor, '#38bdf8'],
+                  ['Labels & accents', labelColor, setLabelColor, '#F26A44'],
                 ] as const).map(([lbl, val, set, fallback]) => (
-                  <label key={lbl} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-50 dark:bg-slate-900/60 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <label key={lbl} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-theme-card-border dark:border-white/15 bg-theme-background/50 dark:bg-theme-background/60 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
                     {lbl}
-                    <input type="color" value={val || fallback} onChange={(e) => set(e.target.value)} className="h-7 w-10 rounded border border-slate-300 dark:border-white/20 bg-transparent cursor-pointer" />
+                    <input type="color" value={val || fallback} onChange={(e) => set(e.target.value)} className="h-7 w-10 rounded border border-theme-card-border dark:border-white/20 bg-transparent cursor-pointer" />
                   </label>
                 ))}
               </div>
-              <p className="text-[10.5px] text-slate-500">
+              <p className="text-[10.5px] text-theme-text-secondary">
                 Applies to the pass card, the public pass page and the emailed ticket. Apple/Google Wallet draws its own white text on poster backgrounds.
               </p>
             </div>
@@ -261,13 +261,13 @@ export function PassValidityPicker({
 }) {
   return (
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px] flex items-center justify-between">
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center justify-between">
                   <span>Valid On (one pass, one QR for all selected days)</span>
                   {selectedValidDays && (
                     <button
                       type="button"
                       onClick={() => setSelectedValidDays(null)}
-                      className="text-[10px] text-sky-400 hover:underline"
+                      className="text-[10px] text-accent hover:underline"
                     >
                       All event days
                     </button>
@@ -284,8 +284,8 @@ export function PassValidityPicker({
                           onClick={() => toggleValidDay(d)}
                           className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer ${
                             on
-                              ? 'bg-sky-500/20 border-sky-400 text-sky-600 dark:text-sky-200'
-                              : 'bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-white/15 text-slate-500 line-through'
+                              ? 'bg-accent/20 border-accent text-accent dark:text-accent'
+                              : 'bg-theme-background/50 dark:bg-theme-background/60 border-theme-card-border dark:border-white/15 text-theme-text-secondary line-through'
                           }`}
                         >
                           {new Date(`${d}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -295,16 +295,16 @@ export function PassValidityPicker({
                   </div>
                 ) : (
                   <div className="relative">
-                    <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />
                     <input
                       type="date"
                       value={validityDate}
                       onChange={(e) => setValidityDate(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-accent text-xs"
+                      className="w-full pl-10 pr-4 py-2.5 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-theme-text-primary dark:text-white focus:outline-none focus:border-accent text-xs"
                     />
                   </div>
                 )}
-                <p className="text-[10.5px] text-slate-500">
+                <p className="text-[10.5px] text-theme-text-secondary">
                   Valid: <strong>{displayValidity}</strong>
                   {effectiveValidDays.length > 1 ? ` · ${effectiveValidDays.length} days` : ''}
                 </p>
@@ -340,33 +340,33 @@ export function PassSection({
     wasOpen.current = open;
   }, [open]);
   return (
-    <section ref={ref} className="scroll-mt-20 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03] overflow-hidden">
+    <section ref={ref} className="scroll-mt-20 rounded-2xl border border-theme-card-border dark:border-white/10 bg-theme-background/60 dark:bg-white/[0.03] overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer hover:bg-slate-100/70 dark:hover:bg-white/[0.04] transition-colors"
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer hover:bg-theme-border/70 dark:hover:bg-white/[0.04] transition-colors"
       >
         <span className="flex items-center gap-2.5 min-w-0">
           {icon && <span className="text-accent shrink-0">{icon}</span>}
           <span className="min-w-0">
-            <span className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">{title}</span>
-            {hint && <span className="block text-[10.5px] text-slate-500 dark:text-slate-400 font-medium normal-case tracking-normal truncate">{hint}</span>}
+            <span className="block text-[11px] font-extrabold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-primary">{title}</span>
+            {hint && <span className="block text-[10.5px] text-theme-text-secondary dark:text-theme-text-secondary font-medium normal-case tracking-normal truncate">{hint}</span>}
           </span>
         </span>
-        <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-theme-text-secondary shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {(open || keepMounted) && (
-        <div className={`px-4 pb-4 pt-1 space-y-4 border-t border-slate-200/70 dark:border-white/10 ${open ? '' : 'hidden'}`}>{children}</div>
+        <div className={`px-4 pb-4 pt-1 space-y-4 border-t border-theme-card-border/70 dark:border-white/10 ${open ? '' : 'hidden'}`}>{children}</div>
       )}
     </section>
   );
 }
 
-const label = 'block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px] mb-1.5';
+const label = 'block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] mb-1.5';
 const chip = (on: boolean) =>
   `px-3 py-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
-    on ? 'border-accent bg-accent/15 text-accent' : 'border-slate-300 dark:border-white/15 text-slate-500 dark:text-slate-400 hover:border-accent/50'
+    on ? 'border-accent bg-accent/15 text-accent' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary dark:text-theme-text-secondary hover:border-accent/50'
   }`;
 
 /**
@@ -394,7 +394,7 @@ export function EventTitleToggle({
           <button key={name} type="button" onClick={() => onChange(v)} className={chip(value === v)}>{name}</button>
         ))}
       </div>
-      <p className="text-[10.5px] text-slate-500 mt-1">
+      <p className="text-[10.5px] text-theme-text-secondary mt-1">
         {portal ? (
           <>Controls the event title printed on the front of the 3D card people open from their pass link. The date and guest details stay. {scope === 'event' ? 'This is the default for every pass of the event.' : 'Follows the event default unless you pick Show or Hide here.'}</>
         ) : (
@@ -410,11 +410,11 @@ export function EventTitleToggle({
 export function CardArtworkToggle({ value, onChange, hasArtwork }: { value: boolean | undefined; onChange: (v: boolean | undefined) => void; hasArtwork: boolean }) {
   const on = value !== false;
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-white/10 p-3">
+    <div className="rounded-xl border border-theme-card-border dark:border-white/10 p-3">
       <label className="flex items-center justify-between gap-3 cursor-pointer">
         <span className="min-w-0">
-          <span className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">Event artwork on the card</span>
-          <span className="block text-[10.5px] text-slate-500 mt-0.5">
+          <span className="block text-[11px] font-extrabold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-primary">Event artwork on the card</span>
+          <span className="block text-[10.5px] text-theme-text-secondary mt-0.5">
             {hasArtwork
               ? on ? 'On — the event picture covers the card, so colour changes are hidden. Switch off to see your colours.' : 'Off — the card uses the colours / gradient chosen here.'
               : 'This event has no artwork, so the card already uses your colours.'}
@@ -425,7 +425,7 @@ export function CardArtworkToggle({ value, onChange, hasArtwork }: { value: bool
           checked={on}
           disabled={!hasArtwork}
           onChange={(e) => onChange(e.target.checked ? undefined : false)}
-          className="h-5 w-5 accent-sky-500 shrink-0"
+          className="h-5 w-5 accent-accent shrink-0"
           aria-label="Show event artwork on the card"
         />
       </label>
@@ -462,12 +462,12 @@ export function PassFontControls({
             step={0.05}
             value={fontScale}
             onChange={(e) => setFontScale(Number(e.target.value))}
-            className="flex-1 min-w-[120px] accent-sky-500"
+            className="flex-1 min-w-[120px] accent-accent"
             aria-label="Text size"
           />
-          <span className="text-[11px] font-bold tabular-nums text-slate-500 w-10 text-right">{Math.round(fontScale * 100)}%</span>
+          <span className="text-[11px] font-bold tabular-nums text-theme-text-secondary w-10 text-right">{Math.round(fontScale * 100)}%</span>
         </div>
-        <p className="text-[10.5px] text-slate-500 mt-1">Applies to the event title, guest name and details on the portal card, the emailed ticket and the wallet pass artwork. Apple draws its own small field row on the wallet pass.</p>
+        <p className="text-[10.5px] text-theme-text-secondary mt-1">Applies to the event title, guest name and details on the portal card, the emailed ticket and the wallet pass artwork. Apple draws its own small field row on the wallet pass.</p>
       </div>
       <EventTitleToggle value={showEventTitle} onChange={setShowEventTitle} eventDefault={eventDefault} />
       {setShowPortalTitle && <EventTitleToggle target="portal" value={showPortalTitle} onChange={setShowPortalTitle} eventDefault={portalDefault} />}
@@ -478,10 +478,10 @@ export function PassFontControls({
 const QR_FORMATS: Array<[PassBarcodeFormat, string]> = [['QR', 'QR code'], ['Aztec', 'Aztec'], ['PDF417', 'PDF417'], ['Code128', 'Code 128']];
 const QR_SHAPES: Array<[PassQrShape, string]> = [['square', 'Square'], ['rounded', 'Rounded'], ['dots', 'Dots']];
 const QR_COLOR_PRESETS: Array<[string, string, string, string]> = [
-  ['Classic', '#0B1B2E', '#ffffff', ''],
+  ['Classic', '#361C6A', '#ffffff', ''],
   ['Black', '#000000', '#ffffff', ''],
   ['Emerald', '#064e3b', '#ecfdf5', ''],
-  ['Royal', '#1e3a8a', '#eff6ff', '#0b1b2e'],
+  ['Royal', '#CC3D19', '#FEF3F0', '#361C6A'],
   ['Gold', '#451a03', '#fef3c7', '#92400e'],
 ];
 
@@ -505,7 +505,7 @@ function QrLivePreview({ value }: { value: PassQrOptions }) {
       cancelled = true;
     };
   }, [value.dark, value.light, value.eye, value.shape, value.logo]);
-  return <canvas ref={ref} width={240} height={240} className="h-28 w-28 rounded-xl border border-slate-300 dark:border-white/15 shrink-0" aria-label="QR preview" />;
+  return <canvas ref={ref} width={240} height={240} className="h-28 w-28 rounded-xl border border-theme-card-border dark:border-white/15 shrink-0" aria-label="QR preview" />;
 }
 
 /** Full QR customisation: shape, colours (dots, background, corner eyes), centre logo, wallet barcode type/caption and wallet mode. */
@@ -514,7 +514,7 @@ export function PassQrControls({ value, onChange }: { value: PassQrOptions; onCh
   const weak = ratio < 4;
   const inverted = value.dark.length === 7 && value.light.length === 7 && contrastRatio(value.dark, '#000000') > contrastRatio(value.light, '#000000');
   const colour = (name: string, key: 'dark' | 'light' | 'eye', fallback: string) => (
-    <label className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+    <label className="flex items-center gap-2 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
       {name}
       <input type="color" value={value[key] || fallback} onChange={(e) => onChange({ [key]: e.target.value })} className="h-7 w-9 rounded cursor-pointer bg-transparent" />
     </label>
@@ -532,8 +532,8 @@ export function PassQrControls({ value, onChange }: { value: PassQrOptions; onCh
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
-            <input type="checkbox" checked={value.logo} onChange={(e) => onChange({ logo: e.target.checked })} className="accent-sky-500" />
+          <label className="flex items-center gap-2 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary cursor-pointer">
+            <input type="checkbox" checked={value.logo} onChange={(e) => onChange({ logo: e.target.checked })} className="accent-accent" />
             Logo in the centre
           </label>
         </div>
@@ -556,18 +556,18 @@ export function PassQrControls({ value, onChange }: { value: PassQrOptions; onCh
           {value.eye && <button type="button" onClick={() => onChange({ eye: '' })} className="text-[11px] font-bold text-accent hover:underline cursor-pointer">Eyes = dots</button>}
         </div>
         {(weak || inverted) && (
-          <p className="text-[10.5px] text-amber-500 font-semibold mt-1.5">
+          <p className="text-[10.5px] text-warning font-semibold mt-1.5">
             {inverted ? 'Light dots on a dark background may not scan on some phones — keep the dots darker than the background.' : 'Low contrast — some scanners may struggle. Pick darker dots or a lighter background.'}
           </p>
         )}
       </div>
 
-      <div className="rounded-xl border border-slate-200 dark:border-white/10 p-3 space-y-2">
-        <label className="flex items-start gap-2 text-[11px] font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
-          <input type="checkbox" checked={value.inWallet} onChange={(e) => onChange({ inWallet: e.target.checked })} className="accent-sky-500 mt-0.5" />
+      <div className="rounded-xl border border-theme-card-border dark:border-white/10 p-3 space-y-2">
+        <label className="flex items-start gap-2 text-[11px] font-bold text-theme-text-primary dark:text-theme-text-primary cursor-pointer">
+          <input type="checkbox" checked={value.inWallet} onChange={(e) => onChange({ inWallet: e.target.checked })} className="accent-accent mt-0.5" />
           <span>
             Use this exact QR on the Apple / Google Wallet pass too (recommended)
-            <span className="block font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+            <span className="block font-medium text-theme-text-secondary dark:text-theme-text-secondary mt-0.5">
               Keeps your QR identical on the 3D card, the emailed ticket and the wallet pass. It is drawn into the wallet artwork instead of Apple&apos;s native black-on-white barcode — scanning still works, but the wallet no longer auto-brightens the screen for the barcode. Turn this off to use Apple&apos;s native barcode.
             </span>
           </span>

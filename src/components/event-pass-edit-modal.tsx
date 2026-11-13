@@ -86,10 +86,10 @@ export function EventPassEditModal({
   const [attendeeEmail, setAttendeeEmail] = useState('');
   const [attendeePhone, setAttendeePhone] = useState('');
   const [status, setStatus] = useState<'Active' | 'Checked In' | 'Cancelled'>('Active');
-  const [passColor, setPassColor] = useState('#0b1526');
+  const [passColor, setPassColor] = useState('#160B2C');
   const [colorMode, setColorMode] = useState<'gradient' | 'solid'>('solid');
-  const [passGradient, setPassGradient] = useState('linear-gradient(145deg, #0d2342 0%, #030712 100%)');
-  const [gradientEndColor, setGradientEndColor] = useState('#030712');
+  const [passGradient, setPassGradient] = useState('linear-gradient(145deg, #24113F 0%, #0F0623 100%)');
+  const [gradientEndColor, setGradientEndColor] = useState('#0F0623');
   const [textColor, setTextColor] = useState('');
   const [labelColor, setLabelColor] = useState('');
   const [eventId, setEventId] = useState('');
@@ -130,7 +130,7 @@ export function EventPassEditModal({
       setAttendeeEmail(pass.attendeeEmail || '');
       setAttendeePhone(pass.attendeePhone || '');
       setStatus(pass.status || 'Active');
-      setPassColor(pass.passColor || '#0b1526');
+      setPassColor(pass.passColor || '#160B2C');
       const grad = pass.passGradient;
       setColorMode(grad ? 'gradient' : 'solid');
       if (grad) {
@@ -297,9 +297,9 @@ export function EventPassEditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-6xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-6xl bg-theme-card border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-slate-950/60">
+        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-theme-card/60">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-accent/15 border border-accent/30 text-accent">
               <Ticket className="h-5 w-5" />
@@ -307,18 +307,18 @@ export function EventPassEditModal({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white">Edit Event Pass</h3>
-                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold">
+                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 font-bold">
                   {pass.serialNumber}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5 truncate max-w-md">
-                Event: <span className="text-slate-300 font-semibold">{pass.eventName}</span>
+              <p className="text-xs text-theme-text-secondary mt-0.5 truncate max-w-md">
+                Event: <span className="text-theme-text-secondary font-semibold">{pass.eventName}</span>
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-theme-text-secondary hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -328,23 +328,23 @@ export function EventPassEditModal({
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_540px] gap-6">
           <div className="space-y-4 min-w-0">
           {/* Live Wallet Sync Notice Banner */}
-          <div className="p-3 rounded-xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-transparent border border-sky-500/20 flex items-start gap-2.5">
-            <Smartphone className="h-4 w-4 text-sky-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-slate-300">
-              <span className="font-bold text-sky-400">Live Apple &amp; Google Wallet Sync:</span>{' '}
+          <div className="p-3 rounded-xl bg-gradient-to-r from-accent/10 via-secondary/10 to-transparent border border-accent/20 flex items-start gap-2.5">
+            <Smartphone className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+            <div className="text-xs text-theme-text-secondary">
+              <span className="font-bold text-accent">Live Apple &amp; Google Wallet Sync:</span>{' '}
               When you save changes, if this pass has been issued or installed on Apple Wallet / Google Wallet, updates will be pushed automatically to the attendee's device lock screen.
             </div>
           </div>
 
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-xs text-danger flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successInfo && (
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-xs text-success flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               <span>
                 {successInfo.message}
@@ -355,15 +355,15 @@ export function EventPassEditModal({
 
           <PassSection title="1 · Event & guest details" hint="Who the pass is for, event, venue, valid days" icon={<Ticket className="h-4 w-4" />} open={!!open.details} onToggle={() => toggle('details')}>
           {successInfo?.walletWarn && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-warning/10 border border-warning/30 text-xs text-warning flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{successInfo.walletWarn}</span>
             </div>
           )}
 
           {/* Wallet status + manual re-issue */}
-          <div className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03] text-[11px] flex flex-wrap items-center justify-between gap-2">
-            <div className="text-slate-600 dark:text-slate-300">
+          <div className="p-3 rounded-xl border border-theme-card-border dark:border-white/10 bg-theme-background/60 dark:bg-white/[0.03] text-[11px] flex flex-wrap items-center justify-between gap-2">
+            <div className="text-theme-text-secondary dark:text-theme-text-secondary">
               <span className="font-bold">Wallet pass: </span>
               {!pass.walletSerialNumber
                 ? 'not created yet — it is built from the latest design when the guest first taps Add to Wallet.'
@@ -372,9 +372,9 @@ export function EventPassEditModal({
                 : pass.walletInstalledAt
                 ? `added by the guest ${new Date(pass.walletInstalledAt).toLocaleString()} — edits are pushed to their phone live.`
                 : 'created, not yet added by the guest.'}
-              {pass.walletSyncedAt && <span className="text-slate-400"> Last synced {new Date(pass.walletSyncedAt).toLocaleString()}.</span>}
-              {pass.walletLastError && <span className="text-amber-500 font-semibold"> Last error: {pass.walletLastError}</span>}
-              {reissueMsg && <span className="block mt-1 font-semibold text-emerald-500">{reissueMsg}</span>}
+              {pass.walletSyncedAt && <span className="text-theme-text-secondary"> Last synced {new Date(pass.walletSyncedAt).toLocaleString()}.</span>}
+              {pass.walletLastError && <span className="text-warning font-semibold"> Last error: {pass.walletLastError}</span>}
+              {reissueMsg && <span className="block mt-1 font-semibold text-success">{reissueMsg}</span>}
             </div>
             {pass.walletSerialNumber && (
               <button
@@ -404,33 +404,33 @@ export function EventPassEditModal({
 
           {/* Event */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-accent" />
               Event
             </label>
             <select
               value={eventId}
               onChange={(e) => setEventId(e.target.value)}
-              className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
+              className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
             >
               {!events.some((e) => e.id === pass.eventId) && (
-                <option value={pass.eventId} className="bg-slate-900 text-white">{pass.eventName} (current)</option>
+                <option value={pass.eventId} className="bg-accent text-white">{pass.eventName} (current)</option>
               )}
               {events.map((ev) => (
-                <option key={ev.id} value={ev.id} className="bg-slate-900 text-white">{ev.title}</option>
+                <option key={ev.id} value={ev.id} className="bg-accent text-white">{ev.title}</option>
               ))}
             </select>
             {eventChanged && (
-              <p className="mt-1 text-[10px] text-amber-400">Moving this pass to another event — name, dates and venue follow the new event.</p>
+              <p className="mt-1 text-[10px] text-warning">Moving this pass to another event — name, dates and venue follow the new event.</p>
             )}
           </div>
 
           {/* Row 1: Attendee Name & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-accent" />
-                Attendee Full Name <span className="text-rose-400">*</span>
+                Attendee Full Name <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -438,21 +438,21 @@ export function EventPassEditModal({
                 value={attendeeName}
                 onChange={(e) => setAttendeeName(e.target.value)}
                 placeholder="e.g. Dr. Jane Smith"
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-theme-text-secondary focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5">
                 Guest Category
               </label>
               <select
                 value={GUEST_CATEGORIES.includes(guestCategory) ? guestCategory : 'Other'}
                 onChange={(e) => setGuestCategory(e.target.value as EventGuestCategory)}
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
               >
                 {GUEST_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat} className="bg-slate-900 text-white">
+                  <option key={cat} value={cat} className="bg-accent text-white">
                     {cat}
                   </option>
                 ))}
@@ -463,7 +463,7 @@ export function EventPassEditModal({
                   value={guestCategory === 'Other' ? '' : guestCategory}
                   onChange={(e) => setGuestCategory((e.target.value || 'Other') as EventGuestCategory)}
                   placeholder="Specify other guest category"
-                  className="mt-2 w-full bg-slate-950/80 border border-accent/40 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-accent"
+                  className="mt-2 w-full bg-theme-card/80 border border-accent/40 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-accent"
                 />
               )}
             </div>
@@ -472,17 +472,17 @@ export function EventPassEditModal({
           {/* Row 2: Pass Tier / Type & Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
                 <Ticket className="h-3.5 w-3.5 text-accent" />
                 Pass Tier / Type
               </label>
               <select
                 value={PASS_TYPES.includes(passType) ? passType : 'Other'}
                 onChange={(e) => setPassType(e.target.value as EventPassType)}
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
               >
                 {PASS_TYPES.map((t) => (
-                  <option key={t} value={t} className="bg-slate-900 text-white">
+                  <option key={t} value={t} className="bg-accent text-white">
                     {t}
                   </option>
                 ))}
@@ -493,23 +493,23 @@ export function EventPassEditModal({
                   value={passType === 'Other' ? '' : passType}
                   onChange={(e) => setPassType((e.target.value || 'Other') as EventPassType)}
                   placeholder="Specify other pass type"
-                  className="mt-2 w-full bg-slate-950/80 border border-sky-500/40 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-400"
+                  className="mt-2 w-full bg-theme-card/80 border border-accent/40 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-accent"
                 />
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5">
                 Admission Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
               >
-                <option value="Active" className="bg-slate-900 text-sky-400">Active (Ready for Scan)</option>
-                <option value="Checked In" className="bg-slate-900 text-emerald-400">Checked In (Admitted)</option>
-                <option value="Cancelled" className="bg-slate-900 text-rose-400">Cancelled / Void</option>
+                <option value="Active" className="bg-theme-card text-accent">Active (Ready for Scan)</option>
+                <option value="Checked In" className="bg-theme-card text-success">Checked In (Admitted)</option>
+                <option value="Cancelled" className="bg-theme-card text-danger">Cancelled / Void</option>
               </select>
             </div>
           </div>
@@ -517,7 +517,7 @@ export function EventPassEditModal({
           {/* Row 3: Organization & Assigned Room / Venue */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
                 <Building2 className="h-3.5 w-3.5 text-accent" />
                 Organization / Department
               </label>
@@ -526,12 +526,12 @@ export function EventPassEditModal({
                 value={attendeeOrg}
                 onChange={(e) => setAttendeeOrg(e.target.value)}
                 placeholder="e.g. Faculty of Engineering, RUAS"
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-theme-text-secondary focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-accent" />
                 Assigned Room / Venue
               </label>
@@ -540,7 +540,7 @@ export function EventPassEditModal({
                 value={roomOrVenue}
                 onChange={(e) => setRoomOrVenue(e.target.value)}
                 placeholder="e.g. Main Auditorium / Seminar Hall 2"
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-theme-text-secondary focus:outline-none focus:border-accent"
               />
             </div>
           </div>
@@ -548,9 +548,9 @@ export function EventPassEditModal({
           {/* Row 4: Email & Phone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-accent" />
-                Attendee Email <span className="text-rose-400">*</span>
+                Attendee Email <span className="text-danger">*</span>
               </label>
               <input
                 type="email"
@@ -558,12 +558,12 @@ export function EventPassEditModal({
                 value={attendeeEmail}
                 onChange={(e) => setAttendeeEmail(e.target.value)}
                 placeholder="guest@domain.com"
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-theme-text-secondary focus:outline-none focus:border-accent"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5 text-accent" />
                 Attendee Phone
               </label>
@@ -572,7 +572,7 @@ export function EventPassEditModal({
                 value={attendeePhone}
                 onChange={(e) => setAttendeePhone(e.target.value)}
                 placeholder="+91 98765 43210"
-                className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent"
+                className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-theme-text-secondary focus:outline-none focus:border-accent"
               />
             </div>
           </div>
@@ -593,7 +593,7 @@ export function EventPassEditModal({
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5">
               Special Instructions / Dietary / Access Notes
             </label>
             <textarea
@@ -601,7 +601,7 @@ export function EventPassEditModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Stage front row seating, special escort required"
-              className="w-full bg-slate-950/80 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent resize-none"
+              className="w-full bg-theme-card/80 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-theme-text-secondary focus:outline-none focus:border-accent resize-none"
             />
           </div>
 
@@ -635,18 +635,18 @@ export function EventPassEditModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-theme-card hover:bg-theme-card text-theme-text-secondary rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-accent hover:bg-accent/90 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-lg shadow-accent/25 flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2 bg-accent hover:bg-accent/90 text-theme-text-primary rounded-xl text-xs font-bold transition-all shadow-lg shadow-accent/25 flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <span className="h-3.5 w-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin block" />
+                  <span className="h-3.5 w-3.5 border-2 border-theme-border border-t-transparent rounded-full animate-spin block" />
                   <span>Updating &amp; Syncing Pass…</span>
                 </>
               ) : (
@@ -661,12 +661,12 @@ export function EventPassEditModal({
 
           {/* Live preview: exactly the pass the recipient receives */}
           <aside className="lg:sticky lg:top-0 self-start space-y-2 min-w-0 overflow-x-auto">
-            <p className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+            <p className="text-[11px] font-bold text-theme-text-secondary flex items-center gap-1.5">
               <Eye className="h-3.5 w-3.5 text-accent" /> Live preview — the issued pass
             </p>
             <div className="flex items-center gap-1 rounded-full border border-white/15 p-0.5 text-[10px] font-bold w-fit">
               {([['pass', 'Issued Pass'], ['wallet', 'Apple Wallet']] as const).map(([m, name]) => (
-                <button key={m} type="button" onClick={() => setPreviewMode(m)} className={`px-3 py-1 rounded-full cursor-pointer ${previewMode === m ? 'bg-accent text-white' : 'text-slate-400 hover:text-white'}`}>{name}</button>
+                <button key={m} type="button" onClick={() => setPreviewMode(m)} className={`px-3 py-1 rounded-full cursor-pointer ${previewMode === m ? 'bg-accent text-white' : 'text-theme-text-secondary hover:text-white'}`}>{name}</button>
               ))}
             </div>
             {previewMode === 'pass' ? (

@@ -49,7 +49,7 @@ export function AppleWalletPassPreview({
   interactive = true,
   logoText = 'RTBI',
   logoUrl = '/card/rtbi-logo.png',
-  passColor = '#0f1a2e',
+  passColor = '#1D0F3A',
   theme,
   layout = 'poster',
   validDaysCount = 0,
@@ -68,7 +68,7 @@ export function AppleWalletPassPreview({
   const displayValidity = validityDate || eventDate;
   const displaySerial = serialNumber || `RTBI-EVT-2026-${(attendeeName || 'GUEST').slice(0, 3).toUpperCase()}-99`;
 
-  const baseBackground = passColor ? `linear-gradient(180deg, ${passColor} 0%, #060c18 100%)` : undefined;
+  const baseBackground = passColor ? `linear-gradient(180deg, ${passColor} 0%, #0E0618 100%)` : undefined;
   const frontStyle: React.CSSProperties = passThemeStyle(theme, baseBackground) || {};
   const backStyle: React.CSSProperties = passThemeStyle(theme, baseBackground) || {};
 
@@ -97,7 +97,7 @@ export function AppleWalletPassPreview({
           altText={altText}
           qr={qr}
         />
-        <p className="text-[10px] text-slate-500 text-center max-w-[300px] mx-auto mt-2">
+        <p className="text-[10px] text-[#8A7BA3] text-center max-w-[300px] mx-auto mt-2">
           iOS 27 poster layout. Apple draws the logo, barcode panel and field row in white over the artwork — the base colour we send is always dark so the text stays white.
         </p>
       </div>
@@ -202,7 +202,7 @@ export function AppleWalletPassPreview({
             </div>
             <div className={styles.backItem}>
               <span className={styles.backItemLabel}>Pass Serial Number</span>
-              <span className="font-mono text-[10px] font-bold text-sky-400">
+              <span className="font-mono text-[10px] font-bold text-accent">
                 {displaySerial}
               </span>
             </div>
@@ -218,14 +218,14 @@ export function AppleWalletPassPreview({
             </div>
             <div className={styles.backItem}>
               <span className={styles.backItemLabel}>Access Policy</span>
-              <span className="text-[9.5px] text-slate-300">
+              <span className="text-[9.5px] text-[#D6CFE3]">
                 Strictly non-transferable. Present at official event turnstiles.
               </span>
             </div>
           </div>
 
           <div className={styles.footerRow}>
-            <span className="text-[8px] text-slate-500">
+            <span className="text-[8px] text-[#8A7BA3]">
               Generated via WalletWallet API
             </span>
             <button

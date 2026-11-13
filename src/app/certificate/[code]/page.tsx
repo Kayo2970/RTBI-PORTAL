@@ -27,27 +27,27 @@ export default function VerifyCertificatePage({ params }: { params: Promise<{ co
   }, [code]);
 
   return (
-    <main className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-theme-border/15 flex items-center justify-center p-4">
       <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6 sm:p-8 text-center space-y-4">
-        {state === 'loading' && <p className="text-slate-500 text-sm">Checking certificate…</p>}
+        {state === 'loading' && <p className="text-theme-text-secondary text-sm">Checking certificate…</p>}
         {state === 'missing' && (
           <>
-            <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
-            <h1 className="text-lg font-bold text-slate-900">Certificate not found</h1>
-            <p className="text-sm text-slate-600">We could not verify certificate ID <span className="font-mono">{code}</span>. Please check the ID and try again.</p>
+            <AlertTriangle className="h-10 w-10 text-warning mx-auto" />
+            <h1 className="text-lg font-bold text-theme-text-primary">Certificate not found</h1>
+            <p className="text-sm text-theme-text-secondary">We could not verify certificate ID <span className="font-mono">{code}</span>. Please check the ID and try again.</p>
           </>
         )}
         {state === 'ok' && data && (
           <>
-            <ShieldCheck className="h-10 w-10 text-emerald-600 mx-auto" />
-            <h1 className="text-lg font-bold text-slate-900">Valid certificate</h1>
-            <p className="text-sm text-slate-600">
+            <ShieldCheck className="h-10 w-10 text-success mx-auto" />
+            <h1 className="text-lg font-bold text-theme-text-primary">Valid certificate</h1>
+            <p className="text-sm text-theme-text-secondary">
               Issued to <strong>{data.attendeeName}</strong> for attending <strong>{data.eventName}</strong>
               {data.eventDate ? ` (${data.eventDate})` : ''}, by RTBI, RUAS.
             </p>
-            <p className="text-xs text-slate-500">Certificate ID <span className="font-mono">{data.code}</span> · issued {new Date(data.issuedAt).toLocaleDateString()}</p>
+            <p className="text-xs text-theme-text-secondary">Certificate ID <span className="font-mono">{data.code}</span> · issued {new Date(data.issuedAt).toLocaleDateString()}</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/api/certificate/${encodeURIComponent(data.code)}/image`} alt="Certificate" className="w-full rounded-lg border border-slate-200" />
+            <img src={`/api/certificate/${encodeURIComponent(data.code)}/image`} alt="Certificate" className="w-full rounded-lg border border-theme-card-border" />
           </>
         )}
       </div>

@@ -43,7 +43,7 @@
 
 /* Front Face: Apple Wallet Generic Dark Midnight Pass */
 .passFront {
-  background: linear-gradient(180deg, #0f1a2e 0%, #080f1d 100%);
+  background: linear-gradient(180deg, #1D0F2E 0%, #12081D 100%);
   color: #ffffff;
   transform: rotateY(0deg);
   z-index: 2;
@@ -103,7 +103,7 @@
 .headerValue {
   font-size: 12px;
   font-weight: 700;
-  color: #38bdf8;
+  color: #E86848;
   line-height: 1.1;
   letter-spacing: 0.02em;
 }
@@ -157,7 +157,7 @@
 .fieldValue {
   font-size: 11.5px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #E9E2F0;
   line-height: 1.25;
   min-width: 0;
   white-space: normal;
@@ -165,7 +165,7 @@
 }
 
 .roomHighlight {
-  color: #38bdf8;
+  color: #E86848;
   font-weight: 800;
 }
 
@@ -201,7 +201,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 9.5px;
   font-weight: 800;
-  color: #0f172a;
+  color: #1C0F2A;
   letter-spacing: 0.04em;
 }
 
@@ -246,7 +246,7 @@
 
 /* Back Face: iOS Pass Details Sheet */
 .passBack {
-  background: #0f172a;
+  background: #1C0F2A;
   color: #ffffff;
   transform: rotateY(180deg);
   z-index: 1;
@@ -270,7 +270,7 @@
 .doneButton {
   font-size: 11px;
   font-weight: 700;
-  color: #38bdf8;
+  color: #E86848;
   background: none;
   border: none;
   cursor: pointer;
@@ -300,12 +300,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #94a3b8;
+  color: #A594B8;
 }
 
 .backItemValue {
   font-size: 10.5px;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #FDF0EC;
   overflow-wrap: anywhere;
 }

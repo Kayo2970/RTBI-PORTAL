@@ -19,7 +19,7 @@ const GUEST_CATEGORIES = ['VIP Dignitary', 'Keynote Speaker', 'Faculty', 'Studen
 
 type FieldKey = 'roomOrVenue' | 'eventVenue' | 'passType' | 'guestCategory' | 'validityDate' | 'validDays' | 'accessTier' | 'seatOrZone' | 'notes' | 'attendeeOrg' | 'status' | 'fontScale' | 'admit';
 
-const input = 'w-full px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-accent text-xs disabled:opacity-40';
+const input = 'w-full px-3 py-2 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-theme-text-primary dark:text-white focus:outline-none focus:border-accent text-xs disabled:opacity-40';
 
 /** Change the same field(s) on every selected pass. Only ticked fields are applied; each pass goes through the normal edit path (approval rules, QR + wallet sync). */
 export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName, onClose, onDone }: Props) {
@@ -63,7 +63,7 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
 
   const row = (k: FieldKey, labelText: string, control: React.ReactNode) => (
     <div className="flex items-start gap-3">
-      <label className="flex items-center gap-2 w-40 shrink-0 pt-2 font-bold text-slate-700 dark:text-slate-300 text-[11px] uppercase tracking-wider cursor-pointer">
+      <label className="flex items-center gap-2 w-40 shrink-0 pt-2 font-bold text-theme-text-primary dark:text-theme-text-secondary text-[11px] uppercase tracking-wider cursor-pointer">
         <input type="checkbox" checked={!!apply[k]} onChange={(e) => setApply((p) => ({ ...p, [k]: e.target.checked }))} />
         {labelText}
       </label>
@@ -144,20 +144,20 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className="glass-panel w-full max-w-2xl rounded-3xl p-5 md:p-7 space-y-4 border border-slate-200/90 dark:border-white/15 bg-white/95 dark:bg-[#0D1F38]/95 shadow-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+      <div className="glass-panel w-full max-w-2xl rounded-3xl p-5 md:p-7 space-y-4 border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-3">
           <div>
-            <h2 className="text-base font-black text-slate-900 dark:text-white">Bulk edit {passes.length} pass{passes.length === 1 ? '' : 'es'}</h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300">Tick a field to change it on every selected pass. Unticked fields are left alone.</p>
+            <h2 className="text-base font-black text-theme-text-primary dark:text-white">Bulk edit {passes.length} pass{passes.length === 1 ? '' : 'es'}</h2>
+            <p className="text-xs text-theme-text-secondary dark:text-theme-text-secondary">Tick a field to change it on every selected pass. Unticked fields are left alone.</p>
           </div>
-          <button onClick={onClose} disabled={running} className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 cursor-pointer"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} disabled={running} className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-theme-border/15 dark:hover:bg-white/10 text-theme-text-secondary cursor-pointer"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="overflow-y-auto flex-1 space-y-3 text-xs pr-1">
           {row('roomOrVenue', 'Room / Venue', <input className={input} disabled={!apply.roomOrVenue} value={values.roomOrVenue} onChange={(e) => set('roomOrVenue', e.target.value)} placeholder="e.g. Seminar Hall 2, Block C" />)}
           {row('eventVenue', 'Event venue', <input className={input} disabled={!apply.eventVenue} value={values.eventVenue} onChange={(e) => set('eventVenue', e.target.value)} />)}
-          {row('passType', 'Pass type', <select className={input} disabled={!apply.passType} value={values.passType} onChange={(e) => set('passType', e.target.value)}>{PASS_TYPES.map((t) => <option key={t} value={t} className="bg-slate-900 text-white">{t}</option>)}</select>)}
-          {row('guestCategory', 'Guest category', <select className={input} disabled={!apply.guestCategory} value={values.guestCategory} onChange={(e) => set('guestCategory', e.target.value)}>{GUEST_CATEGORIES.map((t) => <option key={t} value={t} className="bg-slate-900 text-white">{t}</option>)}</select>)}
+          {row('passType', 'Pass type', <select className={input} disabled={!apply.passType} value={values.passType} onChange={(e) => set('passType', e.target.value)}>{PASS_TYPES.map((t) => <option key={t} value={t} className="bg-accent text-white">{t}</option>)}</select>)}
+          {row('guestCategory', 'Guest category', <select className={input} disabled={!apply.guestCategory} value={values.guestCategory} onChange={(e) => set('guestCategory', e.target.value)}>{GUEST_CATEGORIES.map((t) => <option key={t} value={t} className="bg-accent text-white">{t}</option>)}</select>)}
           {row('validDays', 'Valid on (days)', (
             <div className={apply.validDays ? '' : 'opacity-40 pointer-events-none'}>
               {dayChoices.length > 0 ? (
@@ -172,7 +172,7 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
                   displayValidity={formatValidDaysLabel(effectiveDays)}
                 />
               ) : (
-                <p className="text-[11px] text-slate-500 pt-2">The selected passes have no dated event days to choose from.</p>
+                <p className="text-[11px] text-theme-text-secondary pt-2">The selected passes have no dated event days to choose from.</p>
               )}
             </div>
           ))}
@@ -182,15 +182,15 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
           {row('attendeeOrg', 'Organisation', <input className={input} disabled={!apply.attendeeOrg} value={values.attendeeOrg} onChange={(e) => set('attendeeOrg', e.target.value)} />)}
           {row('notes', 'Notes', <textarea rows={2} className={input} disabled={!apply.notes} value={values.notes} onChange={(e) => set('notes', e.target.value)} />)}
           {row('fontScale', 'Text size', <input type="number" step="0.1" min="0.7" max="1.6" className={input} disabled={!apply.fontScale} value={values.fontScale} onChange={(e) => set('fontScale', e.target.value)} />)}
-          {row('status', 'Status', <select className={input} disabled={!apply.status} value={values.status} onChange={(e) => set('status', e.target.value)}><option value="Active" className="bg-slate-900 text-white">Active</option><option value="Cancelled" className="bg-slate-900 text-white">Cancelled</option></select>)}
+          {row('status', 'Status', <select className={input} disabled={!apply.status} value={values.status} onChange={(e) => set('status', e.target.value)}><option value="Active" className="bg-accent text-white">Active</option><option value="Cancelled" className="bg-accent text-white">Cancelled</option></select>)}
 
-          {row('admit', 'Bulk admit', <p className={`text-[11px] pt-2 ${apply.admit ? 'text-emerald-400 font-bold' : 'text-slate-500'}`}>Check in all {passes.length} selected pass{passes.length === 1 ? '' : 'es'} at once — every valid day up to today is marked attended. Cancelled passes are skipped.</p>)}
+          {row('admit', 'Bulk admit', <p className={`text-[11px] pt-2 ${apply.admit ? 'text-success font-bold' : 'text-theme-text-secondary'}`}>Check in all {passes.length} selected pass{passes.length === 1 ? '' : 'es'} at once — every valid day up to today is marked attended. Cancelled passes are skipped.</p>)}
 
           {running && (
-            <div className="flex items-center gap-2 text-sky-400 font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Updating {progress} / {passes.length}…</div>
+            <div className="flex items-center gap-2 text-accent font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Updating {progress} / {passes.length}…</div>
           )}
           {result && (
-            <div className={`p-3 rounded-2xl border space-y-1 ${result.failed.length ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'}`}>
+            <div className={`p-3 rounded-2xl border space-y-1 ${result.failed.length ? 'bg-warning/10 border-warning/30 text-warning' : 'bg-success/15 border-success/30 text-success'}`}>
               <div className="flex items-center gap-2 font-bold">
                 {result.failed.length ? <AlertCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                 {apply.admit ? `${result.admitted} checked in${result.alreadyAdmitted ? `, ${result.alreadyAdmitted} already checked in` : ''}${result.skippedAdmit ? `, ${result.skippedAdmit} skipped (cancelled or awaiting approval)` : ''}; ` : ''}{result.ok} updated{result.pending ? `, ${result.pending} waiting for approval` : ''}{result.failed.length ? `, ${result.failed.length} failed` : ''}.
@@ -200,8 +200,8 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
           )}
         </div>
 
-        <div className="border-t border-slate-200/80 dark:border-white/10 pt-3 flex items-center justify-between gap-3">
-          <button type="button" onClick={onClose} disabled={running} className="px-4 py-2.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-xs font-bold cursor-pointer">{result ? 'Close' : 'Cancel'}</button>
+        <div className="border-t border-theme-card-border/80 dark:border-white/10 pt-3 flex items-center justify-between gap-3">
+          <button type="button" onClick={onClose} disabled={running} className="px-4 py-2.5 bg-theme-border/15 dark:bg-white/10 text-theme-text-primary dark:text-white rounded-xl text-xs font-bold cursor-pointer">{result ? 'Close' : 'Cancel'}</button>
           <button type="button" disabled={running || chosen.length === 0} onClick={run} className="px-6 py-2.5 bg-accent text-white font-extrabold rounded-xl text-xs shadow-lg shadow-accent/25 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Apply to {passes.length} pass{passes.length === 1 ? '' : 'es'}

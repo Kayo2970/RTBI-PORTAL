@@ -395,9 +395,9 @@ export interface PassTheme {
 }
 
 export const DEFAULT_PASS_THEME: Required<Pick<PassTheme, 'backgroundColor' | 'foregroundColor' | 'labelColor' | 'overlay'>> = {
-  backgroundColor: '#0b1526',
+  backgroundColor: '#160B2C',
   foregroundColor: '#ffffff',
-  labelColor: '#7dd3fc',
+  labelColor: '#F5A78F',
   overlay: 0.35,
 };
 
@@ -474,7 +474,7 @@ export interface PassQrOptions {
 }
 
 export const DEFAULT_QR_OPTIONS: PassQrOptions = {
-  format: 'QR', altText: 'serial', dark: '#0B1B2E', light: '#ffffff', eye: '', shape: 'square', logo: true, inWallet: true,
+  format: 'QR', altText: 'serial', dark: '#361C6A', light: '#ffffff', eye: '', shape: 'square', logo: true, inWallet: true,
 };
 
 type PassQrFields = Pick<EventPassItem, 'qrFormat' | 'qrAltText' | 'qrDark' | 'qrLight' | 'qrEyeColor' | 'qrShape' | 'qrLogo' | 'qrInWallet'>;
@@ -3482,10 +3482,10 @@ export function buildPassEmail(
 
   const imageSrc = opts.forPreview ? `${origin}/api/pass/${encodeURIComponent(pass.serialNumber)}/image` : 'cid:rtbi-pass-image';
   const imageBlock = `<div style="text-align:center;margin:18px 0;"><a href="${passUrl}"><img src="${imageSrc}" alt="Your event pass — ${esc(pass.serialNumber)}" width="552" style="display:block;width:100%;max-width:552px;height:auto;margin:0 auto;border-radius:16px;" /></a></div>`;
-  const detailsBlock = `<table role="presentation" style="width:100%;font-size:13px;color:#cbd5e1;border-collapse:collapse;margin:14px 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">${detailRows
+  const detailsBlock = `<table role="presentation" style="width:100%;font-size:13px;color:#D5CBE1;border-collapse:collapse;margin:14px 0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">${detailRows
     .map(
       ([k, v], i) =>
-        `<tr><td style="padding:9px 14px;color:#94a3b8;${i ? 'border-top:1px solid rgba(255,255,255,0.07);' : ''}">${k}</td><td style="padding:9px 14px;font-weight:bold;color:${k === 'Serial ID' ? '#f59e0b' : '#ffffff'};${k === 'Serial ID' ? 'font-family:monospace;' : ''}${i ? 'border-top:1px solid rgba(255,255,255,0.07);' : ''}">${esc(v)}</td></tr>`
+        `<tr><td style="padding:9px 14px;color:#A594B8;${i ? 'border-top:1px solid rgba(255,255,255,0.07);' : ''}">${k}</td><td style="padding:9px 14px;font-weight:bold;color:${k === 'Serial ID' ? '#f59e0b' : '#ffffff'};${k === 'Serial ID' ? 'font-family:monospace;' : ''}${i ? 'border-top:1px solid rgba(255,255,255,0.07);' : ''}">${esc(v)}</td></tr>`
     )
     .join('')}</table>`;
 
@@ -3494,7 +3494,7 @@ export function buildPassEmail(
       .split(/\n{2,}/)
       .map((p) => p.trim())
       .filter(Boolean)
-      .map((p) => `<p style="margin:0 0 14px 0;font-size:14px;color:#cbd5e1;line-height:1.6;">${esc(p).replace(/\n/g, '<br/>')}</p>`)
+      .map((p) => `<p style="margin:0 0 14px 0;font-size:14px;color:#D5CBE1;line-height:1.6;">${esc(p).replace(/\n/g, '<br/>')}</p>`)
       .join('');
 
   const hasImage = merged.includes(IMAGE_MARKER);
@@ -3510,11 +3510,11 @@ export function buildPassEmail(
     .trim() + `\n\nYour digital pass: ${passUrl}${mapUrl ? `\nVenue location: ${mapUrl}` : ''}${whatsappUrl ? `\nJoin the event WhatsApp group: ${whatsappUrl}` : ''}`;
 
   const bodyHtml = `
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0f172a;color:#f8fafc;border-radius:16px;">
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#1C0F2A;color:#FEF7F6;border-radius:16px;">
       <div style="text-align:center;margin-bottom:20px;">
-        <span style="display:inline-block;padding:4px 12px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#38bdf8;background:rgba(56,189,248,0.15);border-radius:20px;">Official Event Pass</span>
+        <span style="display:inline-block;padding:4px 12px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#E86848;background:rgba(232, 104, 72,0.15);border-radius:20px;">Official Event Pass</span>
         <h1 style="margin:16px 0 8px 0;font-size:22px;color:#ffffff;">${esc(pass.eventName)}</h1>
-        <p style="margin:0;color:#94a3b8;font-size:14px;">RTBI • RUAS</p>
+        <p style="margin:0;color:#A594B8;font-size:14px;">RTBI • RUAS</p>
       </div>
       ${hasImage ? '' : imageBlock}
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:8px;">
@@ -3522,7 +3522,7 @@ export function buildPassEmail(
         ${hasDetails ? '' : detailsBlock}
       </div>
       ${passEmailButtonsHtml(origin, pass.serialNumber, { mapUrl, whatsappUrl })}
-      <p style="margin:0;font-size:12px;color:#64748b;text-align:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+      <p style="margin:0;font-size:12px;color:#76648B;text-align:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
         Please present your digital pass or QR code at official event turnstiles upon arrival.<br/>
         &copy; ${new Date().getFullYear()} RTBI &bull; MSRUAS
       </p>
@@ -3565,7 +3565,7 @@ export async function dispatchPassEmail(
         bodyHtml,
         category: 'EVENT_INVITATION',
         badgeText: 'Official Event Pass',
-        badgeColor: '#0284c7',
+        badgeColor: '#CC3D19',
         passSerial: pass.serialNumber, // server renders + attaches the boarding-pass image (cid:rtbi-pass-image)
         ...(background ? { background } : {}),
         metadata: {

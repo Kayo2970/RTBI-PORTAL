@@ -49,7 +49,7 @@ export async function POST(request: Request) {
             bodyHtml: template.bodyHtml,
             category: 'GROUP_POLICY_GRANT',
             badgeText: 'Special Access Granted',
-            badgeColor: created.expiresAt ? '#d97706' : '#6366f1',
+            badgeColor: created.expiresAt ? '#d97706' : '#EA7153',
           });
         }
       } catch (emailErr) {

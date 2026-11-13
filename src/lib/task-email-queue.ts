@@ -173,8 +173,8 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
       (item, idx) => `
       <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong style="color: #6366f1; font-size: 15px;">#${idx + 1} ${escapeHtml(item.title)}</strong>
-          <span style="font-size: 11px; background: rgba(99, 102, 241, 0.15); color: #818cf8; padding: 3px 8px; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.3);">
+          <strong style="color: #EA7153; font-size: 15px;">#${idx + 1} ${escapeHtml(item.title)}</strong>
+          <span style="font-size: 11px; background: rgba(234, 113, 83, 0.15); color: #EA7153; padding: 3px 8px; border-radius: 99px; border: 1px solid rgba(234, 113, 83, 0.3);">
             Due: ${escapeHtml(item.dueDate || 'Flexible')}
           </span>
         </div>
@@ -194,10 +194,10 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     badgeText: `ASSIGNMENT DIGEST (${taskCount} TASK${taskCount === 1 ? '' : 'S'})`,
-    badgeColor: '#6366f1',
+    badgeColor: '#EA7153',
     headerTitle: `Task & Committee Assignments`,
     bodyContentHtml: `
-    <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+    <p style="margin: 0 0 20px; font-size: 14px; color: #574769; line-height: 1.6;">
       Dear <strong>${escapeHtml(assigneeName)}</strong>,<br/>
       You are assigned to the following ${taskCount} task(s) / committee responsibility(ies) in RTBI Portal:
     </p>
@@ -207,12 +207,12 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
     </div>
 
     <div style="text-align: center; margin: 28px 0 16px;">
-      <a href="${ackUrl}" target="_blank" style="display: inline-block; background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
+      <a href="${ackUrl}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 14px rgba(234, 113, 83, 0.35);">
         ✔ View & Acknowledge Tasks
       </a>
     </div>
 
-    <p style="margin: 16px 0 0; font-size: 11px; color: #64748b; text-align: center;">
+    <p style="margin: 16px 0 0; font-size: 11px; color: #76648B; text-align: center;">
       Opening the link above automatically records your acknowledgment that you have reviewed your tasks.
     </p>
     `,
@@ -253,7 +253,7 @@ function escapeHtml(str: string): string {
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
-      "'": '&#039;',
+      "'": '&#CC3D19;',
     };
     return map[match] || match;
   });

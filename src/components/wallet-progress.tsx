@@ -66,7 +66,7 @@ export function WalletProgressBar({ progress, label }: { progress: number; label
         <span className="tabular-nums">{pct}%</span>
       </div>
       <div className="h-2 rounded-full bg-white/10 overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-accent transition-[width] duration-150 ease-out" style={{ width: `${progress}%` }} />
+        <div className="h-full rounded-full bg-gradient-to-r from-accent to-accent transition-[width] duration-150 ease-out" style={{ width: `${progress}%` }} />
       </div>
     </div>
   );

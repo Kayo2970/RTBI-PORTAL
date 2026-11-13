@@ -233,8 +233,8 @@ export function CertificateSendDialog({ certificates, onClose, onDone }: { certi
     onDone();
   };
 
-  const field = 'w-full px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-accent';
-  const resultTone = { ok: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30', warn: 'bg-amber-500/10 text-amber-500 border-amber-500/30', err: 'bg-rose-500/10 text-rose-400 border-rose-500/30' } as const;
+  const field = 'w-full px-3 py-2 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-xs text-theme-text-primary dark:text-white focus:outline-none focus:border-accent';
+  const resultTone = { ok: 'bg-success/10 text-success border-success/30', warn: 'bg-warning/10 text-warning border-warning/30', err: 'bg-danger/10 text-danger border-danger/30' } as const;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3" role="dialog" aria-modal="true" aria-label="Send certificates">
@@ -250,42 +250,42 @@ export function CertificateSendDialog({ certificates, onClose, onDone }: { certi
         <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left: who + message */}
           <div className="space-y-3 min-w-0">
-            <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+            <div className="space-y-2 p-3 rounded-xl border border-theme-card-border dark:border-white/10">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-extrabold text-slate-800 dark:text-white">Who gets this ({chosen.length} of {rows.length})</span>
+                <span className="font-extrabold text-theme-text-primary dark:text-white">Who gets this ({chosen.length} of {rows.length})</span>
                 <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold">
                   <button type="button" disabled={busy} className="text-accent hover:underline cursor-pointer" onClick={() => setIncluded(new Set(selectableRows.map((r) => r.id)))}>Everyone not yet sent ({selectableRows.length})</button>
-                  <button type="button" disabled={busy} className="text-slate-500 hover:underline cursor-pointer" onClick={() => setIncluded(new Set())}>Clear</button>
+                  <button type="button" disabled={busy} className="text-theme-text-secondary hover:underline cursor-pointer" onClick={() => setIncluded(new Set())}>Clear</button>
                 </div>
               </div>
-              <div className="border border-slate-200 dark:border-white/10 rounded-xl divide-y divide-slate-100 dark:divide-white/5 max-h-[34vh] overflow-y-auto">
-                {loading && <div className="py-4 text-center text-slate-400 flex items-center justify-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking schedules…</div>}
+              <div className="border border-theme-card-border dark:border-white/10 rounded-xl divide-y divide-theme-card-border dark:divide-white/5 max-h-[34vh] overflow-y-auto">
+                {loading && <div className="py-4 text-center text-theme-text-secondary flex items-center justify-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking schedules…</div>}
                 {!loading && rows.map((c, i) => {
                   const on = included.has(c.id);
                   const locked = scheduled.has(c.passId);
                   return (
                     <div key={c.id} className={`flex items-start justify-between gap-2 p-2 ${i === safeIndex ? 'bg-accent/10' : on ? 'bg-accent/5' : ''}`}>
                       <button type="button" disabled={locked || busy} onClick={() => toggle(c)} className={`flex items-start gap-2 min-w-0 flex-1 text-left ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
-                        {on ? <CheckSquare className="h-4 w-4 text-accent shrink-0 mt-0.5" /> : <Square className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />}
+                        {on ? <CheckSquare className="h-4 w-4 text-accent shrink-0 mt-0.5" /> : <Square className="h-4 w-4 text-theme-text-secondary shrink-0 mt-0.5" />}
                         <span className="min-w-0">
-                          <span className="font-bold text-slate-900 dark:text-white block break-words">{c.attendeeName}{locked && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 align-middle">{scheduleTag(c)}</span>}</span>
-                          <span className="text-[10px] text-slate-400 block break-all">{c.attendeeEmail || 'no email address'} · {c.eventName}{c.typeName ? ` · ${c.typeName}` : ''}</span>
+                          <span className="font-bold text-theme-text-primary dark:text-white block break-words">{c.attendeeName}{locked && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent align-middle">{scheduleTag(c)}</span>}</span>
+                          <span className="text-[10px] text-theme-text-secondary block break-all">{c.attendeeEmail || 'no email address'} · {c.eventName}{c.typeName ? ` · ${c.typeName}` : ''}</span>
                         </span>
                       </button>
                       <div className="shrink-0 flex items-center gap-2">
                         <CertificateStatusBadge status={c.status} sentAt={c.sentAt} issuedAt={c.issuedAt} error={c.error} sentBy={c.sentBy} />
-                        <button type="button" title="Preview this person's email" onClick={() => setIndex(i)} className="h-7 px-2 rounded-lg border border-slate-300 dark:border-white/15 text-slate-500 text-[10px] font-bold cursor-pointer">Preview</button>
+                        <button type="button" title="Preview this person's email" onClick={() => setIndex(i)} className="h-7 px-2 rounded-lg border border-theme-card-border dark:border-white/15 text-theme-text-secondary text-[10px] font-bold cursor-pointer">Preview</button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <p className="text-[10px] text-slate-500">People already sent or queued start unticked — tick one to send again. People already in a scheduled send can&apos;t be ticked (cancel that schedule first). Certificates from different events or types are sent in separate batches.</p>
+              <p className="text-[10px] text-theme-text-secondary">People already sent or queued start unticked — tick one to send again. People already in a scheduled send can&apos;t be ticked (cancel that schedule first). Certificates from different events or types are sent in separate batches.</p>
             </div>
 
-            <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+            <div className="space-y-2 p-3 rounded-xl border border-theme-card-border dark:border-white/10">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Email message</label>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-theme-text-secondary">Email message</label>
                 <button type="button" onClick={() => { setSubject(DEFAULT_CERT_EMAIL.subject); setBody(DEFAULT_CERT_EMAIL.bodyText); }} className="text-[10px] font-bold text-accent cursor-pointer">Reset to default</button>
               </div>
               <input className={field} maxLength={CERT_EMAIL_MAX_SUBJECT} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" disabled={busy} />
@@ -295,45 +295,45 @@ export function CertificateSendDialog({ certificates, onClose, onDone }: { certi
                   <button key={f.token} type="button" title={f.label} onClick={() => insertField(f.token)} className="px-2 py-1 rounded-lg bg-accent/10 text-accent border border-accent/30 font-bold cursor-pointer">{f.token}</button>
                 ))}
               </div>
-              <p className="text-[10px] text-slate-500">Each placeholder is filled in for every person. The certificate PDF is always attached.</p>
+              <p className="text-[10px] text-theme-text-secondary">Each placeholder is filled in for every person. The certificate PDF is always attached.</p>
             </div>
           </div>
 
           {/* Right: preview + background + when */}
           <div className="space-y-3 min-w-0">
-            <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+            <div className="space-y-2 p-3 rounded-xl border border-theme-card-border dark:border-white/10">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-slate-800 dark:text-white">Email preview</span>
+                <span className="font-extrabold text-theme-text-primary dark:text-white">Email preview</span>
                 <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => setIndex(Math.max(0, safeIndex - 1))} disabled={safeIndex === 0} className="p-1.5 rounded-lg border border-slate-300 dark:border-white/15 disabled:opacity-30 cursor-pointer" aria-label="Previous person"><ChevronLeft className="h-3.5 w-3.5" /></button>
-                  <span className="text-[10px] text-slate-500 min-w-[48px] text-center">{rows.length ? safeIndex + 1 : 0} / {rows.length}</span>
-                  <button type="button" onClick={() => setIndex(Math.min(rows.length - 1, safeIndex + 1))} disabled={safeIndex >= rows.length - 1} className="p-1.5 rounded-lg border border-slate-300 dark:border-white/15 disabled:opacity-30 cursor-pointer" aria-label="Next person"><ChevronRight className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => setIndex(Math.max(0, safeIndex - 1))} disabled={safeIndex === 0} className="p-1.5 rounded-lg border border-theme-card-border dark:border-white/15 disabled:opacity-30 cursor-pointer" aria-label="Previous person"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                  <span className="text-[10px] text-theme-text-secondary min-w-[48px] text-center">{rows.length ? safeIndex + 1 : 0} / {rows.length}</span>
+                  <button type="button" onClick={() => setIndex(Math.min(rows.length - 1, safeIndex + 1))} disabled={safeIndex >= rows.length - 1} className="p-1.5 rounded-lg border border-theme-card-border dark:border-white/15 disabled:opacity-30 cursor-pointer" aria-label="Next person"><ChevronRight className="h-3.5 w-3.5" /></button>
                 </div>
               </div>
               {current && (
                 <div className="space-y-0.5">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">To {current.attendeeName} &lt;{current.attendeeEmail}&gt;</span>
-                  <p className="font-bold text-slate-900 dark:text-white break-words">{mergedSubject || '(no subject)'}</p>
-                  <p className="text-[10px] text-slate-500">Attached: Certificate-{current.attendeeName.replace(/[^\w]+/g, '_')}.pdf</p>
+                  <span className="text-[10px] uppercase tracking-wider text-theme-text-secondary font-bold">To {current.attendeeName} &lt;{current.attendeeEmail}&gt;</span>
+                  <p className="font-bold text-theme-text-primary dark:text-white break-words">{mergedSubject || '(no subject)'}</p>
+                  <p className="text-[10px] text-theme-text-secondary">Attached: Certificate-{current.attendeeName.replace(/[^\w]+/g, '_')}.pdf</p>
                 </div>
               )}
-              <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100">
-                <iframe title="Email preview" sandbox="" srcDoc={previewHtml} className="w-full h-[46vh] min-h-[320px] bg-slate-100" />
-                {previewing && <Loader2 className="absolute top-2 right-2 h-4 w-4 animate-spin text-slate-500" />}
+              <div className="relative rounded-xl overflow-hidden border border-theme-card-border dark:border-white/10 bg-theme-border/15">
+                <iframe title="Email preview" sandbox="" srcDoc={previewHtml} className="w-full h-[46vh] min-h-[320px] bg-theme-border/15" />
+                {previewing && <Loader2 className="absolute top-2 right-2 h-4 w-4 animate-spin text-theme-text-secondary" />}
               </div>
             </div>
 
             <EmailBackgroundPicker value={bgPick} onChange={setBgPick} disabled={busy} />
 
-            <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10">
-              <div className="flex flex-wrap gap-4 font-bold text-slate-700 dark:text-slate-200">
+            <div className="space-y-2 p-3 rounded-xl border border-theme-card-border dark:border-white/10">
+              <div className="flex flex-wrap gap-4 font-bold text-theme-text-primary dark:text-theme-text-primary">
                 <label className="flex items-center gap-2 cursor-pointer"><input type="radio" checked={sendMode === 'now'} onChange={() => setSendMode('now')} disabled={busy} /> Send now</label>
                 <label className="flex items-center gap-2 cursor-pointer"><input type="radio" checked={sendMode === 'later'} onChange={() => setSendMode('later')} disabled={busy} /> Schedule</label>
               </div>
               {sendMode === 'later' && <input type="datetime-local" className={`${field} max-w-xs [color-scheme:dark]`} value={sendAt} onChange={(e) => setSendAt(e.target.value)} disabled={busy} />}
-              {sendMode === 'now' && <p className="text-[10px] text-slate-500">Sending now works for events that have reached their last day; for others, schedule it.</p>}
-              {resendCount > 0 && <p className="text-[11px] font-semibold text-amber-500">{resendCount} ticked {resendCount === 1 ? 'person has' : 'people have'} already received this certificate.</p>}
-              {error && <p className="text-[11px] font-semibold text-rose-400">{error}</p>}
+              {sendMode === 'now' && <p className="text-[10px] text-theme-text-secondary">Sending now works for events that have reached their last day; for others, schedule it.</p>}
+              {resendCount > 0 && <p className="text-[11px] font-semibold text-warning">{resendCount} ticked {resendCount === 1 ? 'person has' : 'people have'} already received this certificate.</p>}
+              {error && <p className="text-[11px] font-semibold text-danger">{error}</p>}
               {results.length > 0 && (
                 <div className="space-y-1.5">
                   {results.map((r) => (
@@ -348,7 +348,7 @@ export function CertificateSendDialog({ certificates, onClose, onDone }: { certi
         <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-white/10 bg-black/10">
           <span className="text-[11px] text-theme-text-secondary">{chosen.length === 0 ? 'Tick at least one person.' : `${chosen.length} certificate${chosen.length === 1 ? '' : 's'} ready`}</span>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={onClose} disabled={busy} className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-white/15 font-bold cursor-pointer disabled:opacity-40">{results.length ? 'Close' : 'Cancel'}</button>
+            <button type="button" onClick={onClose} disabled={busy} className="px-4 py-2.5 rounded-xl border border-theme-card-border dark:border-white/15 font-bold cursor-pointer disabled:opacity-40">{results.length ? 'Close' : 'Cancel'}</button>
             <button type="button" onClick={send} disabled={busy || loading || chosen.length === 0 || !emailReady} className="px-5 py-2.5 bg-accent text-white font-extrabold rounded-xl shadow-lg shadow-accent/25 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : sendMode === 'later' ? <CalendarClock className="h-4 w-4" /> : <Send className="h-4 w-4" />}
               {sendMode === 'later' ? `Schedule ${chosen.length}${sendAt ? ` · ${new Date(sendAt).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : ''}` : `Send ${chosen.length} now`}

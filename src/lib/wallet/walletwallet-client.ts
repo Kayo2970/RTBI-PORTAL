@@ -22,7 +22,7 @@ const ORG_ADDRESS = 'RTBI, M. S. Ramaiah University of Applied Sciences, Univers
 // Pass branding — pale-blue-on-green design finalized in the WalletWallet
 // dashboard (see the "Style" tab there to tweak further).
 const COLOR_PRESET = 'green';
-const CUSTOM_COLOR = '#ebf9ff';
+const CUSTOM_COLOR = '#FDEBE5';
 
 export interface WalletCardMember {
   name: string;
@@ -181,10 +181,10 @@ export function walletImageUrl(pathOrUrl?: string): string | undefined {
   return origin ? `${origin}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}` : undefined;
 }
 
-/** Blend a hex colour toward `#0b1526` by `t` (0..1). */
+/** Blend a hex colour toward `#160B2C` by `t` (0..1). */
 function darken(hex: string, t: number): string {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return '#0b1526';
+  if (!m) return '#160B2C';
   const n = parseInt(m[1], 16);
   const to = [0x0b, 0x15, 0x26];
   const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c, i) => Math.round(c + (to[i] - c) * t));
@@ -197,8 +197,8 @@ function darken(hex: string, t: number): string {
  * pass's own gradient/colour, never from the event theme's base colour (which can be white for the portal card).
  */
 export function walletBaseColor(eventPass: WalletEventPassData, poster: boolean): string {
-  if (!poster) return eventPass.themeColor || eventPass.passColor || '#0b1526';
-  const start = gradientStops(eventPass.passGradient)[0] || eventPass.passColor || '#0b1526';
+  if (!poster) return eventPass.themeColor || eventPass.passColor || '#160B2C';
+  const start = gradientStops(eventPass.passGradient)[0] || eventPass.passColor || '#160B2C';
   return luminance(start) > 0.2 ? darken(start, 0.85) : start;
 }
 

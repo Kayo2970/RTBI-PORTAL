@@ -199,7 +199,7 @@ export function EventPassPushModal({
                 className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-sm text-theme-text-primary focus:outline-none focus:border-accent"
               >
                 {PUSH_GUEST_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat} className="bg-neutral-900 text-white">
+                  <option key={cat} value={cat} className="bg-theme-card text-white">
                     {cat} ({activePasses.filter((p) => (p.guestCategory || '').toLowerCase() === cat.toLowerCase()).length} passes)
                   </option>
                 ))}
@@ -269,7 +269,7 @@ export function EventPassPushModal({
             <div
               className={`p-4 rounded-2xl border flex items-start gap-3 text-xs ${
                 result.success
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-success/10 border-success/30 text-success'
                   : 'bg-danger/10 border-danger/30 text-danger'
               }`}
             >

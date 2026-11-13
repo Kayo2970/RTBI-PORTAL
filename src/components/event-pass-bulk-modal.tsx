@@ -276,8 +276,8 @@ export function EventPassBulkModal({
           validityDate: row.validity || (rowDays.length > 0 ? formatValidDaysLabel(rowDays) : formattedDate),
           validDays: rowDays.length > 0 ? rowDays : undefined,
           seatOrZone: row.roomOrVenue,
-          passColor: '#0b1526',
-          passGradient: 'linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%)',
+          passColor: '#160B2C',
+          passGradient: 'linear-gradient(135deg, #E34A21 0%, #C23A14 50%, #932961 100%)',
           notes: row.notes,
           issuedBy: currentUserName,
           issuedByEmail: currentUserEmail,
@@ -306,25 +306,25 @@ export function EventPassBulkModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="glass-panel w-full max-w-3xl rounded-3xl p-6 md:p-8 space-y-6 relative border border-slate-200/90 dark:border-white/15 bg-white/95 dark:bg-[#0D1F38]/95 shadow-2xl max-h-[90vh] flex flex-col">
+      <div className="glass-panel w-full max-w-3xl rounded-3xl p-6 md:p-8 space-y-6 relative border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">
+              <h2 className="text-base font-black text-theme-text-primary dark:text-white">
                 Bulk Event Pass Issuance (CSV)
               </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+              <p className="text-xs text-theme-text-secondary dark:text-theme-text-secondary font-medium">
                 Design one pass, download template, and upload your entire attendee list in bulk.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+            className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-theme-border/15 dark:hover:bg-white/10 text-theme-text-secondary hover:text-white transition-all cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -332,14 +332,14 @@ export function EventPassBulkModal({
 
         {/* Feedback Banners */}
         {importSuccess && (
-          <div className="flex items-center gap-3 p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/30 rounded-2xl text-success text-xs">
+            <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
             <span className="font-semibold">{importSuccess}</span>
           </div>
         )}
         {errorMessage && (
-          <div className="flex items-center gap-3 p-4 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-rose-300 text-xs">
-            <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger text-xs">
+            <AlertTriangle className="h-5 w-5 text-danger shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -347,7 +347,7 @@ export function EventPassBulkModal({
         <div className="space-y-4 overflow-y-auto flex-1 pr-1 text-xs">
           {/* 1. Target Event Selection */}
           <div className="space-y-1.5">
-            <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px]">
+            <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
               Select Event for Bulk Pass Issuance *
             </label>
             <SearchableSelect
@@ -358,17 +358,17 @@ export function EventPassBulkModal({
           </div>
 
           {/* 2. Download Template Action */}
-          <div className="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-accent/10 border border-accent/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="font-extrabold text-sky-400 text-xs">Step 1: Download Event Template</div>
-              <div className="text-[11px] text-slate-600 dark:text-slate-300">
+              <div className="font-extrabold text-accent text-xs">Step 1: Download Event Template</div>
+              <div className="text-[11px] text-theme-text-secondary dark:text-theme-text-secondary">
                 Pre-configured with event dates, room allocation headers, and sample VIP/Speaker tiers.
               </div>
             </div>
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="px-4 py-2 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
+              className="px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
             >
               <Download className="h-4 w-4" /> Download CSV Template
             </button>
@@ -381,7 +381,7 @@ export function EventPassBulkModal({
             className={`p-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
               isDragOver
                 ? 'border-accent bg-accent/15 scale-[1.01]'
-                : 'border-slate-300 dark:border-white/15 hover:border-accent/60 bg-slate-50/50 dark:bg-white/5'
+                : 'border-theme-card-border dark:border-white/15 hover:border-accent/60 bg-theme-background/50 dark:bg-white/5'
             }`}
           >
             <input
@@ -395,10 +395,10 @@ export function EventPassBulkModal({
               className="hidden"
             />
             <Upload className="h-8 w-8 text-accent mb-2 animate-bounce" />
-            <div className="font-extrabold text-slate-800 dark:text-white text-xs">
+            <div className="font-extrabold text-theme-text-primary dark:text-white text-xs">
               {isDragOver ? 'Drop CSV file here' : 'Click to Upload or Drag & Drop CSV'}
             </div>
-            <div className="text-[10px] text-slate-500 mt-1">
+            <div className="text-[10px] text-theme-text-secondary mt-1">
               Supports .csv files with AttendeeName, GuestCategory, PassType, RoomOrVenue
             </div>
           </div>
@@ -407,22 +407,22 @@ export function EventPassBulkModal({
           {parsedRows.length > 0 && (
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <span className="font-extrabold text-slate-800 dark:text-white text-xs flex items-center gap-1.5">
+                <span className="font-extrabold text-theme-text-primary dark:text-white text-xs flex items-center gap-1.5">
                   <Users className="h-4 w-4 text-accent" />
                   Parsed {parsedRows.length} Attendee Records Ready to Issue
                 </span>
                 <button
                   type="button"
                   onClick={() => setParsedRows([])}
-                  className="text-[11px] text-slate-400 hover:text-rose-400 cursor-pointer"
+                  className="text-[11px] text-theme-text-secondary hover:text-danger cursor-pointer"
                 >
                   Clear Table
                 </button>
               </div>
 
-              <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-white/10 rounded-xl">
+              <div className="max-h-48 overflow-y-auto border border-theme-card-border dark:border-white/10 rounded-xl">
                 <table className="w-full text-left text-[11px]">
-                  <thead className="bg-slate-100 dark:bg-white/5 text-slate-500 uppercase tracking-wider sticky top-0">
+                  <thead className="bg-theme-border/15 dark:bg-white/5 text-theme-text-secondary uppercase tracking-wider sticky top-0">
                     <tr>
                       <th className="py-2 px-3">Attendee</th>
                       <th className="py-2 px-3">Category</th>
@@ -431,10 +431,10 @@ export function EventPassBulkModal({
                       <th className="py-2 px-3">Contact</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                  <tbody className="divide-y divide-theme-card-border dark:divide-white/5">
                     {parsedRows.map((row, idx) => (
-                      <tr key={idx} className={`hover:bg-slate-50 dark:hover:bg-white/5 ${row.isValid ? '' : 'opacity-60 bg-rose-500/5'}`}>
-                        <td className="py-2 px-3 font-bold text-slate-900 dark:text-white">
+                      <tr key={idx} className={`hover:bg-theme-background/50 dark:hover:bg-white/5 ${row.isValid ? '' : 'opacity-60 bg-danger/5'}`}>
+                        <td className="py-2 px-3 font-bold text-theme-text-primary dark:text-white">
                           {row.attendeeName}
                         </td>
                         <td className="py-2 px-3">
@@ -442,14 +442,14 @@ export function EventPassBulkModal({
                             {row.guestCategory}
                           </span>
                         </td>
-                        <td className="py-2 px-3 text-slate-700 dark:text-slate-300">
+                        <td className="py-2 px-3 text-theme-text-primary dark:text-theme-text-secondary">
                           {row.passType}
                         </td>
-                        <td className="py-2 px-3 text-sky-400 font-semibold">
+                        <td className="py-2 px-3 text-accent font-semibold">
                           📍 {row.roomOrVenue}
                         </td>
-                        <td className="py-2 px-3 text-slate-400 text-[10px]">
-                          {row.isValid ? row.email : <span className="text-rose-400 font-bold">⚠ {row.error} — skipped</span>}
+                        <td className="py-2 px-3 text-theme-text-secondary text-[10px]">
+                          {row.isValid ? row.email : <span className="text-danger font-bold">⚠ {row.error} — skipped</span>}
                         </td>
                       </tr>
                     ))}
@@ -461,11 +461,11 @@ export function EventPassBulkModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="border-t border-slate-200/80 dark:border-white/10 pt-4 flex items-center justify-between gap-3">
+        <div className="border-t border-theme-card-border/80 dark:border-white/10 pt-4 flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-theme-border/15 dark:bg-white/10 hover:bg-theme-border/25 dark:hover:bg-white/15 text-theme-text-primary dark:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             Cancel
           </button>

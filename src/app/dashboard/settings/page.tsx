@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import CodeSlots from '@/components/code-slots';
 import {
   User,
   ShieldCheck,
@@ -741,15 +742,24 @@ export default function SettingsPage() {
                       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
                         <div className="flex-1 space-y-1.5">
                           <label className="block font-medium text-theme-text-secondary">Verification Code</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={6}
-                            autoFocus
+                          <CodeSlots
+                            length={6}
                             value={emailOtp}
-                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
-                            placeholder="6-digit code"
-                            className="w-full px-4 py-2.5 bg-theme-background/50 border border-theme-card-border rounded-xl text-theme-text-primary text-center font-mono text-base tracking-[0.3em] focus:outline-none focus:border-accent"
+                            status={emailChangeErr ? 'error' : 'idle'}
+                            autoFocus
+                            disabled={isConfirmingEmailOtp}
+                            ariaLabel="6-digit verification code"
+                            onChange={(code: string) => {
+                              setEmailOtp(code);
+                              if (code && emailChangeErr) setEmailChangeErr('');
+                            }}
+                            accentColor="var(--color-accent)"
+                            inkColor="var(--color-accent)"
+                            slotColor="color-mix(in srgb, var(--color-theme-border) 60%, transparent)"
+                            digitColor="var(--color-theme-text-primary)"
+                            dangerColor="var(--color-danger)"
+                            slotSize={42}
+                            gap={8}
                           />
                         </div>
                         <div className="flex gap-2">
@@ -785,15 +795,24 @@ export default function SettingsPage() {
                       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
                         <div className="flex-1 space-y-1.5">
                           <label className="block font-medium text-theme-text-secondary">Verification Code</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={6}
-                            autoFocus
+                          <CodeSlots
+                            length={6}
                             value={emailOtp}
-                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
-                            placeholder="6-digit code"
-                            className="w-full px-4 py-2.5 bg-theme-background/50 border border-theme-card-border rounded-xl text-theme-text-primary text-center font-mono text-base tracking-[0.3em] focus:outline-none focus:border-accent"
+                            status={emailChangeErr ? 'error' : 'idle'}
+                            autoFocus
+                            disabled={isConfirmingEmailOtp}
+                            ariaLabel="6-digit verification code"
+                            onChange={(code: string) => {
+                              setEmailOtp(code);
+                              if (code && emailChangeErr) setEmailChangeErr('');
+                            }}
+                            accentColor="var(--color-accent)"
+                            inkColor="var(--color-accent)"
+                            slotColor="color-mix(in srgb, var(--color-theme-border) 60%, transparent)"
+                            digitColor="var(--color-theme-text-primary)"
+                            dangerColor="var(--color-danger)"
+                            slotSize={42}
+                            gap={8}
                           />
                         </div>
                         <div className="flex gap-2">

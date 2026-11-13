@@ -61,18 +61,18 @@ export async function POST(request: Request) {
         }
 
         const bodyHtml = `
-          <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${created.targetMemberName || 'there'}</strong>,</p>
-          <p style="color: #334155; font-size: 14px; line-height: 1.6;"><strong>${created.requesterName}</strong> is asking you to approve the following <strong>${entityLabel.toLowerCase()}</strong>:</p>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #d97706; padding: 14px 18px; border-radius: 8px; margin: 18px 0;">
-            <p style="margin: 0; font-weight: 700; font-size: 15px; color: #0f172a;">${created.entityTitle}</p>
-            ${created.message ? `<p style="margin: 8px 0 0 0; color: #475569; font-size: 13px;">"${created.message}"</p>` : ''}
+          <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${created.targetMemberName || 'there'}</strong>,</p>
+          <p style="color: #422C5C; font-size: 14px; line-height: 1.6;"><strong>${created.requesterName}</strong> is asking you to approve the following <strong>${entityLabel.toLowerCase()}</strong>:</p>
+          <div style="background: #FEF7F6; border: 1px solid #E9E2F0; border-left: 4px solid #d97706; padding: 14px 18px; border-radius: 8px; margin: 18px 0;">
+            <p style="margin: 0; font-weight: 700; font-size: 15px; color: #1C0F2A;">${created.entityTitle}</p>
+            ${created.message ? `<p style="margin: 8px 0 0 0; color: #574769; font-size: 13px;">"${created.message}"</p>` : ''}
           </div>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${targetLink}" target="_blank" style="display: inline-block; background: #0284c7; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
+            <a href="${targetLink}" target="_blank" style="display: inline-block; background: #CC3D19; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
               Open & Review ${entityLabel} &rarr;
             </a>
           </div>
-          <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If the button does not open, copy and paste this link into your browser:<br /><span style="word-break: break-all; color: #0284c7;">${targetLink}</span></p>
+          <p style="color: #76648B; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If the button does not open, copy and paste this link into your browser:<br /><span style="word-break: break-all; color: #CC3D19;">${targetLink}</span></p>
         `;
         await dispatchEmail({
           to: created.targetMemberEmail,

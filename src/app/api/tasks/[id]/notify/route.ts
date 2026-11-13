@@ -61,7 +61,7 @@ export async function POST(
         bodyText: template.bodyText,
         bodyHtml: template.bodyHtml,
         badgeText: 'Task Assignment',
-        badgeColor: '#0284c7',
+        badgeColor: '#CC3D19',
         category: 'TASK_ASSIGNMENT',
       });
       if (log.status === 'SENT' || log.status === 'BUFFERED') sent++; else failed.push(recipient.email);

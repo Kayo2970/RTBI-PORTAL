@@ -214,13 +214,13 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
 
   return (
     <div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 xl:p-6" role="dialog" aria-modal="true">
-      <div className="w-full max-w-[1760px] h-[94vh] flex flex-col rounded-3xl border border-white/15 bg-[#0D1F38] text-white shadow-2xl overflow-hidden">
+      <div className="w-full max-w-[1760px] h-[94vh] flex flex-col rounded-3xl border border-white/15 bg-[#1D0F3A] text-white shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-white/10">
           <div className="flex items-center gap-2.5 min-w-0">
-            <Mail className="h-4 w-4 text-sky-400 shrink-0" />
+            <Mail className="h-4 w-4 text-accent shrink-0" />
             <h3 className="text-sm font-black truncate">Preview &amp; dispatch passes</h3>
-            <span className="text-[11px] font-semibold text-slate-400 shrink-0">{safeIndex + 1} of {total}</span>
+            <span className="text-[11px] font-semibold text-theme-text-secondary shrink-0">{safeIndex + 1} of {total}</span>
           </div>
           <button type="button" onClick={onClose} title={isSending ? 'Close — sending carries on in the background' : 'Close'} className="p-1.5 rounded-lg hover:bg-white/10 cursor-pointer" aria-label="Close">
             <X className="h-4 w-4" />
@@ -238,7 +238,7 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
                 onClick={() => setIndex(i)}
                 title={p.attendeeName}
                 className={`shrink-0 max-w-[150px] truncate px-2.5 py-1 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-all ${
-                  i === safeIndex ? 'bg-sky-500/25 border-sky-400 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/30'
+                  i === safeIndex ? 'bg-accent/25 border-accent text-white' : 'bg-white/5 border-white/10 text-theme-text-secondary hover:border-white/30'
                 } ${!included[p.id] ? 'opacity-45 line-through' : ''}`}
               >
                 {s === 'ok' ? '✓ ' : s === 'failed' ? '✗ ' : ''}
@@ -252,9 +252,9 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
         <div className={`flex-1 min-h-0 overflow-y-auto grid grid-cols-1 gap-5 p-5 ${showEditor ? 'xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_minmax(0,4fr)]' : 'xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'}`}>
           {/* Pass */}
           <div className="space-y-3 min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">The pass</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">The pass</div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={pass.id} src={`/api/pass/${encodeURIComponent(pass.serialNumber)}/image`} alt={`Ticket for ${pass.attendeeName}`} className="w-full rounded-2xl border border-white/10 bg-slate-800" />
+            <img key={pass.id} src={`/api/pass/${encodeURIComponent(pass.serialNumber)}/image`} alt={`Ticket for ${pass.attendeeName}`} className="w-full rounded-2xl border border-white/10 bg-theme-card" />
             <div className="grid grid-cols-2 gap-2 text-[11.5px]">
               {([
                 ['Attendee', pass.attendeeName],
@@ -265,12 +265,12 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
                 ['Valid', days.length ? formatValidDaysLabel(days) : pass.validityDate || pass.eventDate || '—'],
               ] as const).map(([k, v]) => (
                 <div key={k} className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 min-w-0">
-                  <div className="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">{k}</div>
+                  <div className="text-[9px] uppercase tracking-wider text-theme-text-secondary font-semibold">{k}</div>
                   <div className="font-bold truncate" title={String(v)}>{v}</div>
                 </div>
               ))}
             </div>
-            <a href={`/pass/${pass.serialNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-400 hover:underline">
+            <a href={`/pass/${pass.serialNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[11px] font-bold text-accent hover:underline">
               Open the pass page <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -279,40 +279,40 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
           <div className="space-y-3 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">The email</div>
-                <button type="button" onClick={() => { setEditScope('all'); setShowEditor(true); }} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-200 text-[10.5px] font-bold hover:bg-sky-500/30 cursor-pointer">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">The email</div>
+                <button type="button" onClick={() => { setEditScope('all'); setShowEditor(true); }} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accent/20 border border-accent/40 text-accent text-[10.5px] font-bold hover:bg-accent/30 cursor-pointer">
                   <Pencil className="h-3 w-3" /> Edit message (everyone)
                 </button>
                 <button type="button" onClick={startOwnEdit} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/20 text-[10.5px] font-bold hover:bg-white/10 cursor-pointer">
                   <Pencil className="h-3 w-3" /> Edit only {shortName(pass.attendeeName)}&apos;s
                 </button>
-                {ownEdit && <span className="text-[10px] font-bold text-amber-300">custom message for this person</span>}
+                {ownEdit && <span className="text-[10px] font-bold text-warning">custom message for this person</span>}
               </div>
               <label className="flex items-center gap-2 text-[11px] font-bold cursor-pointer">
-                <input type="checkbox" checked={!!included[pass.id]} onChange={(e) => setIncluded((m) => ({ ...m, [pass.id]: e.target.checked }))} className="h-4 w-4 accent-sky-500" />
+                <input type="checkbox" checked={!!included[pass.id]} onChange={(e) => setIncluded((m) => ({ ...m, [pass.id]: e.target.checked }))} className="h-4 w-4 accent-accent" />
                 Include in dispatch
               </label>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2 text-[11.5px]">
               <div className="flex items-center gap-2">
-                <span className="w-14 shrink-0 text-slate-400 font-semibold">To</span>
+                <span className="w-14 shrink-0 text-theme-text-secondary font-semibold">To</span>
                 <input
                   type="email"
                   value={emails[pass.id] || ''}
                   onChange={(e) => setEmails((m) => ({ ...m, [pass.id]: e.target.value }))}
                   placeholder="recipient@email.com"
-                  className={`flex-1 min-w-0 px-2.5 py-1.5 bg-black/30 border rounded-lg text-white focus:outline-none ${validEmail(emails[pass.id] || '') ? 'border-white/15 focus:border-sky-400' : 'border-amber-500/60'}`}
+                  className={`flex-1 min-w-0 px-2.5 py-1.5 bg-black/30 border rounded-lg text-white focus:outline-none ${validEmail(emails[pass.id] || '') ? 'border-white/15 focus:border-accent' : 'border-warning/60'}`}
                 />
               </div>
               <div className="flex items-start gap-2">
-                <span className="w-14 shrink-0 text-slate-400 font-semibold">Subject</span>
+                <span className="w-14 shrink-0 text-theme-text-secondary font-semibold">Subject</span>
                 <span className="font-bold">{preview?.subject}</span>
               </div>
               {!validEmail(emails[pass.id] || '') && (
-                <div className="flex items-center gap-1.5 text-amber-400 font-semibold"><AlertTriangle className="h-3.5 w-3.5" /> Add a valid email to include this pass.</div>
+                <div className="flex items-center gap-1.5 text-warning font-semibold"><AlertTriangle className="h-3.5 w-3.5" /> Add a valid email to include this pass.</div>
               )}
-              {st?.state === 'failed' && <div className="text-rose-400 font-semibold">✗ {st.error || 'Failed to send.'}</div>}
-              {st?.state === 'ok' && <div className="text-emerald-400 font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Queued for delivery.</div>}
+              {st?.state === 'failed' && <div className="text-danger font-semibold">✗ {st.error || 'Failed to send.'}</div>}
+              {st?.state === 'ok' && <div className="text-success font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Queued for delivery.</div>}
             </div>
             <EmailHtmlPreview
               key={pass.id}
@@ -322,9 +322,9 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
               bodyText={preview?.bodyText}
               category="EVENT_INVITATION"
               badgeText="Official Event Pass"
-              badgeColor="#0284c7"
+              badgeColor="#E34A21"
               background={backgroundChoiceFor(bgPick)}
-              className="w-full h-[calc(94vh-390px)] min-h-[420px] rounded-xl border border-white/10 bg-slate-200"
+              className="w-full h-[calc(94vh-390px)] min-h-[420px] rounded-xl border border-white/10 bg-theme-border/25"
             />
           </div>
 
@@ -332,14 +332,14 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
           {showEditor && (
             <div className="space-y-3 min-w-0 rounded-2xl border border-white/10 bg-black/20 p-4">
               <div className="flex items-center gap-1 p-0.5 bg-black/30 border border-white/10 rounded-lg w-fit text-[10.5px] font-bold">
-                <button type="button" onClick={() => setEditScope('all')} className={`px-2.5 py-1 rounded-md cursor-pointer ${editScope === 'all' ? 'bg-sky-600 text-white' : 'text-slate-300'}`}>Everyone</button>
-                <button type="button" onClick={startOwnEdit} className={`px-2.5 py-1 rounded-md cursor-pointer ${editScope === 'one' ? 'bg-sky-600 text-white' : 'text-slate-300'}`}>Only {shortName(pass.attendeeName)}</button>
+                <button type="button" onClick={() => setEditScope('all')} className={`px-2.5 py-1 rounded-md cursor-pointer ${editScope === 'all' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}>Everyone</button>
+                <button type="button" onClick={startOwnEdit} className={`px-2.5 py-1 rounded-md cursor-pointer ${editScope === 'one' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}>Only {shortName(pass.attendeeName)}</button>
               </div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">
                 {editScope === 'one' ? `Editing ${pass.attendeeName}'s message only` : 'Edit the message (applies to everyone without their own version)'}
               </div>
               {editScope === 'one' && ownEdit && (
-                <button type="button" onClick={() => { setOverrides((m) => { const n = { ...m }; delete n[pass.id]; return n; }); setEditScope('all'); }} className="text-[10.5px] font-bold text-amber-300 hover:underline cursor-pointer">
+                <button type="button" onClick={() => { setOverrides((m) => { const n = { ...m }; delete n[pass.id]; return n; }); setEditScope('all'); }} className="text-[10.5px] font-bold text-warning hover:underline cursor-pointer">
                   Discard this person&apos;s version and use the shared message
                 </button>
               )}
@@ -358,50 +358,50 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
             <button type="button" onClick={() => go(1)} disabled={safeIndex >= total - 1} className="p-2 rounded-xl border border-white/15 hover:bg-white/10 disabled:opacity-30 cursor-pointer" aria-label="Next pass">
               <ChevronRight className="h-4 w-4" />
             </button>
-            <span className="hidden sm:inline text-[10.5px] text-slate-500">← → to navigate</span>
+            <span className="hidden sm:inline text-[10.5px] text-theme-text-secondary">← → to navigate</span>
             <button type="button" onClick={() => setShowEditor((v) => !v)} className="ml-2 px-3 py-1.5 rounded-lg border border-white/15 text-[11px] font-bold hover:bg-white/10 cursor-pointer">
               {showEditor ? 'Hide message editor' : 'Edit message'}
             </button>
-            <button type="button" onClick={() => setIncluded(Object.fromEntries(passes.map((p) => [p.id, !allIncluded])))} className="ml-2 text-[11px] font-bold text-sky-400 hover:underline cursor-pointer">
+            <button type="button" onClick={() => setIncluded(Object.fromEntries(passes.map((p) => [p.id, !allIncluded])))} className="ml-2 text-[11px] font-bold text-accent hover:underline cursor-pointer">
               {allIncluded ? 'Deselect all' : 'Select all'}
             </button>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap justify-end">
-            <span className="text-[11px] text-slate-300">
+            <span className="text-[11px] text-theme-text-secondary">
               {isSending || sentCount > 0
                 ? `${sentCount} sent${failed.length ? ` · ${failed.length} failed` : ''}`
                 : `${toSend.length} ready${skippedNoEmail ? ` · ${skippedNoEmail} need an email` : ''}`}
             </span>
             {failed.length > 0 && !isSending && (
-              <button type="button" onClick={() => send(failed.filter((p) => validEmail(emails[p.id] || '')))} className="px-3 py-2 rounded-xl border border-rose-400/50 text-rose-300 text-xs font-bold hover:bg-rose-500/10 cursor-pointer">
+              <button type="button" onClick={() => send(failed.filter((p) => validEmail(emails[p.id] || '')))} className="px-3 py-2 rounded-xl border border-danger/50 text-danger text-xs font-bold hover:bg-danger/10 cursor-pointer">
                 Retry failed
               </button>
             )}
             <div className="flex items-center gap-1 p-0.5 bg-black/30 border border-white/10 rounded-lg text-[11px] font-bold">
-              <button type="button" onClick={() => setSendMode('now')} className={`px-2.5 py-1.5 rounded-md cursor-pointer ${sendMode === 'now' ? 'bg-sky-600 text-white' : 'text-slate-300'}`}>Send now</button>
-              <button type="button" onClick={() => setSendMode('later')} className={`px-2.5 py-1.5 rounded-md cursor-pointer flex items-center gap-1 ${sendMode === 'later' ? 'bg-sky-600 text-white' : 'text-slate-300'}`}><CalendarClock className="h-3 w-3" /> Schedule</button>
+              <button type="button" onClick={() => setSendMode('now')} className={`px-2.5 py-1.5 rounded-md cursor-pointer ${sendMode === 'now' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}>Send now</button>
+              <button type="button" onClick={() => setSendMode('later')} className={`px-2.5 py-1.5 rounded-md cursor-pointer flex items-center gap-1 ${sendMode === 'later' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}><CalendarClock className="h-3 w-3" /> Schedule</button>
             </div>
             {sendMode === 'later' && (
-              <input type="datetime-local" value={sendAt} onChange={(e) => setSendAt(e.target.value)} className="px-2.5 py-1.5 bg-black/30 border border-white/15 rounded-lg text-[11px] text-white focus:outline-none focus:border-sky-400 [color-scheme:dark]" />
+              <input type="datetime-local" value={sendAt} onChange={(e) => setSendAt(e.target.value)} className="px-2.5 py-1.5 bg-black/30 border border-white/15 rounded-lg text-[11px] text-white focus:outline-none focus:border-accent [color-scheme:dark]" />
             )}
             {isSending && sendMode === 'now' ? (
               <button type="button" onClick={() => (stopRef.current = true)} className="px-4 py-2.5 rounded-xl bg-white/10 text-xs font-bold cursor-pointer flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" /> Stop after this one
               </button>
             ) : sendMode === 'later' ? (
-              <button type="button" disabled={toSend.length === 0 || isSending} onClick={schedule} className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+              <button type="button" disabled={toSend.length === 0 || isSending} onClick={schedule} className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent text-white text-xs font-black flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
                 {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />} Schedule {toSend.length} email{toSend.length === 1 ? '' : 's'}{sendAt ? ` · ${new Date(sendAt).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : ''}
               </button>
             ) : (
-              <button type="button" disabled={toSend.length === 0} onClick={() => send()} className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+              <button type="button" disabled={toSend.length === 0} onClick={() => send()} className="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent text-white text-xs font-black flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
                 <Send className="h-4 w-4" /> Dispatch {toSend.length} email{toSend.length === 1 ? '' : 's'}
               </button>
             )}
           </div>
         </div>
         {scheduleNote && (
-          <div className={`px-5 py-2.5 text-[11.5px] font-semibold border-t border-white/10 ${scheduleNote.kind === 'ok' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'}`}>{scheduleNote.text}</div>
+          <div className={`px-5 py-2.5 text-[11.5px] font-semibold border-t border-white/10 ${scheduleNote.kind === 'ok' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>{scheduleNote.text}</div>
         )}
       </div>
     </div>
