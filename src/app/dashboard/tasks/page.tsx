@@ -52,19 +52,12 @@ import {
   submitTaskEdit,
   approveTask,
   rejectTask,
-  respondToHolidayApproval,
   uploadTaskAttachments,
   getDesigns,
-  submitDesignCaptions,
-  reviewDesignCaptions,
-  completeDesignPosting,
-  completeAllDesignPosting,
-  updateApprovedCaption,
   isTaskAssignee,
   hasAcknowledgedTask,
   acknowledgeTask,
   getTaskAssigneeStatuses,
-  isFacultyTaskAssignees,
   TaskAssigneeStatus,
   TaskItem,
   EventItem,
@@ -72,90 +65,15 @@ import {
   ReceiptFile,
   DesignSubmissionItem,
   authHeaders,
-  allotSocialMediaTask,
-  isSocialMediaHeadOrSrHead,
-  isSocialMediaPostTask
 } from '@/lib/local-data';
-import { canViewTaskExtended, canManageTasks, canCreateTask, canEditTask, canDeleteTask, canRequestTaskExtension, canDecideTaskExtension, canChangeTaskStatus, isHeadRole, getTaskApprovalRequirement, canApprovePendingTask, canRespondToHolidayApproval, canDelegateAutoTask, canViewTaskDelegationTrail, canViewAllDesigns, canSendTaskAllotmentEmail } from '@/lib/permissions';
+import { canViewTaskExtended, canManageTasks, canCreateTask, canEditTask, canDeleteTask, canRequestTaskExtension, canDecideTaskExtension, canChangeTaskStatus, isHeadRole, getTaskApprovalRequirement, canApprovePendingTask, canViewTaskDelegationTrail, canViewAllDesigns, canSendTaskAllotmentEmail } from '@/lib/permissions';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { RequestApprovalModal } from '@/components/request-approval-modal';
-import { DelegateTaskModal } from '@/components/delegate-task-modal';
 import { FileDropzone, FilePreviewRow } from '@/components/ui/file-dropzone';
 import { SearchableSelect } from '@/components/searchable-select';
 import { TaskErrorToast } from '@/components/task-error-toast';
 
-
-interface DesignTimelineStep {
-  key: string;
-  label: string;
-  status: TaskItem['status'] | 'Not Started';
-  assignee?: string;
-  dueDate?: string;
-}
-
-/**
- * Builds the full, fixed chain of events for a design's social-media
- * journey — approval, caption drafting/review, then the two separate
- * platform posts — from the task ids the design record already tracks
- * (linkedTaskId/captionTaskId/captionApprovalTaskId/postingInstagramTaskId/
- * postingLinkedinTaskId). Stages the workflow hasn't reached yet still show
- * up as "Not Started" so the whole series is visible up front, not just
- * whatever has happened so far.
- */
-function getDesignTimelineSteps(design: DesignSubmissionItem, tasks: TaskItem[]): DesignTimelineStep[] {
-  if (design.category !== 'Social Media') {
-    const stageTask = design.linkedTaskId ? tasks.find(t => t.id === design.linkedTaskId) : undefined;
-    return [{
-      key: 'approved',
-      label: 'Design Deliverable',
-      status: stageTask?.status || 'Not Started',
-      assignee: stageTask?.assignee,
-      dueDate: stageTask?.dueDate,
-    }];
-  }
-
-  const isUnified = design.postingInstagramTaskId && design.postingInstagramTaskId === design.postingLinkedinTaskId;
-  if (isUnified) {
-    const approvedTask = design.linkedTaskId ? tasks.find(t => t.id === design.linkedTaskId) : undefined;
-    const postTask = tasks.find(t => t.id === design.postingInstagramTaskId);
-    return [
-      {
-        key: 'approved',
-        label: 'Design Approved',
-        status: approvedTask?.status || 'Not Started',
-        assignee: approvedTask?.assignee,
-        dueDate: approvedTask?.dueDate,
-      },
-      {
-        key: 'social_post',
-        label: 'Caption Writing & Posting',
-        status: postTask?.status || 'Not Started',
-        assignee: postTask?.assignee,
-        dueDate: postTask?.dueDate,
-      },
-    ];
-  }
-
-  const stageDefs: { key: string; label: string; taskId?: string }[] = [
-    { key: 'approved', label: 'Design Approved', taskId: design.linkedTaskId },
-    { key: 'caption_draft', label: 'Draft Captions', taskId: design.captionTaskId },
-    { key: 'caption_review', label: 'Review Captions', taskId: design.captionApprovalTaskId },
-    { key: 'posting_instagram', label: 'Post on Instagram', taskId: design.postingInstagramTaskId },
-    { key: 'posting_linkedin', label: 'Post on LinkedIn', taskId: design.postingLinkedinTaskId },
-  ];
-
-  return stageDefs.map(stage => {
-    const stageTask = stage.taskId ? tasks.find(t => t.id === stage.taskId) : undefined;
-    return {
-      key: stage.key,
-      label: stage.label,
-      status: stageTask?.status || 'Not Started',
-      assignee: stageTask?.assignee,
-      dueDate: stageTask?.dueDate,
-    };
-  });
-}
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
@@ -163,20 +81,6 @@ export default function TasksPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [designs, setDesigns] = useState<DesignSubmissionItem[]>([]);
   const [user, setUser] = useState<any>(null);
-
-  // Inline caption form state (design_caption_draft / design_caption_review task cards) —
-  // only one card's form is open/edited at a time, keyed by task id.
-  const [captionDraftTaskId, setCaptionDraftTaskId] = useState<string | null>(null);
-  const [captionDraftInsta, setCaptionDraftInsta] = useState('');
-  const [captionDraftLinkedin, setCaptionDraftLinkedin] = useState('');
-  const [captionReviewTaskId, setCaptionReviewTaskId] = useState<string | null>(null);
-  const [captionReviewApproved, setCaptionReviewApproved] = useState(true);
-  const [captionReviewComments, setCaptionReviewComments] = useState('');
-  // Editing an already-approved caption on a design_social_posting task
-  // (change & resubmit before/after posting) — same one-open-at-a-time
-  // pattern as the draft/review forms above.
-  const [captionEditTaskId, setCaptionEditTaskId] = useState<string | null>(null);
-  const [captionEditText, setCaptionEditText] = useState('');
 
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -196,9 +100,7 @@ export default function TasksPage() {
   const [rejectingTaskId, setRejectingTaskId] = useState<string | null>(null);
   const [rejectionReasonInput, setRejectionReasonInput] = useState('');
   const [approvalRequestTask, setApprovalRequestTask] = useState<TaskItem | null>(null);
-  const [delegatingTask, setDelegatingTask] = useState<TaskItem | null>(null);
   const [expandedTrailTaskId, setExpandedTrailTaskId] = useState<string | null>(null);
-  const [expandedDesignTimelineTaskId, setExpandedDesignTimelineTaskId] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -217,7 +119,7 @@ export default function TasksPage() {
   // Design-brief task type — lets the requester (typically Faculty) attach
   // reference files and write out exactly what they want from the deliverable,
   // instead of a title alone.
-  const [taskCategory, setTaskCategory] = useState<'general' | 'design' | 'reportWriting'>('general');
+  const [taskCategory, setTaskCategory] = useState<'general' | 'design'>('general');
   const [designCategory, setDesignCategory] = useState<DesignSubmissionItem['category']>('Poster');
   const [briefDescription, setBriefDescription] = useState('');
   // Optional reference link to an editable Canva file/template — shown to
@@ -366,80 +268,6 @@ export default function TasksPage() {
     }
   };
 
-  const openCaptionDraft = (task: TaskItem) => {
-    const design = designs.find(d => d.id === task.designId);
-    setCaptionDraftTaskId(task.id);
-    setCaptionDraftInsta(design?.draftInstagramCaption || '');
-    setCaptionDraftLinkedin(design?.draftLinkedinCaption || '');
-  };
-
-  const handleSubmitCaptionDraft = (e: React.FormEvent, task: TaskItem) => {
-    e.preventDefault();
-    if (!user || !task.designId || !captionDraftInsta.trim()) return;
-    const updated = submitDesignCaptions(task.designId, captionDraftInsta.trim(), captionDraftLinkedin.trim(), user.name);
-    if (updated) {
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-      setCaptionDraftTaskId(null);
-      triggerSuccess('Captions submitted for proofreader approval.');
-    }
-  };
-
-  const openCaptionReview = (task: TaskItem) => {
-    const design = designs.find(d => d.id === task.designId);
-    setCaptionReviewTaskId(task.id);
-    setCaptionReviewApproved(true);
-    setCaptionReviewComments(design?.captionReviewComments || '');
-  };
-
-  const handleReviewCaptionDraft = (e: React.FormEvent, task: TaskItem) => {
-    e.preventDefault();
-    if (!user || !task.designId) return;
-    const updated = reviewDesignCaptions(task.designId, captionReviewApproved, captionReviewComments.trim(), user.name);
-    if (updated) {
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-      setCaptionReviewTaskId(null);
-      triggerSuccess(captionReviewApproved ? 'Captions approved — posting tasks created.' : 'Revision requested — sent back to the designer.');
-    }
-  };
-
-  const handleCompleteCaptionPosting = (task: TaskItem, platform: 'instagram' | 'linkedin') => {
-    if (!user || !task.designId) return;
-    const updated = completeDesignPosting(task.designId, platform, user.name);
-    if (updated) {
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-      triggerSuccess(`Marked posted on ${platform === 'instagram' ? 'Instagram' : 'LinkedIn'}.`);
-    }
-  };
-
-  const openCaptionEdit = (task: TaskItem, currentCaption: string, platform: 'instagram' | 'linkedin' = 'instagram', editKey?: string) => {
-    setCaptionEditTaskId(editKey || task.id);
-    setCaptionEditText(currentCaption);
-  };
-
-  const handleCompleteAllPosting = (task: TaskItem) => {
-    if (!user || !task.designId) return;
-    const updated = completeAllDesignPosting(task.designId, user.name);
-    if (updated) {
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-      triggerSuccess('Marked social media posting complete for all platforms.');
-    }
-  };
-
-  const handleSaveCaptionEdit = (e: React.FormEvent, task: TaskItem, platform: 'instagram' | 'linkedin') => {
-    e.preventDefault();
-    if (!user || !task.designId || !captionEditText.trim()) return;
-    const updated = updateApprovedCaption(task.designId, platform, captionEditText.trim(), user.name);
-    if (updated) {
-      setDesigns(getDesigns());
-      setCaptionEditTaskId(null);
-      triggerSuccess(`${platform === 'instagram' ? 'Instagram' : 'LinkedIn'} caption updated.`);
-    }
-  };
-
   const handleOpenCreate = () => {
     setTitle('');
     setSelectedEventId('standalone');
@@ -480,7 +308,7 @@ export default function TasksPage() {
     setIsAssigneeDropdownOpen(false);
     setFormError('');
     setTaskCategory(task.taskCategory || 'general');
-    setDesignCategory(task.designCategory || (task.isSocialMediaPost ? 'Social Media' : 'Poster'));
+    setDesignCategory(task.designCategory || 'Poster');
     setBriefDescription(task.briefDescription || '');
     setCanvaLink(task.canvaLink || '');
     setAttachedFiles([]);
@@ -594,7 +422,6 @@ export default function TasksPage() {
         status,
         taskCategory,
         designCategory: taskCategory === 'design' ? designCategory : undefined,
-        isSocialMediaPost: (taskCategory === 'design' && designCategory === 'Social Media') || editingTask.isSocialMediaPost,
         briefDescription: taskCategory === 'design' ? briefDescription.trim() : undefined,
         canvaLink: taskCategory === 'design' ? (canvaLink.trim() || undefined) : undefined,
         attachments: taskCategory === 'design' ? finalAttachments : undefined,
@@ -628,7 +455,6 @@ export default function TasksPage() {
         creatorName: user?.name || 'User',
         taskCategory,
         designCategory: taskCategory === 'design' ? designCategory : undefined,
-        isSocialMediaPost: taskCategory === 'design' && designCategory === 'Social Media' ? true : undefined,
         briefDescription: taskCategory === 'design' ? briefDescription.trim() : undefined,
         canvaLink: taskCategory === 'design' ? (canvaLink.trim() || undefined) : undefined,
         attachments: taskCategory === 'design' ? finalAttachments : undefined,
@@ -747,12 +573,6 @@ export default function TasksPage() {
     handleOptimisticComplete(completingTaskId);
   };
 
-  const handleHolidayApprovalResponse = (id: string, approved: boolean) => {
-    respondToHolidayApproval(id, approved, user?.name || 'User');
-    setTasks(getTasks());
-    triggerSuccess(approved ? 'Approved — a design & posting task has been assigned.' : 'Noted — no post needed for this one.');
-  };
-
   const handleRequestExtensionSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!extensionTask) return;
@@ -855,12 +675,7 @@ export default function TasksPage() {
     if (filterDueTo && task.dueDate > filterDueTo) return false;
     if (filterAckStatus !== 'ALL') {
       const statuses = getTaskAssigneeStatuses(task, members, events);
-      const isFacultyTask = isFacultyTaskAssignees(task, statuses);
-      if (isFacultyTask) {
-        const hasPermission = statuses.some(s => s.acknowledged);
-        if (filterAckStatus === 'PENDING' && hasPermission) return false;
-        if (filterAckStatus === 'ACKNOWLEDGED' && !hasPermission) return false;
-      } else {
+      {
         const allAck = statuses.length > 0 && statuses.every(s => s.acknowledged);
         const anyPending = statuses.some(s => !s.acknowledged);
         if (filterAckStatus === 'PENDING' && !anyPending) return false;
@@ -1287,49 +1102,13 @@ export default function TasksPage() {
                 )}
 
                 <div className="space-y-1">
-                  {(task.workflowType === 'holiday_social_approval' || task.workflowType === 'holiday_design_social') && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-warning/15 border border-warning/30 text-warning text-[10px] font-bold rounded-full">
-                      <PartyPopper className="h-3 w-3" /> Holiday Social Media
-                    </span>
-                  )}
-                  {task.workflowType === 'event_social_post' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/15 border border-accent/30 text-accent text-[10px] font-bold rounded-full">
-                      <Megaphone className="h-3 w-3" /> Post-Event Social Media
-                    </span>
-                  )}
-                  {task.workflowType === 'event_report_assignment' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-warning/15 border border-warning/30 text-warning text-[10px] font-bold rounded-full">
-                      <FileCheck2 className="h-3 w-3" /> Pick Who Prepares the Event Report
-                    </span>
-                  )}
-                  {task.workflowType === 'event_report_request' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/15 border border-accent/30 text-accent text-[10px] font-bold rounded-full">
-                      <FileCheck2 className="h-3 w-3" /> Event Report Request
-                    </span>
-                  )}
-                  {task.workflowType === 'design_caption_draft' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/15 border border-accent/30 text-accent text-[10px] font-bold rounded-full">
-                      <Edit2 className="h-3 w-3" /> Caption Required
-                    </span>
-                  )}
-                  {task.workflowType === 'design_caption_review' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-warning/15 border border-warning/30 text-warning text-[10px] font-bold rounded-full">
-                      <UserCheck className="h-3 w-3" /> Caption Approval
-                    </span>
-                  )}
-                  {task.workflowType === 'design_social_posting' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-success/15 border border-success/30 text-success text-[10px] font-bold rounded-full">
-                      <Megaphone className="h-3 w-3" /> {task.platform ? `Post ${task.platform === 'linkedin' ? 'LinkedIn' : 'Instagram'} Caption` : 'Social Media Post & Caption'}
-                    </span>
-                  )}
                   {task.taskCategory === 'design' && (() => {
                     const linkedDesign = designs.find(d =>
-                      (task.designId && d.id === task.designId) ||
                       d.sourceTaskId === task.id ||
                       d.linkedTaskId === task.id
                     );
-                    const isApproved = linkedDesign && linkedDesign.styleStatus === 'Style Approved' && linkedDesign.review?.status === 'Proofread Approved';
-                    const hasChanges = linkedDesign && (linkedDesign.styleStatus === 'Style Rejected' || linkedDesign.review?.status === 'Changes Requested');
+                    const isApproved = linkedDesign && linkedDesign.styleStatus === 'Style Approved';
+                    const hasChanges = linkedDesign && linkedDesign.styleStatus === 'Style Rejected';
                     const statusLabel = isApproved ? 'Approved' : hasChanges ? 'Changes Requested' : (linkedDesign?.styleStatus === 'Style Approved' ? 'Style Approved' : 'In Review');
                     return (
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-accent/15 border border-accent/30 text-accent text-[10px] font-bold rounded-full">
@@ -1369,76 +1148,9 @@ export default function TasksPage() {
 
                 {/* Group Acknowledgment Breakdown */}
                 {(() => {
-                  if (task.workflowType === 'holiday_social_approval') return null;
-
                   const statuses = getTaskAssigneeStatuses(task, members, events);
                   const isMulti = task.assigneeType === 'group' || statuses.length > 1;
                   if (!isMulti) return null;
-
-                  const isFacultyTask = isFacultyTaskAssignees(task, statuses);
-
-                  // Faculty Permission branch: only 1 faculty member has to give permission
-                  if (isFacultyTask) {
-                    const granter = statuses.find(s => s.acknowledged);
-                    const hasGivenPermission = Boolean(granter);
-
-                    return (
-                      <div className="p-3 bg-theme-background/40 border border-theme-border/40 rounded-xl space-y-2.5">
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-1.5">
-                            <FileCheck2 className="h-3.5 w-3.5 text-accent" />
-                            <span className="text-[11px] font-bold text-theme-text-primary">
-                              Faculty Permission
-                            </span>
-                          </div>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                            hasGivenPermission
-                              ? 'bg-success/15 border-success/30 text-success'
-                              : 'bg-warning/15 border-warning/30 text-warning'
-                          }`}>
-                            {hasGivenPermission ? 'Permission Granted' : `Awaiting Permission (1 of ${statuses.length} required)`}
-                          </span>
-                        </div>
-
-                        {hasGivenPermission ? (
-                          <div className="space-y-1.5">
-                            <div className="p-2.5 bg-success/10 border border-success/20 rounded-lg flex items-center justify-between gap-2 flex-wrap text-xs">
-                              <span className="text-success font-semibold flex items-center gap-1.5">
-                                <Check className="h-3.5 w-3.5 shrink-0" />
-                                Permission granted by <strong className="text-theme-text-primary">{granter!.name}</strong>
-                              </span>
-                              <span className="text-[10px] text-theme-text-secondary italic">
-                                1 of {statuses.length} required
-                              </span>
-                            </div>
-                            {statuses.length > 1 && (
-                              <p className="text-[10px] text-theme-text-secondary">
-                                Assigned Faculty: {statuses.map(s => s.id === granter!.id ? `${s.name} (Granted)` : s.name).join(', ')}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-semibold text-warning uppercase tracking-wider flex items-center gap-1">
-                              <Clock className="h-3 w-3" /> Awaiting Permission From (Any 1 required)
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {statuses.map(s => (
-                                <span
-                                  key={s.id}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-warning/10 border border-warning/20 text-warning text-[11px] font-medium"
-                                  title={s.email ? `${s.name} (${s.email})` : s.name}
-                                >
-                                  <Clock className="h-3 w-3 shrink-0" />
-                                  <span>{s.name}</span>
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }
 
                   // Student Acknowledgments branch: all allotted students acknowledge individually
                   const ackList = statuses.filter(s => s.acknowledged);
@@ -1509,15 +1221,14 @@ export default function TasksPage() {
                 })()}
 
                 {/* Design Deliverable Status & Portal Redirect */}
-                {(task.taskCategory === 'design' || task.isDesignDeliverable || task.designId) && (() => {
+                {(task.taskCategory === 'design' || task.isDesignDeliverable) && (() => {
                   const linkedDesign = designs.find(d =>
-                    (task.designId && d.id === task.designId) ||
                     d.sourceTaskId === task.id ||
                     d.linkedTaskId === task.id ||
                     (Boolean(task.eventId) && d.eventId === task.eventId)
                   );
-                  const isApproved = linkedDesign && linkedDesign.styleStatus === 'Style Approved' && linkedDesign.review?.status === 'Proofread Approved';
-                  const hasChanges = linkedDesign && (linkedDesign.styleStatus === 'Style Rejected' || linkedDesign.review?.status === 'Changes Requested');
+                  const isApproved = linkedDesign && linkedDesign.styleStatus === 'Style Approved';
+                  const hasChanges = linkedDesign && linkedDesign.styleStatus === 'Style Rejected';
                   const statusLabel = isApproved ? 'Approved' : hasChanges ? 'Changes Requested' : (linkedDesign?.styleStatus === 'Style Approved' ? 'Style Approved' : 'Under Review');
                   return (
                     <div className="p-3 bg-theme-background/40 border border-theme-border/40 rounded-xl space-y-2.5">
@@ -1565,21 +1276,11 @@ export default function TasksPage() {
                                 {linkedDesign.styleStatus || 'Pending Review'}
                               </span>
                             </div>
-                            <div className="p-2 rounded-lg bg-theme-background/60 border border-theme-border/25">
-                              <span className="text-theme-text-secondary block">Proofreading</span>
-                              <span className={`font-semibold ${
-                                linkedDesign.review?.status === 'Proofread Approved' ? 'text-success' :
-                                linkedDesign.review?.status === 'Changes Requested' ? 'text-danger' :
-                                'text-warning'
-                              }`}>
-                                {linkedDesign.review?.status || 'Pending Proofread'}
-                              </span>
-                            </div>
                           </div>
 
-                          {(linkedDesign.review?.comments || linkedDesign.styleFeedback) && (
+                          {linkedDesign.styleFeedback && (
                             <p className="text-[10px] text-theme-text-secondary italic bg-theme-background/40 p-2 rounded-lg border border-theme-border/20">
-                              Feedback: {linkedDesign.review?.comments || linkedDesign.styleFeedback}
+                              Feedback: {linkedDesign.styleFeedback}
                             </p>
                           )}
 
@@ -1658,380 +1359,6 @@ export default function TasksPage() {
                   </div>
                 )}
 
-                {/* Caption workflow — draft, approve, or mark-posted, inline on the task card so the
-                    assignee never has to leave Tasks and go hunt down the linked design record. */}
-                {(task.workflowType === 'design_caption_draft' || task.workflowType === 'design_caption_review' || task.workflowType === 'design_social_posting') && (() => {
-                  const design = designs.find(d => d.id === task.designId);
-                  if (!design) return null;
-
-                  if (task.workflowType === 'design_caption_draft' && task.status !== 'Completed') {
-                    const canDraft = task.assigneeEmail ? task.assigneeEmail === user?.email : task.assignee === user?.name;
-                    if (!canDraft) {
-                      return (
-                        <p className="text-[11px] text-theme-text-secondary italic p-2.5 bg-theme-background/30 border border-theme-border/30 rounded-xl">
-                          Awaiting captions from {task.assignee}.
-                        </p>
-                      );
-                    }
-                    return (
-                      <div className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-2">
-                        {design.captionReviewComments && (
-                          <div className="p-2 bg-danger/10 border border-danger/25 text-danger rounded-lg text-[11px]">
-                            <strong>Revision notes:</strong> {design.captionReviewComments}
-                          </div>
-                        )}
-                        {captionDraftTaskId === task.id ? (
-                          <form onSubmit={(e) => handleSubmitCaptionDraft(e, task)} className="space-y-2">
-                            <div className="space-y-1">
-                              <label className="text-[11px] font-medium text-theme-text-primary">Instagram Caption *</label>
-                              <textarea
-                                rows={2}
-                                required
-                                autoFocus
-                                placeholder="Write the Instagram caption..."
-                                value={captionDraftInsta}
-                                onChange={e => setCaptionDraftInsta(e.target.value)}
-                                className="w-full bg-theme-background border border-theme-border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-accent"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[11px] font-medium text-theme-text-primary">LinkedIn Caption</label>
-                              <textarea
-                                rows={2}
-                                placeholder="Optional — same as Instagram if left blank"
-                                value={captionDraftLinkedin}
-                                onChange={e => setCaptionDraftLinkedin(e.target.value)}
-                                className="w-full bg-theme-background border border-theme-border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-accent"
-                              />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button type="submit" className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer">
-                                Submit for Approval
-                              </button>
-                              <button type="button" onClick={() => setCaptionDraftTaskId(null)} className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer">
-                                Cancel
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => openCaptionDraft(task)}
-                            className="w-full px-2.5 py-1.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <Edit2 className="h-3 w-3" /> Write Captions
-                          </button>
-                        )}
-                      </div>
-                    );
-                  }
-
-                  if (task.workflowType === 'design_caption_review' && task.status !== 'Completed') {
-                    const canReview = design.assignedProofreaderEmail === user?.email || canViewAllDesigns(user) || isSocialMediaHeadOrSrHead(user);
-                    return (
-                      <div className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-2">
-                        <div className="text-[11px] space-y-1.5">
-                          <div>
-                            <span className="font-semibold text-theme-text-primary">Instagram: </span>
-                            <span className="text-theme-text-secondary whitespace-pre-wrap">{design.draftInstagramCaption || 'N/A'}</span>
-                          </div>
-                          {design.draftLinkedinCaption && (
-                            <div>
-                              <span className="font-semibold text-theme-text-primary">LinkedIn: </span>
-                              <span className="text-theme-text-secondary whitespace-pre-wrap">{design.draftLinkedinCaption}</span>
-                            </div>
-                          )}
-                        </div>
-                        {!canReview ? (
-                          <p className="text-[11px] text-theme-text-secondary italic">
-                            Pending review by {design.assignedProofreaderName || 'the assigned proofreader'}.
-                          </p>
-                        ) : captionReviewTaskId === task.id ? (
-                          <form onSubmit={(e) => handleReviewCaptionDraft(e, task)} className="space-y-2">
-                            <div className="flex items-center gap-3">
-                              <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-medium">
-                                <input type="radio" name={`captionReview-${task.id}`} checked={captionReviewApproved} onChange={() => setCaptionReviewApproved(true)} />
-                                <span className="text-success font-semibold">Approve</span>
-                              </label>
-                              <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-medium">
-                                <input type="radio" name={`captionReview-${task.id}`} checked={!captionReviewApproved} onChange={() => setCaptionReviewApproved(false)} />
-                                <span className="text-danger font-semibold">Request Revision</span>
-                              </label>
-                            </div>
-                            <textarea
-                              rows={2}
-                              placeholder="Feedback for the designer (optional if approving)..."
-                              value={captionReviewComments}
-                              onChange={e => setCaptionReviewComments(e.target.value)}
-                              className="w-full bg-theme-background border border-theme-border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-accent"
-                            />
-                            <div className="flex items-center gap-2">
-                              <button type="submit" className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer">
-                                Submit Decision
-                              </button>
-                              <button type="button" onClick={() => setCaptionReviewTaskId(null)} className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer">
-                                Cancel
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => openCaptionReview(task)}
-                            className="w-full px-2.5 py-1.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <UserCheck className="h-3 w-3" /> Review Captions
-                          </button>
-                        )}
-                      </div>
-                    );
-                  }
-
-                  if (task.workflowType === 'design_social_posting' && task.status !== 'Completed') {
-                    const isUnified = !task.platform || (design.postingInstagramTaskId === design.postingLinkedinTaskId);
-                    const canEditCaption = isTaskAssignee(task, user) || isSocialMediaHeadOrSrHead(user);
-
-                    if (isUnified) {
-                      const instaCaption = design.draftInstagramCaption || design.approvedInstagramCaption || '';
-                      const linkedinCaption = design.draftLinkedinCaption || design.approvedLinkedinCaption || '';
-                      return (
-                        <div className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-3">
-                          <div className="text-[11px] font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
-                            <Megaphone className="h-3.5 w-3.5" /> Social Media Post (Captions &amp; Posting)
-                          </div>
-
-                          {/* Instagram Section */}
-                          <div className="p-2.5 bg-theme-background/40 border border-theme-border/30 rounded-lg space-y-1.5">
-                            <div className="flex items-center justify-between text-xs font-semibold text-theme-text-primary">
-                              <span>📸 Instagram</span>
-                              {design.postingInstagramDone ? (
-                                <span className="text-success flex items-center gap-1 text-[11px]"><CheckCircle2 className="h-3 w-3" /> Posted</span>
-                              ) : (
-                                <span className="text-warning text-[10px]">Pending Post</span>
-                              )}
-                            </div>
-                            {captionEditTaskId === `${task.id}-insta` ? (
-                              <form onSubmit={(e) => handleSaveCaptionEdit(e, task, 'instagram')} className="space-y-1.5">
-                                <textarea
-                                  rows={2}
-                                  required
-                                  autoFocus
-                                  value={captionEditText}
-                                  onChange={e => setCaptionEditText(e.target.value)}
-                                  placeholder="Write or edit Instagram caption..."
-                                  className="w-full bg-theme-background border border-theme-border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-accent"
-                                />
-                                <div className="flex items-center gap-1.5">
-                                  <button type="submit" className="px-2 py-0.5 bg-accent hover:bg-primary-light text-white font-semibold rounded text-[10px] cursor-pointer">
-                                    Save
-                                  </button>
-                                  <button type="button" onClick={() => setCaptionEditTaskId(null)} className="px-2 py-0.5 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary rounded text-[10px] cursor-pointer">
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            ) : (
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="text-[11px] text-theme-text-secondary whitespace-pre-wrap flex-1">
-                                  {instaCaption || <span className="italic text-theme-text-secondary/70">No Instagram caption written yet.</span>}
-                                </p>
-                                {canEditCaption && (
-                                  <button
-                                    type="button"
-                                    onClick={() => openCaptionEdit(task, instaCaption, 'instagram', `${task.id}-insta`)}
-                                    className="px-1.5 py-0.5 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded transition-all cursor-pointer shrink-0"
-                                  >
-                                    <Edit2 className="h-2.5 w-2.5 inline mr-1" />
-                                    {instaCaption ? 'Edit' : 'Write'}
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                            {!design.postingInstagramDone && (
-                              <button
-                                type="button"
-                                onClick={() => handleCompleteCaptionPosting(task, 'instagram')}
-                                className="w-full mt-1 px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
-                              >
-                                <CheckCircle2 className="h-3 w-3" /> Mark Posted on Instagram
-                              </button>
-                            )}
-                          </div>
-
-                          {/* LinkedIn Section */}
-                          <div className="p-2.5 bg-theme-background/40 border border-theme-border/30 rounded-lg space-y-1.5">
-                            <div className="flex items-center justify-between text-xs font-semibold text-theme-text-primary">
-                              <span>💼 LinkedIn</span>
-                              {design.postingLinkedinDone ? (
-                                <span className="text-success flex items-center gap-1 text-[11px]"><CheckCircle2 className="h-3 w-3" /> Posted</span>
-                              ) : (
-                                <span className="text-warning text-[10px]">Pending Post</span>
-                              )}
-                            </div>
-                            {captionEditTaskId === `${task.id}-linkedin` ? (
-                              <form onSubmit={(e) => handleSaveCaptionEdit(e, task, 'linkedin')} className="space-y-1.5">
-                                <textarea
-                                  rows={2}
-                                  required
-                                  autoFocus
-                                  value={captionEditText}
-                                  onChange={e => setCaptionEditText(e.target.value)}
-                                  placeholder="Write or edit LinkedIn caption..."
-                                  className="w-full bg-theme-background border border-theme-border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-accent"
-                                />
-                                <div className="flex items-center gap-1.5">
-                                  <button type="submit" className="px-2 py-0.5 bg-accent hover:bg-primary-light text-white font-semibold rounded text-[10px] cursor-pointer">
-                                    Save
-                                  </button>
-                                  <button type="button" onClick={() => setCaptionEditTaskId(null)} className="px-2 py-0.5 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary rounded text-[10px] cursor-pointer">
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            ) : (
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="text-[11px] text-theme-text-secondary whitespace-pre-wrap flex-1">
-                                  {linkedinCaption || <span className="italic text-theme-text-secondary/70">No LinkedIn caption written yet.</span>}
-                                </p>
-                                {canEditCaption && (
-                                  <button
-                                    type="button"
-                                    onClick={() => openCaptionEdit(task, linkedinCaption || instaCaption, 'linkedin', `${task.id}-linkedin`)}
-                                    className="px-1.5 py-0.5 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded transition-all cursor-pointer shrink-0"
-                                  >
-                                    <Edit2 className="h-2.5 w-2.5 inline mr-1" />
-                                    {linkedinCaption ? 'Edit' : 'Write'}
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                            {!design.postingLinkedinDone && (
-                              <button
-                                type="button"
-                                onClick={() => handleCompleteCaptionPosting(task, 'linkedin')}
-                                className="w-full mt-1 px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
-                              >
-                                <CheckCircle2 className="h-3 w-3" /> Mark Posted on LinkedIn
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Quick Full Completion */}
-                          {(!design.postingInstagramDone || !design.postingLinkedinDone) && (
-                            <button
-                              type="button"
-                              onClick={() => handleCompleteAllPosting(task)}
-                              className="w-full px-2.5 py-1.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-accent/15"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5" /> Mark All Platforms Posted &amp; Complete Task
-                            </button>
-                          )}
-                        </div>
-                      );
-                    }
-
-                    const platform = task.platform || 'instagram';
-                    const caption = platform === 'linkedin' ? (design.approvedLinkedinCaption || design.approvedInstagramCaption) : design.approvedInstagramCaption;
-                    const done = platform === 'linkedin' ? design.postingLinkedinDone : design.postingInstagramDone;
-                    return (
-                      <div className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-2">
-                        {captionEditTaskId === task.id ? (
-                          <form onSubmit={(e) => handleSaveCaptionEdit(e, task, platform)} className="space-y-2">
-                            <textarea
-                              rows={3}
-                              required
-                              autoFocus
-                              value={captionEditText}
-                              onChange={e => setCaptionEditText(e.target.value)}
-                              className="w-full bg-theme-background border border-theme-border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-accent"
-                            />
-                            <div className="flex items-center gap-2">
-                              <button type="submit" className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer">
-                                Resubmit Caption
-                              </button>
-                              <button type="button" onClick={() => setCaptionEditTaskId(null)} className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer">
-                                Cancel
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          <>
-                            <p className="text-[11px] text-theme-text-secondary whitespace-pre-wrap">{caption}</p>
-                            {canEditCaption && (
-                              <button
-                                type="button"
-                                onClick={() => openCaptionEdit(task, caption || '', platform)}
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded-lg transition-all cursor-pointer"
-                              >
-                                <Edit2 className="h-3 w-3" /> Change &amp; Resubmit Caption
-                              </button>
-                            )}
-                          </>
-                        )}
-                        {done ? (
-                          <p className="text-[11px] font-semibold text-success">Posted &amp; marked complete</p>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleCompleteCaptionPosting(task, platform)}
-                            className="w-full px-2.5 py-1.5 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <CheckCircle2 className="h-3 w-3" /> Mark Posted on {platform === 'linkedin' ? 'LinkedIn' : 'Instagram'}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  }
-
-                  return null;
-                })()}
-
-                {/* Social Media Timeline — the full chain of events for a design's
-                    journey to being posted (approval, captions, then each platform
-                    post), so the series is visible in one place on any task that's
-                    part of it, not scattered across separate task cards. */}
-                {(() => {
-                  const timelineDesign = task.designId
-                    ? designs.find(d => d.id === task.designId)
-                    : (task.isDesignDeliverable ? designs.find(d => d.linkedTaskId === task.id) : undefined);
-                  if (!timelineDesign) return null;
-                  const steps = getDesignTimelineSteps(timelineDesign, tasks);
-
-                  return (
-                    <div className="pt-1">
-                      <button
-                        onClick={() => setExpandedDesignTimelineTaskId(expandedDesignTimelineTaskId === task.id ? null : task.id)}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:text-primary-light transition-all cursor-pointer"
-                      >
-                        <Megaphone className="h-3 w-3" />
-                        Social Media Timeline
-                        {expandedDesignTimelineTaskId === task.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                      </button>
-                      {expandedDesignTimelineTaskId === task.id && (
-                        <ol className="mt-2 space-y-1.5 border-l-2 border-accent/25 pl-3">
-                          {steps.map(step => (
-                            <li key={step.key} className="text-[10px] text-theme-text-secondary">
-                              <span className={`font-semibold ${
-                                step.status === 'Completed' ? 'text-success' :
-                                step.status === 'Not Started' ? 'text-theme-text-secondary' :
-                                'text-accent'
-                              }`}>
-                                {step.status === 'Completed' ? '✓ ' : step.status === 'Not Started' ? '— ' : '• '}
-                                {step.label}
-                              </span>
-                              {step.status !== 'Not Started' && (
-                                <>
-                                  {' '}<span className="italic">({step.status}{step.assignee ? ` — ${step.assignee}` : ''})</span>
-                                </>
-                              )}
-                            </li>
-                          ))}
-                        </ol>
-                      )}
-                    </div>
-                  );
-                })()}
-
                 {canViewTaskDelegationTrail(user) && task.delegationTrail && task.delegationTrail.length > 0 && (
                   <div className="pt-1">
                     <button
@@ -2076,48 +1403,6 @@ export default function TasksPage() {
                     <span className="text-[11px] text-warning italic font-medium">Pending approval</span>
                   ) : task.approvalStatus === 'rejected' ? (
                     <span className="text-[11px] text-danger italic font-medium">Rejected</span>
-                  ) : task.workflowType === 'holiday_social_approval' && task.status !== 'Completed' ? (
-                    canRespondToHolidayApproval(task, user) ? (
-                      <>
-                        <button
-                          onClick={() => handleHolidayApprovalResponse(task.id, true)}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
-                        >
-                          <ThumbsUp className="h-3 w-3" /> Yes, post needed
-                        </button>
-                        <button
-                          onClick={() => handleHolidayApprovalResponse(task.id, false)}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
-                        >
-                          <ThumbsDown className="h-3 w-3" /> No, skip it
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-[11px] text-theme-text-secondary italic">Awaiting Centre Head / Events Head decision</span>
-                    )
-                  ) : ((task.workflowType === 'event_social_post' || task.workflowType === 'holiday_design_social') && task.status === 'Assigned' && user && isSocialMediaHeadOrSrHead(user) && (task.assigneeType === 'group' || !task.allottedBy)) ? (
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <button
-                        onClick={() => setDelegatingTask(task)}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
-                        title="Allot to a member of the Social Media team"
-                      >
-                        <UserPlus className="h-3 w-3" /> Allot Task
-                      </button>
-                      <button
-                        onClick={() => {
-                          const res = allotSocialMediaTask(task.id, { id: user.id, name: user.name, email: user.email }, user.name, user.email);
-                          if (res) {
-                            setTasks(getTasks());
-                            triggerSuccess('You have taken up this social media task!');
-                          }
-                        }}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
-                        title="Take this task up yourself"
-                      >
-                        <UserCheck className="h-3 w-3" /> Take It Up Myself
-                      </button>
-                    </div>
                   ) : task.status === 'Assigned' && (
                     // Acknowledgment is deliberately gated on isTaskAssignee
                     // alone, not canChangeTaskStatus — only the specific
@@ -2131,30 +1416,11 @@ export default function TasksPage() {
                         onClick={() => handleAcknowledgeTask(task.id)}
                         className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
                       >
-                        {isFacultyTaskAssignees(task) ? 'Grant Permission' : 'Acknowledge'}
+                        Acknowledge
                       </button>
                     ) : (() => {
                       const statuses = getTaskAssigneeStatuses(task, members, events);
                       const isMulti = task.assigneeType === 'group' || statuses.length > 1;
-                      const isFacultyTask = isFacultyTaskAssignees(task, statuses);
-
-                      if (isFacultyTask) {
-                        const granter = statuses.find(s => s.acknowledged);
-                        if (granter) {
-                          return (
-                            <span className="text-[11px] text-success italic font-medium flex items-center gap-1">
-                              <Check className="h-3.5 w-3.5" /> Permission granted by {granter.name}
-                            </span>
-                          );
-                        }
-                        const pendingNames = statuses.map(p => p.name).join(', ');
-                        return (
-                          <span className="text-[11px] text-theme-text-secondary italic" title={pendingNames}>
-                            Awaiting faculty permission from: <span className="text-warning font-medium">{pendingNames}</span> (any 1)
-                          </span>
-                        );
-                      }
-
                       if (isMulti) {
                         const pending = statuses.filter(s => !s.acknowledged);
                         if (pending.length === 0) {
@@ -2172,9 +1438,7 @@ export default function TasksPage() {
                   )}
                   {task.status === 'In Progress' && (
                     <>
-                      {task.workflowType === 'design_caption_draft' || task.workflowType === 'design_caption_review' || task.workflowType === 'design_social_posting' ? (
-                        <span className="text-[11px] text-theme-text-secondary italic">Use the caption panel above to complete this task</span>
-                      ) : canChangeTaskStatus(task, user) ? (
+                      {canChangeTaskStatus(task, user) ? (
                         isAnimatingComplete ? (
                           <span className="px-3 py-1 bg-emerald-500 text-white font-extrabold rounded-lg text-[11px] flex items-center gap-1.5 shadow-md shadow-emerald-500/30 animate-pulse">
                             <Check className="h-3.5 w-3.5 stroke-[3]" /> Done!
@@ -2219,28 +1483,19 @@ export default function TasksPage() {
                     task.approvalStatus !== 'rejected' &&
                     isTaskAssignee(task, user) &&
                     !hasAcknowledgedTask(task, user) &&
-                    (!isFacultyTaskAssignees(task) || !getTaskAssigneeStatuses(task, members, events).some(s => s.acknowledged)) && (
+                    (
                       <button
                         onClick={() => handleAcknowledgeTask(task.id)}
                         className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
                       >
-                        {isFacultyTaskAssignees(task) ? 'Grant Permission' : 'Acknowledge (your part)'}
+                        Acknowledge (your part)
                       </button>
                     )}
                 </div>
 
                 {(canEditTask(user) || canDeleteTask(user, task) || user) && (
                   <div className="flex items-center gap-1">
-                    {user && canDelegateAutoTask(task, user) && (
-                      <button
-                        onClick={() => setDelegatingTask(task)}
-                        className="p-1 hover:bg-theme-border/30 rounded-md text-theme-text-secondary hover:text-accent transition-all cursor-pointer"
-                        title="Delegate this task to a specific member"
-                      >
-                        <UserPlus className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    {user && (
+                                        {user && (
                       <button
                         onClick={() => setApprovalRequestTask(task)}
                         className="p-1 hover:bg-theme-border/30 rounded-md text-theme-text-secondary hover:text-accent transition-all cursor-pointer"
@@ -2355,16 +1610,6 @@ export default function TasksPage() {
                     <Palette className="h-3.5 w-3.5 text-accent" />
                     Design Task
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-theme-text-primary">
-                    <input
-                      type="radio"
-                      name="taskCategory"
-                      checked={taskCategory === 'reportWriting'}
-                      onChange={() => setTaskCategory('reportWriting')}
-                      className="accent-accent"
-                    />
-                    Report Writing Task
-                  </label>
                 </div>
               </div>
 
@@ -2390,11 +1635,6 @@ export default function TasksPage() {
                       <option value="Certificates">Certificates</option>
                       <option value="Other">Other</option>
                     </select>
-                    <p className="text-[11px] text-theme-text-secondary">
-                      {designCategory === 'Social Media'
-                        ? '✨ Social Media posts will automatically generate a single unified Caption & Posting task for the Social Media Head upon design approval.'
-                        : 'ℹ️ Other design types complete once approved — no social media captioning or posting tasks will be generated.'}
-                    </p>
                   </div>
 
                   <div className="space-y-1.5">
@@ -2722,21 +1962,6 @@ export default function TasksPage() {
           members={members}
           currentUser={user}
           onRequested={() => triggerSuccess('✔ Approval request sent!')}
-        />
-      )}
-
-      {delegatingTask && user && (
-        <DelegateTaskModal
-          isOpen={Boolean(delegatingTask)}
-          onClose={() => setDelegatingTask(null)}
-          task={delegatingTask}
-          members={members}
-          currentUser={user}
-          onDelegated={() => {
-            setTasks(getTasks());
-            const isSocial = delegatingTask && isSocialMediaPostTask(delegatingTask) && isSocialMediaHeadOrSrHead(user);
-            triggerSuccess(isSocial ? 'Task allotted successfully!' : 'Delegation submitted — awaiting Centre Head / GG Campus Events Head approval.');
-          }}
         />
       )}
 

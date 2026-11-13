@@ -179,10 +179,6 @@ export function isEventsHeadGgCampus(user: ServerUser): boolean {
   return false;
 }
 
-export function isDesignHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return false;
-}
-
 /** Load the resolved server-side permission context once per request. */
 export async function loadPermissionContext() {
   const settings = await getAccessLevelSettingsServer();
@@ -271,10 +267,6 @@ export function isGeneralSecretary(user: ServerUser): boolean {
   return false;
 }
 
-export function canReviewDesignProofread(user: ServerUser, settings: AccessLevelSettings, design?: { assignedProofreaderIds?: string[]; assignedProofreaderEmail?: string; assignedProofreaderId?: string }): boolean {
-  return isSuperUser(user);
-}
-
 export function isSuperUser(user: ServerUser): boolean {
   return !!user && user.tier === 1;
 }
@@ -303,10 +295,7 @@ export type ServerTask = {
   approverType?: string;
   approverMemberId?: string;
   submittedByEmail?: string;
-  workflowType?: string;
   taskCategory?: string;
-  isSocialMediaPost?: boolean;
-  platform?: string;
 } | null | undefined;
 
 export type ServerEvent = {
@@ -384,13 +373,6 @@ export async function canEvaluateEventStudent(user: ServerUser, settings: Access
  * Checks whether a task is eligible for ratings & evaluation on the server.
  * Procurement tasks and administrative approval requests are strictly excluded.
  */
-export function isTaskRatable(task: { workflowType?: string; isProcurement?: boolean; procurementId?: string; title?: string } | null | undefined): boolean {
-  if (!task) return false;
-  if (task.workflowType === 'holiday_social_approval' || task.workflowType === 'procurement' || task.isProcurement || task.procurementId) return false;
-  if (typeof task.title === 'string' && /procure items|procurement/i.test(task.title)) return false;
-  return true;
-}
-
 export function canEditRating(rating: ServerRating, user: ServerUser, settings: AccessLevelSettings): boolean {
   return isSuperUser(user);
 }
@@ -399,44 +381,6 @@ export function canEditRating(rating: ServerRating, user: ServerUser, settings: 
 // permissions.ts's built-in tier/role clauses; Group Policy capability and
 // moduleAccess override clauses are intentionally NOT ported here, per this
 // file's header). ---
-
-export function isFaculty(user: ServerUser): boolean {
-  return false;
-}
-
-export function isSocialMediaTeamMember(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-export function isSocialMediaSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  return false;
-}
-
-/** Check if a task is a social media posting/design deliverable task. */
-export function isSocialMediaPostTask(task: {
-  title?: string;
-  workflowType?: string;
-  taskCategory?: string;
-  isSocialMediaPost?: boolean;
-  platform?: string;
-} | null | undefined): boolean {
-  if (!task) return false;
-  if (task.workflowType === 'design_social_posting' || task.workflowType === 'holiday_design_social' || task.workflowType === 'event_social_post') {
-    return true;
-  }
-  if (task.isSocialMediaPost === true) return true;
-  if (task.platform === 'instagram' || task.platform === 'linkedin') return true;
-  const title = (task.title || '').toLowerCase();
-  return title.includes('social media') || title.includes('[social media posting]');
-}
 
 export function canViewAllDesigns(user: ServerUser, settings: AccessLevelSettings): boolean {
   return isSuperUser(user);

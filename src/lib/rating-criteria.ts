@@ -3,7 +3,7 @@
  * own set of 5 criteria (all on the existing 1-5 scale) instead of the single
  * generic 4-criteria form used previously.
  */
-export type RatingCriteriaSet = 'general' | 'design' | 'reportWriting';
+export type RatingCriteriaSet = 'general' | 'design';
 
 export interface RatingCriterion {
   key: string;
@@ -26,18 +26,10 @@ export const RATING_CRITERIA: Record<RatingCriteriaSet, RatingCriterion[]> = {
     { key: 'presentation', label: 'Presentation', description: 'Overall visual appeal and engagement' },
     { key: 'attentionToDetail', label: 'Attention to Detail', description: 'Precision in design elements' },
   ],
-  reportWriting: [
-    { key: 'clarity', label: 'Clarity', description: 'Ease of understanding the written content' },
-    { key: 'flowStructure', label: 'Flow / Structure of the Event Report', description: 'Logical flow and organization of the report from start to finish' },
-    { key: 'timeliness', label: 'Timeliness of Submission', description: 'Report submitted within the expected deadline after the event' },
-    { key: 'errors', label: 'Number of Errors', description: 'Fewer spelling, grammar, and factual errors scores higher' },
-    { key: 'photos', label: 'Geotagged Photos & Other Pictures Attached', description: 'Geotagged photos and other supporting pictures are attached and relevant' },
-  ],
 };
 
 export function criteriaSetForTaskCategory(taskCategory: string | undefined): RatingCriteriaSet {
   if (taskCategory === 'design') return 'design';
-  if (taskCategory === 'reportWriting') return 'reportWriting';
   return 'general';
 }
 
@@ -137,11 +129,10 @@ export interface DatedRatingRow extends DatedScore {
 }
 
 /**
- * The 4-way Multi-Reviewer rubric (Super User / Centre Head / Advisor / GG
- * Campus Events Head, see resolveRatingReviewerRole in permissions.ts) has
- * each reviewer submit their OWN separate rating row for the same task —
- * so one task reviewed by 4 people produces 4 rows, while an identical task
- * reviewed by 1 person produces 1 row. Feeding raw rows into the volume-
+ * The Multi-Reviewer rubric (Super User / CEO, see resolveRatingReviewerRole
+ * in permissions.ts) has each reviewer submit their OWN separate rating row
+ * for the same task — so one task reviewed by 2 people produces 2 rows, while
+ * an identical task reviewed by 1 person produces 1 row. Feeding raw rows into the volume-
  * and-consistency scoring above would reward reviewer redundancy, not task
  * volume: two students who each did 10 tasks would score differently
  * purely because one of them happened to get multi-reviewed more often.
@@ -286,10 +277,5 @@ export function projectLegacyRatingFields(
       collaboration: scores.presentation ?? overall,
     };
   }
-  return {
-    quality: scores.errors ?? overall,
-    timeliness: scores.timeliness ?? overall,
-    initiative: scores.photos ?? overall,
-    collaboration: scores.flowStructure ?? overall,
-  };
+  return { quality: overall, timeliness: overall, initiative: overall, collaboration: overall };
 }

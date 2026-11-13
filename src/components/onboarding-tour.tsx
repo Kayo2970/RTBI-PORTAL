@@ -269,11 +269,11 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       href: '/dashboard/designs',
       icon: Palette,
       color: 'accent',
-      summary: 'Brand compliance management system enforcing Gate 1 (Brand Style Compliance) and Gate 2 (Text Proofreading) prior to public release.',
+      summary: 'Design submission and review workflow: upload artwork and have it approved by a reviewer before public release.',
       whatYouCanDo: isSuper || user.department?.toLowerCase().includes('design')
         ? [
             'Upload new poster artwork, social banners, and badges',
-            'Grant Dual-Gate clearances (Style Compliance & Proofread)',
+            'Approve or reject submitted designs',
             'Manage master high-res print assets and public download links',
           ]
         : [
@@ -283,7 +283,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           ],
       keyInformation: [
         'Visual asset thumbnail previews with dimension tags',
-        'Gate 1 Style & Gate 2 Proofread status pills',
+        'Review status pills (pending, approved, rejected)',
         'Lead designer credits and download repositories',
       ],
       accessBadge: 'Brand Portal',

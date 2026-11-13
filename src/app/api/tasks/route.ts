@@ -4,7 +4,7 @@ import { enqueueTaskEmailNotification, resolveTaskEmailRecipients } from '@/lib/
 import { fanOutAutoApproval, resolveCustomApprovalPanel } from '@/lib/approval-sync';
 import { requireSession } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
-import { gateTaskAction, taskEditKeys, holdEditForApproval, stampPendingCreate, isSystemTask, isPendingState } from '@/lib/approval-gate';
+import { gateTaskAction, taskEditKeys, holdEditForApproval, stampPendingCreate, isPendingState } from '@/lib/approval-gate';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
   pending_create: 'This task needs sign-off from the CEO or Administrator before it is allotted.',
@@ -32,10 +32,8 @@ export async function POST(request: Request) {
     // Chain of command: decided on the server from the stored Group Policies, not from the flags the browser sent.
     const stored = (await readCollection<any>('tasks')).find((t: any) => t.id === item.id);
     if (!stored) {
-      if (!isSystemTask(item)) {
-        const gate = await gateTaskAction(actor, 'CREATE');
-        if (gate.requiresApproval) stampPendingCreate(item, gate, actor);
-      }
+      const gate = await gateTaskAction(actor, 'CREATE');
+      if (gate.requiresApproval) stampPendingCreate(item, gate, actor);
     } else {
       // POST with an existing id replaces the record: it cannot decide a pending task, and content changes go through the edit gate
       const bookkeeping = ['approvalStatus', 'pendingChange', 'submittedBy', 'submittedByEmail', 'approverType', 'approverMemberId', 'approverPolicyTagId', 'approvalPolicyName', 'approverName', 'decidedBy', 'decidedAt', 'rejectionReason'];

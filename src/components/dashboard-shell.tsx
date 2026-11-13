@@ -49,7 +49,7 @@ import {
   Lightbulb,
   Users,
 } from 'lucide-react';
-import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
+import { getAnnouncements, getTasks, getMembers, getBudgets, getReimbursements, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
@@ -208,21 +208,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => { userRef.current = user; }, [user]);
 
   const buildNotifications = (currentUser: any) => {
-    const proofreadNotifs = getDesigns()
-      .filter(d => d.proofreadRequested && (
-        d.assignedProofreaderEmail === currentUser.email ||
-        (Array.isArray(d.assignedProofreaderIds) && d.assignedProofreaderIds.includes(currentUser.id)) ||
-        (Array.isArray(d.assignedProofreaders) && d.assignedProofreaders.some((p: any) => p.email === currentUser.email || p.id === currentUser.id))
-      ) && d.review?.status === 'Pending Proofread')
-      .map(d => ({
-        id: 'pf_' + d.id,
-        title: `Proofreading Request: ${d.title}`,
-        time: `From ${d.designerName}`,
-        read: false,
-        actionNeeded: true,
-        link: `/dashboard/designs?highlight=${d.id}`,
-      }));
-
     // FYI-only — recency windows, not real unread tracking, so these never
     // contribute to the badge count (only genuine decisions do).
     const recentAnnounce = getAnnouncements()
@@ -403,7 +388,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       });
 
 const dismissed = loadDismissedNotifIds();
-    return [...budgetNotifs, ...reimbursementNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...proofreadNotifs, ...recentAnnounce, ...recentTasks]
+    return [...budgetNotifs, ...reimbursementNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...recentAnnounce, ...recentTasks]
       .filter(n => !dismissed.has(n.id));
   };
 
