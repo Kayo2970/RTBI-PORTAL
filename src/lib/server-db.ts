@@ -96,6 +96,14 @@ export interface DbSchema {
   // emailSettings' SMTP password) rather than only in env vars so a Super
   // User can paste them in from Settings without a redeploy.
   walletSettings: any[];
+  // Bookings / billing / inventory modules — see src/lib/billing.ts for the row shapes.
+  rooms: any[];
+  bookings: any[];
+  invoices: any[];
+  payments: any[];
+  billingSettings: any[];
+  inventoryItems: any[];
+  inventoryMovements: any[];
   lastUpdated?: string;
 }
 
@@ -133,6 +141,13 @@ const EMPTY_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  rooms: [],
+  bookings: [],
+  invoices: [],
+  payments: [],
+  billingSettings: [],
+  inventoryItems: [],
+  inventoryMovements: [],
 };
 
 const SEED_DB: DbSchema = {
@@ -189,6 +204,13 @@ const SEED_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  rooms: [],
+  bookings: [],
+  invoices: [],
+  payments: [],
+  billingSettings: [],
+  inventoryItems: [],
+  inventoryMovements: [],
 };
 
 const COLLECTION_KEYS = Object.keys(EMPTY_DB) as (keyof DbSchema)[];

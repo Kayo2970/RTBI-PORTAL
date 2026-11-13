@@ -538,3 +538,11 @@ export const canViewGuestRecord = canEditGuestRecord;
 export function canApproveProposal(user: ServerUser, settings: AccessLevelSettings): boolean {
   return !!user;
 }
+
+// Bookings / Invoices & Payments / Inventory — mirrors permissions.ts.
+export function isStaffTier(user: ServerUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 3;
+}
+export const canManageBilling = isStaffTier;
+export const canManageRooms = isStaffTier;
+export const canManageInventory = isStaffTier;
