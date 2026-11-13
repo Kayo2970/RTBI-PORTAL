@@ -1,0 +1,498 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #E8EFF7;
+  --foreground: #0F172A;
+  --card: rgba(255, 255, 255, 0.94);
+  --card-foreground: #0F172A;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border: rgba(203, 213, 225, 0.85);
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --muted: rgba(15, 23, 42, 0.06);
+  --muted-foreground: #334155;
+  --border: rgba(203, 213, 225, 0.85);
+  --border-color: rgba(203, 213, 225, 0.85);
+  --sidebar-bg: rgba(255, 255, 255, 0.95);
+  --sidebar-border: rgba(203, 213, 225, 0.90);
+  --page-gradient: linear-gradient(135deg, #E2E8F0 0%, #DCE5EF 40%, #CFDDEE 100%);
+  --accent: #1D64B2;
+  --accent-foreground: #FFFFFF;
+}
+
+.dark {
+  --background: #0B1B2E;
+  --foreground: #FFFFFF;
+  --card: rgba(15, 30, 50, 0.85);
+  --card-foreground: #F8FAFC;
+  --card-bg: rgba(15, 30, 50, 0.85);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --muted: rgba(255, 255, 255, 0.08);
+  --muted-foreground: #94A3B8;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --sidebar-bg: rgba(11, 23, 39, 0.90);
+  --sidebar-border: rgba(255, 255, 255, 0.10);
+  /* Nice dark neutral grays instead of the navy-blue gradient — an explicit,
+     repeated request from the dark-mode QA pass (see the login screen and
+     every module's page background). */
+  --page-gradient: linear-gradient(90deg, #09090B 0%, #18181B 25%, #27272A 50%, #18181B 75%, #09090B 100%);
+  --accent: #2E75B6;
+  --accent-foreground: #FFFFFF;
+}
+
+@theme {
+  --font-sans: var(--font-geist-sans), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-primary: #0F2A47;
+  --color-primary-light: #1E4D7B;
+  --color-accent: #1D64B2;
+  --color-success: #15803D;
+  --color-warning: #B45309;
+  --color-danger: #BE123C;
+
+  --color-theme-background: var(--background);
+  --color-theme-foreground: var(--foreground);
+  --color-theme-card: var(--card-bg);
+  --color-theme-border: var(--border-color);
+  --color-theme-card-border: var(--card-border);
+  --color-theme-text-primary: var(--text-primary);
+  --color-theme-text-secondary: var(--text-secondary);
+  --color-theme-sidebar: var(--sidebar-bg);
+  --color-theme-sidebar-border: var(--sidebar-border);
+
+  /* shadcn-style aliases — a handful of pages (Design Portal, Tasks, the
+     mobile-menu backdrop) were written against `text-foreground`,
+     `bg-muted`, `border-border`, `bg-background`, `text-accent-foreground`
+     instead of this app's own `theme-*` tokens above. Since none of these
+     names existed as theme values, Tailwind silently generated no CSS for
+     them at all — elements lost their intended background/border entirely
+     (transparent, not just dim), which is what actually produced the
+     "clustered", "sharp square corners", and "edge-to-edge" look reported
+     on Design Portal, not a text-opacity issue. Aliasing them here to the
+     equivalent app tokens fixes every existing usage app-wide at once. */
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-border: var(--border-color);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  /* Rating color scale */
+  --color-rating-5: #2E8B57;
+  --color-rating-4: #7FB069;
+  --color-rating-3: #D9A441;
+  --color-rating-2: #E08E45;
+  --color-rating-1: #C0392B;
+}
+
+body {
+  background: var(--page-gradient);
+  background-attachment: fixed;
+  background-size: cover;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Base-layer defaults: every rule here is meant to be the fallback, not the
+   final word — anything with an explicit Tailwind utility for the same
+   property (tracking-wider on the app's many uppercase section labels,
+   e.g.) wins over these automatically because @layer base sits below
+   @layer utilities in Tailwind's cascade. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* iOS Safari gives date/time inputs an intrinsic width that ignores w-full, so in a grid they spill past their
+     column and the screen edge. Let them shrink to the cell, and let grid/flex children shrink below content. */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 2.75rem;
+  }
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value {
+    text-align: left;
+    min-width: 0;
+  }
+  .grid > * {
+    min-width: 0;
+  }
+
+  /* Typography polish: display headings get a touch of negative tracking and
+     balanced line-wrapping so multi-word headers never leave an orphaned word
+     on the last line; body copy gets the softer "pretty" wrapping instead. */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    color: var(--text-primary);
+  }
+
+  /* Physical press feedback on every button in the app — a subtle scale-down
+     on click, the same trick iOS/modern web UIs use to make an interface feel
+     responsive to touch. Purely visual (transform doesn't affect layout flow
+     or any other element), and disabled buttons are excluded so a disabled
+     state never looks clickable. */
+  button:not(:disabled) {
+    transition: transform 150ms ease;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.98);
+  }
+}
+
+/* Glassmorphism panel styling — outer shadow tinted toward the page's own
+   foreground hue (not flat black) plus a hairline inner highlight along the
+   top/left edge to suggest light catching a glass edge, instead of a plain
+   backdrop-blur box.
+   Deliberately placed in @layer components (not left unlayered): Tailwind v4
+   orders its own layers base < components < utilities, so an unlayered rule
+   here would always beat ANY Tailwind utility class regardless of source
+   order — which is exactly what was silently overriding tint utilities like
+   `bg-theme-sidebar/50` on headers/panels that pair them with `glass-panel`,
+   producing the washed-out "frosted middle layer" look. Inside
+   @layer components, an explicit utility on the same element now wins as
+   intended, while elements that use `glass-panel` alone still fall back to
+   this default background. */
+@layer components {
+  .glass-panel {
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow:
+      0 10px 30px -4px rgba(15, 23, 42, 0.08),
+      0 4px 12px -2px rgba(15, 23, 42, 0.04),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+  }
+
+  .dark .glass-panel {
+    box-shadow:
+      0 12px 36px 0 rgba(0, 0, 0, 0.50),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+      inset 1px 0 0 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Background Theme Layout — side-to-side gradient, themed via --page-gradient
+     (a light, airy version in :root; nice dark neutral grays in .dark). */
+  .bg-space-theme {
+    background: var(--page-gradient);
+    background-attachment: fixed;
+    background-size: cover;
+  }
+
+  @media (max-width: 768px) {
+    .bg-space-theme, body {
+      background: var(--page-gradient);
+      background-attachment: fixed;
+    }
+  }
+}
+
+/* Splash/loading screen logo entrance (login and dashboard module transitions) */
+@keyframes splash-logo-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-splash-logo {
+  animation: splash-logo-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ------------------------------------------------------------- */
+/* HeroUI Skeleton Component & Shimmer Animation Specifications  */
+/* ------------------------------------------------------------- */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+}
+
+.dark .skeleton {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.skeleton--shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton--shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 0.9s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.dark .skeleton--shimmer::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(46, 117, 182, 0.22) 50%,
+    transparent 100%
+  );
+}
+
+.skeleton--pulse {
+  animation: pulse-subtle 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton--none::before {
+  display: none;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* ------------------------------------------------------------- */
+/* HeroUI Avatar Component Specifications                        */
+/* ------------------------------------------------------------- */
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  user-select: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.avatar--sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.75rem;
+}
+
+.avatar--md {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+}
+
+.avatar--lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1rem;
+}
+
+.avatar--xl {
+  width: 4rem;
+  height: 4rem;
+  font-size: 1.25rem;
+}
+
+.avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.avatar__fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  border-radius: inherit;
+}
+
+.avatar__fallback--default {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.avatar__fallback--accent {
+  background: linear-gradient(135deg, rgba(46, 117, 182, 0.28) 0%, rgba(15, 42, 71, 0.35) 100%);
+  color: var(--color-accent);
+  border: 1px solid rgba(46, 117, 182, 0.35);
+}
+
+.avatar__fallback--success {
+  background: linear-gradient(135deg, rgba(46, 139, 87, 0.28) 0%, rgba(20, 80, 50, 0.35) 100%);
+  color: #2E8B57;
+  border: 1px solid rgba(46, 139, 87, 0.35);
+}
+
+.avatar__fallback--warning {
+  background: linear-gradient(135deg, rgba(217, 164, 65, 0.28) 0%, rgba(120, 90, 30, 0.35) 100%);
+  color: #D9A441;
+  border: 1px solid rgba(217, 164, 65, 0.35);
+}
+
+.avatar__fallback--danger {
+  background: linear-gradient(135deg, rgba(192, 57, 43, 0.28) 0%, rgba(100, 30, 20, 0.35) 100%);
+  color: #C0392B;
+  border: 1px solid rgba(192, 57, 43, 0.35);
+}
+
+/* ------------------------------------------------------------- */
+/* MagicUI Ripple Button Animation                               */
+/* ------------------------------------------------------------- */
+@keyframes rippling {
+  0% {
+    opacity: 0.8;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+.animate-rippling {
+  animation: rippling 0.3s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* ------------------------------------------------------------- */
+/* React Bits MagicBento Dynamic Card Hover & Border Glow        */
+/* Wrapped in @layer components (like the glass-panel base rule  */
+/* above) so its `position: relative` on .glass-panel never beats */
+/* an explicit Tailwind `absolute` utility on the same element —  */
+/* left unlayered, this rule was overriding every glass-panel     */
+/* dropdown (Quick Switch, notification bell, user menu) back to  */
+/* `position: relative`, since unlayered CSS always wins over any */
+/* Tailwind layer regardless of source order, breaking their      */
+/* `absolute right-0 top-full` anchoring in production.           */
+/* ------------------------------------------------------------- */
+@layer components {
+  .magic-bento-card,
+  .glass-panel:not(header):not(aside):not(.no-magic),
+  .dashboard-card {
+    --glow-x: 50%;
+    --glow-y: 50%;
+    --glow-intensity: 0;
+    --glow-radius: 260px;
+    --glow-color: 46, 117, 182;
+    position: relative;
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s ease;
+    will-change: transform;
+  }
+
+  .magic-bento-card::after,
+  .glass-panel:not(header):not(aside):not(.no-magic)::after,
+  .dashboard-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(
+      var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+      rgba(var(--glow-color), calc(var(--glow-intensity) * 0.95)) 0%,
+      rgba(var(--glow-color), calc(var(--glow-intensity) * 0.4)) 35%,
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 20;
+  }
+
+  .magic-bento-card:hover::after,
+  .glass-panel:not(header):not(aside):not(.no-magic):hover::after,
+  .dashboard-card:hover::after {
+    opacity: 1;
+  }
+
+  .magic-bento-card:hover,
+  .glass-panel:not(header):not(aside):not(.no-magic):hover,
+  .dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -10px rgba(46, 117, 182, 0.35);
+  }
+}
+
+.magic-particle::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: rgba(46, 117, 182, 0.3);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+
+
+
+
+
+
+
