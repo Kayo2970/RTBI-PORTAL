@@ -1,6 +1,7 @@
 import { trackSync } from './sync-status';
 import { averageScore } from './rating-criteria';
 import { buildStudentFinalScores } from './final-score';
+import type { StartupProfile } from './startup-profile';
 
 // -------------------------------------------------------------
 // Session token — attached to every authenticated API call so the server
@@ -109,6 +110,8 @@ export interface Member {
   // Digital Visiting Card (self-service, public share page at /card/[slug]).
   // Prefixed `card*` to avoid colliding with Guest.visitingCard* (a scanned
   // photo of someone else's physical card, unrelated feature).
+  // Startup (tier 4) company profile — logo, about-us, sector/stage etc. — built during account activation.
+  startupProfile?: StartupProfile;
   cardEnabled?: boolean; // public page 404s until true
   cardSlug?: string;     // stable URL segment, generated once server-side, immutable
   // Designation normally mirrors `role` (the Directory-set designation) so

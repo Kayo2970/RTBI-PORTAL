@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ShieldAlert, CheckCircle2, Lock, Eye, EyeOff, LogIn, Sparkles, Cake, Phone, ArrowRight } from 'lucide-react';
+import { StartupActivationWizard, type StartupActivationPayload } from '@/components/startup-activation-wizard';
 import { InteractiveKeycardHolder } from '@/components/interactive-keycard-holder';
 import dynamic from 'next/dynamic';
 
@@ -22,6 +23,7 @@ function ActivateAccountForm() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [cardSlug, setCardSlug] = useState('');
+  const [isStartup, setIsStartup] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,6 +47,7 @@ function ActivateAccountForm() {
           setEmail(data.email);
           setRole(data.role || 'Member');
           setCardSlug(data.cardSlug || '');
+          setIsStartup(data.tier === 4);
           setStatus('ready');
         } else {
           setValidationError(data.error || 'This activation link is invalid.');
@@ -56,6 +59,32 @@ function ActivateAccountForm() {
         setStatus('invalid');
       });
   }, [token]);
+
+  const activate = async (body: Record<string, unknown>) => {
+    setSubmitError('');
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/activate-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, ...body }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to activate your account.');
+      if (data.member) {
+        if (data.member.role) setRole(data.member.role);
+        if (data.member.cardSlug) setCardSlug(data.member.cardSlug);
+        if (data.member.phone) setPhone(data.member.phone);
+      }
+      setStatus('done');
+    } catch (err: any) {
+      setSubmitError(err.message || 'Failed to activate your account.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleStartupSubmit = (payload: StartupActivationPayload) => activate({ ...payload });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,25 +103,7 @@ function ActivateAccountForm() {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/auth/activate-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword, dateOfBirth: dateOfBirth || undefined, phone: phone.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to activate your account.');
-      if (data.member) {
-        if (data.member.role) setRole(data.member.role);
-        if (data.member.cardSlug) setCardSlug(data.member.cardSlug);
-      }
-      setStatus('done');
-    } catch (err: any) {
-      setSubmitError(err.message || 'Failed to activate your account.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    await activate({ newPassword, dateOfBirth: dateOfBirth || undefined, phone: phone.trim() });
   };
 
   if (status === 'done') {
@@ -171,7 +182,7 @@ function ActivateAccountForm() {
           speed={2.56}
         />
       </div>
-      <div className="w-full max-w-md glass-panel rounded-3xl p-6 md:p-8 flex flex-col space-y-6 relative z-10 border border-white/15 shadow-2xl">
+      <div className={`w-full ${isStartup && status === 'ready' ? 'max-w-xl' : 'max-w-md'} glass-panel rounded-3xl p-6 md:p-8 flex flex-col space-y-6 relative z-10 border border-white/15 shadow-2xl`}>
         {/* Brand Header */}
         <Link
           href="/"
@@ -190,7 +201,7 @@ function ActivateAccountForm() {
               RTBI PORTAL
             </h1>
             <p className="text-xs text-theme-text-secondary mt-1 font-medium">
-              Set up your account to access the operational portal
+              {isStartup ? 'Build your startup profile to get started' : 'Set up your account to access the operational portal'}
             </p>
           </div>
         </Link>
@@ -218,7 +229,11 @@ function ActivateAccountForm() {
           </div>
         )}
 
-        {status === 'ready' && (
+        {status === 'ready' && isStartup && (
+          <StartupActivationWizard name={name} email={email} isSubmitting={isSubmitting} submitError={submitError} onSubmit={handleStartupSubmit} />
+        )}
+
+        {status === 'ready' && !isStartup && (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="flex items-center gap-2.5 p-3.5 bg-accent/10 border border-accent/20 rounded-2xl">
               <Sparkles className="h-4 w-4 text-accent shrink-0" />
