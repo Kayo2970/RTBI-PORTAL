@@ -1,24 +1,26 @@
 /**
- * event-participants-export.ts — builds a CSV of an event's details followed by
- * one row per student placed on one of its committees (or leading one).
- * Access is gated by permissions.ts's canExportEventDetails() at the call site.
+ * event-participants-export.ts — builds a CSV of an event's details followed by one row per member
+ * who has been assigned a task for it. Access is gated by permissions.ts's canExportEventDetails() at the call site.
  */
-import { EventItem, Member, formatEventDateRange } from './local-data';
+import { EventItem, Member, TaskItem, formatEventDateRange, getTasks } from './local-data';
 import { toCsvRow, downloadCsv } from './csv';
 
-/** Distinct members taking part in an event, with the committee(s)/role they hold. */
-export function getEventParticipants(event: EventItem, members: Member[]) {
-  const byId = new Map<string, { member?: Member; name: string; committees: string[]; headedCommittees: string[] }>();
-  const add = (id: string, fallbackName: string | undefined, committee: string, isHead: boolean) => {
-    const entry = byId.get(id) || { member: members.find(m => m.id === id), name: fallbackName || '', committees: [], headedCommittees: [] };
-    if (!entry.committees.includes(committee)) entry.committees.push(committee);
-    if (isHead && !entry.headedCommittees.includes(committee)) entry.headedCommittees.push(committee);
+/** Distinct members taking part in an event: everyone assigned a task linked to it, with how many tasks they hold. */
+export function getEventParticipants(event: EventItem, members: Member[], tasks: TaskItem[] = getTasks()) {
+  const byId = new Map<string, { member?: Member; name: string; taskCount: number }>();
+  const add = (id: string, fallbackName: string | undefined) => {
+    const entry = byId.get(id) || { member: members.find(m => m.id === id), name: fallbackName || '', taskCount: 0 };
+    entry.taskCount += 1;
     byId.set(id, entry);
   };
-  for (const c of event.committees || []) {
-    if (c.approvalStatus === 'pending_create' || c.approvalStatus === 'rejected') continue;
-    if (c.leadMemberId) add(c.leadMemberId, c.leadMemberName, c.name, true);
-    for (const id of c.memberIds || []) add(id, undefined, c.name, false);
+  for (const t of tasks) {
+    if (t.eventId !== event.id) continue;
+    if (t.assigneeType === 'group') (t.assigneeIds || []).forEach(id => add(id, undefined));
+    else if (t.assigneeId) add(t.assigneeId, t.assignee);
+    else {
+      const m = members.find(x => x.name.toLowerCase() === (t.assignee || '').toLowerCase());
+      if (m) add(m.id, m.name);
+    }
   }
   return Array.from(byId.values());
 }
@@ -31,13 +33,11 @@ export function downloadEventDetailsCsv(event: EventItem, members: Member[]) {
     toCsvRow(['Description', event.description]),
     toCsvRow(['Dates', formatEventDateRange(event)]),
     toCsvRow(['Status', event.status]),
-    toCsvRow(['Campus', event.campus || '']),
     toCsvRow(['Location', event.location || '']),
-    toCsvRow(['Committees', (event.committees || []).map(c => c.name).join('; ')]),
-    toCsvRow(['Total Students', participants.length]),
+    toCsvRow(['Total Participants', participants.length]),
     '',
-    toCsvRow(['STUDENT DETAILS']),
-    toCsvRow(['Name', 'Email', 'Phone', 'Division', 'Role', 'Department', 'Program', 'Batch', 'Event Committee(s)', 'Headed Committee(s)']),
+    toCsvRow(['PARTICIPANT DETAILS']),
+    toCsvRow(['Name', 'Email', 'Phone', 'Tier', 'Role', 'Department', 'Tasks for this event']),
     ...participants.map(p =>
       toCsvRow([
         p.member?.name || p.name || '(removed member)',
@@ -46,14 +46,11 @@ export function downloadEventDetailsCsv(event: EventItem, members: Member[]) {
         p.member?.division,
         p.member?.role,
         p.member?.department,
-        p.member?.program,
-        p.member?.batch,
-        p.committees.join('; '),
-        p.headedCommittees.join('; '),
+        p.taskCount,
       ])
     ),
   ];
   const slug = event.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '').toLowerCase() || 'event';
   // Leading BOM so Excel reads names/accents as UTF-8.
-  downloadCsv(`rtbi_event_${slug}_${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + lines.join('\n'));
+  downloadCsv(`rtbi_event_${slug}_${new Date().toISOString().slice(0, 10)}.csv`, '\ufeff' + lines.join('\n'));
 }

@@ -11,7 +11,7 @@ import { apiError } from '@/lib/api-error';
  * notice on demand — separate from the normal auto-assignment flow (which
  * only fires once, debounced, at creation/reassignment time via
  * enqueueTaskEmailNotification). Sends immediately, right away, to
- * everyone currently allotted to the task (individual/group/committee —
+ * everyone currently allotted to the task (individual/group —
  * see resolveTaskEmailRecipients).
  *
  * Restricted to Centre Head, Advisor, and Super User — deliberately not

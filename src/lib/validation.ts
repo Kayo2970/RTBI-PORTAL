@@ -44,7 +44,6 @@ export const MemberWriteSchema = z.object({
   role: z.string().trim().max(200).optional(),
   tier: z.number().int().min(1).max(4).optional(),
   division: MemberDivisionEnum.optional(),
-  committee: z.string().trim().max(200).optional(),
   department: z.string().trim().max(200).optional(),
   program: z.string().trim().max(200).optional(),
   batch: z.string().trim().max(100).optional(),

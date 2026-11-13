@@ -520,7 +520,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
     const q = pickerSearch.trim().toLowerCase();
     return !q || `${m.name} ${m.email} ${m.role} ${m.department || ''} ${m.division}`.toLowerCase().includes(q);
   });
-  // "By event": the people who organised / worked on an event — its committees (leads and members) and anyone given a task for it.
+  // "By event": the people who worked on an event — anyone given a task for it.
   const pickerEvent = events.find((e) => e.id === (pickerEventId || eventId));
   const pickableById = new Map(pickable.map((m) => [m.id, m]));
   const matchesSearch = (m: Member) => {
@@ -529,12 +529,6 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
   };
   const eventGroups: Array<{ key: string; title: string; note?: string; people: Array<{ m: Member; lead?: boolean }> }> = [];
   if (pickerEvent) {
-    for (const c of pickerEvent.committees || []) {
-      if (c.approvalStatus === 'rejected' || c.approvalStatus === 'pending_create') continue;
-      const ids = Array.from(new Set([...(c.leadMemberId ? [c.leadMemberId] : []), ...(c.memberIds || [])]));
-      const people = ids.map((id) => pickableById.get(id)).filter((m): m is Member => !!m && matchesSearch(m)).map((m) => ({ m, lead: m.id === c.leadMemberId }));
-      if (people.length) eventGroups.push({ key: c.id, title: c.name, people });
-    }
     const taskIds = new Set<string>();
     for (const t of taskList) if (t.eventId === pickerEvent.id) { if (t.assigneeId) taskIds.add(t.assigneeId); (t as any).assigneeIds?.forEach((id: string) => taskIds.add(id)); }
     const taskPeople = Array.from(taskIds).map((id) => pickableById.get(id)).filter((m): m is Member => !!m && matchesSearch(m)).map((m) => ({ m }));
@@ -1063,7 +1057,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                             {pickerOpen && (
                               <div className="px-3 pb-3 space-y-2">
                                 <div className="flex gap-1.5 text-[11px] font-bold">
-                                  {([['directory', 'Members Directory'], ['event', 'By event (committees & team)']] as const).map(([k, lab]) => (
+                                  {([['directory', 'Members Directory'], ['event', 'By event (team)']] as const).map(([k, lab]) => (
                                     <button key={k} type="button" onClick={() => setPickerMode(k)} className={`px-3 py-1.5 rounded-lg border cursor-pointer ${pickerMode === k ? 'bg-accent text-white border-accent' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary dark:text-theme-text-secondary'}`}>{lab}</button>
                                   ))}
                                 </div>
@@ -1083,7 +1077,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                                 {pickerMode === 'event' && (
                                   <div className="border border-theme-card-border dark:border-white/10 rounded-xl max-h-64 overflow-y-auto">
                                     {eventGroups.length === 0 ? (
-                                      <div className="py-4 px-3 text-center text-theme-text-secondary">{pickerEvent ? 'No committee members or task assignees with an email for this event.' : 'Pick an event.'}</div>
+                                      <div className="py-4 px-3 text-center text-theme-text-secondary">{pickerEvent ? 'No task assignees with an email for this event.' : 'Pick an event.'}</div>
                                     ) : (
                                       <>
                                         <div className="flex items-center justify-between gap-2 px-2 py-1.5 bg-theme-background/50 dark:bg-white/5 border-b border-theme-card-border dark:border-white/10">

@@ -9,24 +9,20 @@ export interface TaskEmailRecipient {
 
 /**
  * Resolves who should actually be emailed for a task, across every
- * assigneeType — not just 'individual'. Before this, the tasks API only ever
- * looked at task.assigneeEmail / task.assigneeId / a name match against
- * task.assignee, none of which are ever set on a 'committee' or 'group'
- * task (those carry eventCommitteeId or assigneeIds instead), so assigning a
- * task to a committee or a group of students silently never emailed anyone.
+ * assigneeType — not just 'individual'. A 'group' task carries assigneeIds
+ * instead of a single assignee, so every member of the group is emailed.
  */
 export function resolveTaskEmailRecipients(
   task: {
-    assigneeType?: 'individual' | 'committee' | 'group';
+    assigneeType?: 'individual' | 'group';
     assignee?: string;
     assigneeId?: string;
     assigneeEmail?: string;
     assigneeIds?: string[];
     eventId?: string;
-    eventCommitteeId?: string;
   },
   members: Array<{ id: string; name: string; email?: string; status?: string }>,
-  events: Array<{ id: string; committees?: Array<{ id: string; memberIds: string[] }> }>
+  _events?: Array<{ id: string }>
 ): TaskEmailRecipient[] {
   const activeMembers = members.filter(m => m.status !== 'Terminated' && m.email);
   const byId = new Map(activeMembers.map(m => [m.id, m]));
@@ -38,14 +34,6 @@ export function resolveTaskEmailRecipients(
       .map(m => ({ email: m.email!, name: m.name }));
   }
 
-  if (task.assigneeType === 'committee' && task.eventId && task.eventCommitteeId) {
-    const event = events.find(e => e.id === task.eventId);
-    const committee = event?.committees?.find(c => c.id === task.eventCommitteeId);
-    return (committee?.memberIds || [])
-      .map(id => byId.get(id))
-      .filter((m): m is typeof activeMembers[number] => Boolean(m))
-      .map(m => ({ email: m.email!, name: m.name }));
-  }
 
   // Individual, and the fallback for any legacy/unknown shape.
   let email = task.assigneeEmail;
@@ -107,7 +95,7 @@ export async function enqueueTaskEmailNotification(task: {
     title: task.title,
     event: task.event || task.eventName || 'RTBI Operations',
     dueDate: task.dueDate || 'Flexible',
-    creatorName: task.creatorName || 'Committee Lead',
+    creatorName: task.creatorName || 'RTBI Portal',
     assigneeName: task.assigneeName || 'Member',
     assignedAt: new Date().toISOString(),
   };
@@ -165,7 +153,7 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
 
   const subject = taskCount === 1
     ? `Task Assignment: ${firstItem?.title || 'New Task'}`
-    : `Committee Assignment Digest: ${taskCount} New Tasks Assigned`;
+    : `Task Assignment Digest: ${taskCount} New Tasks Assigned`;
 
   // Build HTML list of tasks
   const taskListHtml = itemsToSend
@@ -180,14 +168,14 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
         </div>
         <div style="font-size: 12px; color: #a1a1aa; line-height: 1.5;">
           <span>📌 <strong>Context:</strong> ${escapeHtml(item.event || 'RTBI Operations')}</span><br/>
-          <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'Committee Lead')}</span>
+          <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'RTBI Portal')}</span>
         </div>
       </div>
     `
     )
     .join('');
 
-  const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) / committee role(s) in RTBI Portal:\n\n` +
+  const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) in RTBI Portal:\n\n` +
     itemsToSend.map(i => `- ${i.title} (Context: ${i.event}, Due: ${i.dueDate})`).join('\n') +
     `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRTBI Portal Management`;
 
@@ -195,11 +183,11 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
     pageTitle: subject,
     badgeText: `ASSIGNMENT DIGEST (${taskCount} TASK${taskCount === 1 ? '' : 'S'})`,
     badgeColor: '#EA7153',
-    headerTitle: `Task & Committee Assignments`,
+    headerTitle: `Task Assignments`,
     bodyContentHtml: `
     <p style="margin: 0 0 20px; font-size: 14px; color: #574769; line-height: 1.6;">
       Dear <strong>${escapeHtml(assigneeName)}</strong>,<br/>
-      You are assigned to the following ${taskCount} task(s) / committee responsibility(ies) in RTBI Portal:
+      You are assigned to the following ${taskCount} task(s) in RTBI Portal:
     </p>
 
     <div style="margin-bottom: 24px;">

@@ -315,7 +315,7 @@ export default function ProposalsPage() {
                     <h3 className="font-bold text-sm text-theme-text-primary">{p.title}</h3>
                     <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${statusStyle[p.status]}`}>
                       {p.status === 'Pending Approval' ? <Clock className="h-3 w-3" /> : p.status === 'Approved' ? <CheckCircle className="h-3 w-3" /> : <X className="h-3 w-3" />}
-                      {p.status}
+                      {p.status === 'Approved' && !p.decidedBy ? 'Sent' : p.status}
                     </span>
                   </div>
                   <span className="text-theme-text-secondary text-[11px]">by <strong className="text-theme-text-primary">{p.authorName}</strong> · {fmtDate(p.createdAt)}</span>

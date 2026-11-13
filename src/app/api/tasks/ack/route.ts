@@ -10,7 +10,7 @@ import { apiError } from '@/lib/api-error';
  * (unlike canChangeTaskStatus) grants no leadership override, so a Centre
  * Head/Head of Events/Super User acting on this same route only ever
  * acknowledges a task they are themselves assigned to, same as any other
- * member. For a 'group'/'committee' task, each assignee calling this
+ * member. For a 'group' task, each assignee calling this
  * independently only ever appends their own id to acknowledgedByIds —
  * one member acknowledging never marks it acknowledged for the others.
  * A requested id the actor isn't allotted to is silently skipped rather
@@ -26,9 +26,8 @@ async function acknowledgeTasksForActor(
   const idSet = new Set(taskIds);
   const existingTasks = await readCollection<any>('tasks');
 
-  // mutateCollection's mutator must be synchronous, but isTaskAssignee's
-  // committee branch needs an async events lookup — resolve the allow-set
-  // first, then apply it inside the synchronous mutator.
+  // mutateCollection's mutator must be synchronous, but isTaskAssignee is async —
+  // resolve the allow-set first, then apply it inside the synchronous mutator.
   const allowedIds = new Set<string>();
   for (const task of existingTasks) {
     if (
@@ -56,7 +55,7 @@ async function acknowledgeTasksForActor(
         acknowledgedAt: task.acknowledgedAt || now,
         acknowledgedByEmail: task.acknowledgedByEmail || actor.email,
         // The shared status only ever advances on the very first
-        // acknowledgment — later assignees on the same group/committee
+        // acknowledgment — later assignees on the same group
         // task acknowledging for themselves shouldn't revert or otherwise
         // disturb whatever the task has already moved on to.
         status: task.status === 'Assigned' ? 'In Progress' : task.status,

@@ -63,7 +63,7 @@ export function PromotionModal({ data, isOpen, onClose }: PromotionModalProps) {
     if (tier === 3 || r.includes('core') || r.includes('lead')) {
       list.push('Departmental Task Assignment & Delegation Rights');
       list.push('Design Portal Asset Review & Media Deliverables Approval');
-      list.push('Sub-Committee Leadership & Symposium Logistics Tools');
+      list.push('Event & Team Coordination Tools');
       list.push('Member Evaluation & Task Extension Approvals');
       return list;
     }
@@ -71,7 +71,7 @@ export function PromotionModal({ data, isOpen, onClose }: PromotionModalProps) {
     if (tier === 4 || tier === 5) {
       list.push('Operational Task Submission & Extension Requests');
       list.push('Direct Upload Access to Creative Design Portals');
-      list.push('Committee Collaboration & Milestone Tracking');
+      list.push('Team Collaboration & Milestone Tracking');
       return list;
     }
 

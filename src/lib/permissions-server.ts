@@ -231,14 +231,6 @@ export function canSubmitBudget(user: ServerUser, settings: AccessLevelSettings)
   return isSuperUser(user);
 }
 
-export function canDecideProcurementRequest(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return isSuperUser(user);
-}
-
-export function canViewProcurementRequest(user: ServerUser, settings: AccessLevelSettings, request: any): boolean {
-  return isSuperUser(user);
-}
-
 export function canApproveAnnouncement(user: ServerUser, settings: AccessLevelSettings): boolean {
   return isSuperUser(user);
 }
@@ -279,22 +271,6 @@ export function isGeneralSecretary(user: ServerUser): boolean {
   return false;
 }
 
-export function canSubmitEventReport(user: ServerUser): boolean {
-  return isSuperUser(user);
-}
-
-export function canReviewEventReports(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return isSuperUser(user);
-}
-
-export function canScoreEventReports(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return isSuperUser(user);
-}
-
-export function canViewEventReports(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return isSuperUser(user);
-}
-
 export function canReviewDesignProofread(user: ServerUser, settings: AccessLevelSettings, design?: { assignedProofreaderIds?: string[]; assignedProofreaderEmail?: string; assignedProofreaderId?: string }): boolean {
   return isSuperUser(user);
 }
@@ -322,7 +298,6 @@ export type ServerTask = {
   assigneeId?: string;
   assigneeIds?: string[];
   eventId?: string;
-  eventCommitteeId?: string;
   creatorName?: string;
   approvalStatus?: string;
   approverType?: string;
@@ -357,27 +332,13 @@ export function isEventsHeadRtcCampus(user: ServerUser): boolean {
 
 /**
  * Whether `user` is the assignee of `task` — the individual assignee (by id,
- * email, or name), a member of the assigned group (`assigneeIds`), or, for a
- * committee-assigned task, a member/lead of the matching event committee.
- * Ported from local-data.ts's isTaskAssignee; the committee branch needs the
- * events collection, which is why this is async (the client version reads it
- * synchronously off localStorage via getEvents()).
+ * email, or name) or a member of the assigned group (`assigneeIds`).
+ * Async only so existing callers keep awaiting it.
  */
 export async function isTaskAssignee(task: ServerTask, user: ServerUser): Promise<boolean> {
   if (!task || !user) return false;
   const memberId = user.id;
 
-  if (task.assigneeType === 'committee') {
-    if (!memberId) return false;
-    const events = await readCollection<any>('events');
-    const targetEvents = task.eventId ? events.filter((e: any) => e.id === task.eventId) : events;
-    return targetEvents.some((e: any) =>
-      (e.committees || []).some((c: any) =>
-        (c.id === task.eventCommitteeId || (c.name || '').toLowerCase() === (task.assignee || '').toLowerCase()) &&
-        ((c.memberIds || []).includes(memberId) || c.leadMemberId === memberId)
-      )
-    );
-  }
 
   return Boolean(
     (task.assignee && user.name && task.assignee.toLowerCase() === user.name.toLowerCase()) ||
@@ -443,19 +404,19 @@ export function isFaculty(user: ServerUser): boolean {
   return false;
 }
 
-export function isSocialMediaTeamMember(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaTeamMember(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 
-export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 
-export function isSocialMediaHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 
-export function isSocialMediaSrHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 

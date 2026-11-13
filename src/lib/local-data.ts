@@ -67,7 +67,6 @@ export interface Member {
   role: string;
   tier: number;
   division: MemberDivision;
-  committee?: string; // Legacy fallback
   department?: string;
   program?: string; // e.g. "B.Tech Computer Science Engineering", "MBA"
   batch?: string; // e.g. "Class of 2025" for Alumni
@@ -210,31 +209,6 @@ export interface Guest {
   selfEditUsedAt?: string;
 }
 
-export interface EventCommittee {
-  id: string;
-  name: string; // e.g. "Stage & Audio-Visual", "Hospitality & Logistics", "Design & Media"
-  leadMemberId?: string;
-  leadMemberName?: string;
-  memberIds: string[]; // Students participating in this event committee
-  // Approval workflow, scoped to this one committee sub-record rather than
-  // the whole event. Unlike EventItem's version, there is no policy-tag
-  // delegation here -- the approver is always fixed to Centre Head or GG
-  // Campus Head of Events (see permissions.ts's isCommitteeApprover), since
-  // that's the specific oversight the feature was built for: President and
-  // Vice President can create committees and allot students to them, but
-  // neither role bypasses this approval the way they do for the event
-  // itself. Absent/'approved' means a normal, immediately-effective
-  // committee (every committee before this feature, and any created by an
-  // approver).
-  approvalStatus?: 'pending_create' | 'pending_members' | 'approved' | 'rejected';
-  pendingMemberIds?: string[]; // for pending_members: staged roster, applied on approval
-  submittedBy?: string;
-  submittedByEmail?: string;
-  decidedBy?: string;
-  decidedAt?: string;
-  rejectionReason?: string;
-}
-
 export interface EventSponsor {
   id: string;
   name: string;
@@ -255,7 +229,7 @@ export interface EventItem {
   // display/sort/day-grid-match site must check this before trusting
   // startDate/endDate (see formatEventDateRange below).
   datesTBD?: boolean;
-  // Optional: when prep work (bookings, committee formation, design briefs,
+  // Optional: when prep work (bookings, design briefs,
   // sponsor outreach...) actually starts, distinct from startDate/endDate
   // (the event's live/on-ground dates). Lets an event be created and shared
   // early — e.g. "planningStartDate: Feb 1" while the event itself runs in
@@ -266,22 +240,11 @@ export interface EventItem {
   planningStartDate?: string;
   status: 'planned' | 'active' | 'completed' | 'archived';
   location?: string;
-  campus?: 'GG Campus' | 'RTC Campus' | 'Both Campuses';
-  committees: EventCommittee[];
   // True for an auto-synced Indian public holiday / festival (see
   // src/lib/holiday-scheduler.ts) rather than a real RTBI event — the
   // Calendar page badges these differently and they're excluded from
-  // event-approval/committee/sponsor workflows.
+  // event-approval/sponsor workflows.
   isHoliday?: boolean;
-  // Set server-side when a user explicitly deletes this event's auto-generated
-  // 'holiday_social_approval' or 'event_social_post' task (see DELETE
-  // /api/tasks/[id]) — tells holiday-scheduler.ts / event-social-scheduler.ts
-  // never to recreate that task for this same event on their next run, so a
-  // deleted task stays deleted instead of coming back as a "zombie" on the
-  // next boot/weekly/daily catch-up.
-  socialTaskDismissed?: boolean;
-  posterTaskDismissed?: boolean;
-  dismissedAutoTaskTypes?: string[];
   // External sponsor contributions. In the Budget module, sponsor money is
   // drawn down against an event's actual spend before the Centre's own
   // budget is counted as used — see getEventSponsorTotal() and the Budget
@@ -600,16 +563,12 @@ export interface TaskItem {
   title: string;
   event?: string;
   eventId?: string;
-  eventCampus?: 'GG Campus' | 'RTC Campus' | 'Both Campuses';
-  eventCommitteeId?: string;
-  eventCommitteeName?: string;
   assignee: string;
   assigneeId?: string;
   assigneeEmail?: string;
-  // 'group' is an ad-hoc set of individual students picked directly for this
-  // task (assigneeIds) — unlike 'committee', it isn't tied to any event's
-  // formal EventCommittee record and doesn't require an event at all.
-  assigneeType: 'individual' | 'committee' | 'group';
+  // 'group' is an ad-hoc set of members picked directly for this task (assigneeIds).
+  // A task may optionally be linked to an event (eventId) — that is how work is assigned per event.
+  assigneeType: 'individual' | 'group';
   assigneeIds?: string[]; // set when assigneeType === 'group'
   dueDate: string;
   status: 'Assigned' | 'In Progress' | 'Completed' | 'Pending Extension';
@@ -645,7 +604,7 @@ export interface TaskItem {
     | 'event_social_post'
     // Auto-created once an event is approved and dated (see
     // runEventPosterTasks in event-social-scheduler.ts) — a single
-    // INDIVIDUAL task (not group/committee) assigned to whoever holds the
+    // INDIVIDUAL task (not group) assigned to whoever holds the
     // Head of Design / Social Media Head role, asking for the event's
     // poster/promotional assets ahead of time. Distinct from
     // 'event_social_post', which is post-event recap content assigned to a
@@ -665,12 +624,7 @@ export interface TaskItem {
     // Administrative task created when a procurement request is approved —
     // assigned to the Centre Head to procure materials. Strictly excluded
     // from ratings and reviews.
-    | 'procurement'
-    // Auto-created after an event ends for an event committee that was never
-    // given any task (see committee-review-scheduler.ts) — arrives already
-    // Completed so reviewers rate the committee's overall performance in the
-    // Ratings queue, fanning out to every member like any committee task.
-    | 'committee_performance_review';
+    | 'procurement';
   procurementId?: string;
   isProcurement?: boolean;
   // Only set on workflowType 'design_social_posting' tasks — distinguishes
@@ -702,7 +656,7 @@ export interface TaskItem {
   // Full history of who this task was routed through and in what order —
   // submitted-for-review, approved/rejected, and delegated/reassigned steps
   // each append an entry rather than overwriting the last one, so the whole
-  // chain stays visible even after several rounds (e.g. a committee task
+  // chain stays visible even after several rounds (e.g. a group task
   // sent for review, approved, then later delegated to someone else and
   // approved again). Visible to the Centre Head / GG Campus Events Head —
   // see canViewTaskDelegationTrail in permissions.ts.
@@ -728,7 +682,7 @@ export interface TaskItem {
   attachments?: ReceiptFile[];
   // Individual acknowledgment trail — which specific member id(s) have
   // personally acknowledged this task (see acknowledgeTask/hasAcknowledgedTask
-  // below). For a 'group'/'committee' task with several assignees, each one
+  // below). For a 'group' task with several assignees, each one
   // must acknowledge for themselves: one member acknowledging never marks it
   // acknowledged for the others, and only ever the acting member's own id is
   // ever appended here — never a groupmate's, and never by leadership acting
@@ -749,20 +703,18 @@ export function isFacultyMember(member: { division?: string; role?: string } | n
 }
 
 /** Check if a member belongs to the student Social Media team. Professors/Faculty are strictly excluded. */
-export function isSocialMediaTeamMember(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaTeamMember(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
   const dept = (member.department || '').toLowerCase();
-  const comm = (member.committee || '').toLowerCase();
   const role = (member.role || '').toLowerCase();
   return (
     dept.includes('social media') ||
-    comm.includes('social media') ||
     role.includes('social media')
   );
 }
 
 /** Check if a member is the Head or Senior Head of Social Media. */
-export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
   if (!isSocialMediaTeamMember(member)) return false;
   const role = (member.role || '').toLowerCase();
@@ -770,7 +722,7 @@ export function isSocialMediaHeadOrSrHead(member: { division?: string; departmen
 }
 
 /** Check if a member is the Head of Social Media (non-senior). */
-export function isSocialMediaHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
   if (!isSocialMediaTeamMember(member)) return false;
   const role = (member.role || '').toLowerCase();
@@ -778,7 +730,7 @@ export function isSocialMediaHead(member: { division?: string; department?: stri
 }
 
 /** Check if a member is the Senior Head of Social Media. */
-export function isSocialMediaSrHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
   if (!isSocialMediaTeamMember(member)) return false;
   const role = (member.role || '').toLowerCase();
@@ -816,63 +768,13 @@ export interface TaskDelegationEvent {
 }
 
 /**
- * A General Secretary's post-event writeup, uploaded as a finished file
- * (Word/PDF) rather than authored in-app. Requires sign-off from BOTH the
- * Centre Head and the GG Campus Head of Events independently — mirrors the
- * dual-reviewer requirement already used for Ratings — before it's
- * considered approved. Once both have signed off, the server emails the
- * uploaded file as an attachment to the Centre Head, the GG Campus Head of
- * Events, and the President (see /api/event-reports/[id]'s PATCH handler).
- */
-export interface EventReportItem {
-  id: string;
-  eventId: string;
-  eventTitle: string;
-  fileUrl?: string;
-  storageKey?: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  submittedBy: string;
-  submittedByEmail: string;
-  submittedAt: string;
-  centreHeadApproved: boolean;
-  centreHeadApprovedBy?: string;
-  centreHeadApprovedAt?: string;
-  eventsHeadGgApproved: boolean;
-  eventsHeadGgApprovedBy?: string;
-  eventsHeadGgApprovedAt?: string;
-  status: 'pending_review' | 'approved' | 'rejected';
-  rejectedBy?: string;
-  rejectedAt?: string;
-  rejectionReason?: string;
-  centreHeadComments?: string;
-  eventsHeadGgComments?: string;
-  reviewerComments?: string;
-  // Whether the final approved-attachment email actually went out — set by
-  // the server once both approvals land (see the honest-delivery-status
-  // precedent in account-activation.ts). A false value with emailError set
-  // means the report IS approved but nobody was actually emailed yet.
-  emailSent?: boolean;
-  emailError?: string;
-  // Report Writing rubric scores (see rating-criteria.ts's RATING_CRITERIA.
-  // reportWriting), entered by whichever of the Centre Head / GG Campus Head
-  // of Events reviews the report — same trust level as approving it. Feeds
-  // the decay-weighted Final Score on the Ratings page (report-scoring.ts).
-  reportScores?: Record<string, number>;
-  reportScore?: number;
-  scoredBy?: string;
-  scoredAt?: string;
-}
-
-/**
  * An ad-hoc, requester-picks-anyone sign-off request: "please approve this
- * Task/Committee/Event/Member for me" sent to one specific member, distinct
+ * Task/Event/Member for me" sent to one specific member, distinct
  * from the built-in Group Policy approval gates on TaskItem/EventItem/
- * EventCommittee/Member (approvalStatus/approverType/etc.), which only fire
+ * Member (approvalStatus/approverType/etc.), which only fire
  * for members whose sole grant for that action came from an
  * approval-required policy tag. This is a manual request any member can
- * raise on any task/committee/event/member they can see, addressed to any
+ * raise on any task/event/member they can see, addressed to any
  * other member of their choosing (typically the Centre Head or GG Campus
  * Events Head) — it never blocks or gates the underlying record, it's purely
  * a tracked ask-and-answer AFTER the thing already exists. This is what
@@ -883,13 +785,13 @@ export interface EventReportItem {
  */
 export interface ApprovalRequest {
   id: string;
-  entityType: 'task' | 'committee' | 'event' | 'member' | 'design' | 'event-report' | 'announcement' | 'procurement' | 'form' | 'event-pass' | 'proposal';
+  entityType: 'task' | 'event' | 'member' | 'design' | 'announcement' | 'form' | 'event-pass' | 'proposal';
   entityId: string;
   entityTitle: string;
   /** For 'event-pass' requests: what the requester wants to do (issue / edit / delete / dispatch) and the data needed to carry it out once approved. */
   action?: 'issue' | 'edit' | 'delete' | 'dispatch' | 'reissue';
   payload?: Record<string, unknown>;
-  // Set for 'task' (its parent event, if any) and 'committee' (its owning
+  // Set for 'task' (its parent event, if any)
   // event) so the UI can deep-link back to where the item actually lives.
   eventId?: string;
   requesterId: string;
@@ -951,11 +853,11 @@ export interface RatingItem {
   quarter?: string; // e.g. "2026-Q3"
   createdAt: string;
   updatedAt?: string;
-  // True ONLY on the master bookkeeping row a committee/group task's rating
-  // is originally submitted against (targetId/targetName is the committee's
+  // True ONLY on the master bookkeeping row a group task's rating
+  // is originally submitted against (targetId/targetName is the group's
   // or group's placeholder string, not a real person — see addRating below,
   // which immediately fans this out into one real per-member row each via
-  // propagateCommitteeRating/propagateGroupRating). This row is kept around
+  // propagateGroupRating). This row is kept around
   // so the app can detect "has this reviewer already scored this task" and
   // show a live running average in the Task Evaluation Queue, but it must
   // never be treated as if it were a real rated person: every place that
@@ -1035,52 +937,6 @@ export interface BudgetItem {
   decidedBy?: string;
   decidedAt?: string;
   decisionNotes?: string;
-}
-
-export interface ProcurementItemLine {
-  name: string;
-  quantity: number;
-  unit?: string;
-  notes?: string;
-}
-
-// A materials request any member can raise for an event or a task — approved
-// or rejected only by the Centre Head or the Advisor (see
-// permissions.ts's canDecideProcurementRequest), never the wider leadership
-// panel other modules use. Once Approved or Completed it's visible to
-// everybody; while Pending or Rejected it's visible only to the requester
-// and to whoever can decide it (see permissions.ts's canViewProcurementRequest).
-// 'Completed' is a distinct stage after 'Approved' — set once the items have
-// actually been procured/issued to the requester, by the same Centre
-// Head/Advisor gate (see permissions.ts's canDecideProcurementRequest).
-export interface ProcurementRequestItem {
-  id: string;
-  requesterId?: string;
-  requesterName: string;
-  requesterEmail: string;
-  eventId?: string;
-  eventName?: string;
-  taskId?: string;
-  taskTitle?: string;
-  items: ProcurementItemLine[];
-  justification?: string;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
-  decidedBy?: string;
-  decidedAt?: string;
-  decisionNotes?: string;
-  completedBy?: string;
-  completedAt?: string;
-  submittedAt: string;
-  // The correlated Task assigned to the Centre Head to procure the items
-  procurementTaskId?: string;
-  // Set server-side by /api/procurement-requests's POST handler once the
-  // Centre Head + Advisor approval email actually goes out.
-  approvalEmailSent?: boolean;
-  approvalEmailError?: string;
-  // Set server-side by /api/procurement-requests/[id]'s PATCH handler once
-  // the requester is emailed the decision.
-  decisionEmailSent?: boolean;
-  decisionEmailError?: string;
 }
 
 export interface IncomeSourceItem {
@@ -1177,7 +1033,6 @@ export interface PublicFormItem {
   /** How much the background picture is darkened, 0-80 (%). */
   backgroundDim?: number;
   fields: FormField[];
-  committee: string;
   createdBy: string;
   // Stamped by the server on creation (never trusted from the client). Training Associates can only see/edit the forms
   // they created, matched on createdById; createdByDivision routes their approvals (see approval-sync.ts).
@@ -1410,7 +1265,6 @@ export interface SystemSettings {
   lockdownEnabled: boolean;
   lockdownEnabledAt?: string;
   lockdownEnabledBy?: string;
-  dismissedAutoTaskIds?: string[];
   updatedAt?: string;
   updatedBy?: string;
 }
@@ -1418,7 +1272,6 @@ export interface SystemSettings {
 export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   id: 'default',
   lockdownEnabled: false,
-  dismissedAutoTaskIds: [],
 };
 
 export const initialSystemSettings: SystemSettings[] = [DEFAULT_SYSTEM_SETTINGS];
@@ -1474,7 +1327,7 @@ export interface GroupPolicy {
   // record itself is never deleted, so it's easy to see what expired and when.
   expiresAt?: string;
   // If set, restricts members matching this policy's targeting to seeing only
-  // events they created or are listed on a committee for, instead of the default
+  // events they created or have a task on, instead of the default
   // (unrestricted) visibility every member has today. Purely restrictive — never
   // grants visibility beyond the default, only narrows it for the targeted group.
   eventVisibilityScope?: 'OWN_ONLY';
@@ -2401,7 +2254,7 @@ export async function updateMemberCardPhoto(id: string, cardPhotoData: string, c
 
 /**
  * Revoke a member's dashboard access without deleting them — every historical
- * record (tasks, ratings, reimbursements, event committees, audit log) keeps
+ * record (tasks, ratings, reimbursements, audit log) keeps
  * referencing this member by id/name/email exactly as before, since none of
  * those are live foreign keys. Login is blocked server-side in /api/auth/login.
  */
@@ -2558,11 +2411,8 @@ export function getEvents(): EventItem[] {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      // Ensure committees array exists
-      return parsed.map((e: any) => ({
-        ...e,
-        committees: Array.isArray(e.committees) ? e.committees : []
-      }));
+      // Events no longer have committees — drop any left over from older data.
+      return parsed.map(({ committees: _legacyCommittees, ...e }: any) => e);
     } catch (e) {
       console.error(e);
     }
@@ -2652,12 +2502,11 @@ export function saveEvents(events: EventItem[]): void {
   // Individual mutations use targeted serverPost/serverPatch/serverDelete
 }
 
-export function addEvent(event: Omit<EventItem, 'id' | 'committees'> & { committees?: EventCommittee[] }): EventItem {
+export function addEvent(event: Omit<EventItem, 'id'>): EventItem {
   const events = getEvents();
   const newEvent: EventItem = {
     ...event,
     id: 'e_' + Date.now(),
-    committees: event.committees || []
   };
   events.unshift(newEvent);
   saveEvents(events);
@@ -2916,181 +2765,6 @@ export function getEffectiveEventStatus(event: EventItem, tasks?: TaskItem[]): E
   return event.status;
 }
 
-export function addEventCommittee(eventId: string, committeeName: string, actorName: string, initialMemberIds?: string[]): { event: EventItem; committee: EventCommittee } | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  // Unique id, generated here — callers that need the committee they just
-  // created must use the `committee` returned below, NOT re-look it up by
-  // name (nothing stops two committees on the same event sharing a name,
-  // and a name-based re-lookup after this call can silently resolve to the
-  // WRONG committee, corrupting which members a task/rating gets attached
-  // to — see the tasks/page.tsx caller this was fixed alongside).
-  const newComm: EventCommittee = {
-    id: 'comm_' + Date.now(),
-    name: committeeName,
-    memberIds: initialMemberIds ? [...initialMemberIds] : []
-  };
-  event.committees.push(newComm);
-  saveEvents(events);
-  // Committees are nested in event — patch the whole event object (full record,
-  // so a server-side upsert of a client-only sample event stays complete).
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_ADDED', actorName, `Added committee "${committeeName}" with ${newComm.memberIds.length} members to event "${event.title}"`);
-  return { event, committee: newComm };
-}
-
-export function updateEventCommitteeMembers(eventId: string, committeeId: string, memberIds: string[], actorName: string): EventItem | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  const comm = event.committees.find(c => c.id === committeeId);
-  if (!comm) return null;
-
-  comm.memberIds = memberIds;
-  saveEvents(events);
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_UPDATED', actorName, `Updated member assignments for committee "${comm.name}" in event "${event.title}"`);
-  return event;
-}
-
-/** Submit a new committee for sign-off instead of creating it immediately —
- *  used when the creator isn't Centre Head or GG Campus Head of Events (see
- *  isCommitteeApprover). The committee exists but is hidden from the normal
- *  roster/task-assignment flows until approved. */
-export function submitEventCommitteeCreate(eventId: string, committeeName: string, submittedBy: string, submittedByEmail: string, initialMemberIds?: string[]): EventItem | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  const newComm: EventCommittee = {
-    id: 'comm_' + Date.now(),
-    name: committeeName,
-    memberIds: [],
-    pendingMemberIds: initialMemberIds && initialMemberIds.length > 0 ? [...initialMemberIds] : undefined,
-    approvalStatus: 'pending_create',
-    submittedBy,
-    submittedByEmail,
-  };
-  event.committees.push(newComm);
-  saveEvents(events);
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_CREATE_SUBMITTED', submittedBy, `Submitted committee "${committeeName}" with ${initialMemberIds?.length || 0} proposed students for event "${event.title}" for approval`, submittedByEmail);
-  return event;
-}
-
-/** Submit a committee's student roster for sign-off instead of applying it
- *  immediately. The committee keeps showing its last-approved roster to
- *  everyone else until the change is approved (applied) or rejected
- *  (discarded, original roster stands). */
-export function submitEventCommitteeMembers(eventId: string, committeeId: string, memberIds: string[], submittedBy: string, submittedByEmail: string): EventItem | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  const comm = event.committees.find(c => c.id === committeeId);
-  if (!comm) return null;
-
-  comm.pendingMemberIds = memberIds;
-  comm.approvalStatus = 'pending_members';
-  comm.submittedBy = submittedBy;
-  comm.submittedByEmail = submittedByEmail;
-  saveEvents(events);
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_MEMBERS_SUBMITTED', submittedBy, `Submitted a roster update for committee "${comm.name}" in event "${event.title}" for approval`, submittedByEmail);
-  return event;
-}
-
-/** Approve a pending committee creation or roster update. For a roster
- *  update, applies the staged pendingMemberIds; for a creation, simply
- *  marks it approved (roster stays empty until members are assigned). */
-export function approveEventCommittee(eventId: string, committeeId: string, actorName: string): EventItem | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  const comm = event.committees.find(c => c.id === committeeId);
-  if (!comm) return null;
-
-  const isMembersUpdate = comm.approvalStatus === 'pending_members';
-  if (isMembersUpdate || (comm.approvalStatus === 'pending_create' && comm.pendingMemberIds && comm.pendingMemberIds.length > 0)) {
-    comm.memberIds = comm.pendingMemberIds || [];
-  }
-  comm.approvalStatus = 'approved';
-  comm.pendingMemberIds = undefined;
-  comm.decidedBy = actorName;
-  comm.decidedAt = new Date().toISOString();
-  saveEvents(events);
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_APPROVED', actorName, `Approved ${isMembersUpdate ? 'a roster update for' : 'the creation of'} committee "${comm.name}" in event "${event.title}"`);
-  return event;
-}
-
-/** Reject a pending committee creation or roster update. A rejected
- *  creation is removed outright (an empty, permanently-rejected committee
- *  has no audit value worth keeping). A rejected roster update simply
- *  reverts to 'approved' — the original roster stands, nothing is lost. */
-export function rejectEventCommittee(eventId: string, committeeId: string, actorName: string, reason?: string): EventItem | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  const comm = event.committees.find(c => c.id === committeeId);
-  if (!comm) return null;
-
-  if (comm.approvalStatus === 'pending_create') {
-    event.committees = event.committees.filter(c => c.id !== committeeId);
-    saveEvents(events);
-    serverPatch('/api/events', eventId, event);
-    logAuditEvent('EVENT_COMMITTEE_REJECTED', actorName, `Rejected the creation of committee "${comm.name}" in event "${event.title}"${reason ? `: ${reason}` : ''}`);
-    return event;
-  }
-
-  comm.approvalStatus = 'approved';
-  comm.pendingMemberIds = undefined;
-  comm.decidedBy = actorName;
-  comm.decidedAt = new Date().toISOString();
-  comm.rejectionReason = reason;
-  saveEvents(events);
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_REJECTED', actorName, `Rejected a roster update for committee "${comm.name}" in event "${event.title}"${reason ? `: ${reason}` : ''}`);
-  return event;
-}
-
-export function deleteEventCommittee(eventId: string, committeeId: string, actorName: string): EventItem | null {
-  const events = getEvents();
-  const event = events.find(e => e.id === eventId);
-  if (!event) return null;
-
-  event.committees = event.committees.filter(c => c.id !== committeeId);
-  saveEvents(events);
-  serverPatch('/api/events', eventId, event);
-  logAuditEvent('EVENT_COMMITTEE_DELETED', actorName, `Removed committee from event "${event.title}"`);
-  return event;
-}
-
-export function getEventCommittees(eventId?: string): EventCommittee[] {
-  const events = getEvents();
-  if (eventId) {
-    const event = events.find(e => e.id === eventId);
-    return event?.committees || [];
-  }
-  return events.flatMap(e => e.committees || []);
-}
-
-export function getCommittees(eventId?: string): string[] {
-  const committees = getEventCommittees(eventId);
-  const names = new Set<string>();
-  committees.forEach(c => {
-    if (c.name) names.add(c.name);
-  });
-  if (names.size === 0) {
-    return ['Logistics & Venue Committee', 'Technical & AV Committee', 'Design & Media Committee'];
-  }
-  return Array.from(names);
-}
 
 // -------------------------------------------------------------
 // Event Passes & Tickets (On-the-spot manual issuance + QR check-in)
@@ -3663,211 +3337,8 @@ export function updateEventPassEmailStatus(
 }
 
 // -------------------------------------------------------------
-// Event Reports (General Secretary submission -> dual approval -> email)
-// -------------------------------------------------------------
-
-export function getEventReports(): EventReportItem[] {
-  if (typeof window === 'undefined') return [];
-  const saved = localStorage.getItem('rtbi_event_reports');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) return parsed;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return [];
-}
-
-export function saveEventReports(reports: EventReportItem[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('rtbi_event_reports', JSON.stringify(reports));
-  markLocalWrite('rtbi_event_reports');
-}
-
-/** Submit a finished report file for an event. POSTs first so the server
- *  writes the file to disk and returns fileUrl/storageKey, matching the
- *  addDesign/addGuest upload pattern. */
-export async function addEventReport(
-  report: {
-    eventId: string;
-    eventTitle: string;
-    fileData: string;
-    fileName: string;
-    fileSize: number;
-    fileType: string;
-    submittedBy: string;
-    submittedByEmail: string;
-  },
-  onProgress?: UploadProgressCallback
-): Promise<EventReportItem> {
-  if (report.fileSize > 25 * 1024 * 1024) {
-    throw new Error('File size exceeds the 25 MB limit.');
-  }
-
-  const newReport = {
-    id: 'evrep_' + Date.now(),
-    eventId: report.eventId,
-    eventTitle: report.eventTitle,
-    fileData: report.fileData,
-    fileName: report.fileName,
-    fileSize: report.fileSize,
-    fileType: report.fileType,
-    submittedBy: report.submittedBy,
-    submittedByEmail: report.submittedByEmail,
-    submittedAt: new Date().toISOString(),
-    centreHeadApproved: false,
-    eventsHeadGgApproved: false,
-    status: 'pending_review' as const,
-  };
-
-  const serverResult = await serverPost('/api/event-reports', newReport, onProgress);
-  if (!serverResult) {
-    throw new Error('The report failed to upload to the server. Please check your connection and try again.');
-  }
-
-  const created: EventReportItem = { ...newReport, ...serverResult };
-  delete (created as any).fileData;
-
-  const current = getEventReports();
-  current.unshift(created);
-  saveEventReports(current);
-  logAuditEvent('EVENT_REPORT_SUBMITTED', report.submittedBy, `Submitted event report for "${report.eventTitle}"`, report.submittedByEmail);
-
-  return created;
-}
-
-/** Replace the file on a rejected report and put it back up for review,
- *  resetting both approvals -- mirrors updateDesignFile's re-submission
- *  pattern. */
-export async function resubmitEventReport(
-  id: string,
-  fileData: string,
-  fileName: string,
-  fileSize: number,
-  fileType: string,
-  actorName: string,
-  onProgress?: UploadProgressCallback
-): Promise<EventReportItem | null> {
-  if (fileSize > 25 * 1024 * 1024) {
-    throw new Error('File size exceeds the 25 MB limit.');
-  }
-
-  const serverResult = await serverPatch('/api/event-reports', id, {
-    fileData,
-    fileName,
-    fileSize,
-    fileType,
-    status: 'pending_review',
-    centreHeadApproved: false,
-    centreHeadApprovedBy: undefined,
-    centreHeadApprovedAt: undefined,
-    eventsHeadGgApproved: false,
-    eventsHeadGgApprovedBy: undefined,
-    eventsHeadGgApprovedAt: undefined,
-    rejectedBy: undefined,
-    rejectedAt: undefined,
-    rejectionReason: undefined,
-    emailSent: undefined,
-    emailError: undefined,
-  }, onProgress);
-  if (!serverResult) return null;
-
-  const current = getEventReports();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    current[idx] = { ...current[idx], ...serverResult };
-    saveEventReports(current);
-  }
-  logAuditEvent('EVENT_REPORT_RESUBMITTED', actorName, `Resubmitted event report "${serverResult.eventTitle || ''}"`);
-  return current[idx] || null;
-}
-
-/** Approve a report as Centre Head or GG Campus Head of Events. Both are
- *  required before the server marks it fully approved and emails the
- *  attachment -- see /api/event-reports/[id]'s PATCH handler. */
-export async function approveEventReport(id: string, as: 'centre_head' | 'gg_events_head', actorName: string, comments?: string): Promise<EventReportItem | null> {
-  const patch: any = as === 'centre_head'
-    ? { centreHeadApproved: true, centreHeadApprovedBy: actorName, centreHeadApprovedAt: new Date().toISOString(), centreHeadComments: comments, reviewerComments: comments }
-    : { eventsHeadGgApproved: true, eventsHeadGgApprovedBy: actorName, eventsHeadGgApprovedAt: new Date().toISOString(), eventsHeadGgComments: comments, reviewerComments: comments };
-
-  const serverResult = await serverPatch('/api/event-reports', id, patch);
-  if (!serverResult) return null;
-
-  const current = getEventReports();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    current[idx] = { ...current[idx], ...serverResult };
-    saveEventReports(current);
-  }
-  if (serverResult.status === 'approved' || serverResult.status === 'Approved') {
-    markApprovalRequestsDecided('event-report', id, 'approved', actorName, comments);
-  }
-  logAuditEvent('EVENT_REPORT_APPROVED', actorName, `${as === 'centre_head' ? 'Centre Head' : 'GG Campus Head of Events'} approved event report "${serverResult.eventTitle || ''}"${serverResult.status === 'approved' ? ' -- now fully approved' : ''}`);
-  return current[idx] || null;
-}
-
-/** Score a report against the Report Writing rubric (Clarity, Flow/Structure,
- *  Timeliness of Submission, Number of Errors, Geotagged Photos & Pictures — see rating-criteria.ts). Either
- *  reviewer (Centre Head or GG Campus Head of Events) can enter or edit the
- *  score, same trust level as approving the report. Feeds the decay-weighted
- *  Final Score leaderboard on the Ratings page (report-scoring.ts). */
-export async function scoreEventReport(id: string, reportScores: Record<string, number>, actorName: string): Promise<EventReportItem | null> {
-  const patch = {
-    reportScores,
-    reportScore: averageScore(reportScores),
-    scoredBy: actorName,
-    scoredAt: new Date().toISOString(),
-  };
-
-  const serverResult = await serverPatch('/api/event-reports', id, patch);
-  if (!serverResult) return null;
-
-  const current = getEventReports();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    current[idx] = { ...current[idx], ...serverResult };
-    saveEventReports(current);
-  }
-  logAuditEvent('EVENT_REPORT_SCORED', actorName, `Scored event report "${serverResult.eventTitle || ''}" ${patch.reportScore}/5.0 on the Report Writing rubric`);
-  return current[idx] || null;
-}
-
-export async function rejectEventReport(id: string, actorName: string, reason?: string): Promise<EventReportItem | null> {
-  const serverResult = await serverPatch('/api/event-reports', id, {
-    status: 'rejected',
-    rejectedBy: actorName,
-    rejectedAt: new Date().toISOString(),
-    rejectionReason: reason,
-  });
-  if (!serverResult) return null;
-
-  const current = getEventReports();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    current[idx] = { ...current[idx], ...serverResult };
-    saveEventReports(current);
-  }
-  markApprovalRequestsDecided('event-report', id, 'rejected', actorName, reason);
-  logAuditEvent('EVENT_REPORT_REJECTED', actorName, `Rejected event report "${serverResult.eventTitle || ''}"${reason ? `: ${reason}` : ''}`);
-  return current[idx] || null;
-}
-
-export async function deleteEventReport(id: string, actorName: string): Promise<boolean> {
-  const target = getEventReports().find(r => r.id === id);
-  const ok = await serverDelete('/api/event-reports', id);
-  if (ok) {
-    saveEventReports(getEventReports().filter(r => r.id !== id));
-    removeApprovalRequestsForEntity('event-report', id);
-    logAuditEvent('EVENT_REPORT_DELETED', actorName, `Deleted event report${target ? ` for "${target.eventTitle}"` : ''}`);
-  }
-  return ok;
-}
-
-// -------------------------------------------------------------
 // Manual Approval Requests (ask a specific member to approve a
-// task/committee/event)
+// task/event)
 // -------------------------------------------------------------
 
 export function getApprovalRequests(): ApprovalRequest[] {
@@ -3902,7 +3373,7 @@ export function removeApprovalRequestsForEntity(entityType: ApprovalRequest['ent
   }
 }
 
-/** Ask a specific member to approve a task/committee/event. Purely a tracked
+/** Ask a specific member to approve a task/event. Purely a tracked
  *  ask-and-answer — never gates or blocks the underlying record. */
 export function requestApproval(input: {
   entityType: ApprovalRequest['entityType'];
@@ -4168,7 +3639,7 @@ export function addTask(task: Omit<TaskItem, 'id' | 'status'> & { status?: TaskI
   const tasks = getTasks();
 
   // Creating the task with a specific-member review requirement already
-  // (e.g. a Super User assigning a committee task who also wants a chosen
+  // (e.g. a Super User assigning a task who also wants a chosen
   // reviewer to sign off first) — start the delegation trail right away.
   const trail: TaskDelegationEvent[] = [...(task.delegationTrail || [])];
   if (task.approvalStatus === 'pending_create' && task.approverType === 'SPECIFIC_MEMBER' && task.approverMemberId) {
@@ -4210,11 +3681,6 @@ export function updateTask(id: string, updates: Partial<TaskItem>, actorName: st
     delete updates.status;
   }
 
-  // An event report request can only be completed by uploading the report
-  if (updates.status === 'Completed' && previousStatus !== 'Completed' && getEventReportCompletionBlocker(tasks[idx])) {
-    delete updates.status;
-  }
-
   tasks[idx] = { ...tasks[idx], ...updates };
   if (updates.status === 'Completed' && previousStatus !== 'Completed') {
     tasks[idx].completedAt = new Date().toISOString();
@@ -4222,63 +3688,11 @@ export function updateTask(id: string, updates: Partial<TaskItem>, actorName: st
     delete tasks[idx].completedAt;
   }
 
-  // Chain reaction: the moment the Centre Head / Advisor / GG Campus Events
-  // Head's "who should prepare this report" assignment task is delegated to
-  // a specific student and that delegation is approved, the task converts in
-  // place into the real "submit the event report" request for that student
-  // — see spawnEventReportRequestTask below for how the assignment task
-  // itself gets created, and delegateAutoTask for how it's handed off.
-  if (
-    updates.approvalStatus === 'approved' &&
-    previousApprovalStatus === 'pending_edit' &&
-    tasks[idx].workflowType === 'event_report_assignment'
-  ) {
-    tasks[idx] = {
-      ...tasks[idx],
-      workflowType: 'event_report_request',
-      title: `Submit event report for "${tasks[idx].event || 'the event'}"`,
-    };
-  }
-
   saveTasks(tasks);
   // Send the full merged task, not just the diff, so a server-side upsert (a
   // client-only sample task that was never POSTed) creates a complete record.
   serverPatch('/api/tasks', id, tasks[idx]);
   logAuditEvent('TASK_UPDATED', actorName, `Updated task: ${tasks[idx].title}`);
-
-  // Chain reaction: the moment the event-lapse social media task is marked
-  // Completed, auto-generate the follow-on "who should prepare the report"
-  // assignment task for the Centre Head / Advisor / GG Campus Events Head —
-  // see spawnEventReportRequestTask below.
-  if (
-    updates.status === 'Completed' &&
-    previousStatus !== 'Completed' &&
-    tasks[idx].workflowType === 'event_social_post' &&
-    tasks[idx].eventId
-  ) {
-    spawnEventReportRequestTask(tasks[idx].eventId!, tasks[idx].event, actorName);
-  }
-
-  // Bi-directional completion: if a procurement task is marked Completed, mark the corresponding procurement request Completed
-  if (
-    updates.status === 'Completed' &&
-    previousStatus !== 'Completed' &&
-    (tasks[idx].workflowType === 'procurement' || tasks[idx].procurementId || tasks[idx].isProcurement)
-  ) {
-    const procId = tasks[idx].procurementId || tasks[idx].id.replace(/^task_procurement_/, '');
-    const procRequests = getProcurementRequests();
-    const reqIdx = procRequests.findIndex(r => r.id === procId || r.procurementTaskId === tasks[idx].id);
-    if (reqIdx !== -1 && procRequests[reqIdx].status !== 'Completed') {
-      procRequests[reqIdx] = {
-        ...procRequests[reqIdx],
-        status: 'Completed',
-        completedBy: actorName,
-        completedAt: new Date().toISOString(),
-      };
-      saveProcurementRequests(procRequests);
-      serverPatch('/api/procurement-requests', procRequests[reqIdx].id, procRequests[reqIdx]);
-    }
-  }
 
   // Bi-directional completion: if a design_social_posting task is marked Completed, mark the corresponding design posting completed
   if (
@@ -4299,65 +3713,6 @@ export function updateTask(id: string, updates: Partial<TaskItem>, actorName: st
   }
 
   return tasks[idx];
-}
-
-/**
- * Auto-creates the "event report for this event: who should prepare it?"
- * task for the Centre Head / Advisor / GG Campus Events Head the moment the
- * corresponding event_social_post task is completed — see updateTask above.
- * Whichever of them acts uses the existing delegateAutoTask reassignment
- * flow to hand this off to the student who should write the report; once
- * that delegation is approved, updateTask's chain reaction above converts
- * this same task record into the real 'event_report_request' now assigned to
- * that student. Deterministic id keyed off the event, so a second completion
- * (e.g. re-marking the same task Completed) never double-creates it.
- */
-function spawnEventReportRequestTask(eventId: string, eventTitle: string | undefined, actorName: string): void {
-  const id = 'task_event_report_' + eventId;
-  const tasks = getTasks();
-  if (tasks.some(t => t.id === id)) return;
-
-  const members = getMembers().filter(m => m.status !== 'Terminated');
-  const centreHead = members.find(m => {
-    const role = (m.role || '').toLowerCase();
-    return m.tier <= 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
-  }) || members.find(m => m.tier === 1);
-  const advisor = members.find(m => /\badvisor\b/.test((m.role || '').toLowerCase()));
-  const eventsHeadGg = members.find(m => {
-    const role = (m.role || '').toLowerCase();
-    if (role.includes('finance')) return false;
-    return m.tier === 2.5 || (role.includes('events head') && role.includes('gg')) || (role.includes('head of events') && role.includes('gg'));
-  });
-
-  const seen = new Set<string>();
-  let pool = [centreHead, advisor, eventsHeadGg].filter((m): m is Member => !!m).filter(m => {
-    if (seen.has(m.id)) return false;
-    seen.add(m.id);
-    return true;
-  });
-  // Never leave the task with no one able to see/answer it.
-  if (pool.length === 0) pool = members.filter(m => m.tier <= 2);
-
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 3);
-
-  const newTask: TaskItem = {
-    id,
-    title: `Event report for "${eventTitle || 'the event'}": who would you like to allot this task to?`,
-    event: eventTitle,
-    eventId,
-    assignee: pool.map(m => m.name).join(', ') || 'Centre Head',
-    assigneeType: 'group',
-    assigneeIds: pool.map(m => m.id),
-    dueDate: dueDate.toISOString().slice(0, 10),
-    status: 'Assigned',
-    creatorName: 'Event Scheduler',
-    workflowType: 'event_report_assignment',
-  };
-  const next = [newTask, ...tasks];
-  saveTasks(next);
-  serverPost('/api/tasks', newTask);
-  logAuditEvent('EVENT_REPORT_TASK_CREATED', actorName, `Asked the Centre Head, Advisor, and GG Campus Events Head who should prepare the event report for "${eventTitle}"`);
 }
 
 /**
@@ -4429,24 +3784,7 @@ export function allotSocialMediaTask(
   return updated;
 }
 
-export const EVENT_REPORT_UPLOAD_REQUIRED_MESSAGE =
-  'Upload the event report (Event Reports module) to complete this task — it can\'t be marked completed any other way.';
-
-/**
- * An "Event Report Request" task is only done once the report itself has been uploaded for that event, so it can't be
- * marked Completed by hand. Uploading the report completes it automatically (see the event-reports page). A rejected
- * report doesn't count — it has to be re-uploaded. Returns the message to show, or null when completing is allowed.
- */
-export function getEventReportCompletionBlocker(task: Pick<TaskItem, 'workflowType' | 'eventId'> | undefined | null): string | null {
-  if (!task || task.workflowType !== 'event_report_request') return null;
-  const hasReport = !!task.eventId && getEventReports().some(r => r.eventId === task.eventId && r.status !== 'rejected');
-  return hasReport ? null : EVENT_REPORT_UPLOAD_REQUIRED_MESSAGE;
-}
-
 export function updateTaskStatus(id: string, status: TaskItem['status'], actorName?: string): TaskItem | null {
-  if (status === 'Completed' && getEventReportCompletionBlocker(getTasks().find(t => t.id === id))) {
-    return getTasks().find(t => t.id === id) || null;
-  }
   registerOptimisticTaskUpdate(id, { status });
   return updateTask(id, { status }, actorName || 'User');
 }
@@ -4459,10 +3797,6 @@ export async function updateTaskStatusAsync(
   const tasks = getTasks();
   const idx = tasks.findIndex(t => t.id === id);
   if (idx === -1) return { success: false, error: 'Task not found' };
-  if (status === 'Completed') {
-    const blocker = getEventReportCompletionBlocker(tasks[idx]);
-    if (blocker) return { success: false, error: blocker };
-  }
 
   const previousTask = { ...tasks[idx] };
   const previousStatus = previousTask.status;
@@ -4502,13 +3836,6 @@ export async function updateTaskStatusAsync(
     }
 
     logAuditEvent('TASK_STATUS_CHANGED', actorName, `Marked task "${previousTask.title}" as ${status}`);
-
-    // If marked Completed and it was a social media post task, spawn follow-on event report request task
-    if (status === 'Completed' && previousStatus !== 'Completed') {
-      if (previousTask.workflowType === 'event_social_post' && previousTask.eventId) {
-        spawnEventReportRequestTask(previousTask.eventId, previousTask.event, actorName);
-      }
-    }
 
     return { success: true, task: currentTasks[currIdx] || optimisticTask };
   } catch (err: any) {
@@ -4580,23 +3907,6 @@ export function respondToHolidayApproval(taskId: string, approved: boolean, acto
   return getTasks().find(t => t.id === taskId) || null;
 }
 
-// Workflow types the schedulers (holiday-scheduler.ts / event-social-scheduler.ts)
-// recreate deterministically for an event on every boot/weekly/daily catch-up
-// run. Keep this in sync with AUTO_RECREATED_WORKFLOWS in
-// src/app/api/tasks/[id]/route.ts — both gate the same "don't resurrect a
-// deliberately deleted auto-task" bookkeeping, which must never apply to a
-// manually created task (e.g. a Design Portal brief) that simply references
-// an eventId.
-const AUTO_RECREATED_WORKFLOW_TYPES = new Set([
-  'holiday_social_approval',
-  'holiday_design_social',
-  'event_social_post',
-  'event_poster_request',
-  'event_report_request',
-  'event_report_assignment',
-  'procurement',
-]);
-
 export function deleteTask(id: string, actorName: string): boolean {
   const tasks = getTasks();
   const target = tasks.find(t => t.id === id);
@@ -4610,66 +3920,6 @@ export function deleteTask(id: string, actorName: string): boolean {
   // if there is not any task, then it makes no sense that there would be a rating for said task.
   const remainingRatings = getRatings().filter(r => r.taskId !== id);
   saveRatings(remainingRatings);
-
-  // Record dismissed auto-task in systemSettings so it is never recreated or resurrected.
-  // Strictly gated on AUTO_RECREATED_WORKFLOW_TYPES: this bookkeeping exists only
-  // so scheduler-generated tasks (holiday/event social posts, poster requests,
-  // report requests, procurement) don't resurrect themselves on the next
-  // scheduler pass. It must never fire for a manually created task that merely
-  // references an eventId — e.g. a Design Portal brief with a Canva link —
-  // because ensureHolidaysAndRatingsCleaned purges every task whose eventId is
-  // dismissed here, and that would wipe out unrelated, unsubmitted design tasks
-  // for the same event on the next server restart.
-  const isAutoRecreatedTask =
-    (target.workflowType && AUTO_RECREATED_WORKFLOW_TYPES.has(target.workflowType)) ||
-    id.startsWith('task_event_') ||
-    id.startsWith('task_holiday_');
-
-  if (isAutoRecreatedTask && target.eventId) {
-    const settings = getSystemSettings();
-    const dismissedIds = new Set(settings.dismissedAutoTaskIds || []);
-    dismissedIds.add(id);
-    dismissedIds.add(target.eventId);
-    if (target.workflowType) {
-      dismissedIds.add(`${target.workflowType}_${target.eventId}`);
-    }
-    saveSystemSettings({
-      ...settings,
-      dismissedAutoTaskIds: Array.from(dismissedIds),
-    });
-  }
-
-  // Direct correlation: if this task is tied to an event, mark dismissal flags on the event
-  if (isAutoRecreatedTask && (target.eventId || target.event)) {
-    const events = getEvents();
-    let eventsChanged = false;
-    const nextEvents = events.map(e => {
-      const match = (target.eventId && (e.id === target.eventId || e.id.includes(target.eventId) || target.eventId.includes(e.id))) ||
-        (target.event && e.title?.toLowerCase() === target.event.toLowerCase());
-      if (!match) return e;
-
-      eventsChanged = true;
-      const dismissedTypes = new Set(e.dismissedAutoTaskTypes || []);
-      if (target.workflowType) dismissedTypes.add(target.workflowType);
-      const isPoster = target.workflowType === 'event_poster_request' || id.startsWith('task_event_poster_');
-      const isSocial =
-        target.workflowType === 'event_social_post' ||
-        target.workflowType === 'holiday_social_approval' ||
-        target.workflowType === 'holiday_design_social' ||
-        id.startsWith('task_event_social_') ||
-        id.startsWith('task_holiday_');
-
-      return {
-        ...e,
-        posterTaskDismissed: isPoster ? true : e.posterTaskDismissed,
-        socialTaskDismissed: isSocial ? true : e.socialTaskDismissed,
-        dismissedAutoTaskTypes: Array.from(dismissedTypes),
-      };
-    });
-    if (eventsChanged) {
-      saveEvents(nextEvents);
-    }
-  }
 
   serverDelete('/api/tasks', id);
   logAuditEvent('TASK_DELETED', actorName, `Deleted task: ${target.title}`);
@@ -4782,7 +4032,7 @@ export function rejectTask(id: string, actorName: string, reason?: string): Task
 
 export function canViewTask(
   task: TaskItem, 
-  user: { id?: string; name: string; email: string; tier: number; division?: string; committee?: string; role?: string } | null
+  user: { id?: string; name: string; email: string; tier: number; division?: string; role?: string } | null
 ): boolean {
   if (!user) return false;
   // Tier 1-3 (Super User, Centre Head, Head of Events): see all tasks
@@ -4794,30 +4044,6 @@ export function canViewTask(
   const role = ((user as any)?.role || '').toLowerCase();
   if (role.includes('president') || role.includes('vice president') || role.includes('chief coordinator')) return true;
 
-  if (task.assigneeType === 'committee') {
-    // Check if user's legacy committee field matches committee name
-    if (user.committee && (
-      user.committee.toLowerCase() === (task.assignee || '').toLowerCase() ||
-      user.committee.toLowerCase() === (task.eventCommitteeName || '').toLowerCase()
-    )) {
-      return true;
-    }
-
-    // Check if user's member ID is assigned to the event committee
-    const memberId = user.id || getMembers().find(m => m.email.toLowerCase() === user.email.toLowerCase())?.id;
-    if (memberId) {
-      const events = getEvents();
-      const targetEvents = task.eventId ? events.filter(e => e.id === task.eventId) : events;
-      const isMember = targetEvents.some(e =>
-        e.committees.some(c =>
-          (c.id === task.eventCommitteeId || c.name.toLowerCase() === (task.assignee || '').toLowerCase()) &&
-          (c.memberIds.includes(memberId) || c.leadMemberId === memberId)
-        )
-      );
-      if (isMember) return true;
-    }
-    return false;
-  }
 
   // Tier 5-6 (Core Committee, Training Associate): see their assigned individual
   // tasks, or a group task (assigneeType 'group') they're one of the members of.
@@ -4832,7 +4058,7 @@ export function canViewTask(
 
 /**
  * True only if `user` IS the task's assignee — the individual assignee, or a
- * member of the assigned committee/group. Unlike canViewTask, this grants no
+ * member of the assigned group. Unlike canViewTask, this grants no
  * broad read-only visibility to leadership/Advisory Board/Executive roles —
  * it's used to gate ACTING on a task (acknowledge/complete it), not just
  * seeing it. See permissions.ts's canChangeTaskStatus, which additionally
@@ -4846,17 +4072,6 @@ export function isTaskAssignee(
   if (!user) return false;
   const memberId = user.id || getMembers().find(m => m.email.toLowerCase() === user.email.toLowerCase())?.id;
 
-  if (task.assigneeType === 'committee') {
-    if (!memberId) return false;
-    const events = getEvents();
-    const targetEvents = task.eventId ? events.filter(e => e.id === task.eventId) : events;
-    return targetEvents.some(e =>
-      e.committees.some(c =>
-        (c.id === task.eventCommitteeId || c.name.toLowerCase() === (task.assignee || '').toLowerCase()) &&
-        (c.memberIds.includes(memberId) || c.leadMemberId === memberId)
-      )
-    );
-  }
 
   return Boolean(
     (task.assignee && task.assignee.toLowerCase() === user.name.toLowerCase()) ||
@@ -4869,7 +4084,7 @@ export function isTaskAssignee(
 /**
  * Whether `user` has personally acknowledged this task already — distinct
  * from isTaskAssignee (are they allotted to it at all). For a group or
- * committee task, each assignee's acknowledgment is tracked independently
+ * group task, each assignee's acknowledgment is tracked independently
  * in acknowledgedByIds, so one member acknowledging never makes this true
  * for the others.
  */
@@ -4892,7 +4107,7 @@ export interface TaskAssigneeStatus {
 
 /**
  * Returns the individual acknowledgment statuses for all members allotted
- * to a task (individual, group, or committee). Each member's status is
+ * to a task (individual or group). Each member's status is
  * tracked independently so group assignments show clearly who has already
  * acknowledged and who is still pending.
  */
@@ -4936,32 +4151,6 @@ export function getTaskAssigneeStatuses(
     });
   }
 
-  // Committee task tied to an event
-  if (task.assigneeType === 'committee') {
-    const event = events.find(e => e.id === task.eventId || (task.event && e.title.toLowerCase() === task.event.toLowerCase()));
-    const committee = event?.committees?.find(c =>
-      (task.eventCommitteeId && c.id === task.eventCommitteeId) ||
-      c.name.toLowerCase() === (task.eventCommitteeName || task.assignee || '').toLowerCase()
-    );
-    if (committee) {
-      const cMemberIds = Array.from(new Set([...(committee.memberIds || []), committee.leadMemberId].filter(Boolean) as string[]));
-      if (cMemberIds.length > 0) {
-        return cMemberIds.map(id => {
-          const m = byId.get(id);
-          const isLead = id === committee.leadMemberId;
-          const baseName = m ? m.name : id;
-          const name = isLead ? `${baseName} (Lead)` : baseName;
-          return {
-            id,
-            name,
-            email: m?.email,
-            acknowledged: checkAck(id, m?.email, baseName),
-            isFaculty: checkIsFaculty(m, baseName),
-          };
-        });
-      }
-    }
-  }
 
   // Fallback: If assignee string contains multiple names (e.g. "3 students: Alice, Bob, Charlie")
   if (task.assigneeType === 'group' || (task.assignee && (task.assignee.includes(',') || task.assignee.includes('&')))) {
@@ -5079,26 +4268,26 @@ export function saveRatings(ratings: RatingItem[]): void {
  * SUPER_USER, CENTRE_HEAD, ADVISOR, and GG_HEAD reviews (see
  * permissions.ts's resolveRatingReviewerRole) for the given targetId (the
  * parent rating's target — the actual assignee for an individual task, or
- * the committee/group identifier for a fan-out task). The score is the live average
+ * the group identifier for a fan-out task). The score is the live average
  * of whichever reviewers have submitted so far.
  */
-function isCommitteeReviewerRole(role?: string): boolean {
+function isReviewerRole(role?: string): boolean {
   return role === 'SUPER_USER' || role === 'CENTRE_HEAD' || role === 'ADVISOR' || role === 'GG_HEAD';
 }
 
 function recomputeTaskAggregateScore(taskId: string, targetId: string, actorName: string): void {
   const task = getTasks().find(t => t.id === taskId);
-  const isFanOutTask = !!task && (task.assigneeType === 'committee' || !!task.eventCommitteeId || task.assigneeType === 'group');
+  const isFanOutTask = !!task && task.assigneeType === 'group';
   if (isFanOutTask) {
-    // A committee/group's score is the average of its members' own ratings
+    // A group's score is the average of its members' own ratings
     // (the per-student rows), so students rated individually count at their
     // own score. Falls back to the bookkeeping row if nothing fanned out.
-    const rows = getRatings().filter(r => r.taskId === taskId && isCommitteeReviewerRole(r.reviewerRole));
+    const rows = getRatings().filter(r => r.taskId === taskId && isReviewerRole(r.reviewerRole));
     const perStudent = rows.filter(r => !r.isGroupPlaceholder);
     const basis = perStudent.length > 0 ? perStudent : rows;
     if (basis.length === 0) return;
-    const committeeAvg = parseFloat((basis.reduce((sum, r) => sum + r.overallScore, 0) / basis.length).toFixed(2));
-    updateTask(taskId, { ratingScore: committeeAvg, ratedAt: new Date().toISOString().split('T')[0] }, actorName);
+    const groupAvg = parseFloat((basis.reduce((sum, r) => sum + r.overallScore, 0) / basis.length).toFixed(2));
+    updateTask(taskId, { ratingScore: groupAvg, ratedAt: new Date().toISOString().split('T')[0] }, actorName);
     return;
   }
   const relevant = getRatings().filter(
@@ -5114,94 +4303,8 @@ function recomputeTaskAggregateScore(taskId: string, targetId: string, actorName
   updateTask(taskId, { ratingScore: avg, ratedAt: new Date().toISOString().split('T')[0] }, actorName);
 }
 
-function propagateCommitteeRating(task: TaskItem, parentRating: RatingItem): void {
-  const events = getEvents();
-  const event = events.find(e => e.id === task.eventId || e.title === task.event);
-  if (!event) {
-    console.warn(`[propagateCommitteeRating] No linked event found for committee task "${task.title}" — no student ratings were created.`);
-    return;
-  }
-
-  const committee = (event.committees || []).find(
-    c => c.id === task.eventCommitteeId || c.name.toLowerCase() === task.assignee.toLowerCase()
-  );
-  if (!committee || !committee.memberIds || committee.memberIds.length === 0) {
-    console.warn(`[propagateCommitteeRating] No matching committee with members found for task "${task.title}" (eventCommitteeId: ${task.eventCommitteeId || 'unset'}) — no student ratings were created.`);
-    return;
-  }
-
-  const members = getMembers();
-  const ratings = getRatings();
-  let updated = false;
-
-  committee.memberIds.forEach(mId => {
-    const memberObj = members.find(m => m.id === mId || m.name.toLowerCase() === mId.toLowerCase());
-    if (!memberObj) return;
-    if (isFacultyMember(memberObj)) return;
-    if (isSocialMediaPostTask(task) && !isSocialMediaTeamMember(memberObj)) return;
-
-    // Scoped to the SAME reviewer role: a second reviewer (e.g. the GG Head,
-    // fanning out after the Centre Head already rated this committee) must
-    // still get their own row per member, not be silently skipped because
-    // the Centre Head's rows already exist. If this exact reviewer already
-    // rated this member for this task, update their existing row in place
-    // (matches the "re-review edits your own score" rule) instead of adding
-    // a duplicate.
-    const existingIdx = ratings.findIndex(
-      r => r.taskId === task.id && (r.targetId === memberObj.id || r.targetName.toLowerCase() === memberObj.name.toLowerCase()) && r.reviewerRole === parentRating.reviewerRole
-    );
-
-    if (existingIdx !== -1) {
-      ratings[existingIdx] = {
-        ...ratings[existingIdx],
-        criteriaSet: parentRating.criteriaSet,
-        scores: parentRating.scores,
-        quality: parentRating.quality,
-        timeliness: parentRating.timeliness,
-        initiative: parentRating.initiative,
-        collaboration: parentRating.collaboration,
-        overallScore: parentRating.overallScore,
-        notes: `[Committee Evaluation: ${committee.name}] ${parentRating.notes || ''}`.trim(),
-        updatedAt: new Date().toISOString().split('T')[0],
-      };
-      serverPatch('/api/ratings', ratings[existingIdx].id, ratings[existingIdx]);
-      updated = true;
-      return;
-    }
-
-    const studentRating: RatingItem = {
-      id: 'r_comm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-      taskId: task.id,
-      taskTitle: task.title,
-      eventId: task.eventId,
-      eventName: task.event,
-      targetId: memberObj.id,
-      targetName: memberObj.name,
-      raterName: parentRating.raterName,
-      reviewerRole: parentRating.reviewerRole,
-      criteriaSet: parentRating.criteriaSet,
-      scores: parentRating.scores,
-      quality: parentRating.quality,
-      timeliness: parentRating.timeliness,
-      initiative: parentRating.initiative,
-      collaboration: parentRating.collaboration,
-      overallScore: parentRating.overallScore,
-      notes: `[Committee Evaluation: ${committee.name}] ${parentRating.notes || ''}`.trim(),
-      createdAt: parentRating.createdAt
-    };
-    ratings.unshift(studentRating);
-    serverPost('/api/ratings', studentRating);
-    updated = true;
-  });
-
-  if (updated) {
-    saveRatings(ratings);
-  }
-}
-
 /**
- * Same fan-out as propagateCommitteeRating, but for an ad-hoc 'group' task —
- * there's no EventCommittee to look up, just the assigneeIds already stored
+ * Fan-out of a group task's rating to its members, using the assigneeIds already stored
  * directly on the task.
  */
 function propagateGroupRating(task: TaskItem, parentRating: RatingItem): void {
@@ -5217,7 +4320,7 @@ function propagateGroupRating(task: TaskItem, parentRating: RatingItem): void {
     if (isFacultyMember(memberObj)) return;
     if (isSocialMediaPostTask(task) && !isSocialMediaTeamMember(memberObj)) return;
 
-    // Same same-reviewer-role scoping as propagateCommitteeRating above.
+    // Same same-reviewer-role scoping as the other fan-out ratings.
     const existingIdx = ratings.findIndex(
       r => r.taskId === task.id && r.targetId === memberObj.id && r.reviewerRole === parentRating.reviewerRole
     );
@@ -5271,9 +4374,9 @@ function propagateGroupRating(task: TaskItem, parentRating: RatingItem): void {
 }
 
 /**
- * Rate only some of a committee's/group's members (or a single student) with
+ * Rate only some of a group's members (or a single student) with
  * one scorecard, leaving the rest to be rated separately. Writes real
- * per-student rows only -- no committee-level bookkeeping row -- so each
+ * per-student rows only -- no group-level bookkeeping row -- so each
  * student keeps exactly the score they were given, and the task's overall
  * score becomes the average across all its per-student ratings.
  * Re-rating a student this reviewer already rated edits that row in place.
@@ -5287,7 +4390,7 @@ export function rateTaskMembers(
   const ratings = getRatings();
   const today = new Date().toISOString().split('T')[0];
   const touched: RatingItem[] = [];
-  const label = task.assigneeType === 'group' ? 'Group Evaluation' : `Committee Evaluation: ${task.eventCommitteeName || task.assignee}`;
+  const label = 'Group Evaluation';
   const notes = `[${label} \u2014 individual/subset rating] ${input.notes || ''}`.trim();
 
   memberIds.forEach(mId => {
@@ -5365,9 +4468,7 @@ export function addRating(rating: Omit<RatingItem, 'id' | 'createdAt'>): RatingI
     recomputeTaskAggregateScore(rating.taskId, rating.targetId, rating.raterName);
 
     const task = getTasks().find(t => t.id === rating.taskId);
-    if (task && (task.assigneeType === 'committee' || task.eventCommitteeId)) {
-      propagateCommitteeRating(task, newRating);
-    } else if (task && task.assigneeType === 'group') {
+    if (task && task.assigneeType === 'group') {
       propagateGroupRating(task, newRating);
     }
     // Re-average now that the per-student rows exist.
@@ -5419,7 +4520,8 @@ export function deleteRating(id: string, actorName: string): boolean {
 
 export interface StudentProfileData {
   member: Member;
-  assignedEvents: { event: EventItem; committee: EventCommittee }[];
+  /** Events this person has worked on, taken from the tasks assigned to them. */
+  assignedEvents: { event: EventItem }[];
   tasks: TaskItem[];
   ratings: RatingItem[];
   stats: {
@@ -5443,27 +4545,15 @@ export function getStudentProfile(memberIdOrName: string, passedMember?: Member)
   if (!member) return null;
 
   const events = getEvents();
-  const assignedEvents: { event: EventItem; committee: EventCommittee }[] = [];
-  events.forEach(event => {
-    (event.committees || []).forEach(comm => {
-      if (comm.memberIds.includes(member.id) || comm.memberIds.includes(member.name)) {
-        assignedEvents.push({ event, committee: comm });
-      }
-    });
-  });
-
   const allTasks = getTasks();
   const memberTasks = allTasks.filter(t => {
     if (t.assigneeId === member.id || t.assignee.toLowerCase() === member.name.toLowerCase()) return true;
     if (member.email && t.assigneeEmail && t.assigneeEmail.toLowerCase() === member.email.toLowerCase()) return true;
-    if (t.assigneeType === 'committee' || t.eventCommitteeId) {
-      return assignedEvents.some(ae =>
-        ae.committee.id === t.eventCommitteeId ||
-        ae.committee.name.toLowerCase() === t.assignee.toLowerCase()
-      );
-    }
+    if (t.assigneeType === 'group' && (t.assigneeIds || []).includes(member.id)) return true;
     return false;
   });
+  const workedEventIds = new Set(memberTasks.map(t => t.eventId).filter(Boolean) as string[]);
+  const assignedEvents: { event: EventItem }[] = events.filter(e => workedEventIds.has(e.id)).map(event => ({ event }));
 
   const validTaskIds = new Set(allTasks.map(t => t.id));
   const allRatings = getRatings();
@@ -5533,7 +4623,7 @@ export function getStudentLeaderboard(): {
 
   // The leaderboard shows exactly what the Reports module's "Student Final Score" shows (same ratings, same
   // formula — see final-score.ts), so the two never disagree. Same rating filter as the Reports page: only
-  // ratings of an existing task, no committee/group placeholder rows, no faculty/professors.
+  // ratings of an existing task, no group placeholder rows, no faculty/professors.
   const validTaskIds = new Set(getTasks().map(t => t.id));
   const validRatings = getRatings().filter(r => {
     if (r.isGroupPlaceholder || !r.taskId || !validTaskIds.has(r.taskId)) return false;
@@ -5778,244 +4868,6 @@ export function updateBudget(id: string, updates: Partial<BudgetItem>, actorName
     `Edited a ₹${current[idx].amount.toLocaleString()} budget request${wasApproved ? ' that was previously Approved — now pending re-approval' : ''}`
   );
   return current[idx];
-}
-
-// -------------------------------------------------------------
-// Procurement Requests — any member submits, Centre Head/Advisor decide
-// -------------------------------------------------------------
-
-export const initialProcurementRequests: ProcurementRequestItem[] = [];
-
-export function getProcurementRequests(): ProcurementRequestItem[] {
-  if (typeof window === 'undefined') return initialProcurementRequests;
-  const saved = localStorage.getItem('rtbi_procurement_requests');
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return initialProcurementRequests;
-}
-
-export function saveProcurementRequests(items: ProcurementRequestItem[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('rtbi_procurement_requests', JSON.stringify(items));
-  markLocalWrite('rtbi_procurement_requests');
-}
-
-function isProcurementAutoApprover(user?: { role?: string; tier?: number; division?: string } | null): boolean {
-  if (!user) return false;
-  if (user.tier === 1 || user.tier === 2) return true;
-  const role = (user.role || '').toLowerCase();
-  const division = (user.division || '').toLowerCase();
-  return (
-    role.includes('ceo') ||
-    role.includes('director') ||
-    role.includes('head') ||
-    division.includes('leadership')
-  );
-}
-
-export function createProcurementTask(
-  request: ProcurementRequestItem,
-  members: Member[],
-  events: EventItem[],
-  tasks: TaskItem[]
-): TaskItem {
-  const active = members.filter(m => m.status !== 'Terminated' && m.email);
-  const ceoUser = active.find(m => {
-    const role = (m.role || '').toLowerCase();
-    return m.tier === 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
-  }) || active.find(m => m.tier === 1) || active[0];
-
-  const itemsSummary = request.items.map(i => `${i.quantity} ${i.unit || ''} ${i.name}`.replace(/\s+/g, ' ').trim()).join(', ');
-  const title = `Procure items for ${request.eventName || request.taskTitle || 'Operations'}: ${itemsSummary.length > 80 ? itemsSummary.slice(0, 77) + '...' : itemsSummary}`;
-
-  let dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  if (request.eventId) {
-    const ev = events.find(e => e.id === request.eventId);
-    if (ev?.startDate && !ev.datesTBD) dueDate = ev.startDate;
-  } else if (request.taskId) {
-    const t = tasks.find(tk => tk.id === request.taskId);
-    if (t?.dueDate) dueDate = t.dueDate;
-  }
-
-  const itemsDetail = (request.items || [])
-    .map(i => `• ${i.quantity} ${i.unit || ''} ${i.name}${i.notes ? ` (${i.notes})` : ''}`)
-    .join('\n');
-
-  const briefDescription = `Procurement Request:\n${itemsDetail}\n\nRequested by: ${request.requesterName}${request.justification ? `\nJustification: ${request.justification}` : ''}\n\nNote: Procurement tasks are administrative operations and not subject to ratings or reviews.`;
-
-  return {
-    id: `task_procurement_${request.id}`,
-    title,
-    event: request.eventName,
-    eventId: request.eventId,
-    assignee: ceoUser ? ceoUser.name : 'CEO',
-    assigneeId: ceoUser?.id,
-    assigneeEmail: ceoUser?.email,
-    assigneeType: 'individual',
-    dueDate,
-    status: 'Assigned',
-    creatorName: request.requesterName || 'Procurement System',
-    workflowType: 'procurement',
-    isProcurement: true,
-    procurementId: request.id,
-    briefDescription,
-  };
-}
-
-export function addProcurementRequest(
-  item: Omit<ProcurementRequestItem, 'id' | 'status' | 'submittedAt'>,
-  user?: { id?: string; name?: string; email?: string; role?: string; tier?: number; division?: string }
-): ProcurementRequestItem {
-  const current = getProcurementRequests();
-  const members = getMembers();
-  const requester = user || members.find(m => m.id === item.requesterId || (item.requesterEmail && m.email?.toLowerCase() === item.requesterEmail.toLowerCase()));
-  const isAutoApprover = isProcurementAutoApprover(requester);
-
-  const id = 'proc_' + Date.now();
-  const status = isAutoApprover ? 'Approved' : 'Pending';
-  const decidedBy = isAutoApprover ? (requester?.name || item.requesterName) : undefined;
-  const decidedAt = isAutoApprover ? new Date().toISOString() : undefined;
-  const decisionNotes = isAutoApprover ? 'Auto-approved (created by Centre Head / Advisor / Super User)' : undefined;
-
-  let procurementTaskId: string | undefined = undefined;
-
-  const newRequest: ProcurementRequestItem = {
-    ...item,
-    id,
-    status,
-    decidedBy,
-    decidedAt,
-    decisionNotes,
-    submittedAt: new Date().toISOString(),
-  };
-
-  if (isAutoApprover) {
-    const task = createProcurementTask(newRequest, members, getEvents(), getTasks());
-    procurementTaskId = task.id;
-    newRequest.procurementTaskId = task.id;
-    addTask(task);
-  }
-
-  current.unshift(newRequest);
-  saveProcurementRequests(current);
-  serverPost('/api/procurement-requests', newRequest);
-  const scopeLabel = item.eventName || item.taskTitle || 'no linked event/task';
-  logAuditEvent(
-    'PROCUREMENT_REQUEST_SUBMITTED',
-    item.requesterName,
-    isAutoApprover
-      ? `Added and auto-approved procurement of ${item.items.length} item(s) for ${scopeLabel} (task assigned to Centre Head)`
-      : `Requested procurement of ${item.items.length} item(s) for ${scopeLabel}`,
-    item.requesterEmail
-  );
-  return newRequest;
-}
-
-export function decideProcurementRequest(
-  id: string,
-  status: 'Approved' | 'Rejected',
-  decidedBy: string,
-  decisionNotes?: string
-): ProcurementRequestItem | null {
-  const current = getProcurementRequests();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx === -1) return null;
-
-  let procurementTaskId = current[idx].procurementTaskId;
-
-  if (status === 'Approved') {
-    const tasks = getTasks();
-    const existingTask = tasks.find(t => t.id === `task_procurement_${id}` || t.procurementId === id);
-    if (!existingTask) {
-      const task = createProcurementTask({ ...current[idx], status: 'Approved' }, getMembers(), getEvents(), tasks);
-      procurementTaskId = task.id;
-      addTask(task);
-    } else {
-      procurementTaskId = existingTask.id;
-    }
-  }
-
-  current[idx] = {
-    ...current[idx],
-    status,
-    decidedBy,
-    decidedAt: new Date().toISOString(),
-    decisionNotes,
-    procurementTaskId,
-  };
-  saveProcurementRequests(current);
-  serverPatch('/api/procurement-requests', id, current[idx]);
-  logAuditEvent('PROCUREMENT_REQUEST_DECIDED', decidedBy, `${status} the procurement request from ${current[idx].requesterName}`);
-  return current[idx];
-}
-
-/**
- * Marks an already-Approved request Completed — the items have actually
- * been procured and issued to the requester. Same Centre Head/Advisor gate
- * as decideProcurementRequest (see permissions.ts's canDecideProcurementRequest).
- */
-export function completeProcurementRequest(id: string, completedBy: string): ProcurementRequestItem | null {
-  const current = getProcurementRequests();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx === -1) return null;
-
-  current[idx] = {
-    ...current[idx],
-    status: 'Completed',
-    completedBy,
-    completedAt: new Date().toISOString(),
-  };
-
-  const tasks = getTasks();
-  const linkedTask = tasks.find(t => t.id === `task_procurement_${id}` || t.procurementId === id || t.id === current[idx].procurementTaskId);
-  if (linkedTask && linkedTask.status !== 'Completed') {
-    updateTask(linkedTask.id, { status: 'Completed' }, completedBy);
-  }
-
-  saveProcurementRequests(current);
-  serverPatch('/api/procurement-requests', id, current[idx]);
-  logAuditEvent('PROCUREMENT_REQUEST_COMPLETED', completedBy, `Marked the procurement request from ${current[idx].requesterName} as completed`);
-  return current[idx];
-}
-
-/**
- * Lets the requester revise and resubmit their own request — before a
- * decision, or even after Rejected. Either way the edit always resets it
- * to Pending, mirroring updateBudget's "any edit resets to Pending" rule,
- * and re-fans-out the Centre Head/Advisor approval email.
- */
-export function updateProcurementRequest(id: string, updates: Partial<ProcurementRequestItem>, actorName: string): ProcurementRequestItem | null {
-  const current = getProcurementRequests();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx === -1) return null;
-
-  current[idx] = {
-    ...current[idx],
-    ...updates,
-    status: 'Pending',
-    decidedBy: undefined,
-    decidedAt: undefined,
-    decisionNotes: undefined,
-    approvalEmailSent: undefined,
-    approvalEmailError: undefined,
-  };
-  saveProcurementRequests(current);
-  serverPatch('/api/procurement-requests', id, current[idx]);
-  logAuditEvent('PROCUREMENT_REQUEST_RESUBMITTED', actorName, `Resubmitted a procurement request for ${current[idx].eventName || current[idx].taskTitle || 'no linked event/task'}`);
-  return current[idx];
-}
-
-export function deleteProcurementRequest(id: string, actorName: string): void {
-  const current = getProcurementRequests();
-  const filtered = current.filter(r => r.id !== id);
-  saveProcurementRequests(filtered);
-  serverDelete('/api/procurement-requests', id);
-  logAuditEvent('PROCUREMENT_REQUEST_DELETED', actorName, 'Deleted a procurement request');
 }
 
 // Indian financial year runs Apr 1 - Mar 31. Month index 0 (Jan) - 11 (Dec).
@@ -6855,7 +5707,7 @@ export function resolveDesignReviewer(): { id: string; name: string; email: stri
 /**
  * Resolves the member pool assigned to social-media posting tasks.
  * Strictly limited to the Head and Senior Head of Social Media.
- * Committee or general student groups and Professors/Faculty are strictly excluded.
+ * General student groups and Professors/Faculty are strictly excluded.
  */
 export function resolveSocialPostingAssignees(members?: Member[]): Member[] {
   const all = (members || getMembers()).filter(m => m.status !== 'Terminated' && !isFacultyMember(m));
@@ -7119,7 +5971,7 @@ export function submitDesignCaptions(designId: string, instaCaption: string, lin
   const defaultSocialReviewer = socialHeads.length > 0 ? socialHeads[0] : null;
 
   // By default, social media captions go to the Head / Sr Head of Social Media,
-  // never to a committee or group of students.
+  // never to a group of students.
   const captionReviewer = (isSocialPost && defaultSocialReviewer)
     ? { id: defaultSocialReviewer.id, name: defaultSocialReviewer.name, email: defaultSocialReviewer.email }
     : (design.assignedProofreaderId && design.assignedProofreaderName && design.assignedProofreaderEmail)
@@ -7214,7 +6066,7 @@ export function reviewDesignCaptions(designId: string, approved: boolean, commen
     const dueDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     // Posting is strictly routed to the Social Media Head and Senior Head.
-    // Committee or general student groups and Faculty are strictly excluded.
+    // General student groups and Faculty are strictly excluded.
     const postingPool = resolveSocialPostingAssignees();
     const isSingle = postingPool.length === 1;
     const postingAssignee = {

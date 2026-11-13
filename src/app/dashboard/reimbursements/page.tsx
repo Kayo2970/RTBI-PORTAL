@@ -521,7 +521,7 @@ export default function ReimbursementsPage() {
                 required
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Detail what was purchased, for which event/committee, and why..."
+                placeholder="Detail what was purchased, for which event, and why..."
                 rows={2}
                 className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
               />

@@ -11,7 +11,7 @@
  * Granular permissions, department views, and role-based capabilities will
  * be provisioned in future rollout phases as the site is finalized.
  */
-import { Member, Guest, TaskItem, RatingItem, ReimbursementItem, BudgetItem, ProcurementRequestItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey } from './local-data';
+import { Member, Guest, TaskItem, RatingItem, ReimbursementItem, BudgetItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey } from './local-data';
 
 export type SessionUser = {
   id?: string;
@@ -19,7 +19,6 @@ export type SessionUser = {
   email: string;
   tier: number;
   division?: string;
-  committee?: string;
   department?: string;
   role?: string;
 } | null | undefined;
@@ -75,23 +74,7 @@ export function isChiefCoordinator(user: SessionUser): boolean {
   return false;
 }
 
-export function canSubmitEventReport(user: SessionUser): boolean {
-  return isSuperUser(user);
-}
-
-export function canReviewEventReports(user: SessionUser): boolean {
-  return isSuperUser(user);
-}
-
-export function canScoreEventReports(user: SessionUser): boolean {
-  return isSuperUser(user);
-}
-
 export function canReviewDesignProofread(user: SessionUser, design?: { assignedProofreaderIds?: string[]; assignedProofreaderEmail?: string; assignedProofreaderId?: string }): boolean {
-  return isSuperUser(user);
-}
-
-export function canViewEventReports(user: SessionUser): boolean {
   return isSuperUser(user);
 }
 
@@ -149,11 +132,6 @@ export function isEventsHeadGgCampus(user: SessionUser): boolean {
   return false;
 }
 
-export function isCommitteeApprover(user: SessionUser): boolean {
-  if (ZERO_TRUST_POLICY_ACTIVE) return isSuperUser(user);
-  return !!user && typeof user.tier === 'number' && user.tier <= 2;
-}
-
 export function isEventsHeadRtcCampus(user: SessionUser): boolean {
   return false;
 }
@@ -194,13 +172,13 @@ export function canManageCanvaLibrary(user: SessionUser): boolean {
 }
 
 export const CAPABILITY_CATALOG: { key: string; label: string; description: string; module: string }[] = [
-  { key: 'EVENTS_CREATE', label: 'Create Events', description: 'Create new events and their sub-committees.', module: 'Events' },
+  { key: 'EVENTS_CREATE', label: 'Create Events', description: 'Create new events.', module: 'Events' },
   { key: 'EVENTS_EDIT', label: 'Edit Events', description: "Edit any existing event's details.", module: 'Events' },
   { key: 'EVENTS_DELETE', label: 'Delete Events', description: 'Delete any event.', module: 'Events' },
   { key: 'EVENTS_VIEW_ALL', label: 'View All Events', description: 'See every event, not just ones created by or listing this person.', module: 'Events' },
-  { key: 'EVENT_EXPORT', label: 'Download Event & Participant Details', description: 'Download an event\'s details together with the details of every participant (committees, roles, contact info) as a CSV.', module: 'Events' },
+  { key: 'EVENT_EXPORT', label: 'Download Event & Participant Details', description: 'Download an event\'s details together with the details of every participant (roles, contact info) as a CSV.', module: 'Events' },
   { key: 'FESTIVALS_MANAGE', label: 'Manage Festivals', description: 'Create, edit, and organize festival schedules and events.', module: 'Festivals' },
-  { key: 'TASKS_CREATE', label: 'Create Tasks', description: 'Assign new tasks to individuals or committees.', module: 'Tasks' },
+  { key: 'TASKS_CREATE', label: 'Create Tasks', description: 'Assign new tasks to individuals or groups.', module: 'Tasks' },
   { key: 'TASKS_EDIT', label: 'Edit Tasks', description: 'Edit any existing task.', module: 'Tasks' },
   { key: 'TASKS_DELETE', label: 'Delete Tasks', description: 'Delete any task.', module: 'Tasks' },
   { key: 'TASKS_VIEW_ALL', label: 'View All Tasks', description: "See every task, not just this person's own or their department's.", module: 'Tasks' },
@@ -253,7 +231,7 @@ export function hasCapability(user: SessionUser, capability: string): boolean {
 }
 
 export const MODULE_CATALOG: { key: ModuleAccessKey; label: string; description: string; ownershipNote?: string }[] = [
-  { key: 'EVENTS', label: 'Events', description: 'Event records and their committees.' },
+  { key: 'EVENTS', label: 'Events', description: 'Event records.' },
   { key: 'EVENT_PASSES', label: 'Event Passes & Tickets', description: 'Pass studio, issued passes, and scanner.' },
   { key: 'TASKS', label: 'Tasks', description: 'Assigned task deliverables.' },
   { key: 'DIRECTORY', label: 'Members Directory', description: 'The member roster.' },
@@ -266,7 +244,7 @@ export const MODULE_CATALOG: { key: ModuleAccessKey; label: string; description:
   { key: 'RATINGS', label: 'Ratings & Performance', description: 'Student performance evaluations.' },
   { key: 'REPORTS', label: 'Performance Reports', description: 'Performance analytical reports.' },
   { key: 'EVENT_REPORTS', label: 'Event Reports', description: 'Post-event formal report submissions.' },
-  { key: 'FESTIVALS', label: 'Festivals', description: 'Festival schedules, committees, and events.' },
+  { key: 'FESTIVALS', label: 'Festivals', description: 'Festival schedules and events.' },
   { key: 'VISITING_CARD', label: 'Visiting Cards', description: 'Digital keycards and visiting contacts.' },
   { key: 'GUEST_INVITES', label: 'Mail Merge', description: 'Personalized bulk email tool.' },
   { key: 'APPROVALS', label: 'Approvals Queue', description: 'Cross-module multi-department approval requests.' },
@@ -364,14 +342,6 @@ export function canVerifyBudgetCentreHead(user: SessionUser): boolean {
 }
 
 export function canDecideBudget(user: SessionUser, budget?: BudgetItem): boolean {
-  return isSuperUser(user);
-}
-
-export function canDecideProcurementRequest(user: SessionUser): boolean {
-  return isSuperUser(user);
-}
-
-export function canViewProcurementRequest(user: SessionUser, request: ProcurementRequestItem): boolean {
   return isSuperUser(user);
 }
 
@@ -547,19 +517,19 @@ export function isFaculty(user: SessionUser): boolean {
   return false;
 }
 
-export function isSocialMediaTeamMember(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaTeamMember(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 
-export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 
-export function isSocialMediaHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 
-export function isSocialMediaSrHead(member: { division?: string; department?: string; committee?: string; role?: string; status?: string } | null | undefined): boolean {
+export function isSocialMediaSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
   return false;
 }
 

@@ -22,21 +22,91 @@ export type EmailCategory =
   | 'ANNOUNCEMENT'
   | 'TASK_ASSIGNMENT'
   | 'TASK_DEADLINE_REMINDER'
-  | 'EVENT_ROSTER'
   | 'SYSTEM'
   | 'DIRECT_MESSAGE'
   | 'GUEST_INVITE'
   | 'ACCOUNT_ACTIVATION'
   | 'BIRTHDAY'
-  | 'EVENT_REPORT_APPROVAL'
   | 'DESIGN_APPROVAL'
   | 'APPROVAL_REQUEST'
   | 'EVENT_PASS'
   | 'EVENT_INVITATION'
-  | 'PROCUREMENT_DECISION'
   | 'GROUP_POLICY_GRANT'
   | 'PROPOSAL'
   | 'CERTIFICATE';
+
+/**
+ * Automatic-email switches (Super User, Email Management → Settings). Only emails the portal fires BY ITSELF are
+ * switchable here. Security / account emails (sign-in codes, activation links) and anything a person explicitly
+ * sends (direct messages, passes, certificates, test mails) are never blocked, so nobody gets locked out and a
+ * deliberate "send" always sends.
+ */
+export interface AutoEmailType {
+  key: EmailCategory;
+  label: string;
+  description: string;
+  defaultEnabled: boolean;
+}
+export const AUTO_EMAIL_TYPES: AutoEmailType[] = [
+  { key: 'TASK_ASSIGNMENT', label: 'Task assignments', description: 'Sent to the assignee when a task is created or reassigned.', defaultEnabled: true },
+  { key: 'TASK_DEADLINE_REMINDER', label: 'Task deadline reminders', description: 'Daily reminder to assignees of tasks due tomorrow.', defaultEnabled: true },
+  { key: 'APPROVAL_REQUEST', label: 'Approval requests & decisions', description: 'Sent to the people you ask for approval, and back to the requester with the decision.', defaultEnabled: true },
+  { key: 'GROUP_POLICY_GRANT', label: 'Group policy access grants', description: 'Sent to members when a Super User gives them access through a group policy.', defaultEnabled: true },
+  { key: 'ANNOUNCEMENT', label: 'Announcements', description: 'Sent to the audience of an approved announcement.', defaultEnabled: true },
+  { key: 'PROPOSAL', label: 'Proposals', description: 'Sent to the person a proposal is addressed to, and back to the proposer with the reply.', defaultEnabled: true },
+  { key: 'BIRTHDAY', label: 'Birthday greetings', description: 'Daily greeting to members whose birthday it is.', defaultEnabled: true },
+  { key: 'DESIGN_APPROVAL', label: 'Design decisions', description: 'Sent to designers when their design is approved or rejected.', defaultEnabled: false },
+];
+
+export interface EmailPolicy {
+  id: 'default';
+  /** Pause every switchable automatic email at once. */
+  paused: boolean;
+  /** Per-type override of AUTO_EMAIL_TYPES[].defaultEnabled. */
+  overrides: Record<string, boolean>;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export async function getEmailPolicy(): Promise<EmailPolicy> {
+  try {
+    const rows = await readCollection<EmailPolicy>('emailPolicy');
+    if (rows && rows.length > 0) return { ...rows[0], id: 'default', paused: !!rows[0].paused, overrides: rows[0].overrides || {} };
+  } catch (e) {
+    console.error('[email-service] Failed to read emailPolicy:', e);
+  }
+  return { id: 'default', paused: false, overrides: {} };
+}
+
+export function isCategoryEnabledByPolicy(policy: EmailPolicy, category: EmailCategory): boolean {
+  const type = AUTO_EMAIL_TYPES.find((t) => t.key === category);
+  if (!type) return true; // not switchable: always sends
+  if (policy.paused) return false;
+  return policy.overrides[category] ?? type.defaultEnabled;
+}
+
+/** True if the portal may send an automatic email of this category right now. */
+export async function isEmailCategoryEnabled(category: EmailCategory): Promise<boolean> {
+  return isCategoryEnabledByPolicy(await getEmailPolicy(), category);
+}
+
+export async function updateEmailPolicy(patch: { paused?: boolean; overrides?: Record<string, boolean> }, actorName: string): Promise<EmailPolicy> {
+  const current = await getEmailPolicy();
+  const validKeys = new Set(AUTO_EMAIL_TYPES.map((t) => t.key as string));
+  const overrides = { ...current.overrides };
+  for (const [k, v] of Object.entries(patch.overrides || {})) {
+    if (validKeys.has(k) && typeof v === 'boolean') overrides[k] = v;
+  }
+  const next: EmailPolicy = {
+    id: 'default',
+    paused: typeof patch.paused === 'boolean' ? patch.paused : current.paused,
+    overrides,
+    updatedAt: new Date().toISOString(),
+    updatedBy: actorName,
+  };
+  await mutateCollection<EmailPolicy>('emailPolicy', () => [next]);
+  return next;
+}
 
 export interface EmailLog {
   id: string;
@@ -566,7 +636,7 @@ async function executeSmtpSend(payload: SendEmailPayload): Promise<{
     const domain = (settings.fromEmail || 'portal.example.com').split('@')[1] || 'portal.example.com';
     const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2, 9)}@${domain}>`;
 
-    const isBulkCategory = payload.category === 'ANNOUNCEMENT' || payload.category === 'EVENT_ROSTER' || payload.category === 'GUEST_INVITE' || payload.category === 'CERTIFICATE';
+    const isBulkCategory = payload.category === 'ANNOUNCEMENT' || payload.category === 'GUEST_INVITE' || payload.category === 'CERTIFICATE';
     const unsubscribeAddress = settings.replyTo || settings.fromEmail;
     const headers: Record<string, string> = {
       'Auto-Submitted': 'auto-generated',
@@ -650,7 +720,6 @@ export async function buildEmailHtml(payload: SendEmailPayload): Promise<string>
     if (payload.category === 'ANNOUNCEMENT') badgeTextToUse = 'Official Announcement';
     else if (payload.category === 'TASK_ASSIGNMENT') badgeTextToUse = 'Task Assignment';
     else if (payload.category === 'TASK_DEADLINE_REMINDER') badgeTextToUse = 'Deadline Reminder';
-    else if (payload.category === 'EVENT_ROSTER') badgeTextToUse = 'Event Roster';
     else if (payload.category === 'ACCOUNT_ACTIVATION') badgeTextToUse = 'Account Notice';
     else if (payload.category === 'BIRTHDAY') badgeTextToUse = 'Greetings';
     else if (payload.category === 'EVENT_PASS' || payload.category === 'EVENT_INVITATION') badgeTextToUse = 'Official Event Pass';
@@ -913,6 +982,22 @@ export async function getBufferedEmails(): Promise<Array<{
  * bypass the quiet buffer.
  */
 export async function dispatchEmail(payload: SendEmailPayload): Promise<EmailLog> {
+  // Automatic-email switches (see getEmailPolicy): a switched-off type is logged as CANCELLED and never sent.
+  if (!(await isEmailCategoryEnabled(payload.category))) {
+    const cancelled: EmailLog = {
+      id: `email-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      to: payload.to,
+      subject: payload.subject,
+      bodyText: payload.bodyText,
+      bodyHtml: '',
+      category: payload.category,
+      status: 'CANCELLED',
+      sentAt: new Date().toISOString(),
+      errorMessage: 'Not sent: this type of automatic email is switched off in Email Management → Settings.',
+    };
+    try { await mutateCollection<EmailLog>('emails', (current) => [cancelled, ...(current || [])]); } catch { /* log is best-effort */ }
+    return cancelled;
+  }
   await restoreBufferedQueue();
 
   // If immediate flag is true OR it's a 5-min security OTP, send immediately via SMTP
@@ -1413,13 +1498,13 @@ export function generateTaskEmailTemplate(memberName: string, taskTitle: string,
     `Task: ${taskTitle}\n` +
     `Context: ${eventName || 'RTBI Operations'}\n` +
     `Due Date: ${dueDate}\n` +
-    `Assigned By: ${creatorName || 'Committee Admin'}\n\n` +
+    `Assigned By: ${creatorName || 'RTBI Portal'}\n\n` +
     `Please log in to your dashboard to view details and update progress.`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     headerTitle: taskTitle,
-    headerSubtitle: `Assigned by ${creatorName || 'Committee Admin'}`,
+    headerSubtitle: `Assigned by ${creatorName || 'RTBI Portal'}`,
     badgeText: `Task Assignment`,
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
@@ -1488,42 +1573,6 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
   return { subject, bodyText, bodyHtml };
 }
 
-/**
- * Template Generator: Event Committee Roster Assignment
- */
-export function generateEventRosterEmailTemplate(memberName: string, eventTitle: string, committeeName: string, startDate: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `RTBI Event Assignment: ${eventTitle}`;
-  const baseUrl = getAppBaseUrl();
-  const bodyText = `Hello ${memberName},\n\nYou have been added to the "${committeeName}" committee for the upcoming event "${eventTitle}".\n\n` +
-    `Event Start Date: ${startDate}\n\n` +
-    `Check the RTBI Portal for details.`;
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: eventTitle,
-    headerSubtitle: `Committee Assignment`,
-    badgeText: `Event Assignment`,
-    badgeColor: `#CC3D19`,
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #422C5C;">Hello <strong>${memberName}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have been assigned to the <strong>${committeeName}</strong> committee for <strong>${eventTitle}</strong>.</p>
-      
-      <div style="background: #FEF7F6; border-left: 4px solid #CC3D19; padding: 14px 18px; margin: 18px 0; border-radius: 6px;">
-        <p style="margin: 0; font-size: 13px; color: #1C0F2A;"><strong>Event Start Date:</strong> ${startDate}</p>
-      </div>
-
-      <div style="margin-top: 20px; text-align: center;">
-        <a href="${baseUrl}/dashboard/events" style="background: #CC3D19; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">View Event Details &rarr;</a>
-      </div>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-/**
- * Template Generator: Happy Birthday
- */
 export function generateBirthdayEmailTemplate(memberName: string): { subject: string; bodyText: string; bodyHtml: string } {
   const firstName = memberName.split(' ')[0] || memberName;
   const subject = `Happy Birthday, ${firstName}!`;
@@ -1541,107 +1590,6 @@ export function generateBirthdayEmailTemplate(memberName: string): { subject: st
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Dear <strong>${memberName}</strong>,</p>
       <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">On behalf of the entire RTBI Portal family, we wish you a wonderful birthday! Thank you for your energy and dedication.</p>
       <p style="color: #76648B; font-size: 13px; line-height: 1.6; margin-bottom: 0;">Have a fantastic year ahead!</p>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-/**
- * Resolves the fixed recipient set for the two approved-attachment emails
- * (event reports, design assets) directly off plain member records — NOT
- * permissions.ts's isCentreHead/isEventsHeadGgCampus/isPresident, which read
- * from getAccessLevelSettings()'s localStorage-backed config and are meant
- * to run client-side against a single signed-in user. This mirrors the same
- * simple tier/role matching resolveDesignReviewer() already does client-side
- * for proofreader routing, just server-side and scanning every member.
- */
-export interface ApprovalRecipients {
-  centreHead?: { name: string; email: string };
-  advisor?: { name: string; email: string };
-  eventsHeadGg?: { name: string; email: string };
-  president?: { name: string; email: string };
-  superUsers?: Array<{ name: string; email: string }>;
-  superUser?: { name: string; email: string };
-}
-
-export function findApprovalRecipients(members: Array<{ id?: string; name: string; email?: string; role?: string; tier?: number; status?: string }>): ApprovalRecipients {
-  const active = members.filter(m => m.status !== 'Terminated' && m.email);
-
-  // Titled "Centre Head" first — NOT tier === 1, which is Super User and
-  // would otherwise outrank the actual Centre Head simply for sorting
-  // first in the roster. Super User is only the fallback when no titled
-  // Centre Head exists at all, mirroring resolveDesignReviewer()'s
-  // established precedent for the same ambiguity.
-  const centreHead = active.find(m => {
-    const role = (m.role || '').toLowerCase();
-    return m.tier === 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
-  }) || active.find(m => m.tier === 1);
-
-  // Whole-word "advisor" match, mirroring permissions.ts's isCentreHead()
-  // keyword check — deliberately excludes "Advisory Board Member" etc.
-  const advisor = active.find(m => /\badvisor\b/.test((m.role || '').toLowerCase()));
-
-  const eventsHeadGg = active.find(m => {
-    const role = (m.role || '').toLowerCase();
-    if (role.includes('finance')) return false;
-    return m.tier === 2.5 || (role.includes('events head') && role.includes('gg')) || (role.includes('head of events') && role.includes('gg'));
-  });
-
-  const president = active.find(m => {
-    const role = (m.role || '').toLowerCase();
-    return role.includes('president') && !role.includes('vice');
-  });
-
-  const superUsers = active
-    .filter(m => m.tier === 1 || (m.role || '').toLowerCase().includes('super user') || (m.role || '').toLowerCase().includes('superuser'))
-    .map(m => ({ name: m.name, email: m.email! }));
-  const superUser = superUsers[0];
-
-  return {
-    centreHead: centreHead ? { name: centreHead.name, email: centreHead.email! } : undefined,
-    advisor: advisor ? { name: advisor.name, email: advisor.email! } : undefined,
-    eventsHeadGg: eventsHeadGg ? { name: eventsHeadGg.name, email: eventsHeadGg.email! } : undefined,
-    president: president ? { name: president.name, email: president.email! } : undefined,
-    superUsers,
-    superUser,
-  };
-}
-
-/**
- * Template Generator: Event Report Approved (sent with the report file
- * attached to the Centre Head, Advisor, Super User, and leadership once
- * signed off).
- */
-export function generateEventReportApprovedEmailTemplate(
-  eventTitle: string,
-  submitterName: string,
-  reviewerName?: string,
-  reviewerRole?: string,
-  comments?: string
-): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `Event Report Approved: ${eventTitle}`;
-  const reviewerLine = reviewerName ? `Approved by: ${reviewerName}${reviewerRole ? ` (${reviewerRole})` : ''}\n` : '';
-  const commentsLine = comments ? `Reviewer Comments: "${comments}"\n\n` : '\n';
-  const bodyText = `Hello,\n\n` +
-    `The event report for "${eventTitle}", submitted by ${submitterName}, has been approved.\n` +
-    reviewerLine +
-    commentsLine +
-    `The full report is attached to this email.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: `Event Report Approved`,
-    headerSubtitle: eventTitle,
-    badgeText: `Report Approved`,
-    badgeColor: `#15803d`,
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The event report for <strong>${eventTitle}</strong>, submitted by <strong>${submitterName}</strong>, has been approved.</p>
-      ${reviewerName ? `<p style="color: #422C5C; font-size: 13px; margin: 6px 0;"><strong>Approved by:</strong> ${reviewerName}${reviewerRole ? ` (${reviewerRole})` : ''}</p>` : ''}
-      ${comments ? `<div style="margin: 12px 0; padding: 12px; background-color: #FEF7F6; border-left: 3px solid #15803d; border-radius: 4px; font-style: italic; color: #574769; font-size: 13px;">"${comments}"</div>` : ''}
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6; margin-top: 12px;">The full report is attached to this email.</p>
     `
   });
 
@@ -1789,51 +1737,6 @@ export function generateDesignDecisionEmailTemplate(
 }
 
 /**
- * Template Generator: Procurement Request Decision (sent to the requester
- * once the Centre Head or Advisor approves/rejects their materials request).
- */
-export function generateProcurementDecisionEmailTemplate(
-  requesterName: string,
-  itemsSummary: string,
-  approved: boolean,
-  decidedByName: string,
-  decisionNotes?: string
-): { subject: string; bodyText: string; bodyHtml: string } {
-  const outcome = approved ? 'Approved' : 'Rejected';
-  const subject = `Procurement Request ${outcome}: ${itemsSummary}`;
-  const bodyText = `Hello ${requesterName},\n\n` +
-    `Your procurement request for ${itemsSummary} has been ${outcome.toLowerCase()} by ${decidedByName}.\n\n` +
-    (decisionNotes ? `Notes:\n${decisionNotes}\n\n` : '\n') +
-    (approved
-      ? `The items are cleared for procurement.\n\n`
-      : `You may revise and resubmit the request if needed.\n\n`) +
-    `Regards,\nRTBI Portal, MSRUAS`;
-
-  const badgeColor = approved ? '#15803d' : '#be123c';
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: `Procurement Request ${outcome}`,
-    headerSubtitle: itemsSummary,
-    badgeText: outcome,
-    badgeColor,
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${requesterName}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your procurement request for <strong>${itemsSummary}</strong> has been reviewed by <strong>${decidedByName}</strong>.</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
-      ${decisionNotes ? `
-      <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Notes</p>
-        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${decisionNotes}</p>
-      </div>` : ''}
-      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'The items are cleared for procurement.' : 'You may revise and resubmit the request if needed.'}</p>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-/**
  * Template Generator: Design Resubmitted Notification (sent to the same
  * reviewers who rejected a design — faculty proofreaders, or the Centre
  * Head/Advisor/GG Campus Head of Events panel — once the designer replaces
@@ -1916,54 +1819,6 @@ export function generateApprovalDecisionEmailTemplate(
         <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
       </div>` : ''}
       <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'Your request has been approved. No further action is required.' : 'Please review the comments above and make any necessary adjustments.'}</p>
-    `
-  });
-
-  return { subject, bodyText, bodyHtml };
-}
-
-/**
- * Template Generator: Event Report Decision (sent to the submitter/General Secretary
- * once their event report is approved or rejected by the Centre Head or GG Events Head).
- */
-export function generateEventReportDecisionEmailTemplate(
-  eventTitle: string,
-  submitterName: string,
-  approved: boolean,
-  decidedByName: string,
-  reviewerRole: string = 'Reviewer',
-  comments?: string
-): { subject: string; bodyText: string; bodyHtml: string } {
-  const outcome = approved ? 'Approved' : 'Changes Requested';
-  const subject = `Event Report ${outcome}: ${eventTitle}`;
-
-  const bodyText = `Hello ${submitterName},\n\n` +
-    `Your event report for "${eventTitle}" has been reviewed by ${decidedByName} (${reviewerRole}).\n\n` +
-    `Decision: ${outcome}\n` +
-    (comments ? `Reviewer Comments:\n${comments}\n\n` : '\n') +
-    (approved
-      ? `The event report has been accepted and finalized.\n\n`
-      : `Please review the feedback above and resubmit a corrected report file.\n\n`) +
-    `Regards,\nRTBI Portal, MSRUAS`;
-
-  const badgeColor = approved ? '#15803d' : '#be123c';
-
-  const bodyHtml = wrapInMasterEmailTemplate({
-    pageTitle: subject,
-    headerTitle: `Report ${outcome}`,
-    headerSubtitle: eventTitle,
-    badgeText: outcome.toUpperCase(),
-    badgeColor,
-    bodyContentHtml: `
-      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${submitterName}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your event report for <strong>${eventTitle}</strong> has been reviewed by <strong>${decidedByName}</strong> (${reviewerRole}).</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
-      ${comments ? `
-      <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Reviewer Feedback</p>
-        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
-      </div>` : ''}
-      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'The event report has been accepted and finalized.' : 'Please review the feedback above and resubmit a corrected report file.'}</p>
     `
   });
 

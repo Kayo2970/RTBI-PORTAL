@@ -3,7 +3,7 @@ import { readCollection, mutateCollection } from '@/lib/server-db';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { getAccessLevelSettingsServer, canCreateForms, seesOnlyOwnForms, isOwnForm } from '@/lib/permissions-server';
 import { visibleFormsFor } from '@/lib/forms-visibility';
-import { fanOutAutoApproval, resolveCustomApprovalPanel, resolveTraineeFormPanel } from '@/lib/approval-sync';
+import { fanOutAutoApproval, resolveCustomApprovalPanel } from '@/lib/approval-sync';
 import { apiError } from '@/lib/api-error';
 import { gateFormAction, formEditKeys, holdEditForApproval, stampPendingCreate, isPendingState } from '@/lib/approval-gate';
 
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       try {
         const customPanel = created.approverType && created.approverType !== 'CENTER_HEAD'
           ? await resolveCustomApprovalPanel(created.approverType, created.approverMemberId, created.approverPolicyTagId)
-          : created.createdByDivision === 'Training Associate' ? await resolveTraineeFormPanel() : undefined;
+          : undefined;
         await fanOutAutoApproval({
           entityType: 'form',
           entityId: created.id,

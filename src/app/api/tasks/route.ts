@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     }
 
     // Queue task email notification(s) with 10-minute quiet buffer — resolved
-    // per assigneeType so committee/group tasks reach every member on them,
+    // per assigneeType so group tasks reach every member on them,
     // not just a single-assignee 'individual' task.
     if (created) {
       try {

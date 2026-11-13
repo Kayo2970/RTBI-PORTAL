@@ -30,7 +30,6 @@ import {
   getEvents,
   getTasks,
   isApprovedEvent,
-  getCommittees, 
   AnnouncementItem, 
   Member,
   EventItem,
@@ -43,7 +42,6 @@ import { SearchableSelect } from '@/components/searchable-select';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
-  const [committees, setCommittees] = useState<string[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [allMembers, setAllMembers] = useState<Member[]>([]);
@@ -59,7 +57,6 @@ export default function AnnouncementsPage() {
   const [content, setContent] = useState('');
   const [targetCategory, setTargetCategory] = useState<string>('All Members');
   const [selectedEventId, setSelectedEventId] = useState<string>('');
-  const [selectedCommitteeId, setSelectedCommitteeId] = useState<string>('');
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [memberQuery, setMemberQuery] = useState<string>('');
   
@@ -90,7 +87,6 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     const refreshData = () => {
       setAnnouncements(getAnnouncements());
-      setCommittees(getCommittees());
       const evList = getEvents();
       setEvents(evList);
       setTasks(getTasks());
@@ -99,9 +95,6 @@ export default function AnnouncementsPage() {
 
       if (evList.length > 0 && !selectedEventId) {
         setSelectedEventId(evList[0].id);
-        if (evList[0].committees && evList[0].committees.length > 0) {
-          setSelectedCommitteeId(evList[0].committees[0].id);
-        }
       }
     };
     refreshData();
@@ -146,9 +139,6 @@ export default function AnnouncementsPage() {
     setTargetCategory('All Members');
     if (events.length > 0) {
       setSelectedEventId(events[0].id);
-      if (events[0].committees && events[0].committees.length > 0) {
-        setSelectedCommitteeId(events[0].committees[0].id);
-      }
     }
     setSelectedMemberIds([]);
     setMemberQuery('');
@@ -208,7 +198,7 @@ export default function AnnouncementsPage() {
   };
 
   const handleApproveAnnouncement = (id: string) => {
-    const updated = approveAnnouncement(id, user?.name || 'Centre Head / GG Campus Events Head');
+    const updated = approveAnnouncement(id, user?.name || 'Administrator');
     if (updated) {
       setAnnouncements(getAnnouncements());
 
@@ -218,15 +208,6 @@ export default function AnnouncementsPage() {
 
       if (scopeStr.includes('Specific Member')) {
         recipients = allMembers;
-      } else if (scopeStr.includes('→')) {
-        const parts = scopeStr.split('→').map(s => s.trim());
-        const eventMatch = events.find(e => e.title.toLowerCase().includes(parts[0].toLowerCase()));
-        const commMatch = eventMatch?.committees.find(c => c.name.toLowerCase().includes(parts[1].toLowerCase()));
-        if (commMatch) {
-          const idSet = new Set(commMatch.memberIds || []);
-          if (commMatch.leadMemberId) idSet.add(commMatch.leadMemberId);
-          recipients = allMembers.filter(m => idSet.has(m.id));
-        }
       } else if (['Super User', 'CEO', 'Employee', 'Startup'].includes(scopeStr)) {
         recipients = allMembers.filter(m => m.division === scopeStr);
       } else {
@@ -240,7 +221,7 @@ export default function AnnouncementsPage() {
   };
 
   const handleRejectAnnouncement = (id: string) => {
-    const updated = rejectAnnouncement(id, user?.name || 'Centre Head / GG Campus Events Head');
+    const updated = rejectAnnouncement(id, user?.name || 'Administrator');
     if (updated) {
       triggerSuccess(`Announcement submission rejected.`);
       setAnnouncements(getAnnouncements());
@@ -265,18 +246,6 @@ export default function AnnouncementsPage() {
     } else if (['Super User', 'CEO', 'Employee', 'Startup'].includes(targetCategory)) {
       recipients = allMembers.filter(m => m.division === targetCategory);
       scopeLabel = targetCategory;
-    } else if (targetCategory === 'Event Committee') {
-      const selectedEvent = events.find(e => e.id === selectedEventId);
-      const selectedComm = selectedEvent?.committees.find(c => c.id === selectedCommitteeId);
-      if (selectedEvent && selectedComm) {
-        const idSet = new Set(selectedComm.memberIds || []);
-        if (selectedComm.leadMemberId) idSet.add(selectedComm.leadMemberId);
-        recipients = allMembers.filter(m => idSet.has(m.id));
-        scopeLabel = `${selectedEvent.title} → ${selectedComm.name}`;
-      } else if (selectedEvent) {
-        scopeLabel = `Event: ${selectedEvent.title}`;
-        recipients = allMembers;
-      }
     } else if (targetCategory === 'Specific Members') {
       const idSet = new Set(selectedMemberIds);
       recipients = allMembers.filter(m => idSet.has(m.id));
@@ -372,7 +341,7 @@ export default function AnnouncementsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-theme-text-primary">Center Announcements</h1>
-          <p className="text-xs text-theme-text-secondary">Publish center circulars and broadcast targeted announcements to committees and specific members</p>
+          <p className="text-xs text-theme-text-secondary">Publish center circulars and broadcast targeted announcements to groups and specific members</p>
         </div>
         {canPublish && (
           <button
@@ -547,7 +516,7 @@ export default function AnnouncementsPage() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Committee Meeting & Deliverable Notice"
+                  placeholder="e.g. Team Meeting & Deliverable Notice"
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                 />
               </div>
@@ -557,15 +526,7 @@ export default function AnnouncementsPage() {
                 <label className="block font-medium text-theme-text-secondary">Target Recipient Audience</label>
                 <select
                   value={targetCategory}
-                  onChange={(e) => {
-                    setTargetCategory(e.target.value);
-                    if (e.target.value === 'Event Committee' && events.length > 0) {
-                      setSelectedEventId(events[0].id);
-                      if (events[0].committees && events[0].committees.length > 0) {
-                        setSelectedCommitteeId(events[0].committees[0].id);
-                      }
-                    }
-                  }}
+                  onChange={(e) => setTargetCategory(e.target.value)}
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold"
                 >
                   <option value="All Members">All Center Members</option>
@@ -573,49 +534,9 @@ export default function AnnouncementsPage() {
                   <option value="CEO">CEOs (Tier 2)</option>
                   <option value="Employee">Employees (Tier 3)</option>
                   <option value="Startup">Startups (Tier 4)</option>
-                  <option value="Event Committee">Event Committee (Sub-menu: Select Event & Committee)</option>
                   <option value="Specific Members">Specific Members (Pick from Member Logbook Roster)</option>
                 </select>
               </div>
-
-              {/* Sub-Menu: Event -> Committee Selection */}
-              {targetCategory === 'Event Committee' && (
-                <div className="p-3.5 bg-accent/5 border border-accent/20 rounded-2xl space-y-3">
-                  <div className="space-y-1">
-                    <label className="flex items-center gap-1.5 font-semibold text-accent">
-                      <Calendar className="h-3.5 w-3.5" />
-                      1. Select Event *
-                    </label>
-                    <SearchableSelect
-                      value={selectedEventId}
-                      onChange={(evId) => {
-                        setSelectedEventId(evId);
-                        const match = events.find(ev => ev.id === evId);
-                        if (match && match.committees && match.committees.length > 0) {
-                          setSelectedCommitteeId(match.committees[0].id);
-                        } else {
-                          setSelectedCommitteeId('');
-                        }
-                      }}
-                      options={events.filter(ev => isApprovedEvent(ev, tasks)).map(ev => ({ value: ev.id, label: ev.title }))}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="flex items-center gap-1.5 font-semibold text-accent">
-                      <Users className="h-3.5 w-3.5" />
-                      2. Select Sub-Committee *
-                    </label>
-                    <SearchableSelect
-                      value={selectedCommitteeId}
-                      onChange={setSelectedCommitteeId}
-                      allLabel={selectedEvent?.committees?.length ? undefined : 'No committees setup for this event'}
-                      allValue=""
-                      options={(selectedEvent?.committees || []).map(c => ({ value: c.id, label: `${c.name} (${c.memberIds?.length || 0} members)` }))}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Sub-Menu: Specific Members Roster Selection */}
               {targetCategory === 'Specific Members' && (

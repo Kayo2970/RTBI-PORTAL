@@ -6,7 +6,6 @@ import { fanOutAutoApproval, cascadeCloseAutoApprovals, deleteLinkedApprovalRequ
 import { requireSession, requirePermission, ForbiddenError } from '@/lib/session';
 import { canDeleteEvent, getAccessLevelSettingsServer, isEventsHeadGgCampus } from '@/lib/permissions-server';
 import { apiError } from '@/lib/api-error';
-import { dispatchCommitteeRosterEmails } from '@/lib/committee-roster-email';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
   pending_create: 'This event was created and needs sign-off from the CEO or Administrator before it goes live.',
@@ -14,17 +13,6 @@ const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
   pending_delete: 'A request to delete this event needs sign-off from the CEO or Administrator.',
 };
 const PENDING_STATES = new Set(['pending_create', 'pending_edit', 'pending_delete']);
-
-// Committees are nested inside the event record and PATCHed as part of the
-// whole event (see local-data.ts's submitEventCommitteeCreate/Members, which
-// call serverPatch('/api/events', ...) with the full event), so a committee's
-// own approvalStatus transitions have to be diffed against the previous
-// record here rather than handled by a dedicated committee endpoint.
-const COMMITTEE_PENDING_STATES = new Set(['pending_create', 'pending_members']);
-const COMMITTEE_PENDING_MESSAGE: Record<string, string> = {
-  pending_create: 'A new event committee was created and needs sign-off from the CEO or Administrator.',
-  pending_members: 'A committee roster update needs sign-off from the CEO or Administrator.',
-};
 
 export async function PATCH(
   request: Request,
@@ -42,6 +30,7 @@ export async function PATCH(
     const settings = await getAccessLevelSettingsServer();
     const { id } = await params;
     const updates = await request.json();
+    delete updates.committees; // events no longer have committees
 
     // Chain of command. Only a record that is genuinely pending can be decided (and only by its approver); a client that
     // sends approvalStatus "approved" on a record that isn't pending is trying to skip sign-off, so that is stripped.
@@ -107,59 +96,6 @@ export async function PATCH(
           console.error('[events-api] Approval cascade-close failed:', approvalErr);
         }
       }
-
-      // Email members newly appointed to a committee (direct assignment or an
-      // approved roster update).
-      try {
-        await dispatchCommitteeRosterEmails(previous, result);
-      } catch (emailErr) {
-        console.error('[events-api] Committee roster email dispatch failed:', emailErr);
-      }
-
-      const prevCommittees: any[] = previous?.committees || [];
-      const nextCommittees: any[] = result.committees || [];
-
-      for (const comm of nextCommittees) {
-        const prevComm = prevCommittees.find((c: any) => c.id === comm.id);
-        const wasCommPending = !!prevComm && COMMITTEE_PENDING_STATES.has(prevComm.approvalStatus);
-        const isCommPending = COMMITTEE_PENDING_STATES.has(comm.approvalStatus);
-
-        if (isCommPending && (!wasCommPending || prevComm.approvalStatus !== comm.approvalStatus)) {
-          try {
-            await fanOutAutoApproval({
-              entityType: 'committee',
-              entityId: comm.id,
-              entityTitle: comm.name,
-              eventId: result.id,
-              requesterId: comm.submittedBy || '',
-              requesterName: comm.submittedBy || 'A member',
-              requesterEmail: comm.submittedByEmail,
-              message: COMMITTEE_PENDING_MESSAGE[comm.approvalStatus],
-            });
-          } catch (approvalErr) {
-            console.error('[events-api] Committee approval fan-out failed:', approvalErr);
-          }
-        } else if (wasCommPending && !isCommPending) {
-          try {
-            await cascadeCloseAutoApprovals('committee', comm.id, comm.rejectionReason ? 'rejected' : 'approved', comm.decidedBy);
-          } catch (approvalErr) {
-            console.error('[events-api] Committee approval cascade-close failed:', approvalErr);
-          }
-        }
-      }
-
-      // Committees removed outright (deleted, or a rejected pending_create is
-      // stripped from the array rather than kept as a decided record) — purge
-      // any linked approval requests so they don't linger as orphans.
-      for (const prevComm of prevCommittees) {
-        if (!nextCommittees.some((c: any) => c.id === prevComm.id)) {
-          try {
-            await deleteLinkedApprovalRequests('committee', prevComm.id);
-          } catch (approvalErr) {
-            console.error('[events-api] Committee approval cleanup failed:', approvalErr);
-          }
-        }
-      }
     }
 
     return NextResponse.json(result);
@@ -178,10 +114,7 @@ export async function DELETE(
     requirePermission(canDeleteEvent(actor, settings), 'You do not have permission to delete events.');
     const { id } = await params;
     let found = false;
-    let deletedCommitteeIds: string[] = [];
     await mutateCollection('events', (current) => {
-      const target = current.find((e: any) => e.id === id);
-      deletedCommitteeIds = (target?.committees || []).map((c: any) => c.id);
       const filtered = current.filter((e: any) => e.id !== id);
       found = filtered.length < current.length;
       return filtered;
@@ -189,9 +122,6 @@ export async function DELETE(
     if (!found) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     await deleteLinkedApprovalRequests('event', id);
     await cascadeDeleteEvent(id);
-    for (const committeeId of deletedCommitteeIds) {
-      await deleteLinkedApprovalRequests('committee', committeeId);
-    }
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return apiError(err, 'events-id-api-delete', 500);

@@ -850,16 +850,6 @@ export default function SettingsPage() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block font-medium text-theme-text-secondary">Committee</label>
-                  <input
-                    type="text"
-                    disabled
-                    value={user?.committee || 'All Committees'}
-                    className="w-full px-4 py-2.5 bg-theme-background/10 border border-theme-border/30 rounded-xl text-theme-text-secondary cursor-not-allowed opacity-70"
-                  />
-                </div>
-
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="block font-medium text-theme-text-secondary">Date of Birth</label>
                   <input
@@ -1130,7 +1120,6 @@ export default function SettingsPage() {
                     <option value="AUTH_OTP">Password Reset OTP</option>
                     <option value="ANNOUNCEMENT">Announcements</option>
                     <option value="TASK_ASSIGNMENT">Task Assignments</option>
-                    <option value="EVENT_ROSTER">Event Roster Updates</option>
                     <option value="SYSTEM">System Alerts</option>
                   </select>
                 </div>

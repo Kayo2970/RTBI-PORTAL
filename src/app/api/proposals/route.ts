@@ -3,8 +3,8 @@ import { readCollection, mutateCollection } from '@/lib/server-db';
 import { saveBase64File, deleteStoredFilesForRecord } from '@/lib/file-storage';
 import { requireSession } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
-import { fanOutAutoApproval, type ApprovalPanelMember } from '@/lib/approval-sync';
-import { getAccessLevelSettingsServer, canApproveProposal } from '@/lib/permissions-server';
+import { getAccessLevelSettingsServer } from '@/lib/permissions-server';
+import { dispatchProposalEmails } from '@/lib/proposal-email';
 import { viewProposalAs, viewProposalsAs } from '@/lib/proposals-server';
 import { MAX_PROPOSAL_FILES, MAX_PROPOSAL_FILE_BYTES, PROPOSAL_RECIPIENT_GROUPS, type ProposalItem } from '@/lib/proposals';
 import type { Member } from '@/lib/local-data';
@@ -83,30 +83,14 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
       recipients: { groups, memberIds },
       attachments,
-      status: 'Pending Approval',
+      // Delivered straight to the people it is addressed to — no internal approval step. Their reply comes back to the author.
+      status: 'Approved',
       responses: [],
     };
     await mutateCollection('proposals', (current) => [item, ...current]);
 
-    // Ask the authorised approvers (Centre Head, Advisors, department Heads) to review it.
-    try {
-      const settings = await getAccessLevelSettingsServer();
-      const panel: ApprovalPanelMember[] = members
-        .filter(m => m.status !== 'Terminated' && m.id !== actor.id && canApproveProposal(m as any, settings))
-        .map(m => ({ id: m.id, name: m.name, email: m.email, label: 'Proposal Approver' }));
-      await fanOutAutoApproval({
-        entityType: 'proposal',
-        entityId: id,
-        entityTitle: title,
-        requesterId: actor.id,
-        requesterName: actor.name,
-        requesterEmail: actor.email,
-        message: 'A new proposal needs approval before it is shared with its recipients.',
-        customPanel: panel,
-      });
-    } catch (approvalErr) {
-      console.error('[proposals-api] Approval fan-out failed:', approvalErr);
-    }
+    // Email the people it is addressed to right away.
+    await dispatchProposalEmails(item);
 
     const settings = await getAccessLevelSettingsServer();
     return NextResponse.json(viewProposalAs(item, actor, members, settings), { status: 201 });

@@ -150,7 +150,7 @@ export async function gateEventAction(user: ServerUser, action: 'CREATE' | 'EDIT
 /** Event fields that are approval bookkeeping or sub-records with their own workflow — never "an edit to the event". */
 const EVENT_NON_EDIT_KEYS = new Set([
   'approvalStatus', 'pendingChange', 'submittedBy', 'submittedByEmail', 'approverType', 'approverMemberId', 'approverPolicyTagId',
-  'approvalPolicyName', 'approverName', 'decidedBy', 'decidedAt', 'rejectionReason', 'committees',
+  'approvalPolicyName', 'approverName', 'decidedBy', 'decidedAt', 'rejectionReason',
 ]);
 export function eventEditKeys(updates: Record<string, unknown>): string[] {
   return Object.keys(updates).filter((k) => !EVENT_NON_EDIT_KEYS.has(k));
@@ -225,7 +225,7 @@ async function policyOnlyGate(user: ServerUser, capabilities: string[], trusted:
 }
 
 const TASK_EDIT_KEYS = new Set([
-  'title', 'event', 'eventName', 'eventId', 'eventCommitteeId', 'eventCommitteeName', 'assignee', 'assigneeId', 'assigneeEmail',
+  'title', 'event', 'eventName', 'eventId', 'assignee', 'assigneeId', 'assigneeEmail',
   'assigneeIds', 'assigneeType', 'dueDate', 'taskCategory', 'designCategory', 'briefDescription', 'canvaLink', 'isSocialMediaPost',
 ]);
 export const taskEditKeys = (u: Record<string, unknown>) => Object.keys(u).filter((k) => TASK_EDIT_KEYS.has(k));
@@ -240,7 +240,7 @@ export async function gateTaskAction(user: ServerUser, action: 'CREATE' | 'EDIT'
   return policyOnlyGate(user, [action === 'CREATE' ? 'TASKS_CREATE' : 'TASKS_EDIT'], builtIn);
 }
 
-const FORM_EDIT_KEYS = new Set(['title', 'slug', 'description', 'headerText', 'headerImageUrl', 'headerPosX', 'headerPosY', 'headerZoom', 'headerHeight', 'backgroundImageUrl', 'backgroundBlur', 'backgroundDim', 'committee', 'fields', 'eventId', 'eventName', 'sourceTemplateId']);
+const FORM_EDIT_KEYS = new Set(['title', 'slug', 'description', 'headerText', 'headerImageUrl', 'headerPosX', 'headerPosY', 'headerZoom', 'headerHeight', 'backgroundImageUrl', 'backgroundBlur', 'backgroundDim', 'fields', 'eventId', 'eventName', 'sourceTemplateId']);
 export const formEditKeys = (u: Record<string, unknown>) => Object.keys(u).filter((k) => FORM_EDIT_KEYS.has(k));
 
 /**

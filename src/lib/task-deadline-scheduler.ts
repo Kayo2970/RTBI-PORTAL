@@ -1,5 +1,5 @@
 import { readCollection, mutateCollection } from './server-db';
-import { dispatchEmail, generateTaskDeadlineReminderEmailTemplate } from './email-service';
+import { isEmailCategoryEnabled, dispatchEmail, generateTaskDeadlineReminderEmailTemplate } from './email-service';
 import { resolveTaskEmailRecipients } from './task-email-queue';
 import type { TaskItem, Member, EventItem } from './local-data';
 
@@ -18,7 +18,7 @@ function addDaysDateString(base: string, days: number): string {
 }
 
 /**
- * Emails every task assignee (individual/committee/group — see
+ * Emails every task assignee (individual/group — see
  * resolveTaskEmailRecipients) whose task's dueDate is exactly tomorrow and
  * isn't already Completed. `deadlineReminderSentAt` on the task itself is the
  * idempotency guard — set the first time a reminder goes out, it's what
@@ -26,6 +26,7 @@ function addDaysDateString(base: string, days: number): string {
  * without ever double-emailing the same deadline.
  */
 export async function runTaskDeadlineReminderCheck(): Promise<{ checked: number; sent: number }> {
+  if (!(await isEmailCategoryEnabled('TASK_DEADLINE_REMINDER'))) return { checked: 0, sent: 0 }; // switched off in Email Management → Settings
   const tomorrow = addDaysDateString(todayDateString(), 1);
 
   const tasks = await readCollection<TaskItem>('tasks');
