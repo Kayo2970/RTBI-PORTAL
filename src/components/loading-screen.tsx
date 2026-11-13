@@ -27,7 +27,7 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
       <div className="absolute inset-0 pointer-events-none z-0 opacity-75 dark:opacity-90">
         <GhostFibers
           lineColor="#361C6A"
-          glowColor="#03d8fc"
+          glowColor="#E34A21"
           speed={0.4}
           scale={2}
           rotation={-24}
@@ -61,9 +61,9 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
         <div className="relative h-24 w-24 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border-4 border-accent/20 border-t-accent animate-spin"></div>
           <img
-            src="/images/leads-short-logo.png"
-            alt="LEADS Logo"
-            className="h-13 w-13 object-contain filter drop-shadow-[0_4px_12px_rgba(46,117,182,0.45)]"
+            src="/images/rtbi-icon.png"
+            alt="RTBI Logo"
+            className="h-13 w-13 object-contain filter drop-shadow-[0_4px_12px_rgba(54,28,106,0.45)]"
           />
         </div>
         <div className="text-center">

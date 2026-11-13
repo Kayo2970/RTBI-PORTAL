@@ -23,10 +23,10 @@ export function Card({
 }: CardProps) {
   const variantStyles =
     variant === 'bordered'
-      ? 'border-2 border-theme-border/60 dark:border-white/20 bg-white/90 dark:bg-[#0E2038]/90 backdrop-blur-xl shadow-sm'
+      ? 'border-2 border-theme-border/60 dark:border-white/20 bg-white/90 dark:bg-[#1D0F3A]/90 backdrop-blur-xl shadow-sm'
       : variant === 'flat'
-      ? 'bg-white/85 dark:bg-[#0E2038]/85 border border-theme-border/40 dark:border-white/20 backdrop-blur-xl shadow-lg'
-      : 'glass-panel shadow-2xl border border-white/40 dark:border-white/20 bg-white/85 dark:bg-[#0E2038]/85 backdrop-blur-2xl';
+      ? 'bg-white/85 dark:bg-[#1D0F3A]/85 border border-theme-border/40 dark:border-white/20 backdrop-blur-xl shadow-lg'
+      : 'glass-panel shadow-2xl border border-white/40 dark:border-white/20 bg-white/85 dark:bg-[#1D0F3A]/85 backdrop-blur-2xl';
 
   const hoverStyle =
     isHoverable && !isMagic

@@ -69,7 +69,7 @@ const CURRENT_FY_START = parseInt(CURRENT_FY.split('-')[0], 10);
 // Multi-Year range: -5 years back to +3 years ahead for historical access & forward planning.
 const FINANCIAL_YEARS = [-5, -4, -3, -2, -1, 0, 1, 2, 3].map((offset) => `${CURRENT_FY_START + offset}-${CURRENT_FY_START + offset + 1}`);
 
-const CHART_COLORS = ['#2E75B6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1'];
+const CHART_COLORS = ['#361C6A', '#E34A21', '#932961', '#10B981', '#F59E0B', '#8B5CF6', '#14B8A6', '#F97316'];
 
 const MONTH_NAMES = [
   'April', 'May', 'June', 'July', 'August', 'September',
@@ -942,7 +942,7 @@ export default function BudgetPage() {
                   <g key={m.monthKey} className="cursor-pointer" onClick={() => setSelectedMonthIndex(idx)}>
                     {/* Background selection highlight */}
                     {isSelected && (
-                      <rect x={x - 6} y="10" width="38" height="150" fill="rgba(46,117,182,0.15)" rx="6" />
+                      <rect x={x - 6} y="10" width="38" height="150" fill="rgba(227,74,33,0.15)" rx="6" />
                     )}
 
                     {/* Proposed Bar (Accent) */}
@@ -951,7 +951,7 @@ export default function BudgetPage() {
                       y={150 - propHeight}
                       width="12"
                       height={Math.max(propHeight, 2)}
-                      fill="#2E75B6"
+                      fill="#E34A21"
                       rx="3"
                       className="transition-all hover:opacity-80"
                     />
@@ -1192,7 +1192,7 @@ export default function BudgetPage() {
                   formatter={(value: any) => `₹${Number(value).toLocaleString()}`}
                   contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
                 />
-                <Bar dataKey="proposed" name="Proposed" fill="#2E75B6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="proposed" name="Proposed" fill="#E34A21" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="actual" name="Actual" radius={[4, 4, 0, 0]}>
                   {eventWiseData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />

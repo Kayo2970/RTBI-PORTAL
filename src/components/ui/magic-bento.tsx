@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 
 const DEFAULT_PARTICLE_COUNT = 8;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
-const LEADS_GLOW_COLOR = '46, 117, 182'; // LEADS Electric Accent Blue RGB
+const RTBI_GLOW_COLOR = '227, 74, 33'; // RTBI Vibrant Vermilion RGB
 const MOBILE_BREAKPOINT = 768;
 
 export interface ParticleCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -22,7 +22,7 @@ export interface ParticleCardProps extends React.HTMLAttributes<HTMLDivElement> 
   enableStars?: boolean;
 }
 
-const createParticleElement = (x: number, y: number, color = LEADS_GLOW_COLOR) => {
+const createParticleElement = (x: number, y: number, color = RTBI_GLOW_COLOR) => {
   const el = document.createElement('div');
   el.className = 'magic-particle';
   el.style.cssText = `
@@ -51,7 +51,7 @@ export function ParticleCard({
   disableAnimations = false,
   style,
   particleCount = DEFAULT_PARTICLE_COUNT,
-  glowColor = LEADS_GLOW_COLOR,
+  glowColor = RTBI_GLOW_COLOR,
   enableTilt = true,
   clickEffect = true,
   enableMagnetism = true,

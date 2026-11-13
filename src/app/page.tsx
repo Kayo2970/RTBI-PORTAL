@@ -496,7 +496,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
         <GhostFibers
           lineColor="#361C6A"
-          glowColor="#03d8fc"
+          glowColor="#E34A21"
           speed={0.2}
           scale={2}
           rotation={-24}
@@ -580,13 +580,13 @@ export default function LoginPage() {
             <Link
               href="/"
               className="flex flex-col items-center text-center space-y-2 md:space-y-3 hover:opacity-90 transition-all cursor-pointer select-none"
-              title="LEADS Home"
+              title="RTBI Home"
             >
               <div className="h-12 w-12 md:h-16 md:w-16 flex items-center justify-center">
                 <img
-                  src="/images/leads-short-logo.png"
-                  alt="LEADS Logo"
-                  className="h-full w-full object-contain filter drop-shadow-[0_4px_10px_rgba(46,117,182,0.35)]"
+                  src="/images/rtbi-icon.png"
+                  alt="RTBI Logo"
+                  className="h-full w-full object-contain filter drop-shadow-[0_4px_10px_rgba(54,28,106,0.35)]"
                 />
               </div>
               <div>

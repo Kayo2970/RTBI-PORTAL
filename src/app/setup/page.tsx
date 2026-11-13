@@ -53,9 +53,9 @@ export default function SetupPage() {
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="h-14 w-14 flex items-center justify-center">
             <img
-              src="/images/leads-short-logo.png"
-              alt="LEADS Logo"
-              className="h-full w-full object-contain filter drop-shadow-[0_4px_10px_rgba(46,117,182,0.35)]"
+              src="/images/rtbi-icon.png"
+              alt="RTBI Logo"
+              className="h-full w-full object-contain filter drop-shadow-[0_4px_10px_rgba(54,28,106,0.35)]"
             />
           </div>
           <h1 className="text-xl font-extrabold tracking-wider uppercase text-theme-text-primary">

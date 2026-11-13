@@ -157,9 +157,9 @@ function ActivateAccountForm() {
         >
           <div className="h-12 w-12 md:h-16 md:w-16 flex items-center justify-center">
             <img
-              src="/images/leads-short-logo.png"
-              alt="LEADS Logo"
-              className="h-full w-full object-contain filter drop-shadow-[0_4px_10px_rgba(46,117,182,0.35)]"
+              src="/images/rtbi-icon.png"
+              alt="RTBI Logo"
+              className="h-full w-full object-contain filter drop-shadow-[0_4px_10px_rgba(54,28,106,0.35)]"
             />
           </div>
           <div>

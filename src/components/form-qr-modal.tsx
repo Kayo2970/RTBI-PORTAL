@@ -5,7 +5,7 @@ import { X, Download, Copy, Printer, CheckCircle2, QrCode, ExternalLink } from '
 import QRCode from 'qrcode';
 import { PublicFormItem, FormTemplateItem } from '@/lib/local-data';
 
-const LEADS_LOGO_SRC = '/images/leads-short-logo.png';
+const RTBI_LOGO_SRC = '/images/rtbi-icon.png';
 
 /**
  * iPadOS 13+ masquerades as "Macintosh" in the UA string — the only way to
@@ -72,7 +72,7 @@ function drawCenterLogo(canvas: HTMLCanvasElement | null): Promise<void> {
       console.error('Failed to load LEADS logo for QR center overlay.');
       resolve();
     };
-    logo.src = LEADS_LOGO_SRC;
+    logo.src = RTBI_LOGO_SRC;
   });
 }
 

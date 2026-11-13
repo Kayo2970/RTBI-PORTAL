@@ -20,12 +20,12 @@ import { buildStudentFinalScores } from './final-score';
 import type { SubmitterReportScore } from './report-scoring';
 
 type RGB = [number, number, number];
-const BRAND_PRIMARY: RGB = [15, 42, 71]; // #0F2A47
-const BRAND_ACCENT: RGB = [46, 117, 182]; // #2E75B6
-const TEXT_DARK: RGB = [30, 41, 59];
-const TEXT_MUTED: RGB = [100, 116, 139];
-const BORDER_LIGHT: RGB = [226, 232, 240];
-const PANEL: RGB = [246, 249, 252];
+const BRAND_PRIMARY: RGB = [54, 28, 106]; // #361C6A
+const BRAND_ACCENT: RGB = [227, 74, 33]; // #E34A21
+const TEXT_DARK: RGB = [29, 24, 37]; // #1D1825
+const TEXT_MUTED: RGB = [91, 77, 112]; // #5B4D70
+const BORDER_LIGHT: RGB = [217, 212, 226]; // #D9D4E2
+const PANEL: RGB = [250, 246, 239]; // #FAF6EF
 const GOOD: RGB = [16, 185, 129];
 const OK: RGB = [59, 130, 246];
 const WARN: RGB = [245, 158, 11];

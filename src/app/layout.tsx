@@ -21,8 +21,8 @@ const geistMono = Geist_Mono({
 // four overlapping, conflicting icon <link> tags at once — which browsers can
 // resolve inconsistently, showing a blank/default tab icon.
 export const metadata: Metadata = {
-  title: "LEADS All-in-One Dashboard",
-  description: "Private internal management system for the RTBI Portal at MSRUAS, Bengaluru.",
+  title: "RTBI Portal - Ramaiah Technology Business Incubator",
+  description: "Private internal operations and management system for Ramaiah Technology Business Incubator (RTBI) at MSRUAS, Bengaluru.",
   // Lets iOS Safari's "Add to Home Screen" open this as a standalone app
   // (own icon, no browser chrome/URL bar) instead of just a bookmark that
   // reopens in a normal Safari tab — see components/ios-install-prompt.tsx

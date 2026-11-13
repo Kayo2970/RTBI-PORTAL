@@ -106,7 +106,7 @@ export function Button({
   const defaultRippleColor =
     variant === 'solid' || variant === 'shadow'
       ? 'rgba(255, 255, 255, 0.4)'
-      : 'rgba(46, 117, 182, 0.25)';
+      : 'rgba(227, 74, 33, 0.25)';
 
   const activeRippleColor = rippleColor || defaultRippleColor;
 

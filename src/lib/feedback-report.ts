@@ -331,7 +331,7 @@ function tableXml(b: Extract<Block, { k: 'table' }>): string {
   const total = b.widths.reduce((a, c) => a + c, 0);
   const jc = (i: number) => ({ l: 'left', r: 'right', c: 'center' }[b.align?.[i] ?? 'l']);
   const cell = (text: string, i: number, header: boolean, shade?: string) =>
-    `<w:tc><w:tcPr><w:tcW w:w="${b.widths[i]}" w:type="dxa"/>${header ? '<w:shd w:val="clear" w:color="auto" w:fill="0F2A47"/>' : shade ? `<w:shd w:val="clear" w:color="auto" w:fill="${shade}"/>` : ''}<w:vAlign w:val="center"/></w:tcPr>` +
+    `<w:tc><w:tcPr><w:tcW w:w="${b.widths[i]}" w:type="dxa"/>${header ? '<w:shd w:val="clear" w:color="auto" w:fill="361C6A"/>' : shade ? `<w:shd w:val="clear" w:color="auto" w:fill="${shade}"/>` : ''}<w:vAlign w:val="center"/></w:tcPr>` +
     `<w:p><w:pPr><w:spacing w:before="40" w:after="40"/><w:jc w:val="${jc(i)}"/></w:pPr>${runXml({ t: text, b: header, color: header ? 'FFFFFF' : undefined }, '<w:sz w:val="18"/>')}</w:p></w:tc>`;
   const rows = [
     `<w:tr><w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>${b.header.map((h, i) => cell(h, i, true)).join('')}</w:tr>`,
@@ -350,7 +350,7 @@ function blockXml(b: Block): string {
     case 'h2': return `<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr>${runXml({ t: b.text })}</w:p>`;
     case 'p': return `<w:p>${b.runs.map(r => runXml(r)).join('')}</w:p>`;
     case 'bullet': return `<w:p><w:pPr><w:ind w:left="400" w:hanging="260"/><w:spacing w:after="60"/></w:pPr>${runXml({ t: '•  ' })}${b.runs.map(r => runXml(r)).join('')}</w:p>`;
-    case 'quote': return `<w:p><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="2E75B6"/></w:pBdr><w:ind w:left="300"/></w:pPr>${runXml({ t: b.text, i: true, color: '475569' })}</w:p>`;
+    case 'quote': return `<w:p><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="E34A21"/></w:pBdr><w:ind w:left="300"/></w:pPr>${runXml({ t: b.text, i: true, color: '475569' })}</w:p>`;
     case 'table': return tableXml(b);
     case 'image': {
       const cx = 5900000;
@@ -368,10 +368,10 @@ const STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles ${NS}>
 <w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="21"/><w:szCs w:val="21"/><w:color w:val="1E293B"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
-<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="0" w:after="60"/></w:pPr><w:rPr><w:b/><w:color w:val="0F2A47"/><w:sz w:val="52"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="6" w:color="2E75B6"/></w:pBdr><w:spacing w:after="200"/></w:pPr><w:rPr><w:color w:val="2E75B6"/><w:sz w:val="30"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="0F2A47"/><w:sz w:val="30"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="80"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="2E75B6"/><w:sz w:val="24"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="0" w:after="60"/></w:pPr><w:rPr><w:b/><w:color w:val="361C6A"/><w:sz w:val="52"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="6" w:color="E34A21"/></w:pBdr><w:spacing w:after="200"/></w:pPr><w:rPr><w:color w:val="E34A21"/><w:sz w:val="30"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="361C6A"/><w:sz w:val="30"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="80"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="E34A21"/><w:sz w:val="24"/></w:rPr></w:style>
 </w:styles>`;
 
 export async function buildFeedbackReportDocx(a: FeedbackAnalysis, meta: ReportMeta, charts: ReportCharts = { comments: {} }): Promise<Blob> {

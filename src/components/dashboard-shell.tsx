@@ -1311,7 +1311,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <div className="fixed inset-0 pointer-events-none -z-10 opacity-40 dark:opacity-90 transition-opacity duration-500 overflow-hidden">
         <GhostFibers
           lineColor="#361C6A"
-          glowColor="#03d8fc"
+          glowColor="#E34A21"
           lightMode={!isDarkTheme}
           speed={0.2}
           scale={2}
@@ -1369,18 +1369,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           >
             <div className="h-9 w-9 flex items-center justify-center shrink-0">
               <img
-                src="/images/leads-short-logo.png"
-                alt="LEADS Logo"
-                className="h-full w-full object-contain filter drop-shadow-[0_2px_8px_rgba(46,117,182,0.3)]"
+                src="/images/rtbi-icon.png"
+                alt="RTBI Logo"
+                className="h-full w-full object-contain filter drop-shadow-[0_2px_8px_rgba(54,28,106,0.3)]"
               />
             </div>
             {showSidebarLabels && (
               <div className="flex flex-col">
                 <span className="font-extrabold text-xs tracking-wider uppercase text-theme-text-primary">
-                  LEADS CENTRE
+                  RTBI PORTAL
                 </span>
                 <span className="text-[10px] text-theme-text-secondary font-medium">
-                  Next Gen ERP
+                  Ramaiah Incubator
                 </span>
               </div>
             )}
@@ -1468,8 +1468,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         >
           <div className="h-7 w-7 flex items-center justify-center shrink-0">
             <img 
-              src="/images/leads-short-logo.png" 
-              alt="LEADS Logo" 
+              src="/images/rtbi-icon.png" 
+              alt="RTBI Logo" 
               className="h-full w-full object-contain"
             />
           </div>

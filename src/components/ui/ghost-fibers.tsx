@@ -197,7 +197,7 @@ const contexts = new WeakMap<HTMLDivElement, ContextValue>();
 
 export function GhostFibers({
   lineColor = '#361C6A',
-  glowColor = '#03d8fc',
+  glowColor = '#E34A21',
   speed = 0.2,
   scale = 2,
   rotation = 0,

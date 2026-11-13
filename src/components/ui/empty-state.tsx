@@ -19,7 +19,7 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="glass-panel rounded-3xl py-14 px-6 text-center space-y-4 border border-slate-200/90 dark:border-white/20 shadow-xl bg-white/95 dark:bg-[#0D1F38]/95 backdrop-blur-2xl my-4 flex flex-col items-center justify-center">
+    <div className="glass-panel rounded-3xl py-14 px-6 text-center space-y-4 border border-slate-200/90 dark:border-white/20 shadow-xl bg-white/95 dark:bg-[#1D0F3A]/95 backdrop-blur-2xl my-4 flex flex-col items-center justify-center">
       <div className="p-4 bg-accent/15 border border-accent/30 rounded-2xl text-accent shadow-sm">
         <Icon className="h-7 w-7" />
       </div>

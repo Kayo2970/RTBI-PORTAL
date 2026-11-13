@@ -201,7 +201,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="absolute bottom-1/4 -left-16 h-72 w-72 rounded-full bg-emerald-400/40 blur-3xl" />
       <GhostFibers
         lineColor="#361C6A"
-        glowColor="#03d8fc"
+        glowColor="#E34A21"
         speed={0.2}
         scale={2}
         rotation={-24}

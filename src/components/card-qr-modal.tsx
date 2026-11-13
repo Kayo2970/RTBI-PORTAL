@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, Download, Copy, CheckCircle2, QrCode } from 'lucide-react';
 import QRCode from 'qrcode';
 
-const LEADS_LOGO_SRC = '/images/leads-short-logo.png';
+const RTBI_LOGO_SRC = '/images/rtbi-icon.png';
 
 function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -48,7 +48,7 @@ function drawCenterLogo(canvas: HTMLCanvasElement | null): Promise<void> {
       resolve();
     };
     logo.onerror = () => resolve();
-    logo.src = LEADS_LOGO_SRC;
+    logo.src = RTBI_LOGO_SRC;
   });
 }
 
