@@ -36,7 +36,7 @@ import {
   EventItem
 } from '@/lib/local-data';
 import { getRatingColor } from '@/lib/design-tokens';
-import { canViewRating, canEvaluateEventStudent, canEditRating, resolveRatingReviewerRole, isFaculty, isSocialMediaTeamMember, isSocialMediaPostTask, isTaskRatable } from '@/lib/permissions';
+import { canViewRating, canEvaluateEventStudent, canEditRating, resolveRatingReviewerRole } from '@/lib/permissions';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { PeriodFilter } from '@/components/period-filter';
 import { SearchableSelect } from '@/components/searchable-select';
@@ -52,7 +52,6 @@ import {
 const CRITERIA_SET_LABEL: Record<RatingCriteriaSet, string> = {
   general: 'General Task',
   design: 'Design Task',
-  reportWriting: 'Report Writing Task',
 };
 
 // Sliders default to the midpoint (3 = Satisfactory), not the maximum score —
@@ -201,27 +200,21 @@ export default function RatingsPage() {
 
   const isFanOutTask = (task: TaskItem) => task.assigneeType === 'group';
 
-  // Students that can actually be rated on a group task (faculty excluded).
+  // Members that can be rated on a group task.
   const getRateableRoster = (task: TaskItem) => {
     if (!isFanOutTask(task)) return [];
-    return getTaskAssigneeStatuses(task, members, events).filter(m => !m.isFaculty && members.some(mb => mb.id === m.id));
+    return getTaskAssigneeStatuses(task, members, events).filter(m => members.some(mb => mb.id === m.id));
   };
 
   // This reviewer's own per-student rating rows for a task.
   const myMemberRatings = (task: TaskItem): RatingItem[] => {
-    const role = resolveRatingReviewerRole(user, isDesignTask(task));
+    const role = resolveRatingReviewerRole(user);
     return ratings.filter(r => r.taskId === task.id && !r.isGroupPlaceholder && ((role && r.reviewerRole === role) || r.raterName === user?.name));
   };
 
   const openEvaluationForTask = (task: TaskItem) => {
-    if (!isTaskRatable(task)) {
-      setAlertMsg(`Procurement tasks are administrative operations and not subject to ratings or reviews.`);
-      setTimeout(() => setAlertMsg(''), 5000);
-      return;
-    }
-
     const linkedEvent = events.find(ev => ev.id === task.eventId || ev.title === task.event);
-    if (!canEvaluateEventStudent(user, undefined, isDesignTask(task))) {
+    if (!canEvaluateEventStudent(user)) {
       setAlertMsg(`Evaluation Access Denied: You are not authorized to evaluate student performance for this deliverable.`);
       setTimeout(() => setAlertMsg(''), 5000);
       return;
@@ -288,23 +281,9 @@ export default function RatingsPage() {
     if (!user) return;
 
     if (selectedTask) {
-      if (!isTaskRatable(selectedTask)) {
-        setFormError('Evaluation Access Denied: Procurement tasks are administrative operations and not subject to ratings or reviews.');
-        return;
-      }
       const assigneeMember = members.find(m => m.name.toLowerCase() === selectedTask.assignee.toLowerCase() || m.id === selectedTask.assigneeId);
-      if ((assigneeMember && isFaculty(assigneeMember)) || /prof\.|professor|faculty/i.test(selectedTask.assignee)) {
-        setFormError('Evaluation Access Denied: Professors and faculty members cannot receive performance ratings.');
-        return;
-      }
-      if (isSocialMediaPostTask(selectedTask)) {
-        if (!assigneeMember || !isSocialMediaTeamMember(assigneeMember)) {
-          setFormError('Evaluation Access Denied: Only student members of the Social Media team can be evaluated for social media posts.');
-          return;
-        }
-      }
       const linkedEvent = events.find(ev => ev.id === selectedTask.eventId || ev.title === selectedTask.event);
-      if (!canEvaluateEventStudent(user, undefined, isDesignTask(selectedTask))) {
+      if (!canEvaluateEventStudent(user)) {
         setFormError(`Evaluation Access Denied: Only authorized reviewers (Super User, Centre Head, Advisor, Head of Events) may evaluate performance.`);
         return;
       }
@@ -317,10 +296,6 @@ export default function RatingsPage() {
       const correlatedTask = tasks.find(t => t.id === editingRating.taskId);
       if (!correlatedTask) {
         setFormError('Direct correlation check failed: the task associated with this rating no longer exists.');
-        return;
-      }
-      if (!isTaskRatable(correlatedTask)) {
-        setFormError('Evaluation Access Denied: Procurement tasks are administrative operations and not subject to ratings or reviews.');
         return;
       }
       const editLate = getTaskLateness(correlatedTask);
@@ -337,9 +312,9 @@ export default function RatingsPage() {
       const assigneeMember = members.find(m => m.name.toLowerCase() === selectedTask.assignee.toLowerCase());
       const isGroup = selectedTask.assigneeType === 'group';
       const targetId = assigneeMember ? assigneeMember.id : (selectedTask.assigneeId || selectedTask.assignee);
-      const reviewerRole = resolveRatingReviewerRole(user, isDesignTask(selectedTask));
+      const reviewerRole = resolveRatingReviewerRole(user);
 
-      // Reviewers (Super User, Centre Head, Advisor, GG Campus Events Head)
+      // Reviewers (Super User, CEO)
       // submit separate ratings that are averaged together. If this reviewer
       // already reviewed this exact task/target, re-submitting edits their existing
       // review in place instead of adding a duplicate row from the same reviewer.
@@ -416,7 +391,7 @@ export default function RatingsPage() {
       const groupNotice = isGroup
         ? ' (Evaluation propagated to all students in this group)'
         : '';
-      const averageNotice = reviewerRole === 'SUPER_USER' || reviewerRole === 'CENTRE_HEAD' || reviewerRole === 'ADVISOR' || reviewerRole === 'GG_HEAD'
+      const averageNotice = reviewerRole === 'SUPER_USER' || reviewerRole === 'CEO'
         ? ' — shown score is the live average of evaluations submitted so far'
         : '';
       triggerSuccess(`Submitted performance score of ${overall}/5.0 for ${selectedTask.assignee} on "${selectedTask.title}"${groupNotice}${averageNotice}`);
@@ -444,7 +419,7 @@ export default function RatingsPage() {
   // — used both for the "pending first" sort and to decide whether a queue card offers
   // "Evaluate" or "Edit My Review".
   const hasMyRating = (task: TaskItem): boolean => {
-    const reviewerRole = resolveRatingReviewerRole(user, isDesignTask(task));
+    const reviewerRole = resolveRatingReviewerRole(user);
     if (!reviewerRole) return false;
     const targetId = getRatingTargetId(task);
     if (ratings.some(r => r.taskId === task.id && r.targetId === targetId && (r.reviewerRole === reviewerRole || r.raterName === user?.name))) return true;
@@ -458,26 +433,14 @@ export default function RatingsPage() {
   // The actual rating record hasMyRating found, if any — used by the
   // Evaluated tab's "Edit My Review" action.
   const getMyRatingForTask = (task: TaskItem): RatingItem | undefined => {
-    const reviewerRole = resolveRatingReviewerRole(user, isDesignTask(task));
+    const reviewerRole = resolveRatingReviewerRole(user);
     if (!reviewerRole) return undefined;
     const targetId = getRatingTargetId(task);
     return ratings.find(r => r.taskId === task.id && r.targetId === targetId && (r.reviewerRole === reviewerRole || r.raterName === user?.name));
   };
 
   // Task Evaluation Queue surfaces completed student deliverables pending evaluation by the current user.
-  // Administrative approval tasks, faculty deliverables, and social media tasks for non-team members are strictly excluded.
-  const completedTasks = tasks.filter(t => {
-    if (t.status !== 'Completed') return false;
-    if (t.workflowType === 'holiday_social_approval') return false;
-    if (!isTaskRatable(t)) return false;
-    const assigneeMember = members.find(m => m.id === t.assigneeId || m.name.toLowerCase() === t.assignee.toLowerCase());
-    if (assigneeMember && isFaculty(assigneeMember)) return false;
-    if (/prof\.|professor|faculty/i.test(t.assignee)) return false;
-    if (isSocialMediaPostTask(t)) {
-      if (!assigneeMember || !isSocialMediaTeamMember(assigneeMember)) return false;
-    }
-    return true;
-  });
+  const completedTasks = tasks.filter(t => t.status === 'Completed');
   const pendingQueueTasks = completedTasks.filter(t => !hasMyRating(t));
   const evaluatedQueueTasks = completedTasks.filter(t => hasMyRating(t));
   const activeQueueTasks = queueTab === 'pending' ? pendingQueueTasks : evaluatedQueueTasks;
@@ -543,7 +506,7 @@ export default function RatingsPage() {
     setTaskSearchQuery('');
   };
 
-  // Accessible ratings history baseline (faculty excluded, direct task correlation check enforced, period filter applied)
+  // Accessible ratings history baseline (direct task correlation check enforced, period filter applied)
   const accessibleRatingsHistory = ratings.filter(r => {
     // Direct correlation check: if there is not any task, then it makes no sense that there would be a rating for said task!
     if (!r.taskId || !tasks.some(t => t.id === r.taskId)) return false;
@@ -554,19 +517,6 @@ export default function RatingsPage() {
     // what should show up here instead.
     if (r.isGroupPlaceholder) return false;
     if (!canViewRating(r, user)) return false;
-
-    // Professors/Faculty cannot get a rating or be part of ratings history
-    const targetMember = members.find(m => m.id === r.targetId || m.name.toLowerCase() === r.targetName.toLowerCase());
-    if (targetMember && isFaculty(targetMember)) return false;
-    if (/prof\.|professor|faculty/i.test(r.targetName)) return false;
-
-    // For social media tasks: only student members of the social media team
-    const matchedTask = tasks.find(t => t.id === r.taskId || t.title === r.taskTitle);
-    if (matchedTask && !isTaskRatable(matchedTask)) return false;
-    if (/\[procurement\]|procure items/i.test(r.taskTitle)) return false;
-    if ((matchedTask && isSocialMediaPostTask(matchedTask)) || /\[social media posting\]|social media post/i.test(r.taskTitle)) {
-      if (!targetMember || !isSocialMediaTeamMember(targetMember)) return false;
-    }
 
     return isWithinPeriod(r.createdAt, periodFilter);
   });
@@ -851,7 +801,7 @@ export default function RatingsPage() {
                     {group.tasks.map(task => {
                       const linkedEvent = events.find(ev => ev.id === task.eventId || ev.title === task.event);
                       const isDesignDeliverable = isDesignTask(task);
-                      const canEval = canEvaluateEventStudent(user, undefined, isDesignDeliverable);
+                      const canEval = canEvaluateEventStudent(user);
                       const targetId = getRatingTargetId(task);
                       
                       // Look up ratings already submitted for this task deliverable
@@ -926,9 +876,7 @@ export default function RatingsPage() {
                           <div className="pt-1 border-t border-theme-border/20 flex items-center justify-between gap-2">
                             {!canEval ? (
                               <span className="text-[10px] text-warning font-medium italic">
-                                {isDesignDeliverable
-                                  ? 'Evaluations restricted to Super User, Centre Head, Advisor, Head of Events (GG Campus), or Design Head'
-                                  : 'Evaluations restricted to Super User, Centre Head, Advisor, or Head of Events (GG Campus)'}
+                                Evaluations restricted to Super User and CEO
                               </span>
                             ) : queueTab === 'evaluated' ? (
                               <span className="text-[10px] text-success font-semibold flex items-center gap-1">
@@ -1146,23 +1094,9 @@ export default function RatingsPage() {
                                 <span className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
                                   rating.reviewerRole === 'SUPER_USER'
                                     ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                    : rating.reviewerRole === 'CENTRE_HEAD'
-                                      ? 'bg-accent/10 text-accent border-accent/20'
-                                      : rating.reviewerRole === 'ADVISOR'
-                                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                        : rating.reviewerRole === 'GG_HEAD'
-                                          ? 'bg-primary/10 text-primary-light border-primary/20'
-                                          : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                    : 'bg-accent/10 text-accent border-accent/20'
                                 }`}>
-                                  {rating.reviewerRole === 'SUPER_USER'
-                                    ? 'Super User'
-                                    : rating.reviewerRole === 'CENTRE_HEAD'
-                                      ? 'Centre Head'
-                                      : rating.reviewerRole === 'ADVISOR'
-                                        ? 'Advisor'
-                                        : rating.reviewerRole === 'GG_HEAD'
-                                          ? 'GG Head'
-                                          : 'Design Head'}
+                                  {rating.reviewerRole === 'SUPER_USER' ? 'Super User' : rating.reviewerRole === 'CEO' ? 'CEO' : 'Reviewer'}
                                 </span>
                               )}
                               <span className="font-bold text-accent">({rating.overallScore.toFixed(1)})</span>
@@ -1179,7 +1113,7 @@ export default function RatingsPage() {
                               )}
                               {rating.criteriaSet && rating.scores ? (
                                 <span title={CRITERIA_SET_LABEL[rating.criteriaSet]}>
-                                  {RATING_CRITERIA[rating.criteriaSet].map((c, i) => (
+                                  {(RATING_CRITERIA[rating.criteriaSet] ?? RATING_CRITERIA.general).map((c, i) => (
                                     <React.Fragment key={c.key}>
                                       {i > 0 && ' · '}
                                       <span className="font-semibold text-theme-text-primary" title={c.label}>{(rating.scores as Record<string, number>)[c.key] ?? '–'}</span>
@@ -1348,7 +1282,7 @@ export default function RatingsPage() {
                   );
                 }
 
-                const rateable = roster.filter(m => !m.isFaculty);
+                const rateable = roster;
                 const myRows = myMemberRatings(modalTask);
                 const toggle = (id: string) =>
                   setSelectedMemberIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -1420,15 +1354,9 @@ export default function RatingsPage() {
                 );
               })()}
               {!editingRating && selectedTask && (() => {
-                const role = resolveRatingReviewerRole(user, isDesignTask(selectedTask));
-                if (role === 'SUPER_USER' || role === 'CENTRE_HEAD' || role === 'ADVISOR' || role === 'GG_HEAD') {
-                  const roleLabel = role === 'SUPER_USER'
-                    ? 'Super User'
-                    : role === 'CENTRE_HEAD'
-                      ? 'Centre Head'
-                      : role === 'ADVISOR'
-                        ? 'Advisor'
-                        : 'Head of Events (GG Campus)';
+                const role = resolveRatingReviewerRole(user);
+                if (role === 'SUPER_USER' || role === 'CEO') {
+                  const roleLabel = role === 'SUPER_USER' ? 'Super User' : 'CEO';
                   return (
                     <p className="text-[10px] text-theme-text-secondary/80 italic">
                       Reviewing as {roleLabel} — the score shown for this task is the live average of evaluations submitted so far.
