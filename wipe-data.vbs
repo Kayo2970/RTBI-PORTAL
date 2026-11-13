@@ -8,3 +8,4 @@ If nRes = 6 Then ' Yes
     oShell.Run "cmd.exe /c cd /d """ & sAppDir & """ && node scripts\wipe-data.js", 0, True
     MsgBox "All application data and memory have been wiped clean." & vbCrLf & "The portal is ready for fresh setup.", 64, "RTBI Portal"
 End If
+

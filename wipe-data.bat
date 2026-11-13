@@ -23,3 +23,4 @@ node scripts\wipe-data.js
 echo.
 echo Done!
 pause
+
