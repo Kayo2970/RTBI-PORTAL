@@ -66,6 +66,8 @@ export interface DbSchema {
   auditLogs: any[];
   emails: any[];
   passwordResets: any[];
+  // Per-device login lockout state — see src/lib/device-security.ts. Hashed device ids only.
+  deviceSecurity: any[];
   emailChanges: any[];
   accountActivations: any[];
   emailSettings: any[];
@@ -125,6 +127,7 @@ const EMPTY_DB: DbSchema = {
   auditLogs: [],
   emails: [],
   passwordResets: [],
+  deviceSecurity: [],
   emailChanges: [],
   accountActivations: [],
   emailSettings: [],
@@ -174,6 +177,7 @@ const SEED_DB: DbSchema = {
   auditLogs: [],
   emails: [],
   passwordResets: [],
+  deviceSecurity: [],
   emailChanges: [],
   accountActivations: [],
   emailSettings: [

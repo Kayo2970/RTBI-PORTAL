@@ -65,7 +65,9 @@ export default async function proxy(request: NextRequest) {
     );
   }
 
-  if (category === 'auth') {
+  // /api/auth/login does its own account-backoff check inside the handler (lib/device-security.ts) so a device
+  // that has already logged in as this account is not locked out by someone else's guesses.
+  if (category === 'auth' && pathname !== '/api/auth/login') {
     const accountKey = await extractAccountKey(request);
     if (accountKey) {
       const accountResult = checkAccountBackoff(accountKey);
