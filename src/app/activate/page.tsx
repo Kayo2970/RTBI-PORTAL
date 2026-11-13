@@ -187,7 +187,7 @@ function ActivateAccountForm() {
         <Link
           href="/"
           className="flex flex-col items-center text-center space-y-2 md:space-y-3 hover:opacity-90 transition-all cursor-pointer select-none"
-          title="RTBI Home"
+          title="RTBI Portal Home"
         >
           <div className="h-12 w-12 md:h-16 md:w-16 flex items-center justify-center">
             <img

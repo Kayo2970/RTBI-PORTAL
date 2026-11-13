@@ -71,7 +71,7 @@ export function InteractiveKeycardHolder({
   joinDate,
   tier,
   phone = '+91 9608768647',
-  email = 'member@example.com',
+  email = 'member@rtbi.ac.in',
   photoUrl,
   serialNumber,
   accessLevel = 'Executive & Alumni Fellow (Tier 1)',
@@ -770,7 +770,7 @@ export function InteractiveKeycardHolder({
               <div className={styles.coverBackStitch} />
               <div className={styles.leftPanelHeader}>
                 <div>
-                  <div className={styles.leftPanelTitle}>RTBI</div>
+                  <div className={styles.leftPanelTitle}>RTBI Centre</div>
                   <div className={styles.leftPanelSub}>{isEvent ? 'Official Event Pass' : 'Executive Pass'}</div>
                 </div>
                 <span className={styles.leftBadgeTag}>{isEvent ? 'Verified' : 'Official'}</span>

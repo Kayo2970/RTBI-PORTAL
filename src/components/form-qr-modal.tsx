@@ -179,7 +179,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`RTBI — OFFICIAL ${formTypeLabel.toUpperCase()}`, width / 2, 55);
+      ctx.fillText(`MSRUAS RTBI — OFFICIAL ${formTypeLabel.toUpperCase()}`, width / 2, 55);
 
       // Form Title
       ctx.fillStyle = '#0f172a';
@@ -348,7 +348,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
         </head>
         <body>
           <div class="poster">
-            <p><strong>RTBI &bull; PUBLIC ${formTypeLabel.toUpperCase()}</strong></p>
+            <p><strong>MSRUAS RTBI &bull; PUBLIC ${formTypeLabel.toUpperCase()}</strong></p>
             <h1>${form.title}</h1>
             ${form.eventName ? `<p>Event: <strong>${form.eventName}</strong></p>` : ''}
             <img src="${qrDataUrl}" alt="Form QR Code" />

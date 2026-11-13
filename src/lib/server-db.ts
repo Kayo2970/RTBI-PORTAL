@@ -96,6 +96,14 @@ export interface DbSchema {
   // emailSettings' SMTP password) rather than only in env vars so a Super
   // User can paste them in from Settings without a redeploy.
   walletSettings: any[];
+  // Bookings / billing / inventory modules — see src/lib/billing.ts for the row shapes.
+  rooms: any[];
+  bookings: any[];
+  invoices: any[];
+  payments: any[];
+  billingSettings: any[];
+  inventoryItems: any[];
+  inventoryMovements: any[];
   lastUpdated?: string;
 }
 
@@ -133,6 +141,13 @@ const EMPTY_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  rooms: [],
+  bookings: [],
+  invoices: [],
+  payments: [],
+  billingSettings: [],
+  inventoryItems: [],
+  inventoryMovements: [],
 };
 
 const SEED_DB: DbSchema = {
@@ -189,6 +204,13 @@ const SEED_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  rooms: [],
+  bookings: [],
+  invoices: [],
+  payments: [],
+  billingSettings: [],
+  inventoryItems: [],
+  inventoryMovements: [],
 };
 
 const COLLECTION_KEYS = Object.keys(EMPTY_DB) as (keyof DbSchema)[];
@@ -612,4 +634,39 @@ export async function mutateCollection<T = any>(
   touchMeta(); // best-effort, not awaited — never blocks or fails a mutation
   if (mutationError) throw mutationError;
   return result;
+}
+
+/**
+ * Clean wipe of all database collections, uploads, and in-memory lock states.
+ */
+export async function wipeAllData(): Promise<void> {
+  writeLocks.clear();
+
+  try {
+    const entries = await fs.readdir(DATA_DIR);
+    for (const entry of entries) {
+      const fullPath = path.join(DATA_DIR, entry);
+      try {
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+          await fs.rm(fullPath, { recursive: true, force: true });
+        } else {
+          await fs.unlink(fullPath);
+        }
+      } catch (err: any) {
+        console.warn(`[server-db] Could not delete data/${entry}:`, err?.message);
+      }
+    }
+  } catch (err: any) {
+    if (err?.code !== 'ENOENT') {
+      console.warn('[server-db] Error reading DATA_DIR during wipe:', err?.message);
+    }
+  }
+
+  try {
+    await fs.rm(LEGACY_DB_PATH, { force: true });
+    await fs.rm(RETIRED_LEGACY_DB_PATH, { force: true });
+  } catch {}
+
+  await touchMeta();
 }

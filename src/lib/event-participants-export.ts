@@ -8,11 +8,11 @@ import { toCsvRow, downloadCsv } from './csv';
 
 /** Distinct members taking part in an event, with the committee(s)/role they hold. */
 export function getEventParticipants(event: EventItem, members: Member[]) {
-  const byId = new Map<string, { member?: Member; name: string; committees: string[]; leads: string[] }>();
-  const add = (id: string, fallbackName: string | undefined, committee: string, isLead: boolean) => {
-    const entry = byId.get(id) || { member: members.find(m => m.id === id), name: fallbackName || '', committees: [], leads: [] };
+  const byId = new Map<string, { member?: Member; name: string; committees: string[]; headedCommittees: string[] }>();
+  const add = (id: string, fallbackName: string | undefined, committee: string, isHead: boolean) => {
+    const entry = byId.get(id) || { member: members.find(m => m.id === id), name: fallbackName || '', committees: [], headedCommittees: [] };
     if (!entry.committees.includes(committee)) entry.committees.push(committee);
-    if (isLead && !entry.leads.includes(committee)) entry.leads.push(committee);
+    if (isHead && !entry.headedCommittees.includes(committee)) entry.headedCommittees.push(committee);
     byId.set(id, entry);
   };
   for (const c of event.committees || []) {
@@ -37,7 +37,7 @@ export function downloadEventDetailsCsv(event: EventItem, members: Member[]) {
     toCsvRow(['Total Students', participants.length]),
     '',
     toCsvRow(['STUDENT DETAILS']),
-    toCsvRow(['Name', 'Email', 'Phone', 'Division', 'Role', 'Department', 'Program', 'Batch', 'Event Committee(s)', 'Leads Committee(s)']),
+    toCsvRow(['Name', 'Email', 'Phone', 'Division', 'Role', 'Department', 'Program', 'Batch', 'Event Committee(s)', 'Headed Committee(s)']),
     ...participants.map(p =>
       toCsvRow([
         p.member?.name || p.name || '(removed member)',
@@ -49,7 +49,7 @@ export function downloadEventDetailsCsv(event: EventItem, members: Member[]) {
         p.member?.program,
         p.member?.batch,
         p.committees.join('; '),
-        p.leads.join('; '),
+        p.headedCommittees.join('; '),
       ])
     ),
   ];

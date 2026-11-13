@@ -28,8 +28,8 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const MEMBERS_PATH = path.join(DATA_DIR, 'members.json');
 const ENV_PATH = path.join(process.cwd(), '.env');
 const ENV_EXAMPLE_PATH = path.join(process.cwd(), '.env.example');
-const ENCRYPTION_SALT = Buffer.from('LEADS_NEXT_GEN_CENTRE_MSRUAS_SALT_2026', 'utf-8');
-const FALLBACK_KEY = 'LEADS_ERP_MASTER_SECRET_KEY_2026';
+const ENCRYPTION_SALT = Buffer.from('RTBI_PORTAL_MSRUAS_SALT_2026', 'utf-8');
+const FALLBACK_KEY = 'RTBI_PORTAL_MASTER_SECRET_KEY_2026';
 
 // --- best-effort .env / .env.local loader (no dependency, mirrors what
 // Next.js itself loads at runtime, so this script's DATA_ENCRYPTION_KEY

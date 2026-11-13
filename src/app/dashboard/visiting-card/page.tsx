@@ -626,7 +626,7 @@ export default function VisitingCardPage() {
                 memberName={user?.name || 'Executive Member'}
                 memberRole={(isWalletAdmin && cardDesignationOverride.trim()) ? cardDesignationOverride.trim() : (user?.role || 'RTBI Member')}
                 phone={cardPhone || user?.phone || '+91 9608768647'}
-                email={user?.email || 'member@example.com'}
+                email={user?.email || 'member@rtbi.ac.in'}
                 photoUrl={cardPhotoPreviewUrl || cardPhotoUrl || user?.avatarUrl}
                 serialNumber={cardSlug ? `RTBI-DIR-${cardSlug.toUpperCase()}` : 'RTBI-DIR-2026-99'}
                 accessLevel={user?.division === 'Faculty' ? 'Faculty & Academic Leadership' : user?.tier === 1 ? 'Executive Super User (Tier 1)' : 'Core Committee & Executive Fellow'}

@@ -87,7 +87,7 @@ function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
 const fmtDate = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 const REVIEWER_LABEL: Record<string, string> = {
   SUPER_USER: 'Super User',
-  CENTRE_HEAD: 'Centre Head',
+  CENTRE_HEAD: 'CEO',
   ADVISOR: 'Advisor',
   GG_HEAD: 'GG Campus Head',
   DESIGN_HEAD: 'Design Head',

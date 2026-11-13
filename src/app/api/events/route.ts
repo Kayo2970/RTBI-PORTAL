@@ -7,14 +7,14 @@ import { apiError } from '@/lib/api-error';
 import { gateEventAction, holdEditForApproval, stampPendingCreate, changedKeys, isPendingState } from '@/lib/approval-gate';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
-  pending_create: 'This event was created and needs sign-off from the Centre Head, Advisor, or GG Campus Events Head before it goes live.',
-  pending_edit: 'An edit to this event needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
-  pending_delete: 'A request to delete this event needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
+  pending_create: 'This event was created and needs sign-off from the CEO or Administrator before it goes live.',
+  pending_edit: 'An edit to this event needs sign-off from the CEO or Administrator.',
+  pending_delete: 'A request to delete this event needs sign-off from the CEO or Administrator.',
 };
 
 const COMMITTEE_PENDING_MESSAGE: Record<string, string> = {
-  pending_create: 'A new event committee was created and needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
-  pending_members: 'A committee roster update needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
+  pending_create: 'A new event committee was created and needs sign-off from the CEO or Administrator.',
+  pending_members: 'A committee roster update needs sign-off from the CEO or Administrator.',
 };
 
 // Committee approval fan-out (see /api/events/[id]'s PATCH handler) only

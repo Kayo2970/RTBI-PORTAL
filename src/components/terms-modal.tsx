@@ -41,7 +41,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
               <span>Intellectual Property & Licensing Ownership Notice</span>
             </div>
             <p className="text-xs text-theme-text-primary font-medium leading-relaxed">
-              All intellectual property rights, copyrights, trademarks, software source code, database architectures, UI/UX designs, custom modules, algorithms, and development licensing associated with the RTBI Next Gen Portal belong exclusively to <strong className="text-accent underline font-bold">Kayomarz Pavri</strong>.
+              All intellectual property rights, copyrights, trademarks, software source code, database architectures, UI/UX designs, custom modules, algorithms, and development licensing associated with the RTBI Portal belong exclusively to <strong className="text-accent underline font-bold">Kayomarz Pavri</strong>.
             </p>
           </div>
 

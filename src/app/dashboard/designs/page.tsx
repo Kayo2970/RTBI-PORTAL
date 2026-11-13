@@ -299,10 +299,10 @@ export default function DesignPortalPage() {
       const defaultSelected = eligibleFaculty.filter(f => {
         const roleLower = (f.role || '').toLowerCase();
         return (
-          roleLower.includes('centre head') ||
-          roleLower.includes('center head') ||
-          roleLower.includes('advisor') ||
-          f.tier === 2
+          roleLower.includes('ceo') ||
+          roleLower.includes('director') ||
+          roleLower.includes('head') ||
+          f.tier <= 2
         );
       });
       const defaultIds = defaultSelected.length > 0
@@ -1842,7 +1842,7 @@ export default function DesignPortalPage() {
                         Select Design Proofreaders <span className="text-rose-500">*</span>
                       </h4>
                       <p className="text-[10px] text-muted-foreground">
-                        Only Faculty members can be selected. Centre Head & Advisor are selected by default; Head of Design receives notification only if selected.
+                        Leadership and designated reviewers are selected by default.
                       </p>
                     </div>
                   </div>
@@ -1853,12 +1853,12 @@ export default function DesignPortalPage() {
                       onClick={() => {
                         const defaults = eligibleFaculty.filter(f => {
                           const r = (f.role || '').toLowerCase();
-                          return r.includes('centre head') || r.includes('center head') || r.includes('advisor') || f.tier === 2;
+                          return r.includes('ceo') || r.includes('director') || r.includes('head') || f.tier <= 2;
                         });
                         setSelectedProofreaderIds(defaults.length > 0 ? defaults.map(f => f.id) : eligibleFaculty.map(f => f.id));
                       }}
                       className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-accent/10 hover:bg-accent/20 text-accent border border-accent/25 transition-all cursor-pointer"
-                      title="Reset selection to default reviewers (Centre Head & Advisor)"
+                      title="Reset selection to default reviewers"
                     >
                       Defaults
                     </button>

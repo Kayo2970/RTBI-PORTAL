@@ -7,9 +7,9 @@ import { fanOutAutoApproval, cascadeCloseAutoApprovals, deleteLinkedApprovalRequ
 import { apiError } from '@/lib/api-error';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
-  pending_create: 'This form needs sign-off from the Centre Head or designated approver before its public link goes live.',
-  pending_edit: 'An edit to this form needs sign-off from the Centre Head or designated approver.',
-  pending_delete: 'A request to delete this form needs sign-off from the Centre Head or designated approver.',
+  pending_create: 'This form needs sign-off from the CEO or designated approver before its public link goes live.',
+  pending_edit: 'An edit to this form needs sign-off from the CEO or designated approver.',
+  pending_delete: 'A request to delete this form needs sign-off from the CEO or designated approver.',
 };
 const PENDING_STATES = new Set(['pending_create', 'pending_edit', 'pending_delete']);
 

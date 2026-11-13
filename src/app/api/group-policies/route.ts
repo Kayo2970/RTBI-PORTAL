@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   try {
     const actor = await requireSession(request);
     const settings = await getAccessLevelSettingsServer();
-    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only Centre Head, Events Head (GG Campus), or Super User can view Group Policies.');
+    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only CEO or Super User can view Group Policies.');
     const items = await readCollection('groupPolicies');
     return NextResponse.json(items);
   } catch (err: any) {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const actor = await requireSession(request);
     const settings = await getAccessLevelSettingsServer();
-    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only Centre Head, Events Head (GG Campus), or Super User can create Group Policies.');
+    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only CEO or Super User can create Group Policies.');
 
     const item = await request.json();
     const updated = await mutateCollection('groupPolicies', (current) => {

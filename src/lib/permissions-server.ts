@@ -27,7 +27,7 @@ export interface AccessLevelSettings {
 
 const DEFAULT_ACCESS_LEVEL_SETTINGS: AccessLevelSettings = {
   headKeyword: 'head',
-  sectorHeadKeywords: 'sector head,centre head,department head,base leadership',
+  sectorHeadKeywords: 'ceo,director,head,lead',
   sectorHeadMaxTier: 2,
   financeKeyword: 'finance',
   baseLeadershipMaxTier: 3,
@@ -538,3 +538,11 @@ export const canViewGuestRecord = canEditGuestRecord;
 export function canApproveProposal(user: ServerUser, settings: AccessLevelSettings): boolean {
   return !!user;
 }
+
+// Bookings / Invoices & Payments / Inventory — mirrors permissions.ts.
+export function isStaffTier(user: ServerUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 3;
+}
+export const canManageBilling = isStaffTier;
+export const canManageRooms = isStaffTier;
+export const canManageInventory = isStaffTier;

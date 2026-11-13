@@ -9,9 +9,9 @@ import { apiError } from '@/lib/api-error';
 import { dispatchCommitteeRosterEmails } from '@/lib/committee-roster-email';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
-  pending_create: 'This event was created and needs sign-off from the Centre Head, Advisor, or GG Campus Events Head before it goes live.',
-  pending_edit: 'An edit to this event needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
-  pending_delete: 'A request to delete this event needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
+  pending_create: 'This event was created and needs sign-off from the CEO or Administrator before it goes live.',
+  pending_edit: 'An edit to this event needs sign-off from the CEO or Administrator.',
+  pending_delete: 'A request to delete this event needs sign-off from the CEO or Administrator.',
 };
 const PENDING_STATES = new Set(['pending_create', 'pending_edit', 'pending_delete']);
 
@@ -22,8 +22,8 @@ const PENDING_STATES = new Set(['pending_create', 'pending_edit', 'pending_delet
 // record here rather than handled by a dedicated committee endpoint.
 const COMMITTEE_PENDING_STATES = new Set(['pending_create', 'pending_members']);
 const COMMITTEE_PENDING_MESSAGE: Record<string, string> = {
-  pending_create: 'A new event committee was created and needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
-  pending_members: 'A committee roster update needs sign-off from the Centre Head, Advisor, or GG Campus Events Head.',
+  pending_create: 'A new event committee was created and needs sign-off from the CEO or Administrator.',
+  pending_members: 'A committee roster update needs sign-off from the CEO or Administrator.',
 };
 
 export async function PATCH(

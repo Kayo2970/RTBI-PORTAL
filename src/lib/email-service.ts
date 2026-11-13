@@ -563,7 +563,7 @@ async function executeSmtpSend(payload: SendEmailPayload): Promise<{
     const { transporter: t, settings } = await buildTransporter();
     transporter = t;
     const from = `${settings.fromName || 'RTBI Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
-    const domain = (settings.fromEmail || 'example.com').split('@')[1] || 'example.com';
+    const domain = (settings.fromEmail || 'portal.example.com').split('@')[1] || 'portal.example.com';
     const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2, 9)}@${domain}>`;
 
     const isBulkCategory = payload.category === 'ANNOUNCEMENT' || payload.category === 'EVENT_ROSTER' || payload.category === 'GUEST_INVITE' || payload.category === 'CERTIFICATE';
@@ -1138,7 +1138,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     </div>
 
     <p style="margin: 16px 0 0; font-size: 11px; color: #64748b; text-align: center; line-height: 1.5;">
-      Security Notice: This elevated privilege was provisioned by ${escapeHtml(allottedByName)} via RTBI Group Policy Management. If you believe this grant was allotted in error, please report this immediately to your Centre Administrator.
+      Security Notice: This elevated privilege was provisioned by ${escapeHtml(allottedByName)} via RTBI Group Policy Management. If you believe this grant was allotted in error, please report this immediately to your Administrator.
     </p>
   `;
 
@@ -1185,7 +1185,7 @@ export function generateOtpEmailTemplate(name: string, otp: string): { subject: 
     badgeColor: `#0284c7`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You requested a password reset for your RTBI account. Use the verification code below to complete your password update:</p>
+      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You requested a password reset for your RTBI Portal account. Use the verification code below to complete your password update:</p>
 
       <div style="text-align: center; margin: 28px 0;">
         <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
@@ -1220,7 +1220,7 @@ export function generateWelcomeActivationEmailTemplate(name: string, activationL
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     headerTitle: `Account Activation`,
-    headerSubtitle: `RTBI Portal`,
+    headerSubtitle: `RTBI Operations Portal`,
     badgeText: `Account Setup`,
     badgeColor: `#0284c7`,
     bodyContentHtml: `
@@ -1257,7 +1257,7 @@ export function generateNewMemberWelcomeTemplate(member: {
 
   const subject = `RTBI Portal Account Created: ${member.name}`;
   const bodyText = `Hello ${member.name},\n\n` +
-    `Welcome to RTBI Portal. You have officially been registered as a member on the RTBI Portal.\n\n` +
+    `Welcome to RTBI Portal. You have officially been registered as a member on the RTBI Operations Dashboard.\n\n` +
     `Account Summary:\n` +
     `• Designation / Role: ${roleStr}\n` +
     `• Division: ${divisionStr}${departmentStr}\n` +
@@ -1293,7 +1293,7 @@ export function generateNewMemberWelcomeTemplate(member: {
         </a>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you have any questions or require assistance, please reach out to your Centre Head or System Administrator.</p>
+      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you have any questions or require assistance, please reach out to your Administrator.</p>
     `
   });
 
@@ -1451,6 +1451,7 @@ export function generateTaskEmailTemplate(memberName: string, taskTitle: string,
  */
 export function generateTaskDeadlineReminderEmailTemplate(memberName: string, taskTitle: string, eventName: string, dueDate: string): { subject: string; bodyText: string; bodyHtml: string } {
   const subject = `Deadline Tomorrow: ${taskTitle}`;
+  const baseUrl = getAppBaseUrl();
   const bodyText = `Hello ${memberName},\n\nThis is a reminder that the following task is due tomorrow.\n\n` +
     `Task: ${taskTitle}\n` +
     `Context: ${eventName || 'RTBI Operations'}\n` +
@@ -1479,7 +1480,7 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
       </table>
 
       <div style="margin-top: 20px; text-align: center;">
-        <a href="${getAppBaseUrl()}/dashboard/tasks" style="background: #d97706; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">Open Tasks Desk &rarr;</a>
+        <a href="${baseUrl}/dashboard/tasks" style="background: #d97706; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">Open Tasks Desk &rarr;</a>
       </div>
     `
   });
@@ -1574,7 +1575,7 @@ export function findApprovalRecipients(members: Array<{ id?: string; name: strin
   // established precedent for the same ambiguity.
   const centreHead = active.find(m => {
     const role = (m.role || '').toLowerCase();
-    return role.includes('centre head') || role.includes('center head');
+    return m.tier === 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
   }) || active.find(m => m.tier === 1);
 
   // Whole-word "advisor" match, mirroring permissions.ts's isCentreHead()

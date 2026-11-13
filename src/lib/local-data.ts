@@ -11,7 +11,7 @@ import { mergePassTemplate, DEFAULT_PASS_EMAIL_SUBJECT, DEFAULT_PASS_EMAIL_BODY,
 // can resolve who's actually calling (see src/lib/session.ts). Previously
 // no identity was sent at all; routes trusted whatever the request body said.
 // -------------------------------------------------------------
-const SESSION_TOKEN_KEY = 'leads_session_token';
+const SESSION_TOKEN_KEY = 'rtbi_session_token';
 
 export function getSessionToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -39,6 +39,17 @@ export function signOutClient(): void {
   }
   setSessionToken(null);
   localStorage.removeItem('user');
+}
+
+/**
+ * Clean wipe of all local client storage (localStorage + sessionStorage).
+ */
+export function clearAllLocalMemory(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch {}
 }
 
 export function authHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -1370,9 +1381,9 @@ export interface AccessLevelSettings {
   id: string; // always 'default'
   baseLeadershipMaxTier: number; // tier <= this counts as "Base Leadership"
   coreCommitteeTier: number; // tier === this counts as "Core Committee"
-  sectorHeadMaxTier: number; // tier <= this counts as Sector/Centre Head outright
+  sectorHeadMaxTier: number; // tier <= this counts as Leadership / CEO outright
   headKeyword: string; // whole-word, case-insensitive match against Member.role
-  sectorHeadKeywords: string; // comma-separated phrases, e.g. "sector head, centre head, center head"
+  sectorHeadKeywords: string; // comma-separated phrases, e.g. "ceo, director, head, lead"
   financeKeyword: string; // whole-word, case-insensitive match against role or department
   updatedAt?: string;
   updatedBy?: string;
@@ -1381,10 +1392,10 @@ export interface AccessLevelSettings {
 export const DEFAULT_ACCESS_LEVEL_SETTINGS: AccessLevelSettings = {
   id: 'default',
   baseLeadershipMaxTier: 3,
-  coreCommitteeTier: 5,
+  coreCommitteeTier: 3,
   sectorHeadMaxTier: 2,
   headKeyword: 'head',
-  sectorHeadKeywords: 'sector head, centre head, center head',
+  sectorHeadKeywords: 'ceo, director, head, lead',
   financeKeyword: 'finance',
 };
 
@@ -1545,7 +1556,7 @@ export const initialFormTemplates: FormTemplateItem[] = [
   {
     id: FEEDBACK_FORM_TEMPLATE_ID,
     name: 'Feedback Form Template',
-    description: 'The standard RTBI event feedback form — matches the official Feedback_Events.docx exactly, including the option to download each response as a filled copy of that Word document.',
+    description: 'The standard RTBI event feedback form — matches the official feedback form, including the option to download each response as a filled copy of that Word document.',
     createdBy: 'System',
     createdAt: '2026-01-01',
     fields: [
@@ -1656,7 +1667,7 @@ const pendingTaskOptimisticUpdates = new Map<string, { updates: Partial<TaskItem
 
 export function registerOptimisticTaskUpdate(id: string, updates: Partial<TaskItem>, previousTask?: TaskItem): void {
   pendingTaskOptimisticUpdates.set(id, { updates, previousTask, timestamp: Date.now() });
-  markLocalWrite('leads_tasks');
+  markLocalWrite('rtbi_tasks');
 }
 
 export function clearOptimisticTaskUpdate(id: string): void {
@@ -1696,7 +1707,7 @@ function hydrateIfStale(key: string, serverArray: unknown, requestStartedAt: num
   let arrayToPersist: any = serverArray;
   // If hydrating tasks, merge any active in-flight optimistic updates so a background poll
   // cannot temporarily revert an in-flight task completion or edit before the server write settles.
-  if (key === 'leads_tasks' && pendingTaskOptimisticUpdates.size > 0) {
+  if (key === 'rtbi_tasks' && pendingTaskOptimisticUpdates.size > 0) {
     const now = Date.now();
     arrayToPersist = (serverArray as any[]).map((task: any) => {
       const pending = pendingTaskOptimisticUpdates.get(task.id);
@@ -1760,26 +1771,26 @@ async function doSyncWithServer(): Promise<boolean> {
     const data = await res.json();
     if (data && typeof data === 'object') {
       const hydrated = [
-        hydrateIfStale('leads_members', data.members, requestStartedAt),
-        hydrateIfStale('leads_events', data.events, requestStartedAt),
-        hydrateIfStale('leads_tasks', data.tasks, requestStartedAt),
-        hydrateIfStale('leads_ratings', data.ratings, requestStartedAt),
-        hydrateIfStale('leads_reimbursements', data.reimbursements, requestStartedAt),
-        hydrateIfStale('leads_announcements', data.announcements, requestStartedAt),
-        hydrateIfStale('leads_custom_forms', data.forms, requestStartedAt),
-        hydrateIfStale('leads_form_templates', data.formTemplates, requestStartedAt),
-        hydrateIfStale('leads_form_submissions', data.submissions, requestStartedAt),
-        hydrateIfStale('leads_designs', data.designs, requestStartedAt),
-        hydrateIfStale('leads_group_policies', data.groupPolicies, requestStartedAt),
-        hydrateIfStale('leads_access_level_settings', data.accessLevelSettings, requestStartedAt),
-        hydrateIfStale('leads_system_settings', data.systemSettings, requestStartedAt),
-        hydrateIfStale('leads_guests', data.guests, requestStartedAt),
-        hydrateIfStale('leads_budgets', data.budgets, requestStartedAt),
-        hydrateIfStale('leads_income_sources', data.incomeSources, requestStartedAt),
-        hydrateIfStale('leads_audit_logs', data.auditLogs, requestStartedAt),
-        hydrateIfStale('leads_approval_requests', data.approvalRequests, requestStartedAt),
-        hydrateIfStale('leads_event_passes', data.event_passes || data.eventPasses, requestStartedAt),
-        hydrateIfStale('leads_event_reports', data.eventReports, requestStartedAt),
+        hydrateIfStale('rtbi_members', data.members, requestStartedAt),
+        hydrateIfStale('rtbi_events', data.events, requestStartedAt),
+        hydrateIfStale('rtbi_tasks', data.tasks, requestStartedAt),
+        hydrateIfStale('rtbi_ratings', data.ratings, requestStartedAt),
+        hydrateIfStale('rtbi_reimbursements', data.reimbursements, requestStartedAt),
+        hydrateIfStale('rtbi_announcements', data.announcements, requestStartedAt),
+        hydrateIfStale('rtbi_custom_forms', data.forms, requestStartedAt),
+        hydrateIfStale('rtbi_form_templates', data.formTemplates, requestStartedAt),
+        hydrateIfStale('rtbi_form_submissions', data.submissions, requestStartedAt),
+        hydrateIfStale('rtbi_designs', data.designs, requestStartedAt),
+        hydrateIfStale('rtbi_group_policies', data.groupPolicies, requestStartedAt),
+        hydrateIfStale('rtbi_access_level_settings', data.accessLevelSettings, requestStartedAt),
+        hydrateIfStale('rtbi_system_settings', data.systemSettings, requestStartedAt),
+        hydrateIfStale('rtbi_guests', data.guests, requestStartedAt),
+        hydrateIfStale('rtbi_budgets', data.budgets, requestStartedAt),
+        hydrateIfStale('rtbi_income_sources', data.incomeSources, requestStartedAt),
+        hydrateIfStale('rtbi_audit_logs', data.auditLogs, requestStartedAt),
+        hydrateIfStale('rtbi_approval_requests', data.approvalRequests, requestStartedAt),
+        hydrateIfStale('rtbi_event_passes', data.event_passes || data.eventPasses, requestStartedAt),
+        hydrateIfStale('rtbi_event_reports', data.eventReports, requestStartedAt),
       ];
       const changed = hydrated.some(Boolean);
       // Notify every open page in this tab to re-read localStorage and re-render.
@@ -1994,7 +2005,7 @@ async function serverDelete(endpoint: string, id: string, queryParams?: Record<s
 
 export function getMembers(): Member[] {
   if (typeof window === 'undefined') return [];
-  const saved = localStorage.getItem('leads_members');
+  const saved = localStorage.getItem('rtbi_members');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -2010,8 +2021,8 @@ export function getMembers(): Member[] {
 
 export function saveMembers(members: Member[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_members', JSON.stringify(members));
-  markLocalWrite('leads_members');
+  localStorage.setItem('rtbi_members', JSON.stringify(members));
+  markLocalWrite('rtbi_members');
   // Note: Mutations call targeted per-member endpoints (/api/members, /api/members/[id])
 }
 
@@ -2455,7 +2466,7 @@ export function reactivateMember(id: string, actorName: string): Member | null {
 
 export function getGuests(): Guest[] {
   if (typeof window === 'undefined') return initialGuests;
-  const saved = localStorage.getItem('leads_guests');
+  const saved = localStorage.getItem('rtbi_guests');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -2468,8 +2479,8 @@ export function getGuests(): Guest[] {
 
 export function saveGuests(guests: Guest[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_guests', JSON.stringify(guests));
-  markLocalWrite('leads_guests');
+  localStorage.setItem('rtbi_guests', JSON.stringify(guests));
+  markLocalWrite('rtbi_guests');
 }
 
 export async function addGuest(guest: Omit<Guest, 'id' | 'createdAt'>, actorName: string, onProgress?: UploadProgressCallback): Promise<Guest> {
@@ -2543,7 +2554,7 @@ export function getPassIssuableEvents(): EventItem[] {
 
 export function getEvents(): EventItem[] {
   if (typeof window === 'undefined') return initialEvents;
-  const saved = localStorage.getItem('leads_events');
+  const saved = localStorage.getItem('rtbi_events');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -2636,8 +2647,8 @@ export function getApprovedEvents(tasks?: TaskItem[]): EventItem[] {
 
 export function saveEvents(events: EventItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_events', JSON.stringify(events));
-  markLocalWrite('leads_events');
+  localStorage.setItem('rtbi_events', JSON.stringify(events));
+  markLocalWrite('rtbi_events');
   // Individual mutations use targeted serverPost/serverPatch/serverDelete
 }
 
@@ -3084,7 +3095,7 @@ export function getCommittees(eventId?: string): string[] {
 // -------------------------------------------------------------
 // Event Passes & Tickets (On-the-spot manual issuance + QR check-in)
 // -------------------------------------------------------------
-const EVENT_PASSES_STORAGE_KEY = 'leads_event_passes';
+const EVENT_PASSES_STORAGE_KEY = 'rtbi_event_passes';
 
 export function getEventPasses(eventId?: string): EventPassItem[] {
   if (typeof window === 'undefined') return [];
@@ -3657,7 +3668,7 @@ export function updateEventPassEmailStatus(
 
 export function getEventReports(): EventReportItem[] {
   if (typeof window === 'undefined') return [];
-  const saved = localStorage.getItem('leads_event_reports');
+  const saved = localStorage.getItem('rtbi_event_reports');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -3671,8 +3682,8 @@ export function getEventReports(): EventReportItem[] {
 
 export function saveEventReports(reports: EventReportItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_event_reports', JSON.stringify(reports));
-  markLocalWrite('leads_event_reports');
+  localStorage.setItem('rtbi_event_reports', JSON.stringify(reports));
+  markLocalWrite('rtbi_event_reports');
 }
 
 /** Submit a finished report file for an event. POSTs first so the server
@@ -3861,7 +3872,7 @@ export async function deleteEventReport(id: string, actorName: string): Promise<
 
 export function getApprovalRequests(): ApprovalRequest[] {
   if (typeof window === 'undefined') return [];
-  const saved = localStorage.getItem('leads_approval_requests');
+  const saved = localStorage.getItem('rtbi_approval_requests');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -3874,8 +3885,8 @@ export function getApprovalRequests(): ApprovalRequest[] {
 
 export function saveApprovalRequests(requests: ApprovalRequest[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_approval_requests', JSON.stringify(requests));
-  markLocalWrite('leads_approval_requests');
+  localStorage.setItem('rtbi_approval_requests', JSON.stringify(requests));
+  markLocalWrite('rtbi_approval_requests');
   window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
 }
 
@@ -4011,7 +4022,7 @@ export function deleteApprovalRequest(id: string, actorName: string): boolean {
 
 export function getTasks(): TaskItem[] {
   if (typeof window === 'undefined') return initialTasks;
-  const saved = localStorage.getItem('leads_tasks');
+  const saved = localStorage.getItem('rtbi_tasks');
   if (saved) {
     try {
       const parsed: TaskItem[] = JSON.parse(saved);
@@ -4047,7 +4058,7 @@ export function getTasks(): TaskItem[] {
         return true;
       });
       if (filtered.length !== parsed.length) {
-        localStorage.setItem('leads_tasks', JSON.stringify(filtered));
+        localStorage.setItem('rtbi_tasks', JSON.stringify(filtered));
       }
       if (pendingTaskOptimisticUpdates.size > 0) {
         const now = Date.now();
@@ -4070,8 +4081,8 @@ export function getTasks(): TaskItem[] {
 
 export function saveTasks(tasks: TaskItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_tasks', JSON.stringify(tasks));
-  markLocalWrite('leads_tasks');
+  localStorage.setItem('rtbi_tasks', JSON.stringify(tasks));
+  markLocalWrite('rtbi_tasks');
   window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
 }
 
@@ -4309,7 +4320,7 @@ function spawnEventReportRequestTask(eventId: string, eventTitle: string | undef
   const members = getMembers().filter(m => m.status !== 'Terminated');
   const centreHead = members.find(m => {
     const role = (m.role || '').toLowerCase();
-    return role.includes('centre head') || role.includes('center head');
+    return m.tier <= 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
   }) || members.find(m => m.tier === 1);
   const advisor = members.find(m => /\badvisor\b/.test((m.role || '').toLowerCase()));
   const eventsHeadGg = members.find(m => {
@@ -5045,7 +5056,7 @@ export async function acknowledgeTask(
 
 export function getRatings(): RatingItem[] {
   if (typeof window === 'undefined') return initialRatings;
-  const saved = localStorage.getItem('leads_ratings');
+  const saved = localStorage.getItem('rtbi_ratings');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -5059,8 +5070,8 @@ export function getRatings(): RatingItem[] {
 
 export function saveRatings(ratings: RatingItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_ratings', JSON.stringify(ratings));
-  markLocalWrite('leads_ratings');
+  localStorage.setItem('rtbi_ratings', JSON.stringify(ratings));
+  markLocalWrite('rtbi_ratings');
 }
 
 /**
@@ -5580,7 +5591,7 @@ export function getStudentLeaderboard(): {
 
 export function getReimbursements(): ReimbursementItem[] {
   if (typeof window === 'undefined') return initialReimbursements;
-  const saved = localStorage.getItem('leads_reimbursements');
+  const saved = localStorage.getItem('rtbi_reimbursements');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -5594,8 +5605,8 @@ export function getReimbursements(): ReimbursementItem[] {
 
 export function saveReimbursements(reimbursements: ReimbursementItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_reimbursements', JSON.stringify(reimbursements));
-  markLocalWrite('leads_reimbursements');
+  localStorage.setItem('rtbi_reimbursements', JSON.stringify(reimbursements));
+  markLocalWrite('rtbi_reimbursements');
 }
 
 export async function addReimbursement(item: Omit<ReimbursementItem, 'id' | 'status' | 'submittedAt'>, onProgress?: UploadProgressCallback): Promise<ReimbursementItem> {
@@ -5659,7 +5670,7 @@ export function updateReimbursementStatus(
 
 export function getBudgets(): BudgetItem[] {
   if (typeof window === 'undefined') return initialBudgets;
-  const saved = localStorage.getItem('leads_budgets');
+  const saved = localStorage.getItem('rtbi_budgets');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -5672,8 +5683,8 @@ export function getBudgets(): BudgetItem[] {
 
 export function saveBudgets(budgets: BudgetItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_budgets', JSON.stringify(budgets));
-  markLocalWrite('leads_budgets');
+  localStorage.setItem('rtbi_budgets', JSON.stringify(budgets));
+  markLocalWrite('rtbi_budgets');
 }
 
 export function addBudget(item: Omit<BudgetItem, 'id' | 'status' | 'submittedAt'>): BudgetItem {
@@ -5777,7 +5788,7 @@ export const initialProcurementRequests: ProcurementRequestItem[] = [];
 
 export function getProcurementRequests(): ProcurementRequestItem[] {
   if (typeof window === 'undefined') return initialProcurementRequests;
-  const saved = localStorage.getItem('leads_procurement_requests');
+  const saved = localStorage.getItem('rtbi_procurement_requests');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -5790,20 +5801,20 @@ export function getProcurementRequests(): ProcurementRequestItem[] {
 
 export function saveProcurementRequests(items: ProcurementRequestItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_procurement_requests', JSON.stringify(items));
-  markLocalWrite('leads_procurement_requests');
+  localStorage.setItem('rtbi_procurement_requests', JSON.stringify(items));
+  markLocalWrite('rtbi_procurement_requests');
 }
 
 function isProcurementAutoApprover(user?: { role?: string; tier?: number; division?: string } | null): boolean {
   if (!user) return false;
-  if (user.tier === 1) return true;
+  if (user.tier === 1 || user.tier === 2) return true;
   const role = (user.role || '').toLowerCase();
   const division = (user.division || '').toLowerCase();
   return (
-    role.includes('centre head') ||
-    role.includes('center head') ||
-    role.includes('advisor') ||
-    division.includes('advisory')
+    role.includes('ceo') ||
+    role.includes('director') ||
+    role.includes('head') ||
+    division.includes('leadership')
   );
 }
 
@@ -5814,13 +5825,13 @@ export function createProcurementTask(
   tasks: TaskItem[]
 ): TaskItem {
   const active = members.filter(m => m.status !== 'Terminated' && m.email);
-  const centreHead = active.find(m => {
+  const ceoUser = active.find(m => {
     const role = (m.role || '').toLowerCase();
-    return role.includes('centre head') || role.includes('center head');
+    return m.tier === 2 || role.includes('ceo') || role.includes('director') || role.includes('head');
   }) || active.find(m => m.tier === 1) || active[0];
 
   const itemsSummary = request.items.map(i => `${i.quantity} ${i.unit || ''} ${i.name}`.replace(/\s+/g, ' ').trim()).join(', ');
-  const title = `Procure items for ${request.eventName || request.taskTitle || 'Centre'}: ${itemsSummary.length > 80 ? itemsSummary.slice(0, 77) + '...' : itemsSummary}`;
+  const title = `Procure items for ${request.eventName || request.taskTitle || 'Operations'}: ${itemsSummary.length > 80 ? itemsSummary.slice(0, 77) + '...' : itemsSummary}`;
 
   let dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   if (request.eventId) {
@@ -5835,16 +5846,16 @@ export function createProcurementTask(
     .map(i => `• ${i.quantity} ${i.unit || ''} ${i.name}${i.notes ? ` (${i.notes})` : ''}`)
     .join('\n');
 
-  const briefDescription = `This is for the Centre Head to procure:\n${itemsDetail}\n\nRequested by: ${request.requesterName}${request.justification ? `\nJustification: ${request.justification}` : ''}\n\nNote: Procurement tasks are administrative operations and not subject to ratings or reviews.`;
+  const briefDescription = `Procurement Request:\n${itemsDetail}\n\nRequested by: ${request.requesterName}${request.justification ? `\nJustification: ${request.justification}` : ''}\n\nNote: Procurement tasks are administrative operations and not subject to ratings or reviews.`;
 
   return {
     id: `task_procurement_${request.id}`,
     title,
     event: request.eventName,
     eventId: request.eventId,
-    assignee: centreHead ? centreHead.name : 'Centre Head',
-    assigneeId: centreHead?.id,
-    assigneeEmail: centreHead?.email,
+    assignee: ceoUser ? ceoUser.name : 'CEO',
+    assigneeId: ceoUser?.id,
+    assigneeEmail: ceoUser?.email,
     assigneeType: 'individual',
     dueDate,
     status: 'Assigned',
@@ -6113,7 +6124,7 @@ export function syncBudgetLineItemsForEvent(eventId: string): void {
 
 export function getIncomeSources(): IncomeSourceItem[] {
   if (typeof window === 'undefined') return initialIncomeSources;
-  const saved = localStorage.getItem('leads_income_sources');
+  const saved = localStorage.getItem('rtbi_income_sources');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -6127,8 +6138,8 @@ export function getIncomeSources(): IncomeSourceItem[] {
 
 export function saveIncomeSources(items: IncomeSourceItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_income_sources', JSON.stringify(items));
-  markLocalWrite('leads_income_sources');
+  localStorage.setItem('rtbi_income_sources', JSON.stringify(items));
+  markLocalWrite('rtbi_income_sources');
 }
 
 export function addIncomeSource(item: Omit<IncomeSourceItem, 'id' | 'createdAt'>): IncomeSourceItem {
@@ -6196,7 +6207,7 @@ export function verifyReimbursementByCentreHead(id: string, reviewerName: string
 
 export function getAnnouncements(): AnnouncementItem[] {
   if (typeof window === 'undefined') return initialAnnouncements;
-  const saved = localStorage.getItem('leads_announcements');
+  const saved = localStorage.getItem('rtbi_announcements');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -6210,8 +6221,8 @@ export function getAnnouncements(): AnnouncementItem[] {
 
 export function saveAnnouncements(announcements: AnnouncementItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_announcements', JSON.stringify(announcements));
-  markLocalWrite('leads_announcements');
+  localStorage.setItem('rtbi_announcements', JSON.stringify(announcements));
+  markLocalWrite('rtbi_announcements');
 }
 
 export function addAnnouncement(item: Omit<AnnouncementItem, 'id' | 'publishedAt'>): AnnouncementItem {
@@ -6309,7 +6320,7 @@ export function deleteAnnouncement(id: string, actorName: string): boolean {
 
 export function getForms(): PublicFormItem[] {
   if (typeof window === 'undefined') return initialForms;
-  const saved = localStorage.getItem('leads_custom_forms');
+  const saved = localStorage.getItem('rtbi_custom_forms');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -6323,8 +6334,8 @@ export function getForms(): PublicFormItem[] {
 
 export function saveForms(forms: PublicFormItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_custom_forms', JSON.stringify(forms));
-  markLocalWrite('leads_custom_forms');
+  localStorage.setItem('rtbi_custom_forms', JSON.stringify(forms));
+  markLocalWrite('rtbi_custom_forms');
 }
 
 export function addForm(form: Omit<PublicFormItem, 'id' | 'createdAt'>): PublicFormItem {
@@ -6491,7 +6502,7 @@ export function isSlugUnique(slug: string, excludeFormId?: string): boolean {
 export function getFormTemplates(): FormTemplateItem[] {
   let list: FormTemplateItem[] = [...initialFormTemplates];
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('leads_form_templates');
+    const saved = localStorage.getItem('rtbi_form_templates');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -6521,13 +6532,13 @@ export function saveFormTemplates(templates: FormTemplateItem[]): void {
   // Keep built-in override rows (edited copies / deleted markers) that aren't part of the merged list passed in
   let keep: FormTemplateItem[] = [];
   try {
-    const prev = JSON.parse(localStorage.getItem('leads_form_templates') || '[]');
+    const prev = JSON.parse(localStorage.getItem('rtbi_form_templates') || '[]');
     if (Array.isArray(prev)) {
       keep = prev.filter((r: any) => initialFormTemplates.some((b) => b.id === r?.id) && (r.deleted || r.customized) && !templates.some((t) => t.id === r.id));
     }
   } catch { /* ignore */ }
-  localStorage.setItem('leads_form_templates', JSON.stringify([...templates, ...keep]));
-  markLocalWrite('leads_form_templates');
+  localStorage.setItem('rtbi_form_templates', JSON.stringify([...templates, ...keep]));
+  markLocalWrite('rtbi_form_templates');
 }
 
 export function addFormTemplate(template: Omit<FormTemplateItem, 'id' | 'createdAt'>): FormTemplateItem {
@@ -6548,7 +6559,7 @@ export function addFormTemplate(template: Omit<FormTemplateItem, 'id' | 'created
 function readSavedTemplateRows(): FormTemplateItem[] {
   if (typeof window === 'undefined') return [];
   try {
-    const parsed = JSON.parse(localStorage.getItem('leads_form_templates') || '[]');
+    const parsed = JSON.parse(localStorage.getItem('rtbi_form_templates') || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -6633,7 +6644,7 @@ export function updateFormTemplate(
 
 export function getSubmissions(): FormSubmissionItem[] {
   if (typeof window === 'undefined') return initialSubmissions;
-  const saved = localStorage.getItem('leads_form_submissions');
+  const saved = localStorage.getItem('rtbi_form_submissions');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -6647,8 +6658,8 @@ export function getSubmissions(): FormSubmissionItem[] {
 
 export function saveSubmissions(submissions: FormSubmissionItem[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_form_submissions', JSON.stringify(submissions));
-  markLocalWrite('leads_form_submissions');
+  localStorage.setItem('rtbi_form_submissions', JSON.stringify(submissions));
+  markLocalWrite('rtbi_form_submissions');
 }
 
 /** Deletes one collected response from this client's cache and the server. */
@@ -6686,8 +6697,8 @@ export function addSubmission(sub: Omit<FormSubmissionItem, 'id' | 'submittedAt'
   // instead of treating the localStorage write as success on its own.
   let synced: Promise<boolean> = Promise.resolve(false);
   if (typeof window !== 'undefined') {
-    localStorage.setItem('leads_form_submissions', JSON.stringify(current));
-    markLocalWrite('leads_form_submissions');
+    localStorage.setItem('rtbi_form_submissions', JSON.stringify(current));
+    markLocalWrite('rtbi_form_submissions');
     synced = serverPost('/api/submissions', newSub).then(() => true).catch(() => false);
   }
   logAuditEvent('FORM_SUBMITTED', 'Public Respondent', `New response submitted for form slug "${sub.slug}"`);
@@ -6717,7 +6728,7 @@ function normalizeAuditLog(raw: any): AuditLogItem {
 
 export function getAuditLogs(): AuditLogItem[] {
   if (typeof window === 'undefined') return [];
-  const saved = localStorage.getItem('leads_audit_logs');
+  const saved = localStorage.getItem('rtbi_audit_logs');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -6745,8 +6756,8 @@ export function logAuditEvent(action: string, actorName: string, details: string
   };
   current.unshift(newLog);
   // Keep last 1000 logs in localStorage (aligns with server)
-  localStorage.setItem('leads_audit_logs', JSON.stringify(current.slice(0, 1000)));
-  markLocalWrite('leads_audit_logs');
+  localStorage.setItem('rtbi_audit_logs', JSON.stringify(current.slice(0, 1000)));
+  markLocalWrite('rtbi_audit_logs');
   // Push to server asynchronously (fire-and-forget)
   serverPost('/api/auditlogs', newLog);
 }
@@ -6757,7 +6768,7 @@ export function logAuditEvent(action: string, actorName: string, details: string
 
 export function getDesigns(): DesignSubmissionItem[] {
   if (typeof window === 'undefined') return initialDesigns;
-  const saved = localStorage.getItem('leads_designs');
+  const saved = localStorage.getItem('rtbi_designs');
   if (saved) {
     try {
       const items: DesignSubmissionItem[] = JSON.parse(saved);
@@ -6785,8 +6796,8 @@ export function saveDesigns(designs: DesignSubmissionItem[]): void {
       const { fileData, ...rest } = d;
       return rest;
     });
-    localStorage.setItem('leads_designs', JSON.stringify(cleaned));
-    markLocalWrite('leads_designs');
+    localStorage.setItem('rtbi_designs', JSON.stringify(cleaned));
+    markLocalWrite('rtbi_designs');
     window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
   } catch (e) {
     console.warn('[saveDesigns] Local storage quota exceeded or unavailable:', e);
@@ -7571,7 +7582,7 @@ export function deleteDesign(id: string, actorName: string): boolean {
 
 export function getGroupPolicies(): GroupPolicy[] {
   if (typeof window === 'undefined') return initialGroupPolicies;
-  const saved = localStorage.getItem('leads_group_policies');
+  const saved = localStorage.getItem('rtbi_group_policies');
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -7584,8 +7595,8 @@ export function getGroupPolicies(): GroupPolicy[] {
 
 export function saveGroupPolicies(policies: GroupPolicy[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_group_policies', JSON.stringify(policies));
-  markLocalWrite('leads_group_policies');
+  localStorage.setItem('rtbi_group_policies', JSON.stringify(policies));
+  markLocalWrite('rtbi_group_policies');
 }
 
 export function addGroupPolicy(policy: Omit<GroupPolicy, 'id' | 'createdAt'>): GroupPolicy {
@@ -7632,7 +7643,7 @@ export function deleteGroupPolicy(id: string, actorName: string): boolean {
 
 export function getAccessLevelSettings(): AccessLevelSettings {
   if (typeof window === 'undefined') return DEFAULT_ACCESS_LEVEL_SETTINGS;
-  const saved = localStorage.getItem('leads_access_level_settings');
+  const saved = localStorage.getItem('rtbi_access_level_settings');
   if (saved) {
     try {
       const arr = JSON.parse(saved);
@@ -7654,8 +7665,8 @@ export function updateAccessLevelSettings(updates: Partial<AccessLevelSettings>,
     updatedBy: actorName,
   };
   if (typeof window !== 'undefined') {
-    localStorage.setItem('leads_access_level_settings', JSON.stringify([updated]));
-    markLocalWrite('leads_access_level_settings');
+    localStorage.setItem('rtbi_access_level_settings', JSON.stringify([updated]));
+    markLocalWrite('rtbi_access_level_settings');
   }
   serverPost('/api/access-level-settings', updated);
   logAuditEvent(
@@ -7672,7 +7683,7 @@ export function updateAccessLevelSettings(updates: Partial<AccessLevelSettings>,
 
 export function getSystemSettings(): SystemSettings {
   if (typeof window === 'undefined') return DEFAULT_SYSTEM_SETTINGS;
-  const saved = localStorage.getItem('leads_system_settings');
+  const saved = localStorage.getItem('rtbi_system_settings');
   if (saved) {
     try {
       const arr = JSON.parse(saved);
@@ -7686,8 +7697,8 @@ export function getSystemSettings(): SystemSettings {
 
 export function saveSystemSettings(settings: SystemSettings): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('leads_system_settings', JSON.stringify([settings]));
-    markLocalWrite('leads_system_settings');
+    localStorage.setItem('rtbi_system_settings', JSON.stringify([settings]));
+    markLocalWrite('rtbi_system_settings');
   }
   serverPost('/api/system-settings', settings);
 }

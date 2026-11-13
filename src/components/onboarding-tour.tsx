@@ -83,7 +83,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/home',
         icon: Sparkles,
         color: 'accent',
-        summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'RTBI Committee'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
+        summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'RTBI Team'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
         whatYouCanDo: [
           'Navigate through your assigned workspaces from the sidebar',
           'Track live committee tasks, events, and performance metrics',
@@ -169,7 +169,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/directory',
         icon: Users,
         color: 'primary',
-        summary: 'The comprehensive member registry for RTBI Portal faculty leadership, core committee leads, and training associates.',
+        summary: 'The comprehensive member registry for RTBI Portal faculty leadership, core department heads, and incubation associates.',
         whatYouCanDo: isSuper
           ? [
               'Add, edit, or modify member roles, tiers, and permissions',
@@ -383,7 +383,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
 
   const handleComplete = () => {
     try {
-      localStorage.setItem(`leads_tour_completed_${user.email || user.name}`, 'true');
+      localStorage.setItem(`rtbi_tour_completed_${user.email || user.name}`, 'true');
     } catch {}
     onClose();
   };

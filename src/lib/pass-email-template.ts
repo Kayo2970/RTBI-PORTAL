@@ -79,7 +79,7 @@ export function mergePassTemplate(template: string, vars: Record<string, string>
     .replace(/@details\b|\{\{details\}\}/gi, DETAILS_MARKER);
 }
 
-const STORAGE_KEY = 'leads_pass_email_template_v1';
+const STORAGE_KEY = 'rtbi_pass_email_template_v1';
 
 export function loadPassEmailTemplate(): PassEmailTemplate {
   const fallback = { subject: DEFAULT_PASS_EMAIL_SUBJECT, body: DEFAULT_PASS_EMAIL_BODY };

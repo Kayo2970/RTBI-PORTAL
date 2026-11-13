@@ -384,7 +384,7 @@ export function parseVisitingCardText(rawText: string): ExtractedCardDetails {
   // kumar@domain.com"), which used to truncate the match to just
   // "kumar@domain.com" since the regex doesn't span whitespace. Re-join a
   // single stray space between a dot and the next token only when that next
-  // token leads into an "@" — never touches genuine sentence text elsewhere
+  // token precedes an "@" — never touches genuine sentence text elsewhere
   // in the raw OCR text used for other fields.
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
   const textForEmailMatch = rawText.replace(/([a-zA-Z0-9._%+-]+)\.\s+([a-zA-Z0-9._%+-]+@)/g, '$1.$2');

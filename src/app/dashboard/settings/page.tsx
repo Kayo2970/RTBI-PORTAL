@@ -968,7 +968,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="text-[11px] text-theme-text-secondary space-y-1">
-              <p>RTBI Next Gen Portal</p>
+              <p>RTBI Portal</p>
               <p>Build version: v2026.8.19-email-sync</p>
             </div>
           </div>
@@ -1061,7 +1061,7 @@ export default function SettingsPage() {
         <div className="glass-panel rounded-2xl p-6 space-y-5">
           <div>
             <h3 className="text-base font-bold text-theme-text-primary">System Access & Permission Hierarchy</h3>
-            <p className="text-xs text-theme-text-secondary">Governing access rules across the 6 role tiers defined in RTBI PRD</p>
+            <p className="text-xs text-theme-text-secondary">Governing access rules across the role tiers defined in RTBI</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

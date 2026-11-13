@@ -9,6 +9,9 @@ import {
   CheckSquare,
   Star,
   Receipt,
+  ReceiptText,
+  DoorOpen,
+  Boxes,
   FileText,
   BarChart3,
   Megaphone,
@@ -46,7 +49,7 @@ import {
   Lightbulb,
   Users,
 } from 'lucide-react';
-import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders } from '@/lib/local-data';
+import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
@@ -70,6 +73,7 @@ interface SidebarItem {
   icon: React.ComponentType<any>;
   superUserOnly?: boolean;
   eventPassesOnly?: boolean;
+  staffOnly?: boolean; // tiers 1–3 (Super User, CEO, Employee)
   groupPoliciesOnly?: boolean;
 }
 
@@ -92,6 +96,7 @@ const navSections: NavSection[] = [
       { name: 'Ratings', href: '/dashboard/ratings', icon: Star },
       { name: 'Design Portal', href: '/dashboard/designs', icon: Palette },
       { name: 'Visiting Card', href: '/dashboard/visiting-card', icon: IdCard },
+      { name: 'Bookings', href: '/dashboard/bookings', icon: DoorOpen },
     ],
   },
   {
@@ -99,6 +104,8 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Reimbursements', href: '/dashboard/reimbursements', icon: Receipt },
       { name: 'Budget & Funds', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Invoices & Payments', href: '/dashboard/invoices', icon: ReceiptText },
+      { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes, staffOnly: true },
       { name: 'Public Forums', href: '/dashboard/forms', icon: FileText },
       { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
       { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
@@ -114,7 +121,7 @@ const allSidebarItems = navSections.flatMap(s => s.items);
 
 const INACTIVITY_LOGOUT_MS = 30 * 60 * 1000; // 30 minutes
 
-const SEEN_ACTION_IDS_KEY = 'leads_notif_seen_action_ids';
+const SEEN_ACTION_IDS_KEY = 'rtbi_notif_seen_action_ids';
 
 function loadSeenActionIds(): Set<string> {
   if (typeof window === 'undefined') return new Set();
@@ -432,7 +439,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   const loadDismissedNotifIds = (): Set<string> => {
     try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('leads_dismissed_notif_ids') : null;
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('rtbi_dismissed_notif_ids') : null;
       if (!raw) return new Set();
       const parsed = JSON.parse(raw);
       return new Set(Array.isArray(parsed) ? parsed : []);
@@ -443,7 +450,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   const saveDismissedNotifIds = (ids: Set<string>) => {
     try {
-      localStorage.setItem('leads_dismissed_notif_ids', JSON.stringify(Array.from(ids)));
+      localStorage.setItem('rtbi_dismissed_notif_ids', JSON.stringify(Array.from(ids)));
     } catch {}
   };
 
@@ -537,10 +544,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       // Auto-launch role-tailored Onboarding Tour ONLY on first-time initial account setup ever
       const isInitialSetup = parsedUser.isFirstLogin === true || (parsedUser as any).isNewAccount === true;
       const hasCompletedTour =
-        (parsedUser.id && localStorage.getItem(`leads_tour_completed_${parsedUser.id}`)) ||
-        (parsedUser.email && localStorage.getItem(`leads_tour_completed_${parsedUser.email}`)) ||
-        (parsedUser.name && localStorage.getItem(`leads_tour_completed_${parsedUser.name}`)) ||
-        (parsedUser.email && localStorage.getItem(`leads_has_logged_in_${parsedUser.email}`));
+        (parsedUser.id && localStorage.getItem(`rtbi_tour_completed_${parsedUser.id}`)) ||
+        (parsedUser.email && localStorage.getItem(`rtbi_tour_completed_${parsedUser.email}`)) ||
+        (parsedUser.name && localStorage.getItem(`rtbi_tour_completed_${parsedUser.name}`)) ||
+        (parsedUser.email && localStorage.getItem(`rtbi_has_logged_in_${parsedUser.email}`));
 
       const isImpersonatingSession = typeof window !== 'undefined' && sessionStorage.getItem('impersonator_original_user');
 
@@ -550,14 +557,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       // Mark that account has logged in so tutorial is not auto-shown repeatedly
       if (parsedUser.email) {
-        localStorage.setItem(`leads_has_logged_in_${parsedUser.email}`, 'true');
-        if (parsedUser.id) localStorage.setItem(`leads_has_logged_in_${parsedUser.id}`, 'true');
+        localStorage.setItem(`rtbi_has_logged_in_${parsedUser.email}`, 'true');
+        if (parsedUser.id) localStorage.setItem(`rtbi_has_logged_in_${parsedUser.id}`, 'true');
       }
 
       // Detect Promotion / Role Elevation on session load
       const userKey = parsedUser.email || parsedUser.id || parsedUser.name;
-      const storedLastTier = localStorage.getItem(`leads_seen_tier_${userKey}`);
-      const storedLastRole = localStorage.getItem(`leads_seen_role_${userKey}`);
+      const storedLastTier = localStorage.getItem(`rtbi_seen_tier_${userKey}`);
+      const storedLastRole = localStorage.getItem(`rtbi_seen_role_${userKey}`);
 
       if (storedLastTier !== null && storedLastRole !== null) {
         // parseFloat, not parseInt — tiers can be fractional (2.5 = GG Campus
@@ -584,8 +591,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       }
 
       // Record baseline seen role & tier
-      localStorage.setItem(`leads_seen_tier_${userKey}`, String(parsedUser.tier));
-      localStorage.setItem(`leads_seen_role_${userKey}`, parsedUser.role || '');
+      localStorage.setItem(`rtbi_seen_tier_${userKey}`, String(parsedUser.tier));
+      localStorage.setItem(`rtbi_seen_role_${userKey}`, parsedUser.role || '');
 
       return () => {
         clearInterval(pollInterval);
@@ -660,8 +667,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
         if (hasProfileChanges) {
           const userKey = liveRecord.email || liveRecord.id || liveRecord.name;
-          const storedLastTier = localStorage.getItem(`leads_seen_tier_${userKey}`);
-          const storedLastRole = localStorage.getItem(`leads_seen_role_${userKey}`);
+          const storedLastTier = localStorage.getItem(`rtbi_seen_tier_${userKey}`);
+          const storedLastRole = localStorage.getItem(`rtbi_seen_role_${userKey}`);
 
           if (storedLastTier !== null && storedLastRole !== null) {
             // parseFloat — see the matching fix/comment on the login-time
@@ -684,8 +691,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             }
           }
 
-          localStorage.setItem(`leads_seen_tier_${userKey}`, String(liveRecord.tier));
-          localStorage.setItem(`leads_seen_role_${userKey}`, liveRecord.role || '');
+          localStorage.setItem(`rtbi_seen_tier_${userKey}`, String(liveRecord.tier));
+          localStorage.setItem(`rtbi_seen_role_${userKey}`, liveRecord.role || '');
 
           const updatedSessionUser = {
             ...currentUser,
@@ -862,6 +869,31 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       originalUser.email
     );
     window.location.reload();
+  };
+
+  const isLocalhost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '[::1]'
+  );
+
+  const handleWipeLocalhostData = async () => {
+    if (!window.confirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/wipe-data', {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      clearAllLocalMemory();
+      alert(data.message || 'Application data and memory wiped clean.');
+      window.location.href = '/setup';
+    } catch {
+      clearAllLocalMemory();
+      window.location.href = '/setup';
+    }
   };
 
   const quickSwitchResults = allMembers.filter(m => {
@@ -1391,7 +1423,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   </h4>
                 )}
                 <div className="space-y-1">
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -1472,6 +1504,16 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </Link>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          {isLocalhost && (
+            <button
+              onClick={handleWipeLocalhostData}
+              className="h-8 w-8 flex items-center justify-center text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
+              title="Wipe data (Localhost)"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+
           <button
             onClick={toggleTheme}
             className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
@@ -1507,7 +1549,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   <h4 className="px-2 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                     {section.title}
                   </h4>
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -1588,6 +1630,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-3 justify-end shrink-0">
+            {/* Localhost Data Wipe button */}
+            {isLocalhost && (
+              <button
+                onClick={handleWipeLocalhostData}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                title="Wipe all data and reset memory (Localhost only)"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Wipe Data</span>
+              </button>
+            )}
+
             {/* Interactive Guided Tour button */}
             <button
               onClick={() => setIsTourOpen(true)}

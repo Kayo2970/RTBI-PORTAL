@@ -189,7 +189,7 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
 
   const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) / committee role(s) in RTBI Portal:\n\n` +
     itemsToSend.map(i => `- ${i.title} (Context: ${i.event}, Due: ${i.dueDate})`).join('\n') +
-    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRTBI Committee Management`;
+    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRTBI Portal Management`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
