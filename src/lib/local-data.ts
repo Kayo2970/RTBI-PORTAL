@@ -594,54 +594,7 @@ export interface TaskItem {
   // Design Heads evaluation rights on it (see permissions.ts) without
   // relying on a fragile title-string match.
   isDesignDeliverable?: boolean;
-  isSocialMediaPost?: boolean;
   designCategory?: 'Poster' | 'Postage' | 'Banner' | 'Social Media' | 'Brochure' | 'Certificates' | 'Other';
-  workflowType?: 'design_caption_draft' | 'design_caption_review' | 'design_social_posting'
-    | 'holiday_social_approval' | 'holiday_design_social'
-    // Auto-created the day an event's dates lapse (see event-social-scheduler.ts) —
-    // assigned to the senior Head of Design + Core Committee, asking for social
-    // media coverage of the just-concluded event.
-    | 'event_social_post'
-    // Auto-created once an event is approved and dated (see
-    // runEventPosterTasks in event-social-scheduler.ts) — a single
-    // INDIVIDUAL task (not group) assigned to whoever holds the
-    // Head of Design / Social Media Head role, asking for the event's
-    // poster/promotional assets ahead of time. Distinct from
-    // 'event_social_post', which is post-event recap content assigned to a
-    // whole pool.
-    | 'event_poster_request'
-    // Auto-created the moment an 'event_social_post' task is marked Completed
-    // (see updateTask below) — assigned as a group to the Centre Head, Advisor,
-    // and GG Campus Events Head, asking them to pick the student who should
-    // prepare the report (via the existing delegateAutoTask reassignment flow).
-    // Converts in place to 'event_report_request' once that delegation is
-    // approved — see updateTask's chain reaction below.
-    | 'event_report_assignment'
-    // What 'event_report_assignment' becomes once one of the three panel
-    // members delegates it to a specific student — that student now submits
-    // the formal event report (see EventReportItem) for the same event.
-    | 'event_report_request'
-    // Administrative task created when a procurement request is approved —
-    // assigned to the Centre Head to procure materials. Strictly excluded
-    // from ratings and reviews.
-    | 'procurement';
-  procurementId?: string;
-  isProcurement?: boolean;
-  // Only set on workflowType 'design_social_posting' tasks — distinguishes
-  // the two separate posting tasks (one per platform) created once captions
-  // are approved, so each can be assigned, viewed, and marked complete
-  // independently of the other.
-  platform?: 'instagram' | 'linkedin';
-  designId?: string;
-  draftInstagramCaption?: string;
-  draftLinkedinCaption?: string;
-  approvedInstagramCaption?: string;
-  approvedLinkedinCaption?: string;
-  // Group Policy approval workflow — mirrors EventItem's fields. Set only when
-  // the creator/editor's grant is not one of Tasks' built-in trusted roles
-  // (Base Leadership, any Head role, GG Campus tier) or came from an
-  // approval-required policy tag; absent/'approved' means a normal,
-  // immediately-effective task.
   approvalStatus?: 'pending_create' | 'pending_edit' | 'approved' | 'rejected';
   pendingChange?: Partial<TaskItem>; // for pending_edit: the proposed diff, applied on approval
   approverType?: 'CENTER_HEAD' | 'SPECIFIC_MEMBER' | 'POLICY_TAG';
@@ -665,7 +618,7 @@ export interface TaskItem {
   // flagged as needing a real creative brief up front, rather than a title
   // alone — see briefDescription/attachments below. Purely a UI/creation-time
   // affordance: it doesn't change any approval or visibility rule.
-  taskCategory?: 'general' | 'design' | 'reportWriting';
+  taskCategory?: 'general' | 'design';
   // Free-text brief of what the requester wants from the deliverable — only
   // collected/shown when taskCategory === 'design', but stored generically
   // in case a future task type wants the same field.
@@ -700,59 +653,6 @@ export function isFacultyMember(member: { division?: string; role?: string } | n
   if (!member) return false;
   const role = (member.role || '').toLowerCase();
   return role.includes('faculty') || role.includes('professor') || role.includes('prof.');
-}
-
-/** Check if a member belongs to the student Social Media team. Professors/Faculty are strictly excluded. */
-export function isSocialMediaTeamMember(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
-  const dept = (member.department || '').toLowerCase();
-  const role = (member.role || '').toLowerCase();
-  return (
-    dept.includes('social media') ||
-    role.includes('social media')
-  );
-}
-
-/** Check if a member is the Head or Senior Head of Social Media. */
-export function isSocialMediaHeadOrSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
-  if (!isSocialMediaTeamMember(member)) return false;
-  const role = (member.role || '').toLowerCase();
-  return role.includes('head') || role.includes('lead');
-}
-
-/** Check if a member is the Head of Social Media (non-senior). */
-export function isSocialMediaHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
-  if (!isSocialMediaTeamMember(member)) return false;
-  const role = (member.role || '').toLowerCase();
-  return (role.includes('head') || role.includes('lead')) && !role.includes('senior') && !role.includes('sr');
-}
-
-/** Check if a member is the Senior Head of Social Media. */
-export function isSocialMediaSrHead(member: { division?: string; department?: string; role?: string; status?: string } | null | undefined): boolean {
-  if (!member || isFacultyMember(member) || member.status === 'Terminated') return false;
-  if (!isSocialMediaTeamMember(member)) return false;
-  const role = (member.role || '').toLowerCase();
-  return (role.includes('head') || role.includes('lead')) && (role.includes('senior') || role.includes('sr.') || role.includes('sr '));
-}
-
-/** Check if a task is a social media posting/design deliverable task. */
-export function isSocialMediaPostTask(task: {
-  title?: string;
-  workflowType?: string;
-  taskCategory?: string;
-  isSocialMediaPost?: boolean;
-  platform?: string;
-} | null | undefined): boolean {
-  if (!task) return false;
-  if (task.workflowType === 'design_social_posting' || task.workflowType === 'holiday_design_social' || task.workflowType === 'event_social_post') {
-    return true;
-  }
-  if (task.isSocialMediaPost === true) return true;
-  if (task.platform === 'instagram' || task.platform === 'linkedin') return true;
-  const title = (task.title || '').toLowerCase();
-  return title.includes('social media') || title.includes('[social media posting]');
 }
 
 export interface TaskDelegationEvent {
@@ -1090,14 +990,6 @@ export interface FormSubmissionItem {
   isSample?: boolean;
 }
 
-export interface DesignProofreadReview {
-  proofreaderId: string;
-  proofreaderName: string;
-  status: 'Pending Proofread' | 'Proofread Approved' | 'Changes Requested';
-  comments?: string;
-  reviewedAt?: string;
-}
-
 export interface DesignSubmissionItem {
   id: string;
   title: string;
@@ -1115,100 +1007,28 @@ export interface DesignSubmissionItem {
   submittedAt: string;    // ISO timestamp
   // ISO timestamp the stored file gets purged at (see processDesignRetention
   // in server-db.ts) — submittedAt + 30 days by default, but reset to
-  // styleDecidedAt + 30 days once Style Approved (see updateDesignStyleReview).
+  // styleDecidedAt + 30 days once approved (see updateDesignStyleReview).
   expiresAt: string;
   isExpired?: boolean;
-  proofreadRequested: boolean;
-  assignedProofreaderId?: string;
-  assignedProofreaderName?: string;
-  assignedProofreaderEmail?: string;
-  assignedProofreaderIds?: string[];
-  assignedProofreaders?: { id: string; name: string; email: string; role?: string }[];
-  review?: DesignProofreadReview;
+  // Review: a design is submitted, then approved or sent back by a reviewer (a Super User, CEO, or one of the
+  // approvers chosen in the Approvals module). 'Pending' until someone decides.
   styleStatus?: 'Pending' | 'Style Approved' | 'Style Rejected';
   styleFeedback?: string;
   styleDecidedBy?: string;
   styleDecidedAt?: string;
-  // Whether the "Style Approved" attachment email to the Centre Head / GG
-  // Campus Head of Events actually went out — set by /api/designs/[id]'s
-  // PATCH handler the moment styleStatus first becomes 'Style Approved'.
-  // A false value with styleApprovalEmailError set means the design IS
-  // approved but nobody was actually emailed the asset yet.
-  styleApprovalEmailSent?: boolean;
-  styleApprovalEmailError?: string;
-  // Whether the designer-facing decision-notification email (sent on every
-  // proofread or style approve/reject) went out — set by /api/designs/[id]'s
-  // PATCH handler. Separate from styleApprovalEmailSent, which notifies the
-  // approvers, not the submitter.
+  // Whether the decision email to the designer went out (set by /api/designs/[id]'s PATCH handler).
   designerDecisionEmailSent?: boolean;
   designerDecisionEmailError?: string;
   eventId?: string;
   eventName?: string;
-  // Set once a Style Approved design linked to an event auto-creates a
-  // matching Completed task (see updateDesignStyleReview) — lets repeat
-  // approvals (e.g. approved -> changes requested -> re-approved) reuse the
-  // same task instead of creating a duplicate each time.
+  // Set once an approved design linked to an event auto-creates a matching Completed task (see
+  // updateDesignStyleReview) — lets repeat approvals reuse the same task instead of duplicating it.
   linkedTaskId?: string;
-  // The design-brief Task (Tasks module, taskCategory === 'design') this
-  // submission was made in response to — set only when the designer
-  // submitted via the Design Portal's "Design Task Requests" queue rather
-  // than an ad-hoc upload. addDesign() seeds linkedTaskId from this so
-  // syncDesignTask() completes THIS same task on approval instead of
-  // spawning a new standalone "Design Approved: ..." task.
+  // The design-brief Task (Tasks module, taskCategory === 'design') this submission was made in response to — set only
+  // when the designer submitted via the Design Portal's "Design Task Requests" queue rather than an ad-hoc upload.
+  // addDesign() seeds linkedTaskId from this so approval completes THIS task instead of spawning a new one.
   sourceTaskId?: string;
-  workflowStage?: 'caption_required' | 'caption_approval' | 'posting_required' | 'completed';
-  captionTaskId?: string;
-  captionApprovalTaskId?: string;
-  postingInstagramTaskId?: string;
-  postingLinkedinTaskId?: string;
-  postingInstagramDone?: boolean;
-  postingLinkedinDone?: boolean;
-  draftInstagramCaption?: string;
-  draftLinkedinCaption?: string;
-  approvedInstagramCaption?: string;
-  approvedLinkedinCaption?: string;
-  captionStatus?: 'pending_submission' | 'pending_approval' | 'approved' | 'changes_requested';
-  // Whether the "Captions Approved" email (design asset + approved caption
-  // text) to the Centre Head / Advisor / GG Campus Head of Events actually
-  // went out — set by /api/designs/[id]'s PATCH handler the moment
-  // captionStatus first becomes 'approved'. Mirrors styleApprovalEmailSent/
-  // styleApprovalEmailError above.
-  captionApprovalEmailSent?: boolean;
-  captionApprovalEmailError?: string;
-  captionReviewComments?: string;
   isSample?: boolean;
-  // Optional automated OCR + spell-check pass run client-side at upload time
-  // (see /api/designs/ocr-scan). Purely advisory — never validated or
-  // enforced server-side, just carried along for the Proofreading Desk to
-  // show what the automated pass already flagged.
-  ocrScan?: OcrScanResult;
-}
-
-export interface OcrScanIssue {
-  word: string;
-  suggestions: string[];
-  pageIndex: number;
-  bbox: { x0: number; y0: number; x1: number; y1: number };
-}
-
-export interface OcrScanPageImage {
-  dataUrl: string;
-  // Pixel dimensions of the ORIGINAL page the bbox coordinates above were
-  // measured against — not necessarily the dataUrl's own resolution, which
-  // may be downscaled for payload size. Highlight boxes are positioned by
-  // percentage, so this is all a consumer needs regardless of preview size.
-  width: number;
-  height: number;
-}
-
-export interface OcrScanResult {
-  extractedText: string;
-  pageCount: number;
-  totalPages: number;
-  partial: boolean; // true if a PDF had more pages than were scanned
-  issues: OcrScanIssue[];
-  pageImages: OcrScanPageImage[];
-  scannedAt: string;
 }
 
 export interface AuditLogItem {
@@ -2444,45 +2264,12 @@ export function isFestivalEvent(event: EventItem): boolean {
 /**
  * Check if an event is approved and ready to appear in dropdowns across the application:
  * 1. For regular events: approvalStatus is 'approved' or undefined (not 'pending_create', 'pending_delete', or 'rejected').
- * 2. For festival/holiday events: the post for the festival must be explicitly approved
- *    (e.g. a holiday_design_social task exists or holiday_social_approval task was completed with approval).
  */
 export function isApprovedEvent(event: EventItem, tasks?: TaskItem[]): boolean {
   if (!event) return false;
 
   // 1. Regular event approval check
   if (event.approvalStatus === 'pending_create' || event.approvalStatus === 'rejected') {
-    return false;
-  }
-
-  // 2. Festival / Holiday event post approval check
-  const isFestival = isFestivalEvent(event);
-
-  if (isFestival) {
-    const allTasks = tasks || getTasks();
-    const festivalTasks = allTasks.filter(t => 
-      t.eventId === event.id ||
-      t.event === event.title ||
-      (t.title && t.title.toLowerCase().includes(event.title.toLowerCase()))
-    );
-
-    // Look for design task resulting from an approved festival post
-    const hasApprovedDesignPost = festivalTasks.some(t => 
-      t.workflowType === 'holiday_design_social' ||
-      (t.isDesignDeliverable && t.workflowType !== 'holiday_social_approval' && t.status === 'Completed')
-    );
-    if (hasApprovedDesignPost) return true;
-
-    // Look for festival social approval task
-    const approvalTask = festivalTasks.find(t => t.workflowType === 'holiday_social_approval');
-    if (approvalTask) {
-      if (approvalTask.status === 'Completed' && hasApprovedDesignPost) {
-        return true;
-      }
-      return false;
-    }
-
-    // If no post task has been created or approved for this festival yet, it's not approved for dropdowns
     return false;
   }
 
@@ -3497,40 +3284,7 @@ export function getTasks(): TaskItem[] {
   if (saved) {
     try {
       const parsed: TaskItem[] = JSON.parse(saved);
-      // Auto-generated tasks must ONLY be created after the day the event is done, never before it.
-      // Filter out pre-event poster auto-tasks and auto-tasks for events that haven't concluded yet.
-      const now = new Date();
-      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      const events = getEvents();
-
-      // Track events that already have a completed auto-generated or design task
-      const completedAutoEventIds = new Set(
-        parsed
-          .filter(t => (t.workflowType === 'event_social_post' || t.workflowType === 'holiday_design_social') && t.status === 'Completed' && t.eventId)
-          .map(t => t.eventId!)
-      );
-
-      const filtered = parsed.filter(t => {
-        if (t.workflowType === 'event_poster_request' || (typeof t.id === 'string' && t.id.startsWith('task_event_poster_'))) {
-          return false;
-        }
-        if (t.workflowType === 'event_social_post' || (typeof t.id === 'string' && t.id.startsWith('task_event_social_'))) {
-          const ev = events.find(e => e.id === t.eventId);
-          if (ev) {
-            const evEnd = (ev.endDate && ev.endDate.trim()) || (ev.startDate && ev.startDate.trim());
-            if (!evEnd || evEnd >= todayStr || ev.datesTBD) return false;
-          }
-        }
-        // Deduplicate tasks created by the design portal for already completed auto-generated tasks
-        if (t.eventId && completedAutoEventIds.has(t.eventId)) {
-          if (typeof t.title === 'string' && t.title.startsWith('Design Approved:')) return false;
-          if (t.workflowType === 'design_caption_draft' || t.workflowType === 'design_caption_review' || t.workflowType === 'design_social_posting') return false;
-        }
-        return true;
-      });
-      if (filtered.length !== parsed.length) {
-        localStorage.setItem('rtbi_tasks', JSON.stringify(filtered));
-      }
+      const filtered = parsed;
       if (pendingTaskOptimisticUpdates.size > 0) {
         const now = Date.now();
         return filtered.map(t => {
@@ -3694,94 +3448,7 @@ export function updateTask(id: string, updates: Partial<TaskItem>, actorName: st
   serverPatch('/api/tasks', id, tasks[idx]);
   logAuditEvent('TASK_UPDATED', actorName, `Updated task: ${tasks[idx].title}`);
 
-  // Bi-directional completion: if a design_social_posting task is marked Completed, mark the corresponding design posting completed
-  if (
-    updates.status === 'Completed' &&
-    previousStatus !== 'Completed' &&
-    tasks[idx].workflowType === 'design_social_posting' &&
-    tasks[idx].designId
-  ) {
-    const designs = getDesigns();
-    const dIdx = designs.findIndex(d => d.id === tasks[idx].designId);
-    if (dIdx !== -1) {
-      designs[dIdx].postingInstagramDone = true;
-      designs[dIdx].postingLinkedinDone = true;
-      designs[dIdx].workflowStage = 'completed';
-      saveDesigns(designs);
-      serverPatch('/api/designs', designs[dIdx].id, designs[dIdx]);
-    }
-  }
-
   return tasks[idx];
-}
-
-/**
- * Ask the Centre Head / GG Campus Events Head to reassign an auto-generated
- * event-lapse task (the social post task or the event report request) to a
- * specific member — used by whoever it's currently assigned to when they
- * want to delegate it instead of doing it themselves. Goes through the same
- * pending_edit / approveTask sign-off flow as any other task edit, and is
- * deliberately always routed through approval (approverType: 'CENTER_HEAD')
- * regardless of the delegator's own role.
- */
-export function delegateAutoTask(
-  taskId: string,
-  target: { id: string; name: string; email: string },
-  actorName: string,
-  actorEmail: string
-): TaskItem | null {
-  return submitTaskEdit(
-    taskId,
-    { assignee: target.name, assigneeId: target.id, assigneeEmail: target.email, assigneeType: 'individual' },
-    actorName,
-    actorEmail,
-    { approverType: 'CENTER_HEAD', policyName: 'Auto-Generated Task Delegation' }
-  );
-}
-
-/**
- * Direct allotment function for Social Media Head and Sr Head:
- * Allows allotting an auto-created social media task to a team member or taking it up themselves,
- * immediately assigning the task without a redundant approval step.
- */
-export function allotSocialMediaTask(
-  taskId: string,
-  target: { id: string; name: string; email: string },
-  actorName: string,
-  actorEmail?: string
-): TaskItem | null {
-  const tasks = getTasks();
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return null;
-
-  const isSelf = actorEmail && target.email && actorEmail.toLowerCase() === target.email.toLowerCase();
-
-  const updated = updateTask(
-    taskId,
-    {
-      assignee: target.name,
-      assigneeId: target.id,
-      assigneeEmail: target.email,
-      assigneeType: 'individual',
-      assigneeIds: [target.id],
-      status: isSelf ? 'In Progress' : 'Assigned',
-      allottedBy: actorName,
-      allottedAt: new Date().toISOString(),
-    },
-    actorName
-  );
-
-  if (updated) {
-    logAuditEvent(
-      'TASK_ALLOTTED',
-      actorName,
-      isSelf
-        ? `Took up social media task "${task.title}"`
-        : `Allotted social media task "${task.title}" to ${target.name} (${target.email})`
-    );
-  }
-
-  return updated;
 }
 
 export function updateTaskStatus(id: string, status: TaskItem['status'], actorName?: string): TaskItem | null {
@@ -3853,58 +3520,6 @@ export async function updateTaskStatusAsync(
       error: err?.message || 'Error in updation of the task, please try again.'
     };
   }
-}
-
-/**
- * Centre Head / Events Head answering the weekly holiday-scheduler's "is a
- * social media post needed for this festival?" task (see
- * src/lib/holiday-scheduler.ts, which creates the workflowType
- * 'holiday_social_approval' task this responds to). A "yes" fans out a new
- * group task to every member whose role contains "Design Head" or "Social
- * Media Head" (both the senior and non-senior title-holders match the same
- * substring, so both get it) — falling back to tier <= 2 leadership if no
- * one on the roster currently holds either title, so the task is never left
- * orphaned with no one able to see it.
- */
-export function respondToHolidayApproval(taskId: string, approved: boolean, actorName: string): TaskItem | null {
-  const task = getTasks().find(t => t.id === taskId);
-  if (!task) return null;
-
-  updateTask(taskId, { status: 'Completed', decidedBy: actorName, decidedAt: new Date().toISOString() }, actorName);
-  logAuditEvent(
-    'HOLIDAY_SOCIAL_APPROVAL_DECIDED',
-    actorName,
-    `${approved ? 'Approved' : 'Declined'} a social media post for "${task.event || task.title}"`
-  );
-
-  if (approved) {
-    const existing = getTasks().find(t =>
-      t.workflowType === 'holiday_design_social' &&
-      ((t.eventId && t.eventId === task.eventId) || (t.event && t.event === task.event))
-    );
-    if (!existing) {
-      const pool = resolveSocialPostingAssignees();
-      const isSingle = pool.length === 1;
-      addTask({
-        title: `Design & post content for "${task.event || task.title}"`,
-        event: task.event,
-        eventId: task.eventId,
-        assignee: pool.map(m => m.name).join(', ') || 'Social Media Head',
-        assigneeType: isSingle ? 'individual' : 'group',
-        assigneeId: isSingle ? pool[0].id : undefined,
-        assigneeEmail: isSingle ? pool[0].email : undefined,
-        assigneeIds: pool.map(m => m.id),
-        dueDate: task.dueDate,
-        creatorName: actorName,
-        workflowType: 'holiday_design_social',
-        isSocialMediaPost: true,
-        taskCategory: 'design',
-        briefDescription: `Allot this task to a social media team member or take it up yourself to create and post social media content for "${task.event || task.title}". Submit the design asset here once ready.`,
-      });
-    }
-  }
-
-  return getTasks().find(t => t.id === taskId) || null;
 }
 
 export function deleteTask(id: string, actorName: string): boolean {
@@ -4187,21 +3802,6 @@ export function getTaskAssigneeStatuses(
 }
 
 /**
- * Returns true if a task's assignees are Faculty or if it represents a
- * Faculty Permission requirement (where permission from any 1 faculty is sufficient).
- */
-export function isFacultyTaskAssignees(
-  task: TaskItem,
-  statuses?: TaskAssigneeStatus[]
-): boolean {
-  if (task.workflowType === 'holiday_social_approval') return false;
-  const list = statuses || getTaskAssigneeStatuses(task);
-  if (list.length > 0 && list.some(s => s.isFaculty)) return true;
-  const assigneeStr = (task.assignee || '').toLowerCase();
-  return /faculty|professor|prof\./.test(assigneeStr);
-}
-
-/**
  * Records the current user's own, personal acknowledgment of a task — never
  * a groupmate's, and never on a student's behalf by anyone else, leadership
  * included. The isTaskAssignee check here is just a UX shortcut to skip a
@@ -4318,7 +3918,6 @@ function propagateGroupRating(task: TaskItem, parentRating: RatingItem): void {
     const memberObj = members.find(m => m.id === mId);
     if (!memberObj) return;
     if (isFacultyMember(memberObj)) return;
-    if (isSocialMediaPostTask(task) && !isSocialMediaTeamMember(memberObj)) return;
 
     // Same same-reviewer-role scoping as the other fan-out ratings.
     const existingIdx = ratings.findIndex(
@@ -4396,7 +3995,6 @@ export function rateTaskMembers(
   memberIds.forEach(mId => {
     const memberObj = members.find(m => m.id === mId);
     if (!memberObj || isFacultyMember(memberObj)) return;
-    if (isSocialMediaPostTask(task) && !isSocialMediaTeamMember(memberObj)) return;
 
     const existingIdx = ratings.findIndex(
       r => r.taskId === task.id && !r.isGroupPlaceholder && r.targetId === memberObj.id &&
@@ -4448,12 +4046,6 @@ export function addRating(rating: Omit<RatingItem, 'id' | 'createdAt'>): RatingI
   if ((targetMember && isFacultyMember(targetMember)) || /prof\.|professor|faculty/i.test(rating.targetName)) {
     throw new Error('Professors and faculty members cannot receive performance ratings.');
   }
-  if (isSocialMediaPostTask(task)) {
-    if (!targetMember || !isSocialMediaTeamMember(targetMember)) {
-      throw new Error('Only student members of the Social Media team can be evaluated for social media posts.');
-    }
-  }
-
   const ratings = getRatings();
   const newRating: RatingItem = {
     ...rating,
@@ -5656,71 +5248,6 @@ export function saveDesigns(designs: DesignSubmissionItem[]): void {
   }
 }
 
-/**
- * Unlike most mutations in this file, a design submission's server round-trip
- * is awaited rather than fired-and-forgotten: the uploaded file only actually
- * exists once the server has converted and saved it, so a silent server-side
- * failure here (a bad request, the file never arriving, a transient network
- * blip) previously left the designer looking at what appeared to be a
- * successful upload in their own browser — the local write always
- * succeeded — while no file (and no record at all) ever reached the server
- * or any other user's view. On failure, the optimistic local write is rolled
- * back and an error is thrown so the caller can show it and let the designer
- * retry, instead of a submission that silently goes nowhere.
- */
-/**
- * Every design submission — regardless of category — must go to the Centre
- * Head or the GG Campus Events Head for mandatory proofreading; there is no
- * opt-out and no manual reviewer picker. Prefers a real Centre Head, falls
-/**
- * Returns all active members eligible for selection as design proofreaders:
- * Super Users, CEOs and Employees (Startups can submit designs but not review them).
- * Tighten here once the proofreading scope is defined for the RTBI portal.
- */
-export function getEligibleFacultyProofreaders(members?: Member[]): Member[] {
-  return (members || getMembers()).filter(m => m.status !== 'Terminated' && m.tier <= 3);
-}
-
-/**
- * Fallback resolver when no specific proofreader is selected.
- */
-export function resolveDesignReviewer(): { id: string; name: string; email: string } | undefined {
-  const faculty = getEligibleFacultyProofreaders();
-  if (faculty.length > 0) {
-    const first = faculty[0];
-    return { id: first.id, name: first.name, email: first.email };
-  }
-  return undefined;
-}
-
-/**
- * The fixed leadership group that Instagram/LinkedIn posting tasks are
- * always assigned to once captions are approved (see reviewDesignCaptions
- * below) — Design Head, Social Media Head, and Senior Head roles, same
- * "role string contains X" matching respondToHolidayApproval already uses
- * for its own design/social-media fan-out. This is a fixed routing rule,
- * not tied to who submitted or designed the asset — posting is always the
- * group's job, never the designer's. Falls back to tier <= 2 leadership if
- * the roster currently holds none of those titles, so the task is never
- * left orphaned with no one able to see it.
- */
-/**
- * Resolves the member pool assigned to social-media posting tasks.
- * Strictly limited to the Head and Senior Head of Social Media.
- * General student groups and Professors/Faculty are strictly excluded.
- */
-export function resolveSocialPostingAssignees(members?: Member[]): Member[] {
-  const all = (members || getMembers()).filter(m => m.status !== 'Terminated' && !isFacultyMember(m));
-  const heads = all.filter(m => isSocialMediaHeadOrSrHead(m));
-  if (heads.length > 0) return heads;
-  const team = all.filter(m => isSocialMediaTeamMember(m));
-  return team.length > 0 ? team : all.slice(0, 1);
-}
-
-export function resolveSocialMediaHeads(members?: Member[]): Member[] {
-  return resolveSocialPostingAssignees(members);
-}
-
 export async function addDesign(design: Omit<DesignSubmissionItem, 'id' | 'submittedAt' | 'expiresAt' | 'isExpired'>, onProgress?: UploadProgressCallback): Promise<DesignSubmissionItem> {
   if (design.fileSize > 25 * 1024 * 1024) {
     throw new Error('File size exceeds the 25 MB limit.');
@@ -5731,54 +5258,20 @@ export async function addDesign(design: Omit<DesignSubmissionItem, 'id' | 'submi
   const submittedAt = now.toISOString();
   const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Resolve assigned faculty proofreaders from the submitter's explicit selection
-  const allMembers = getMembers();
-  let assignedProofreaderIds = design.assignedProofreaderIds || [];
-  let assignedProofreaders = design.assignedProofreaders || [];
-
-  if (assignedProofreaderIds.length > 0 && assignedProofreaders.length === 0) {
-    assignedProofreaders = assignedProofreaderIds
-      .map(id => allMembers.find(m => m.id === id))
-      .filter((m): m is Member => Boolean(m))
-      .map(m => ({ id: m.id, name: m.name, email: m.email, role: m.role }));
-  }
-
-  // Fallback if none provided
-  if (assignedProofreaders.length === 0) {
-    const fallback = resolveDesignReviewer();
-    if (fallback) {
-      assignedProofreaders = [{ id: fallback.id, name: fallback.name, email: fallback.email }];
-      assignedProofreaderIds = [fallback.id];
-    }
-  }
-
-  const primaryReviewer = assignedProofreaders[0];
-  const proofreaderNames = assignedProofreaders.map(p => p.name).join(', ');
-
   const newDesign: DesignSubmissionItem = {
     ...design,
     id: 'des_' + Date.now(),
     submittedAt,
     expiresAt,
     isExpired: false,
-    proofreadRequested: true,
-    assignedProofreaderId: primaryReviewer?.id,
-    assignedProofreaderName: proofreaderNames || primaryReviewer?.name,
-    assignedProofreaderEmail: primaryReviewer?.email,
-    assignedProofreaderIds: assignedProofreaders.map(p => p.id),
-    assignedProofreaders,
-    review: primaryReviewer ? {
-      proofreaderId: primaryReviewer.id,
-      proofreaderName: primaryReviewer.name,
-      status: 'Pending Proofread',
-    } : undefined,
+    styleStatus: 'Pending',
     // Reuse the design-brief or auto-generated task (if this submission fulfills one or is for the same event) as the
     // task syncDesignTask() completes on approval, instead of spawning a new standalone duplicate.
     linkedTaskId: design.sourceTaskId || design.linkedTaskId || (() => {
       if (!design.eventId) return undefined;
       const match = getTasks().find(t =>
         t.eventId === design.eventId &&
-        (t.workflowType === 'event_social_post' || t.workflowType === 'holiday_design_social' || t.taskCategory === 'design' || t.isDesignDeliverable)
+        (t.taskCategory === 'design' || t.isDesignDeliverable)
       );
       return match?.id;
     })(),
@@ -5809,41 +5302,29 @@ export async function addDesign(design: Omit<DesignSubmissionItem, 'id' | 'submi
     }
   }
 
-  const proofreadMsg = proofreaderNames
-    ? ` (routed to ${proofreaderNames} for faculty proofreading)`
-    : ' (no faculty proofreader assigned)';
-  logAuditEvent('DESIGN_SUBMITTED', design.designerName, `Submitted design "${design.title}" (${(design.fileSize / (1024 * 1024)).toFixed(2)} MB)${proofreadMsg}`, design.designerEmail);
+  logAuditEvent('DESIGN_SUBMITTED', design.designerName, `Submitted design "${design.title}" (${(design.fileSize / (1024 * 1024)).toFixed(2)} MB)`, design.designerEmail);
 
   return createdDesign;
 }
 
 /**
  * Synchronize design finalization state with the Task & Rating system.
- * A design is considered finalized once its mandatory proofread has been
- * approved by the Centre Head or GG Campus Events Head — that single action
- * is the only gate; there is no separate style-review requirement blocking
- * it. (The Style Review form elsewhere in the Design Portal still exists as
- * an optional, independent annotation a Design Head can use, but it is no
- * longer required for the design to finalize.)
- *
- * Once finalized, it automatically creates or completes a Task (linked to an Event
- * if present, or as a standalone deliverable if not), entering the Task Evaluation Queue
- * on the Ratings page, and kicks off Stage 1 of the caption/social-posting workflow
- * (see submitDesignCaptions / reviewDesignCaptions / completeDesignPosting below).
+ * A design is finalized once a reviewer (Super User, CEO or a default approver)
+ * marks it "Style Approved". Finalizing creates or completes a Task (linked to an
+ * Event if present, or as a standalone deliverable if not), which then enters the
+ * Task Evaluation Queue on the Ratings page.
  */
 function syncDesignTask(item: DesignSubmissionItem, reviewerName: string): DesignSubmissionItem {
-  const isFullyFinalized = !item.proofreadRequested || item.review?.status === 'Proofread Approved';
+  const updatedItem = { ...item };
 
-  let updatedItem = { ...item };
-
-  if (isFullyFinalized) {
+  if (updatedItem.styleStatus === 'Style Approved') {
     const allTasks = getTasks();
     const existingTask = updatedItem.linkedTaskId
       ? allTasks.find(t => t.id === updatedItem.linkedTaskId)
       : (updatedItem.eventId
           ? allTasks.find(t =>
               t.eventId === updatedItem.eventId &&
-              (t.workflowType === 'event_social_post' || t.workflowType === 'holiday_design_social' || t.taskCategory === 'design' || t.isDesignDeliverable)
+              (t.taskCategory === 'design' || t.isDesignDeliverable)
             )
           : null);
 
@@ -5868,81 +5349,9 @@ function syncDesignTask(item: DesignSubmissionItem, reviewerName: string): Desig
       });
       updatedItem.linkedTaskId = task.id;
     }
-
-    // Check if the auto-generated task for this event was ALREADY completed or was the linked task.
-    // If so, do NOT generate duplicate caption or posting tasks.
-    const autoTask = updatedItem.eventId
-      ? allTasks.find(t =>
-          t.eventId === updatedItem.eventId &&
-          (t.workflowType === 'event_social_post' || t.workflowType === 'holiday_design_social')
-        )
-      : null;
-
-    const isAutoTaskAlreadyDone = autoTask && (autoTask.status === 'Completed' || autoTask.id === updatedItem.linkedTaskId);
-
-    if (isAutoTaskAlreadyDone) {
-      updatedItem.workflowStage = 'completed';
-      updatedItem.postingInstagramDone = true;
-      updatedItem.postingLinkedinDone = true;
-      updatedItem.captionStatus = 'approved';
-      return updatedItem;
-    }
-
-    // Only auto-generate caption & posting task if category is 'Social Media'
-    const isSocialMedia = updatedItem.category === 'Social Media';
-    if (!isSocialMedia) {
-      // Non-social media designs (Poster, Postage, Banner, Brochure, Certificates, Other)
-      // complete their design task and stop here. No captions or posting tasks are generated.
-      updatedItem.workflowStage = 'completed';
-      return updatedItem;
-    }
-
-    // Unified Caption Writing & Posting Task for Social Media Head / Sr Head
-    if (!updatedItem.workflowStage || updatedItem.workflowStage === 'caption_required' || updatedItem.workflowStage === 'posting_required') {
-      const existingPostingTask = allTasks.find(t =>
-        t.designId === updatedItem.id && t.workflowType === 'design_social_posting'
-      );
-      if (!existingPostingTask) {
-        const dueDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const postingPool = resolveSocialPostingAssignees();
-        const isSingle = postingPool.length === 1;
-        const postingAssignee = {
-          assignee: postingPool.map(m => m.name).join(', ') || 'Social Media Head',
-          assigneeType: (isSingle ? 'individual' : 'group') as 'individual' | 'group',
-          assigneeId: isSingle ? postingPool[0].id : undefined,
-          assigneeEmail: isSingle ? postingPool[0].email : undefined,
-          assigneeIds: postingPool.map(m => m.id),
-        };
-
-        const postTask = addTask({
-          title: `[Social Media Post] Caption & Post: ${updatedItem.title}`,
-          event: updatedItem.eventName || undefined,
-          eventId: updatedItem.eventId || undefined,
-          ...postingAssignee,
-          dueDate,
-          status: 'In Progress',
-          creatorName: reviewerName,
-          isSocialMediaPost: true,
-          workflowType: 'design_social_posting',
-          designId: updatedItem.id,
-          draftInstagramCaption: updatedItem.draftInstagramCaption || '',
-          draftLinkedinCaption: updatedItem.draftLinkedinCaption || '',
-          approvedInstagramCaption: updatedItem.approvedInstagramCaption || '',
-          approvedLinkedinCaption: updatedItem.approvedLinkedinCaption || '',
-        });
-
-        updatedItem.workflowStage = 'posting_required';
-        updatedItem.postingInstagramTaskId = postTask.id;
-        updatedItem.postingLinkedinTaskId = postTask.id;
-        updatedItem.captionTaskId = postTask.id;
-      }
-    }
-
-    return updatedItem;
   } else if (updatedItem.linkedTaskId) {
-    // If a previously approved design is no longer finalized (e.g. the proofreader
-    // requested changes after approving), revert its task to 'In Progress' if not
-    // already rated.
+    // A previously approved design that is no longer approved (rejected or
+    // re-submitted) reverts its task to 'In Progress' unless already rated.
     const linkedTask = getTasks().find(t => t.id === updatedItem.linkedTaskId);
     if (linkedTask && !linkedTask.ratingScore) {
       updateTask(updatedItem.linkedTaskId, { status: 'In Progress' }, reviewerName);
@@ -5950,363 +5359,6 @@ function syncDesignTask(item: DesignSubmissionItem, reviewerName: string): Desig
   }
 
   return updatedItem;
-}
-
-export function submitDesignCaptions(designId: string, instaCaption: string, linkedinCaption: string, actorName: string): DesignSubmissionItem | null {
-  const designs = getDesigns();
-  const idx = designs.findIndex(d => d.id === designId);
-  if (idx === -1) return null;
-
-  const design = designs[idx];
-
-  // Complete Stage 1 task
-  if (design.captionTaskId) {
-    updateTaskStatus(design.captionTaskId, 'Completed', actorName);
-  }
-
-  const dueDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-  const isSocialPost = design.category === 'Social Media' || (design.eventId && getTasks().some(t => t.eventId === design.eventId && isSocialMediaPostTask(t)));
-  const socialHeads = resolveSocialPostingAssignees();
-  const defaultSocialReviewer = socialHeads.length > 0 ? socialHeads[0] : null;
-
-  // By default, social media captions go to the Head / Sr Head of Social Media,
-  // never to a group of students.
-  const captionReviewer = (isSocialPost && defaultSocialReviewer)
-    ? { id: defaultSocialReviewer.id, name: defaultSocialReviewer.name, email: defaultSocialReviewer.email }
-    : (design.assignedProofreaderId && design.assignedProofreaderName && design.assignedProofreaderEmail)
-      ? { id: design.assignedProofreaderId, name: design.assignedProofreaderName, email: design.assignedProofreaderEmail }
-      : resolveDesignReviewer();
-
-  // If an auto-generated task for this event is already completed, do not spawn a duplicate review task
-  if (design.eventId) {
-    const autoTask = getTasks().find(t =>
-      t.eventId === design.eventId &&
-      (t.workflowType === 'event_social_post' || t.workflowType === 'holiday_design_social') &&
-      t.status === 'Completed'
-    );
-    if (autoTask) {
-      design.draftInstagramCaption = instaCaption;
-      design.draftLinkedinCaption = linkedinCaption;
-      design.workflowStage = 'completed';
-      design.captionStatus = 'approved';
-      designs[idx] = design;
-      saveDesigns(designs);
-      serverPatch('/api/designs', design.id, design);
-      return design;
-    }
-  }
-
-  const task2 = addTask({
-    title: `[Caption Approval] Review Captions: ${design.title}`,
-    event: design.eventName || undefined,
-    eventId: design.eventId || undefined,
-    assignee: captionReviewer ? captionReviewer.name : 'Centre Head',
-    assigneeId: captionReviewer?.id,
-    assigneeEmail: captionReviewer?.email,
-    assigneeType: 'individual',
-    dueDate,
-    status: 'In Progress',
-    creatorName: actorName,
-    isDesignDeliverable: true,
-    workflowType: 'design_caption_review',
-    designId: design.id,
-    draftInstagramCaption: instaCaption,
-    draftLinkedinCaption: linkedinCaption,
-  });
-
-  design.draftInstagramCaption = instaCaption;
-  design.draftLinkedinCaption = linkedinCaption;
-  design.workflowStage = 'caption_approval';
-  design.captionApprovalTaskId = task2.id;
-  design.captionStatus = 'pending_approval';
-
-  designs[idx] = design;
-  saveDesigns(designs);
-  serverPatch('/api/designs', design.id, design);
-  logAuditEvent('DESIGN_CAPTIONS_SUBMITTED', actorName, `Submitted draft captions for design "${design.title}"`);
-  return design;
-}
-
-export function reviewDesignCaptions(designId: string, approved: boolean, comments: string, actorName: string): DesignSubmissionItem | null {
-  const designs = getDesigns();
-  const idx = designs.findIndex(d => d.id === designId);
-  if (idx === -1) return null;
-
-  const design = designs[idx];
-
-  // Complete Stage 2 task
-  if (design.captionApprovalTaskId) {
-    updateTaskStatus(design.captionApprovalTaskId, 'Completed', actorName);
-  }
-
-  if (approved) {
-    // If an auto-generated task for this event is already completed, do not spawn duplicate posting tasks
-    if (design.eventId) {
-      const autoTask = getTasks().find(t =>
-        t.eventId === design.eventId &&
-        (t.workflowType === 'event_social_post' || t.workflowType === 'holiday_design_social') &&
-        t.status === 'Completed'
-      );
-      if (autoTask) {
-        design.approvedInstagramCaption = design.draftInstagramCaption;
-        design.approvedLinkedinCaption = design.draftLinkedinCaption;
-        design.workflowStage = 'completed';
-        design.postingInstagramDone = true;
-        design.postingLinkedinDone = true;
-        design.captionStatus = 'approved';
-        design.captionReviewComments = comments;
-        designs[idx] = design;
-        saveDesigns(designs);
-        serverPatch('/api/designs', design.id, design);
-        return design;
-      }
-    }
-
-    const dueDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    // Posting is strictly routed to the Social Media Head and Senior Head.
-    // General student groups and Faculty are strictly excluded.
-    const postingPool = resolveSocialPostingAssignees();
-    const isSingle = postingPool.length === 1;
-    const postingAssignee = {
-      assignee: postingPool.map(m => m.name).join(', ') || 'Social Media Head',
-      assigneeType: (isSingle ? 'individual' : 'group') as 'individual' | 'group',
-      assigneeId: isSingle ? postingPool[0].id : undefined,
-      assigneeEmail: isSingle ? postingPool[0].email : undefined,
-      assigneeIds: postingPool.map(m => m.id),
-    };
-
-    // Idempotent: check if platform posting tasks already exist for this design
-    const existingTasks = getTasks();
-    const existingInsta = existingTasks.find(t =>
-      (design.postingInstagramTaskId && t.id === design.postingInstagramTaskId) ||
-      (t.designId === design.id && t.workflowType === 'design_social_posting' && t.platform === 'instagram')
-    );
-    const existingLinkedin = existingTasks.find(t =>
-      (design.postingLinkedinTaskId && t.id === design.postingLinkedinTaskId) ||
-      (t.designId === design.id && t.workflowType === 'design_social_posting' && t.platform === 'linkedin')
-    );
-
-    const instaTask = existingInsta
-      ? (updateTask(existingInsta.id, {
-          status: 'In Progress',
-          dueDate,
-          ...postingAssignee,
-          approvedInstagramCaption: design.draftInstagramCaption,
-        }, actorName) || existingInsta)
-      : addTask({
-          title: `[Social Media Posting] Post on Instagram: ${design.title}`,
-          event: design.eventName || undefined,
-          eventId: design.eventId || undefined,
-          ...postingAssignee,
-          dueDate,
-          status: 'In Progress',
-          creatorName: actorName,
-          isDesignDeliverable: true,
-          isSocialMediaPost: true,
-          workflowType: 'design_social_posting',
-          platform: 'instagram',
-          designId: design.id,
-          approvedInstagramCaption: design.draftInstagramCaption,
-        });
-
-    const linkedinTask = existingLinkedin
-      ? (updateTask(existingLinkedin.id, {
-          status: 'In Progress',
-          dueDate,
-          ...postingAssignee,
-          approvedLinkedinCaption: design.draftLinkedinCaption,
-        }, actorName) || existingLinkedin)
-      : addTask({
-          title: `[Social Media Posting] Post on LinkedIn: ${design.title}`,
-          event: design.eventName || undefined,
-          eventId: design.eventId || undefined,
-          ...postingAssignee,
-          dueDate,
-          status: 'In Progress',
-          creatorName: actorName,
-          isDesignDeliverable: true,
-          isSocialMediaPost: true,
-          workflowType: 'design_social_posting',
-          platform: 'linkedin',
-          designId: design.id,
-          approvedLinkedinCaption: design.draftLinkedinCaption,
-        });
-
-    design.approvedInstagramCaption = design.draftInstagramCaption;
-    design.approvedLinkedinCaption = design.draftLinkedinCaption;
-    design.workflowStage = 'posting_required';
-    design.postingInstagramTaskId = instaTask.id;
-    design.postingLinkedinTaskId = linkedinTask.id;
-    design.postingInstagramDone = false;
-    design.postingLinkedinDone = false;
-    design.captionStatus = 'approved';
-    design.captionReviewComments = comments;
-  } else {
-    // Rejected -> re-open Stage 1 task for designer
-    const dueDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const task1 = addTask({
-      title: `[Caption Revision] Draft Captions: ${design.title}`,
-      event: design.eventName || undefined,
-      eventId: design.eventId || undefined,
-      assignee: design.designerName,
-      assigneeId: design.designerId,
-      assigneeEmail: design.designerEmail,
-      assigneeType: 'individual',
-      dueDate,
-      status: 'In Progress',
-      creatorName: actorName,
-      isDesignDeliverable: true,
-      workflowType: 'design_caption_draft',
-      designId: design.id,
-    });
-
-    design.workflowStage = 'caption_required';
-    design.captionTaskId = task1.id;
-    design.captionStatus = 'changes_requested';
-    design.captionReviewComments = comments;
-  }
-
-  designs[idx] = design;
-  saveDesigns(designs);
-  serverPatch('/api/designs', design.id, design);
-  logAuditEvent('DESIGN_CAPTIONS_REVIEWED', actorName, `${approved ? 'Approved' : 'Requested changes for'} captions on design "${design.title}"`);
-  return design;
-}
-
-/**
- * Marks ONE of the two posting tasks (Instagram or LinkedIn) done. The
- * design's workflowStage only flips to 'completed' once BOTH platforms have
- * been marked — posting to just one is not the end of the workflow.
- */
-export function completeDesignPosting(designId: string, platform: 'instagram' | 'linkedin', actorName: string): DesignSubmissionItem | null {
-  const designs = getDesigns();
-  const idx = designs.findIndex(d => d.id === designId);
-  if (idx === -1) return null;
-
-  const design = designs[idx];
-  const isUnified = design.postingInstagramTaskId && design.postingInstagramTaskId === design.postingLinkedinTaskId;
-
-  if (platform === 'instagram') {
-    design.postingInstagramDone = true;
-  } else {
-    design.postingLinkedinDone = true;
-  }
-
-  if (isUnified) {
-    if (design.postingInstagramDone && design.postingLinkedinDone) {
-      design.workflowStage = 'completed';
-      if (design.postingInstagramTaskId) {
-        updateTaskStatus(design.postingInstagramTaskId, 'Completed', actorName);
-      }
-    }
-  } else {
-    const taskId = platform === 'instagram' ? design.postingInstagramTaskId : design.postingLinkedinTaskId;
-    if (taskId) {
-      updateTaskStatus(taskId, 'Completed', actorName);
-    }
-    if (design.postingInstagramDone && design.postingLinkedinDone) {
-      design.workflowStage = 'completed';
-    }
-  }
-
-  designs[idx] = design;
-  saveDesigns(designs);
-  serverPatch('/api/designs', design.id, design);
-  logAuditEvent('DESIGN_POSTING_COMPLETED', actorName, `Marked ${platform === 'instagram' ? 'Instagram' : 'LinkedIn'} posting complete for design "${design.title}"`);
-  return design;
-}
-
-export function completeAllDesignPosting(designId: string, actorName: string): DesignSubmissionItem | null {
-  const designs = getDesigns();
-  const idx = designs.findIndex(d => d.id === designId);
-  if (idx === -1) return null;
-
-  const design = designs[idx];
-  design.postingInstagramDone = true;
-  design.postingLinkedinDone = true;
-  design.workflowStage = 'completed';
-
-  const taskId = design.postingInstagramTaskId || design.postingLinkedinTaskId;
-  if (taskId) {
-    updateTaskStatus(taskId, 'Completed', actorName);
-  }
-  if (design.postingLinkedinTaskId && design.postingLinkedinTaskId !== taskId) {
-    updateTaskStatus(design.postingLinkedinTaskId, 'Completed', actorName);
-  }
-
-  designs[idx] = design;
-  saveDesigns(designs);
-  serverPatch('/api/designs', design.id, design);
-  logAuditEvent('DESIGN_POSTING_COMPLETED', actorName, `Marked social media posting complete for design "${design.title}"`);
-  return design;
-}
-
-/**
- * Lets whoever's on a "[Social Media Posting] Post on Instagram/LinkedIn"
- * task change and resubmit the approved caption text — e.g. a typo spotted
- * right before (or after) publishing — without re-running the full
- * draft/approval cycle in submitDesignCaptions/reviewDesignCaptions. Editable
- * regardless of whether that platform's post is already marked done, since a
- * correction can still be needed after the fact.
- */
-export function updateApprovedCaption(
-  designId: string,
-  platform: 'instagram' | 'linkedin',
-  newCaption: string,
-  actorName: string
-): DesignSubmissionItem | null {
-  const designs = getDesigns();
-  const idx = designs.findIndex(d => d.id === designId);
-  if (idx === -1) return null;
-
-  const design = { ...designs[idx] };
-  if (platform === 'instagram') {
-    design.approvedInstagramCaption = newCaption;
-  } else {
-    design.approvedLinkedinCaption = newCaption;
-  }
-
-  designs[idx] = design;
-  saveDesigns(designs);
-  serverPatch('/api/designs', design.id, design);
-  logAuditEvent('DESIGN_CAPTION_EDITED', actorName, `Edited the ${platform === 'linkedin' ? 'LinkedIn' : 'Instagram'} caption for design "${design.title}"`);
-  return design;
-}
-
-export function updateDesignReview(
-  id: string,
-  reviewStatus: 'Proofread Approved' | 'Changes Requested',
-  comments: string,
-  reviewerName: string
-): DesignSubmissionItem | null {
-  const current = getDesigns();
-  const idx = current.findIndex(d => d.id === id);
-  if (idx === -1) return null;
-
-  const item = current[idx];
-  const updatedReview: DesignProofreadReview = {
-    proofreaderId: item.assignedProofreaderId || 'reviewer',
-    proofreaderName: reviewerName,
-    status: reviewStatus,
-    comments,
-    reviewedAt: new Date().toISOString()
-  };
-
-  let updatedItem: DesignSubmissionItem = {
-    ...item,
-    review: updatedReview
-  };
-
-  updatedItem = syncDesignTask(updatedItem, reviewerName);
-
-  current[idx] = updatedItem;
-  saveDesigns(current);
-  serverPatch('/api/designs', id, current[idx]);
-  logAuditEvent('DESIGN_PROOFREAD_UPDATED', reviewerName, `Updated proofread review for design "${item.title}" to ${reviewStatus}`);
-  
-  return current[idx];
 }
 
 export function updateDesignStyleReview(
@@ -6333,7 +5385,7 @@ export function updateDesignStyleReview(
   // take a while to get to a submission, and the file should stay usable
   // for a full 30 days after being cleared for use, not expire mid-review.
   // Only the stored file/image is ever purged at expiry (processDesignRetention
-  // in server-db.ts) — the proofread review, style feedback, and any Ratings
+  // in server-db.ts) — the review feedback, and any Ratings
   // awarded against this design (a separate collection, keyed off the task
   // synced below) are untouched and stay visible permanently.
   if (styleStatus === 'Style Approved') {
@@ -6346,7 +5398,7 @@ export function updateDesignStyleReview(
   current[idx] = updated;
   saveDesigns(current);
   serverPatch('/api/designs', id, current[idx]);
-  logAuditEvent('DESIGN_STYLE_REVIEW_UPDATED', reviewerName, `Design Head updated style review for design "${item.title}" to ${styleStatus}`);
+  logAuditEvent('DESIGN_STYLE_REVIEW_UPDATED', reviewerName, `Reviewer updated review for design "${item.title}" to ${styleStatus}`);
 
   return current[idx];
 }
@@ -6354,7 +5406,7 @@ export function updateDesignStyleReview(
 /**
  * Replace the uploaded asset on an existing design submission — e.g. after
  * "Changes Requested" — without creating a new record. Resets any prior
- * proofread/style decision back to pending, since the reviewed file no
+ * review decision back to pending, since the reviewed file no
  * longer exists. The server round-trip is awaited (see addDesign for why) —
  * a failed upload rolls the local record back to the file it had before,
  * rather than leaving the UI showing a "replaced" file that never actually
@@ -6367,7 +5419,6 @@ export async function updateDesignFile(
   fileSize: number,
   fileType: string,
   actorName: string,
-  ocrScan?: OcrScanResult,
   onProgress?: UploadProgressCallback
 ): Promise<DesignSubmissionItem | null> {
   if (fileSize > 25 * 1024 * 1024) {
@@ -6385,11 +5436,9 @@ export async function updateDesignFile(
     fileName,
     fileSize,
     fileType,
-    // The replaced file's own scan (if the designer ran one), or cleared —
-    // the previous ocrScan described the file being replaced, not this one.
-    ocrScan,
-    review: item.review ? { ...item.review, status: 'Pending Proofread', comments: undefined, reviewedAt: undefined } : item.review,
-    styleStatus: item.styleStatus ? 'Pending' : item.styleStatus,
+    styleStatus: 'Pending',
+    styleDecidedBy: undefined,
+    styleDecidedAt: undefined,
     styleFeedback: undefined,
   };
 
