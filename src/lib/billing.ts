@@ -23,6 +23,31 @@ export interface Room {
   createdAt: string;
 }
 
+export const DEFAULT_ROOMS: Room[] = [
+  {
+    id: 'room_boardroom',
+    name: 'Boardroom',
+    capacity: 14,
+    location: 'RTBI Hub, 1st Floor',
+    amenities: 'Executive conference table, HD display screen, Video conferencing setup, High-speed Wi-Fi',
+    hourlyRate: 0,
+    gstPercent: 0,
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'room_meeting_room',
+    name: 'Meeting Room',
+    capacity: 6,
+    location: 'RTBI Hub, Ground Floor',
+    amenities: 'Team discussion table, Presentation monitor, Whiteboard, High-speed Wi-Fi',
+    hourlyRate: 0,
+    gstPercent: 0,
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+];
+
 export interface Booking {
   id: string;
   roomId: string;

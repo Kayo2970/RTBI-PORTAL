@@ -4,12 +4,17 @@ import { requireSession, requirePermission } from '@/lib/session';
 import { canManageRooms } from '@/lib/permissions-server';
 import { apiError } from '@/lib/api-error';
 import { cleanRoom } from '@/lib/billing-server';
-import type { Room } from '@/lib/billing';
+import { Room, DEFAULT_ROOMS } from '@/lib/billing';
 
 export async function GET(request: Request) {
   try {
     await requireSession(request);
-    return NextResponse.json(await readCollection<Room>('rooms'));
+    let rooms = await readCollection<Room>('rooms');
+    if (!rooms || rooms.length === 0) {
+      await mutateCollection<Room>('rooms', () => DEFAULT_ROOMS);
+      rooms = DEFAULT_ROOMS;
+    }
+    return NextResponse.json(rooms);
   } catch (err) {
     return apiError(err, 'rooms-get');
   }

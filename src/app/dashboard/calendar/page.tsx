@@ -2,21 +2,47 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, CalendarDays, PartyPopper, ClipboardCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, PartyPopper, ClipboardCheck, DoorOpen } from 'lucide-react';
 import { getEvents, getTasks, getEffectiveEventStatus, formatEventDateRange, hasEventPlanningPhase, getEventSortTime, EventItem, TaskItem } from '@/lib/local-data';
 import { canViewEvent, canApprovePendingEvent } from '@/lib/permissions';
+import { Booking } from '@/lib/billing';
+
+function formatTime12(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+  } catch {
+    return iso;
+  }
+}
+
+function formatTimeRange(start: string, end: string): string {
+  return `${formatTime12(start)} – ${formatTime12(end)}`;
+}
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [user, setUser] = useState<any>(null);
-  const [calendarDate, setCalendarDate] = useState(new Date(2026, 7, 1)); // Default August 2026
-  const [selectedDay, setSelectedDay] = useState<number | null>(10); // Default to 10th
+
+  const now = new Date();
+  const [calendarDate, setCalendarDate] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
+  const [selectedDay, setSelectedDay] = useState<number | null>(() => now.getDate());
 
   useEffect(() => {
-    const refreshData = () => {
+    const refreshData = async () => {
       setEvents(getEvents());
       setTasks(getTasks());
+      try {
+        const res = await fetch('/api/bookings');
+        if (res.ok) {
+          const data = await res.json();
+          setBookings(Array.isArray(data) ? data : []);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     };
     refreshData();
 
@@ -82,25 +108,22 @@ export default function CalendarPage() {
 
   const getDayEvents = (day: number) => {
     const checkStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    // A "dates to be decided" event has no real date to place on the grid —
-    // it still shows up in the Upcoming Events list below instead.
     return visibleEvents.filter(e => !e.datesTBD && checkStr >= e.startDate && checkStr <= e.endDate);
   };
 
-  // Just the single day an event's planning/prep phase actually starts on —
-  // shown as one distinct amber marker, not a filled highlight across every
-  // day between planningStartDate and the event's own startDate. The event's
-  // real on-ground date(s) are marked separately by getDayEvents above.
   const getDayPlanningEvents = (day: number) => {
     const checkStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return visibleEvents.filter(e => hasEventPlanningPhase(e) && checkStr === e.planningStartDate);
   };
 
-  // Task deadlines shown alongside events on the same grid — a task's
-  // dueDate places it on the calendar the same way an event's startDate does.
   const getDayTasks = (day: number) => {
     const checkStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return tasks.filter(t => t.status !== 'Completed' && t.dueDate === checkStr);
+  };
+
+  const getDayBookings = (day: number) => {
+    const checkStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return bookings.filter(b => b.status === 'Confirmed' && b.start.slice(0, 10) === checkStr);
   };
 
   const upcomingEvents = [...visibleEvents]
@@ -113,10 +136,18 @@ export default function CalendarPage() {
     .slice(0, 6);
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  const nowMs = Date.now();
+
+  const upcomingBookings = [...bookings]
+    .filter(b => b.status === 'Confirmed' && new Date(b.end).getTime() > nowMs)
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .slice(0, 5);
+
   const upcomingTaskDeadlines = [...tasks]
     .filter(t => t.status !== 'Completed' && t.dueDate >= todayStr)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
     .slice(0, 6);
+
   const upcomingHolidays = [...visibleEvents]
     .filter(e => e.isHoliday && e.startDate >= todayStr)
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
@@ -124,21 +155,33 @@ export default function CalendarPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-accent" />
-          Calendar
-        </h1>
-        <p className="text-xs text-theme-text-secondary">Explore scheduled symposiums, workshops, and milestones across the organization</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-accent" />
+            Calendar & Room Schedule
+          </h1>
+          <p className="text-xs text-theme-text-secondary">
+            View scheduled symposiums, workshops, deadlines, and live <strong>Boardroom & Meeting Room</strong> bookings.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/bookings"
+            className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-accent text-white text-xs font-bold hover:bg-primary-light transition-all shadow-sm"
+          >
+            <DoorOpen className="h-4 w-4" /> Book a Room
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Interactive Event Calendar */}
+        {/* Interactive Event & Booking Calendar */}
         <div className="lg:col-span-2 glass-panel rounded-2xl p-6 flex flex-col space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-theme-text-primary">RTBI Event Calendar</h3>
-              <p className="text-xs text-theme-text-secondary">Click a highlighted day to see what's scheduled</p>
+              <h3 className="text-base font-bold text-theme-text-primary">RTBI Calendar</h3>
+              <p className="text-xs text-theme-text-secondary">Click any day to view scheduled events, deadlines, and room bookings</p>
             </div>
 
             <div className="flex items-center gap-1 bg-theme-background/30 border border-theme-border/30 rounded-xl p-1 text-xs">
@@ -186,7 +229,20 @@ export default function CalendarPage() {
                 const hasPlanning = dayPlanningEvents.length > 0;
                 const dayTasks = getDayTasks(day);
                 const hasTasks = dayTasks.length > 0;
+                const dayBookings = getDayBookings(day);
+                const hasBookings = dayBookings.length > 0;
                 const isSelected = selectedDay === day;
+
+                const tooltipParts: string[] = [];
+                if (hasBookings) {
+                  tooltipParts.push(dayBookings.map(b => `${b.roomName}: ${b.organisation || b.bookedByName} (${formatTimeRange(b.start, b.end)})`).join(', '));
+                }
+                if (hasEvents) {
+                  tooltipParts.push(dayEvents.map(e => e.title).join(', '));
+                }
+                if (hasTasks) {
+                  tooltipParts.push(dayTasks.map(t => `${t.title} (Task deadline)`).join(', '));
+                }
 
                 return (
                   <button
@@ -197,23 +253,22 @@ export default function CalendarPage() {
                         ? 'bg-accent text-white shadow-md shadow-accent/25'
                         : hasEvents
                           ? 'bg-accent/15 border border-accent/30 text-accent hover:bg-accent/25'
-                          : hasPlanning
-                            ? 'bg-warning/10 border border-warning/25 text-warning hover:bg-warning/20'
-                            : hasTasks
-                              ? 'bg-danger/10 border border-danger/25 text-danger hover:bg-danger/20'
-                              : 'hover:bg-theme-border/30 text-theme-text-primary'
+                          : hasBookings
+                            ? 'bg-sky-500/15 border border-sky-500/30 text-sky-400 hover:bg-sky-500/25'
+                            : hasPlanning
+                              ? 'bg-warning/10 border border-warning/25 text-warning hover:bg-warning/20'
+                              : hasTasks
+                                ? 'bg-danger/10 border border-danger/25 text-danger hover:bg-danger/20'
+                                : 'hover:bg-theme-border/30 text-theme-text-primary'
                     }`}
-                    title={
-                      hasTasks
-                        ? `${dayTasks.map(t => t.title).join(', ')} — task deadline`
-                        : hasPlanning
-                          ? `${dayPlanningEvents.map(e => e.title).join(', ')} — prep/planning phase`
-                          : undefined
-                    }
+                    title={tooltipParts.join(' | ') || undefined}
                   >
                     <span>{day}</span>
                     {hasEvents && !isSelected && (
                       <span className="absolute bottom-1 h-1.5 w-1.5 bg-accent rounded-full animate-pulse"></span>
+                    )}
+                    {hasBookings && !isSelected && (
+                      <span className="absolute top-1 left-1 h-1.5 w-1.5 bg-sky-400 rounded-full"></span>
                     )}
                     {!hasEvents && hasPlanning && !isSelected && (
                       <span className="absolute bottom-1 h-1.5 w-1.5 bg-warning rounded-full"></span>
@@ -227,24 +282,59 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {/* Selected Day Event Details */}
-          <div className="flex-1 space-y-2 max-h-[220px] overflow-y-auto pr-1 text-xs">
+          {/* Selected Day Event & Booking Details */}
+          <div className="flex-1 space-y-2 max-h-[300px] overflow-y-auto pr-1 text-xs">
             <h4 className="text-[11px] font-bold text-theme-text-secondary uppercase tracking-wider">
-              Events on {monthNames[calMonth]} {selectedDay || '?'}:
+              Schedule on {monthNames[calMonth]} {selectedDay || '?'}:
             </h4>
             {selectedDay ? (
               (() => {
+                const dayBookings = getDayBookings(selectedDay);
                 const dayEvents = getDayEvents(selectedDay);
                 const dayPlanningEvents = getDayPlanningEvents(selectedDay);
                 const dayTasks = getDayTasks(selectedDay);
-                if (dayEvents.length === 0 && dayPlanningEvents.length === 0 && dayTasks.length === 0) {
+
+                if (dayBookings.length === 0 && dayEvents.length === 0 && dayPlanningEvents.length === 0 && dayTasks.length === 0) {
                   return (
-                    <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                      No events scheduled for this date.
+                    <div className="text-xs text-theme-text-secondary py-4 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
+                      No events, deadlines, or room bookings scheduled for this date.
                     </div>
                   );
                 }
+
                 return [
+                  // 1. Room Bookings on this day
+                  ...dayBookings.map(b => (
+                    <div
+                      key={`booking-${b.id}`}
+                      className="p-3.5 bg-sky-500/10 border border-sky-500/25 rounded-xl space-y-1.5 transition-all text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wider ${b.roomName.toLowerCase().includes('board') ? 'bg-accent/20 text-accent border border-accent/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'}`}>
+                            {b.roomName}
+                          </span>
+                          <span className="font-semibold text-theme-text-primary text-xs">
+                            {formatTimeRange(b.start, b.end)}
+                          </span>
+                        </div>
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                          In Use / Reserved
+                        </span>
+                      </div>
+                      <p className="text-xs text-theme-text-primary font-medium">
+                        <span className="text-theme-text-secondary">Purpose: </span>
+                        {b.title}
+                      </p>
+                      <p className="text-[11px] text-theme-text-secondary">
+                        This <strong>{b.roomName}</strong> is booked from{' '}
+                        <span className="text-theme-text-primary font-semibold">{formatTimeRange(b.start, b.end)}</span> by{' '}
+                        <strong className="text-theme-text-primary">{b.organisation || b.bookedByName}</strong>, and they are using it.
+                      </p>
+                    </div>
+                  )),
+
+                  // 2. Tasks
                   ...dayTasks.map(t => (
                     <Link
                       key={`task-${t.id}`}
@@ -261,6 +351,8 @@ export default function CalendarPage() {
                       <span className="text-[10px] px-2.5 py-0.5 bg-danger/15 text-danger font-semibold rounded-md shrink-0">Deadline</span>
                     </Link>
                   )),
+
+                  // 3. Planning events
                   ...dayPlanningEvents.map(ev => (
                     <Link
                       key={`planning-${ev.id}`}
@@ -274,107 +366,160 @@ export default function CalendarPage() {
                       <span className="text-[10px] px-2.5 py-0.5 bg-warning/15 text-warning font-semibold rounded-md shrink-0">Planning</span>
                     </Link>
                   )),
+
+                  // 4. Regular Events
                   ...dayEvents.map(ev => (
-                  ev.isHoliday ? (
-                    <div
-                      key={ev.id}
-                      className="p-3 bg-warning/10 border border-warning/25 rounded-xl flex items-center gap-2"
-                    >
-                      <PartyPopper className="h-3.5 w-3.5 text-warning shrink-0" />
-                      <h5 className="font-semibold text-theme-text-primary text-xs">{ev.title}</h5>
-                      <span className="text-[10px] px-2 py-0.5 bg-warning/15 text-warning font-semibold rounded-md ml-auto shrink-0">Holiday</span>
-                    </div>
-                  ) : (
-                    <Link
-                      key={ev.id}
-                      href={`/dashboard/events/${ev.id}`}
-                      className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex items-center justify-between gap-3 hover:bg-theme-border/20 transition-all block cursor-pointer"
-                    >
-                      <div>
-                        <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5">{(ev.committees || []).length} Sub-Committees</p>
+                    ev.isHoliday ? (
+                      <div
+                        key={ev.id}
+                        className="p-3 bg-warning/10 border border-warning/25 rounded-xl flex items-center gap-2"
+                      >
+                        <PartyPopper className="h-3.5 w-3.5 text-warning shrink-0" />
+                        <h5 className="font-semibold text-theme-text-primary text-xs">{ev.title}</h5>
+                        <span className="text-[10px] px-2 py-0.5 bg-warning/15 text-warning font-semibold rounded-md ml-auto shrink-0">Holiday</span>
                       </div>
-                      <span className="text-[10px] px-2.5 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">
-                        {getEffectiveEventStatus(ev)}
-                      </span>
-                    </Link>
-                  )
+                    ) : (
+                      <Link
+                        key={ev.id}
+                        href={`/dashboard/events/${ev.id}`}
+                        className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex items-center justify-between gap-3 hover:bg-theme-border/20 transition-all block cursor-pointer"
+                      >
+                        <div>
+                          <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
+                          <p className="text-[10px] text-theme-text-secondary mt-0.5">{(ev.committees || []).length} Sub-Committees</p>
+                        </div>
+                        <span className="text-[10px] px-2.5 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">
+                          {getEffectiveEventStatus(ev)}
+                        </span>
+                      </Link>
+                    )
                   )),
                 ];
               })()
             ) : (
               <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                Select a day to view scheduled events.
+                Select a day to view scheduled events and room bookings.
               </div>
             )}
           </div>
         </div>
 
-        {/* Upcoming Events Sidebar */}
+        {/* Sidebar: Room Bookings, Events & Tasks */}
         <div className="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
-          <h3 className="text-base font-bold text-theme-text-primary">Upcoming Events</h3>
-          <div className="space-y-2 text-xs">
-            {upcomingEvents.length === 0 ? (
-              <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                No upcoming events scheduled.
-              </div>
-            ) : (
-              upcomingEvents.map(ev => (
-                <Link
-                  key={ev.id}
-                  href={`/dashboard/events/${ev.id}`}
-                  className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex flex-col gap-1 hover:bg-theme-border/20 transition-all block cursor-pointer"
-                >
-                  <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
-                  <p className={`text-[10px] ${ev.datesTBD ? 'text-warning font-semibold' : 'text-theme-text-secondary'}`}>{formatEventDateRange(ev)}</p>
-                </Link>
-              ))
-            )}
-          </div>
-
-          <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5 pt-2 border-t border-theme-border/20">
-            <ClipboardCheck className="h-4 w-4 text-danger" />
-            Upcoming Task Deadlines
-          </h3>
-          <div className="space-y-2 text-xs">
-            {upcomingTaskDeadlines.length === 0 ? (
-              <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                No upcoming task deadlines.
-              </div>
-            ) : (
-              upcomingTaskDeadlines.map(t => (
-                <Link
-                  key={t.id}
-                  href="/dashboard/tasks"
-                  className="p-3 bg-danger/10 border border-danger/25 rounded-xl flex items-center justify-between gap-2 hover:bg-danger/20 transition-all block cursor-pointer"
-                >
-                  <div>
-                    <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{t.title}</h5>
-                    <p className="text-[10px] text-theme-text-secondary mt-0.5">{t.assignee}</p>
-                  </div>
-                  <span className="text-[10px] text-danger font-semibold shrink-0">{t.dueDate}</span>
-                </Link>
-              ))
-            )}
-          </div>
-
-          <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5 pt-2 border-t border-theme-border/20">
-            <PartyPopper className="h-4 w-4 text-warning" />
-            Upcoming Holidays
-          </h3>
-          <div className="space-y-2 text-xs">
-            {upcomingHolidays.length === 0 ? (
-              <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                No upcoming holidays synced yet.
-              </div>
-            ) : (
-              upcomingHolidays.map(h => (
-                <div key={h.id} className="p-3 bg-warning/10 border border-warning/25 rounded-xl flex items-center justify-between gap-2">
-                  <h5 className="font-semibold text-theme-text-primary text-xs">{h.title}</h5>
-                  <span className="text-[10px] text-warning font-semibold shrink-0">{h.startDate}</span>
+          {/* Upcoming Room Bookings */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
+                <DoorOpen className="h-4 w-4 text-sky-400" />
+                Room Bookings
+              </h3>
+              <Link href="/dashboard/bookings" className="text-[11px] text-accent hover:underline font-semibold">
+                Book a Room &rarr;
+              </Link>
+            </div>
+            <div className="space-y-2 text-xs">
+              {upcomingBookings.length === 0 ? (
+                <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
+                  No upcoming room bookings.
                 </div>
-              ))
-            )}
+              ) : (
+                upcomingBookings.map(b => (
+                  <div
+                    key={b.id}
+                    className="p-3 bg-sky-500/10 border border-sky-500/25 rounded-xl flex flex-col gap-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className={`font-bold text-[11px] px-1.5 py-0.5 rounded ${b.roomName.toLowerCase().includes('board') ? 'bg-accent/20 text-accent' : 'bg-sky-500/20 text-sky-400'}`}>
+                        {b.roomName}
+                      </span>
+                      <span className="text-[10px] text-theme-text-secondary">
+                        {new Date(b.start).toLocaleDateString([], { month: 'short', day: 'numeric' })}, {formatTimeRange(b.start, b.end)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-theme-text-primary">
+                      <strong className="text-theme-text-primary">{b.organisation || b.bookedByName}</strong> is using the {b.roomName}
+                    </p>
+                    <p className="text-[10px] text-theme-text-secondary line-clamp-1">
+                      Purpose: {b.title}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="space-y-3 pt-2 border-t border-theme-border/20">
+            <h3 className="text-base font-bold text-theme-text-primary">Upcoming Events</h3>
+            <div className="space-y-2 text-xs">
+              {upcomingEvents.length === 0 ? (
+                <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
+                  No upcoming events scheduled.
+                </div>
+              ) : (
+                upcomingEvents.map(ev => (
+                  <Link
+                    key={ev.id}
+                    href={`/dashboard/events/${ev.id}`}
+                    className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex flex-col gap-1 hover:bg-theme-border/20 transition-all block cursor-pointer"
+                  >
+                    <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
+                    <p className={`text-[10px] ${ev.datesTBD ? 'text-warning font-semibold' : 'text-theme-text-secondary'}`}>{formatEventDateRange(ev)}</p>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming Tasks */}
+          <div className="space-y-3 pt-2 border-t border-theme-border/20">
+            <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
+              <ClipboardCheck className="h-4 w-4 text-danger" />
+              Upcoming Task Deadlines
+            </h3>
+            <div className="space-y-2 text-xs">
+              {upcomingTaskDeadlines.length === 0 ? (
+                <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
+                  No upcoming task deadlines.
+                </div>
+              ) : (
+                upcomingTaskDeadlines.map(t => (
+                  <Link
+                    key={t.id}
+                    href="/dashboard/tasks"
+                    className="p-3 bg-danger/10 border border-danger/25 rounded-xl flex items-center justify-between gap-2 hover:bg-danger/20 transition-all block cursor-pointer"
+                  >
+                    <div>
+                      <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{t.title}</h5>
+                      <p className="text-[10px] text-theme-text-secondary mt-0.5">{t.assignee}</p>
+                    </div>
+                    <span className="text-[10px] text-danger font-semibold shrink-0">{t.dueDate}</span>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming Holidays */}
+          <div className="space-y-3 pt-2 border-t border-theme-border/20">
+            <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
+              <PartyPopper className="h-4 w-4 text-warning" />
+              Upcoming Holidays
+            </h3>
+            <div className="space-y-2 text-xs">
+              {upcomingHolidays.length === 0 ? (
+                <div className="text-xs text-theme-text-secondary py-3 text-center bg-theme-border/10 border border-theme-border/20 rounded-xl">
+                  No upcoming holidays synced yet.
+                </div>
+              ) : (
+                upcomingHolidays.map(h => (
+                  <div key={h.id} className="p-3 bg-warning/10 border border-warning/25 rounded-xl flex items-center justify-between gap-2">
+                    <h5 className="font-semibold text-theme-text-primary text-xs">{h.title}</h5>
+                    <span className="text-[10px] text-warning font-semibold shrink-0">{h.startDate}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

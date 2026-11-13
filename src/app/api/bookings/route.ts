@@ -20,13 +20,24 @@ export async function GET(request: Request) {
     const actor = await requireSession(request);
     const all = await readCollection<Booking>('bookings');
     if (isStaffTier(actor)) return NextResponse.json(all);
-    // Everyone can see which slots are taken; only the booker (and staff) see the details.
+    // Everyone sees which room is booked, when, by which startup, and the purpose
     return NextResponse.json(
-      all.map(b =>
-        b.bookedById === actor.id
-          ? b
-          : { id: b.id, roomId: b.roomId, roomName: b.roomName, start: b.start, end: b.end, status: b.status, title: 'Booked', bookedById: '', bookedByName: '', bookedByEmail: '', createdAt: b.createdAt }
-      )
+      all.map(b => ({
+        id: b.id,
+        roomId: b.roomId,
+        roomName: b.roomName,
+        start: b.start,
+        end: b.end,
+        title: b.title,
+        organisation: b.organisation || b.bookedByName,
+        bookedById: b.bookedById,
+        bookedByName: b.bookedByName,
+        bookedByEmail: b.bookedById === actor.id ? b.bookedByEmail : '',
+        status: b.status,
+        attendees: b.attendees,
+        invoiceId: b.bookedById === actor.id ? b.invoiceId : undefined,
+        createdAt: b.createdAt,
+      }))
     );
   } catch (err) {
     return apiError(err, 'bookings-get');
@@ -39,25 +50,34 @@ export async function POST(request: Request) {
     const b = await request.json();
     const rooms = await readCollection<Room>('rooms');
     const room = rooms.find(r => r.id === b.roomId);
-    if (!room || !room.active) bad('That boardroom is not available for booking.');
+    if (!room || !room.active) bad('That room is not available for booking.');
     const startMs = new Date(b.start).getTime();
     const endMs = new Date(b.end).getTime();
     if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) bad('Choose a valid start and end time.');
     if (endMs <= startMs) bad('End time must be after the start time.');
     if (startMs < Date.now() - 5 * 60_000) bad('You cannot book a time slot in the past.');
     if ((endMs - startMs) / 3_600_000 > MAX_HOURS) bad(`A single booking can be at most ${MAX_HOURS} hours.`);
-    const title = str(b.title, 120);
-    if (!title) bad('Give the booking a title or purpose.');
+    const title = str(b.purpose || b.title, 200);
+    if (!title) bad('Please type in the purpose of booking.');
     const attendees = Math.max(0, Math.round(num(b.attendees)));
     if (attendees > room.capacity) bad(`${room.name} seats ${room.capacity} people.`);
 
     const start = new Date(startMs).toISOString();
     const end = new Date(endMs).toISOString();
+    const organisation = str(
+      b.organisation ||
+      (actor as any).startupProfile?.startupName ||
+      (actor as any).organisation ||
+      (actor as any).companyName ||
+      actor.name,
+      120
+    );
+
     const booking: Booking = {
       id: 'bk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       roomId: room.id, roomName: room.name, start, end, title, attendees,
       notes: str(b.notes, 500),
-      organisation: str(b.organisation, 120),
+      organisation,
       bookedById: actor.id, bookedByName: actor.name, bookedByEmail: actor.email,
       status: 'Confirmed',
       createdAt: new Date().toISOString(),
@@ -67,7 +87,7 @@ export async function POST(request: Request) {
     // people racing for the same slot can't both succeed.
     await mutateCollection<Booking>('bookings', (cur) => {
       const clash = cur.find(x => x.roomId === room.id && x.status === 'Confirmed' && rangesOverlap(x.start, x.end, start, end));
-      if (clash) bad(`${room.name} is already booked for part of that time. Pick another slot.`);
+      if (clash) bad(`${room.name} is already booked for that time${clash.organisation ? ' by ' + clash.organisation : ''}. Pick another slot.`);
       return [...cur, booking];
     });
 
