@@ -11,7 +11,11 @@ import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { LoadingScreen } from '@/components/loading-screen';
 import { SetupWizard } from '@/components/setup-wizard';
-import { GhostFibers } from '@/components/ui/ghost-fibers';
+import dynamic from 'next/dynamic';
+const AeroShardsBackground = dynamic(
+  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+  { ssr: false }
+);
 
 interface QuoteItem {
   quote: string;
@@ -494,31 +498,20 @@ export default function LoginPage() {
           was treating a symptom; this is the real fix, so vignette is
           restored to the originally requested 0.8.) */}
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
-        <GhostFibers
-          lineColor="#361C6A"
-          glowColor="#E34A21"
-          speed={0.2}
-          scale={2}
-          rotation={-24}
-          rotationSpeed={0.25}
-          layers={4}
-          waveAmplitude={0.015}
-          waveFrequency={3}
-          waveSpeed={0.15}
-          layerSpeed={0.08}
-          twist={0.1}
-          twistFrequency={5}
-          twistSpeed={1.2}
-          lineFrequency={5}
-          lineSpacing={2}
-          lineSharpness={16}
-          glowFalloff={10}
-          glowIntensity={1.6}
-          brightness={2}
-          blueBoost={1.25}
-          vignette={0.8}
-          grain={0.05}
-          dpr={1}
+        <AeroShardsBackground
+          shardColor="#361C6A"
+          accentColor="#E34A21"
+          placement="full"
+          material="glass"
+          markers="plus"
+          count={1250}
+          depthOfField={0.75}
+          vignette={0.3}
+          mouseInteraction
+          pulseOnClick
+          holdToGather
+          spread={2}
+          speed={2.56}
         />
       </div>
 

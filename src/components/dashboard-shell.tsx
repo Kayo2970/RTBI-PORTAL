@@ -59,7 +59,10 @@ const OnboardingTour = dynamic(() => import('@/components/onboarding-tour').then
 import { PromotionModal, PromotionData } from '@/components/promotion-modal';
 import { SyncStatusPill } from '@/components/ui/sync-status-pill';
 import { Avatar } from '@/components/ui/avatar';
-const GhostFibers = dynamic(() => import('@/components/ui/ghost-fibers').then((m) => m.GhostFibers), { ssr: false });
+const AeroShardsBackground = dynamic(
+  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+  { ssr: false }
+);
 
 interface SidebarItem {
   name: string;
@@ -1308,33 +1311,23 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           stacking-context root: its background paints first/backmost inside
           THAT context, the canvas paints just above it, and everything else
           still paints above the canvas exactly as before. */}
-      <div className="fixed inset-0 pointer-events-none -z-10 opacity-40 dark:opacity-90 transition-opacity duration-500 overflow-hidden">
-        <GhostFibers
-          lineColor="#361C6A"
-          glowColor="#E34A21"
-          lightMode={!isDarkTheme}
-          speed={0.2}
-          scale={2}
-          rotation={-24}
-          rotationSpeed={0.25}
-          layers={4}
-          waveAmplitude={0.015}
-          waveFrequency={3}
-          waveSpeed={0.15}
-          layerSpeed={0.08}
-          twist={0.1}
-          twistFrequency={5}
-          twistSpeed={1.2}
-          lineFrequency={5}
-          lineSpacing={2}
-          lineSharpness={16}
-          glowFalloff={10}
-          glowIntensity={1.6}
-          brightness={2}
-          blueBoost={1.25}
-          vignette={0.8}
-          grain={0.05}
-          dpr={1}
+      {/* Background Animated AeroShards / GhostFibers WebGL/WebGPU Canvas */}
+      <div className="fixed inset-0 pointer-events-none -z-10 opacity-50 dark:opacity-90 transition-opacity duration-500 overflow-hidden">
+        <AeroShardsBackground
+          isDark={isDarkTheme}
+          shardColor="#361C6A"
+          accentColor="#E34A21"
+          placement="full"
+          material="glass"
+          markers="plus"
+          count={1250}
+          depthOfField={0.75}
+          vignette={0.3}
+          mouseInteraction
+          pulseOnClick
+          holdToGather
+          spread={2}
+          speed={2.56}
         />
       </div>
 
