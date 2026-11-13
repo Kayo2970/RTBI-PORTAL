@@ -8,11 +8,11 @@ export type CertDisplayStatus = 'Not issued' | 'Issued' | 'Queued' | 'Sent' | 'F
 export const CERT_STATUS_FILTERS: CertDisplayStatus[] = ['Not issued', 'Issued', 'Queued', 'Sent', 'Failed'];
 
 const STYLES: Record<CertDisplayStatus, { cls: string; text: string; Icon: React.ComponentType<{ className?: string }> }> = {
-  'Not issued': { cls: 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20', text: 'text-slate-500 dark:text-slate-400', Icon: CircleDashed },
-  Issued: { cls: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30', text: 'text-sky-600 dark:text-sky-400/80', Icon: Award },
-  Queued: { cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30', text: 'text-amber-600 dark:text-amber-400/80', Icon: Clock },
-  Sent: { cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30', text: 'text-emerald-600 dark:text-emerald-400/80', Icon: CheckCircle2 },
-  Failed: { cls: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30', text: 'text-rose-600 dark:text-rose-400/80', Icon: AlertCircle },
+  'Not issued': { cls: 'bg-theme-card/10 text-theme-text-secondary dark:text-theme-text-secondary border-theme-border/20', text: 'text-theme-text-secondary dark:text-theme-text-secondary', Icon: CircleDashed },
+  Issued: { cls: 'bg-accent/15 text-accent dark:text-accent border-accent/30', text: 'text-accent dark:text-accent/80', Icon: Award },
+  Queued: { cls: 'bg-warning/15 text-warning dark:text-warning border-warning/30', text: 'text-warning dark:text-warning/80', Icon: Clock },
+  Sent: { cls: 'bg-success/15 text-success dark:text-success border-success/30', text: 'text-success dark:text-success/80', Icon: CheckCircle2 },
+  Failed: { cls: 'bg-danger/15 text-danger dark:text-danger border-danger/30', text: 'text-danger dark:text-danger/80', Icon: AlertCircle },
 };
 
 export function formatCertTime(iso?: string): string {
@@ -33,7 +33,7 @@ export function CertificateStatusBadge({ status, sentAt, issuedAt, error, sentBy
         <st.Icon className="h-3 w-3 shrink-0" />
         <span>{label}</span>
       </span>
-      {(count || 0) > 1 ? <span className="text-[9px] pl-1 text-slate-500">{count} certificates · best status shown</span> : typeName ? <span className="text-[9px] pl-1 text-slate-500">{typeName}</span> : null}
+      {(count || 0) > 1 ? <span className="text-[9px] pl-1 text-theme-text-secondary">{count} certificates · best status shown</span> : typeName ? <span className="text-[9px] pl-1 text-theme-text-secondary">{typeName}</span> : null}
       {time && <span className={`text-[9px] pl-1 font-mono ${st.text}`}>{time}{sentBy && status === 'Sent' ? ` · by ${sentBy}` : ''}</span>}
     </div>
   );

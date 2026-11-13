@@ -176,11 +176,11 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
           </button>
         )}
         {canDelete && picked.size > 0 && (
-          <button type="button" onClick={() => setConfirmOpen(true)} className="px-3 py-1.5 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5 cursor-pointer">
+          <button type="button" onClick={() => setConfirmOpen(true)} className="px-3 py-1.5 text-xs font-bold rounded-xl bg-danger hover:bg-danger text-white flex items-center gap-1.5 cursor-pointer">
             <Trash2 className="h-3.5 w-3.5" /> Delete {picked.size}
           </button>
         )}
-        <button type="button" onClick={load} className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-800 dark:text-white flex items-center gap-1.5 cursor-pointer">
+        <button type="button" onClick={load} className="px-3 py-1.5 text-xs font-bold rounded-xl border border-theme-card-border dark:border-white/15 bg-theme-border/15 dark:bg-white/10 hover:bg-theme-border/25 dark:hover:bg-white/15 text-theme-text-primary dark:text-white flex items-center gap-1.5 cursor-pointer">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
         </div>
@@ -188,25 +188,25 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
 
       {!compact && (
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-slate-100/90 dark:bg-slate-900/80 rounded-2xl p-1.5 border border-slate-200/90 dark:border-white/15">
+          <div className="flex items-center gap-1.5 bg-theme-border/90 dark:bg-theme-background/80 rounded-2xl p-1.5 border border-theme-card-border/90 dark:border-white/15">
             {FILTERS.map((t) => (
               <button
                 key={t.key}
                 type="button"
                 onClick={() => setFilter(t.key)}
-                className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${filter === t.key ? 'bg-accent text-white shadow-md shadow-accent/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${filter === t.key ? 'bg-accent text-white shadow-md shadow-accent/25' : 'text-theme-text-secondary dark:text-theme-text-secondary hover:text-theme-text-primary dark:hover:text-white'}`}
               >
                 {t.label}
               </button>
             ))}
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-xs text-slate-900 dark:text-white">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-xs text-theme-text-primary dark:text-white">
             <option value="ALL">All statuses</option>
             {CERT_STATUS_FILTERS.filter((s) => s !== 'Not issued').map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <div className="relative">
-            <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, email, code…" className="pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-xs text-slate-900 dark:text-white w-56" />
+            <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-secondary" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, email, code…" className="pl-8 pr-3 py-2 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-xs text-theme-text-primary dark:text-white w-56" />
           </div>
         </div>
       )}
@@ -223,7 +223,7 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
           const isOpen = compact || open.has(g.eventId);
           const sent = g.rows.filter((r) => r.status === 'Sent').length;
           return (
-            <div key={g.eventId} className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+            <div key={g.eventId} className="rounded-2xl border border-theme-card-border dark:border-white/10 overflow-hidden">
               <button type="button" onClick={() => toggle(g.eventId)} disabled={compact} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-theme-border/10 cursor-pointer disabled:cursor-default">
                 {!compact && (isOpen ? <ChevronDown className="h-4 w-4 text-accent shrink-0" /> : <ChevronRight className="h-4 w-4 text-accent shrink-0" />)}
                 <div className="min-w-0 flex-1">
@@ -232,7 +232,7 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
                 </div>
               </button>
               {isOpen && (
-                <div className="overflow-x-auto border-t border-slate-200 dark:border-white/10">
+                <div className="overflow-x-auto border-t border-theme-card-border dark:border-white/10">
                   <table className="min-w-full text-xs text-left">
                     <thead>
                       <tr className="text-theme-text-secondary border-b border-theme-border/40">

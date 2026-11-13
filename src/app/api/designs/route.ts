@@ -126,17 +126,17 @@ export async function POST(request: Request) {
           const bodyHtml = wrapInMasterEmailTemplate({
             pageTitle: subject,
             badgeText: 'PROOFREAD REQUEST',
-            badgeColor: '#6366f1',
+            badgeColor: '#EA7153',
             headerTitle: 'Faculty Proofread Request',
             bodyContentHtml: `
-            <p style="margin: 0 0 16px; font-size: 14px; color: #475569; line-height: 1.6;">
+            <p style="margin: 0 0 16px; font-size: 14px; color: #574769; line-height: 1.6;">
               Dear <strong>${faculty.name}</strong>,<br/>
               A new design asset has been submitted and assigned to you for faculty proofreading sign-off.
             </p>
 
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-              <strong style="color: #6366f1; font-size: 15px;">🎨 ${created.title}</strong>
-              <div style="font-size: 12px; color: #64748b; margin-top: 8px; line-height: 1.5;">
+            <div style="background: #FEF7F6; border: 1px solid #E9E2F0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+              <strong style="color: #EA7153; font-size: 15px;">🎨 ${created.title}</strong>
+              <div style="font-size: 12px; color: #76648B; margin-top: 8px; line-height: 1.5;">
                 <span><strong>Category:</strong> ${created.category || 'Poster'}</span><br/>
                 <span><strong>Event:</strong> ${created.eventTitle || 'RTBI Operations'}</span><br/>
                 <span><strong>Designer:</strong> ${created.designerName} (${created.designerEmail})</span>
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
             </div>
 
             <div style="text-align: center; margin: 24px 0 12px;">
-              <a href="${designLink}" target="_blank" style="display: inline-block; background: #6366f1; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px;">
+              <a href="${designLink}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px;">
                 🔍 Inspect & Proofread Design
               </a>
             </div>

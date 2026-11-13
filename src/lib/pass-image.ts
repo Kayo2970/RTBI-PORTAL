@@ -115,7 +115,7 @@ export async function renderBoardingPassPng(
   const ctx = canvas.getContext('2d');
 
   // Outer margin (opaque so it looks right in dark/light mail clients)
-  ctx.fillStyle = '#e2e8f0';
+  ctx.fillStyle = '#E9E4F2';
   ctx.fillRect(0, 0, W, H);
 
   const x0 = 20, y0 = 20, w = W - 40, h = H - 40;
@@ -138,7 +138,7 @@ export async function renderBoardingPassPng(
   } else {
     const g = ctx.createLinearGradient(x0, y0, x0 + w, y0 + h);
     g.addColorStop(0, bg);
-    g.addColorStop(1, '#030712');
+    g.addColorStop(1, '#0F0623');
     ctx.fillStyle = g;
     ctx.fillRect(x0, y0, w, h);
   }
@@ -232,17 +232,17 @@ export async function renderBoardingPassPng(
   const stubW = x0 + w - STUB_X;
   const qx = STUB_X + (stubW - qrSize) / 2;
   ctx.drawImage(qr, qx, 70, qrSize, qrSize);
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = '#1D1825';
   ctx.font = `bold 17px ${fam}`;
   ctx.textAlign = 'center';
   ctx.fillText('SCAN AT ENTRY', STUB_X + stubW / 2, 330);
   ctx.font = `14px ${fam}`;
-  ctx.fillStyle = '#475569';
+  ctx.fillStyle = '#574769';
   ctx.fillText(pass.serialNumber, STUB_X + stubW / 2, 358);
   ctx.textAlign = 'left';
 
   // Perforation + notches
-  ctx.strokeStyle = 'rgba(15,23,42,0.35)';
+  ctx.strokeStyle = 'rgba(28, 15, 42,0.35)';
   ctx.setLineDash([8, 8]);
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -251,7 +251,7 @@ export async function renderBoardingPassPng(
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
-  ctx.fillStyle = '#e2e8f0';
+  ctx.fillStyle = '#E9E4F2';
   for (const cy of [y0, y0 + h]) {
     ctx.beginPath();
     ctx.arc(STUB_X, cy, 22, 0, Math.PI * 2);
@@ -266,14 +266,14 @@ export async function renderThankYouPng(eventName: string): Promise<Buffer> {
   const fam = ensureFont();
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#e2e8f0';
+  ctx.fillStyle = '#E9E4F2';
   ctx.fillRect(0, 0, W, H);
   ctx.save();
   roundRect(ctx, 20, 20, W - 40, H - 40, 28);
   ctx.clip();
   const g = ctx.createLinearGradient(20, 20, W - 20, H - 20);
   g.addColorStop(0, DEFAULT_PASS_THEME.backgroundColor);
-  g.addColorStop(1, '#030712');
+  g.addColorStop(1, '#0F0623');
   ctx.fillStyle = g;
   ctx.fillRect(20, 20, W - 40, H - 40);
   ctx.restore();

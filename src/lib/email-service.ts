@@ -292,7 +292,7 @@ export function wrapInMasterEmailTemplate(options: {
 
   const badgeHtml = isOmittedBadge
     ? ''
-    : `<span style="font-size: 11px; font-weight: 700; color: ${options.badgeColor || '#0284c7'}; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 16px;">${options.badgeText}</span>`;
+    : `<span style="font-size: 11px; font-weight: 700; color: ${options.badgeColor || '#CC3D19'}; background: #FEF4F1; border: 1px solid #FAC9BD; padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 16px;">${options.badgeText}</span>`;
 
   return `
     <!DOCTYPE html>
@@ -302,34 +302,34 @@ export function wrapInMasterEmailTemplate(options: {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${escapeHtmlForTitle(options.pageTitle)}</title>
     </head>
-    <body style="background-color: #f8fafc; margin: 0; padding: 24px 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100%; box-sizing: border-box;">
-      <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+    <body style="background-color: #FEF7F6; margin: 0; padding: 24px 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2B1D3C; width: 100%; box-sizing: border-box;">
+      <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E9E2F0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
         
         <!-- Header Banner with Clean Typography Branding -->
-        <div style="background-color: #0f172a; padding: 24px 32px; text-align: center;">
-          <div style="display: inline-block; padding: 5px 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; margin-bottom: 8px;">
-            <span style="color: #38bdf8; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">RTBI PORTAL</span>
+        <div style="background-color: #1C0F2A; padding: 24px 32px; text-align: center;">
+          <div style="display: inline-block; padding: 5px 12px; background: rgba(232, 104, 72, 0.12); border: 1px solid rgba(232, 104, 72, 0.25); border-radius: 6px; margin-bottom: 8px;">
+            <span style="color: #E86848; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">RTBI PORTAL</span>
           </div>
-          <p style="color: #94a3b8; font-size: 12px; margin: 4px 0 0 0; font-weight: 500;">Ramaiah University of Applied Sciences &middot; Operations Portal</p>
+          <p style="color: #A594B8; font-size: 12px; margin: 4px 0 0 0; font-weight: 500;">Ramaiah University of Applied Sciences &middot; Operations Portal</p>
         </div>
 
         <!-- Main Content Area -->
         <div style="padding: 28px 32px;">
           ${badgeHtml}
-          ${options.headerTitle ? `<h3 style="margin-top: 0; color: #0f172a; font-size: 18px; font-weight: 700; margin-bottom: ${options.headerSubtitle ? '4px' : '18px'};">${options.headerTitle}</h3>` : ''}
-          ${options.headerSubtitle ? `<p style="color: #64748b; font-size: 13px; margin-top: 0; margin-bottom: 18px; font-weight: 400;">${options.headerSubtitle}</p>` : ''}
+          ${options.headerTitle ? `<h3 style="margin-top: 0; color: #1C0F2A; font-size: 18px; font-weight: 700; margin-bottom: ${options.headerSubtitle ? '4px' : '18px'};">${options.headerTitle}</h3>` : ''}
+          ${options.headerSubtitle ? `<p style="color: #76648B; font-size: 13px; margin-top: 0; margin-bottom: 18px; font-weight: 400;">${options.headerSubtitle}</p>` : ''}
 
-          <div style="color: #334155; font-size: 14px; line-height: 1.65;">
+          <div style="color: #422C5C; font-size: 14px; line-height: 1.65;">
             ${options.bodyContentHtml}
           </div>
         </div>
 
         <!-- Standardized Institutional Footer -->
-        <div style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 28px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;">
-          <p style="margin: 0 0 6px 0; color: #475569; font-weight: 600;">© 2026 RTBI Portal &middot; MSRUAS Internal Operations Portal</p>
-          <p style="margin: 0 0 6px 0; color: #94a3b8;">This is an automated operational notice. Authorised recipient access only.</p>
-          <div style="border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 8px; color: #64748b; font-size: 10px;">
-            All Intellectual Property, Copyrights & Licensing belong exclusively to <strong style="color: #0284c7;">Kayomarz Pavri</strong>.
+        <div style="background-color: #FEF7F6; border-top: 1px solid #E9E2F0; padding: 20px 28px; text-align: center; font-size: 11px; color: #76648B; line-height: 1.6;">
+          <p style="margin: 0 0 6px 0; color: #574769; font-weight: 600;">© 2026 RTBI Portal &middot; MSRUAS Internal Operations Portal</p>
+          <p style="margin: 0 0 6px 0; color: #A594B8;">This is an automated operational notice. Authorised recipient access only.</p>
+          <div style="border-top: 1px solid #E9E2F0; padding-top: 8px; margin-top: 8px; color: #76648B; font-size: 10px;">
+            All Intellectual Property, Copyrights & Licensing belong exclusively to <strong style="color: #CC3D19;">Kayomarz Pavri</strong>.
           </div>
         </div>
 
@@ -407,13 +407,13 @@ export async function testEmailConnection(testRecipient: string, draftSettings?:
       badgeText: `SMTP Operational`,
       badgeColor: `#15803d`,
       bodyContentHtml: `
-        <p style="margin-top: 0; color: #0f172a; font-weight: 600;">Your RTBI Portal email client and SMTP server settings are operational.</p>
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 14px 18px; border-radius: 10px; margin: 16px 0; font-size: 12px;">
-          <p style="margin: 0 0 6px 0; color: #64748b;"><strong>Service Provider:</strong> <span style="color: #0284c7; font-weight: 700;">${settings.provider.toUpperCase()}</span></p>
-          <p style="margin: 0 0 6px 0; color: #64748b;"><strong>SMTP Host & Port:</strong> <span style="color: #0f172a; font-family: monospace;">${effectiveHost}:${effectivePort}</span></p>
-          <p style="margin: 0; color: #64748b;"><strong>Sender Name:</strong> <span style="color: #0f172a;">${settings.fromName}</span></p>
+        <p style="margin-top: 0; color: #1C0F2A; font-weight: 600;">Your RTBI Portal email client and SMTP server settings are operational.</p>
+        <div style="background: #ffffff; border: 1px solid #E9E2F0; padding: 14px 18px; border-radius: 10px; margin: 16px 0; font-size: 12px;">
+          <p style="margin: 0 0 6px 0; color: #76648B;"><strong>Service Provider:</strong> <span style="color: #CC3D19; font-weight: 700;">${settings.provider.toUpperCase()}</span></p>
+          <p style="margin: 0 0 6px 0; color: #76648B;"><strong>SMTP Host & Port:</strong> <span style="color: #1C0F2A; font-family: monospace;">${effectiveHost}:${effectivePort}</span></p>
+          <p style="margin: 0; color: #76648B;"><strong>Sender Name:</strong> <span style="color: #1C0F2A;">${settings.fromName}</span></p>
         </div>
-        <p style="color: #64748b; font-size: 11px; margin-bottom: 0;">Diagnostic executed at ${new Date().toLocaleString()}</p>
+        <p style="color: #76648B; font-size: 11px; margin-bottom: 0;">Diagnostic executed at ${new Date().toLocaleString()}</p>
       `
     });
 
@@ -483,7 +483,7 @@ function escapeHtml(text: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/'/g, '&#CC3D19;');
 }
 
 export async function sweepExpiredBufferedEmails(): Promise<number> {
@@ -583,7 +583,7 @@ async function executeSmtpSend(payload: SendEmailPayload): Promise<{
 
     if (isBulkCategory && unsubscribeAddress) {
       const unsubscribeMailto = `mailto:${unsubscribeAddress}?subject=Unsubscribe`;
-      const unsubscribeHtml = `<div style="text-align:center;padding:12px 20px 4px;font-size:10px;color:#94a3b8;">Don't want these emails? <a href="${unsubscribeMailto}" style="color:#0284c7;">Unsubscribe</a>.</div>`;
+      const unsubscribeHtml = `<div style="text-align:center;padding:12px 20px 4px;font-size:10px;color:#A594B8;">Don't want these emails? <a href="${unsubscribeMailto}" style="color:#CC3D19;">Unsubscribe</a>.</div>`;
       finalBodyHtml = finalBodyHtml.includes('</body>')
         ? finalBodyHtml.replace('</body>', `${unsubscribeHtml}</body>`)
         : `${finalBodyHtml}${unsubscribeHtml}`;
@@ -664,7 +664,7 @@ export async function buildEmailHtml(payload: SendEmailPayload): Promise<string>
     headerTitle: payload.subject,
     badgeText: badgeTextToUse,
     badgeColor: payload.badgeColor,
-    bodyContentHtml: `<div style="white-space: pre-wrap; font-size: 14px; line-height: 1.7; color: #1e293b;">${payload.bodyText}</div>`
+    bodyContentHtml: `<div style="white-space: pre-wrap; font-size: 14px; line-height: 1.7; color: #2B1D3C;">${payload.bodyText}</div>`
   });
 
   return withBackground(payload.bodyHtml || defaultFormattedHtml, payload);
@@ -1066,48 +1066,48 @@ export function generateGroupPolicyGrantEmailTemplate(
     `Regards,\nRTBI Access Management & Information Security`;
 
   const capsHtml = capabilitiesList.map(c => `
-    <div style="padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;">
-      <div style="font-weight: 700; color: #0f172a; font-size: 13px;">${escapeHtml(c.label)}</div>
-      <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
-        <span style="display: inline-block; padding: 2px 6px; background: #f1f5f9; border-radius: 4px; font-weight: 600; color: #475569; margin-right: 6px;">${escapeHtml(c.module)}</span>
+    <div style="padding: 10px 14px; background: #ffffff; border: 1px solid #E9E2F0; border-radius: 8px; margin-bottom: 8px;">
+      <div style="font-weight: 700; color: #1C0F2A; font-size: 13px;">${escapeHtml(c.label)}</div>
+      <div style="font-size: 11px; color: #76648B; margin-top: 2px;">
+        <span style="display: inline-block; padding: 2px 6px; background: #FDF0EC; border-radius: 4px; font-weight: 600; color: #574769; margin-right: 6px;">${escapeHtml(c.module)}</span>
         ${escapeHtml(c.description)}
       </div>
     </div>
   `).join('');
 
   const modAccessHtml = moduleAccessList.map(m => `
-    <div style="padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
-      <strong style="color: #0f172a;">${escapeHtml(m.module)}:</strong>
-      <span style="color: #0284c7; margin-left: 6px;">View: ${m.view || 'Default'}</span> &middot;
+    <div style="padding: 8px 12px; background: #ffffff; border: 1px solid #E9E2F0; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
+      <strong style="color: #1C0F2A;">${escapeHtml(m.module)}:</strong>
+      <span style="color: #CC3D19; margin-left: 6px;">View: ${m.view || 'Default'}</span> &middot;
       <span style="color: #10b981; margin-left: 4px;">Edit: ${m.edit || 'Default'}</span>
     </div>
   `).join('');
 
   const bodyContentHtml = `
-    <p style="margin-top: 0; color: #0f172a; font-size: 15px; font-weight: 600; line-height: 1.5;">
+    <p style="margin-top: 0; color: #1C0F2A; font-size: 15px; font-weight: 600; line-height: 1.5;">
       Dear ${escapeHtml(memberName)},
     </p>
-    <p style="color: #334155; font-size: 13px; line-height: 1.6;">
-      You have been granted special access permissions in the RTBI Portal ERP under Group Policy: <strong>${escapeHtml(policy.name)}</strong> (<code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #6366f1;">${escapeHtml(policy.tag)}</code>).
+    <p style="color: #422C5C; font-size: 13px; line-height: 1.6;">
+      You have been granted special access permissions in the RTBI Portal ERP under Group Policy: <strong>${escapeHtml(policy.name)}</strong> (<code style="background: #FDF0EC; padding: 2px 5px; border-radius: 4px; color: #EA7153;">${escapeHtml(policy.tag)}</code>).
     </p>
 
     <!-- Authority & Validity Notice Card -->
-    <div style="background: ${isTimeLimited ? '#fffbeb' : '#f8fafc'}; border: 1px solid ${isTimeLimited ? '#fde68a' : '#e2e8f0'}; border-radius: 12px; padding: 14px 18px; margin: 18px 0;">
+    <div style="background: ${isTimeLimited ? '#fffbeb' : '#FEF7F6'}; border: 1px solid ${isTimeLimited ? '#fde68a' : '#E9E2F0'}; border-radius: 12px; padding: 14px 18px; margin: 18px 0;">
       <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
         <tr>
-          <td style="padding: 4px 0; color: #64748b; width: 130px; font-weight: 600;">Allotted By:</td>
-          <td style="padding: 4px 0; color: #0f172a; font-weight: 700;">${escapeHtml(allottedByName)}</td>
+          <td style="padding: 4px 0; color: #76648B; width: 130px; font-weight: 600;">Allotted By:</td>
+          <td style="padding: 4px 0; color: #1C0F2A; font-weight: 700;">${escapeHtml(allottedByName)}</td>
         </tr>
         <tr>
-          <td style="padding: 4px 0; color: #64748b; font-weight: 600;">Grant Duration:</td>
-          <td style="padding: 4px 0; color: ${isTimeLimited ? '#b45309' : '#0f172a'}; font-weight: 700;">
+          <td style="padding: 4px 0; color: #76648B; font-weight: 600;">Grant Duration:</td>
+          <td style="padding: 4px 0; color: ${isTimeLimited ? '#b45309' : '#1C0F2A'}; font-weight: 700;">
             ${isTimeLimited ? '⏰ ' : '🛡️ '}${escapeHtml(validityText)}
           </td>
         </tr>
         ${policy.description ? `
         <tr>
-          <td style="padding: 4px 0; color: #64748b; font-weight: 600;">Description:</td>
-          <td style="padding: 4px 0; color: #475569;">${escapeHtml(policy.description)}</td>
+          <td style="padding: 4px 0; color: #76648B; font-weight: 600;">Description:</td>
+          <td style="padding: 4px 0; color: #574769;">${escapeHtml(policy.description)}</td>
         </tr>
         ` : ''}
       </table>
@@ -1115,15 +1115,15 @@ export function generateGroupPolicyGrantEmailTemplate(
 
     <!-- Privileges & Capabilities -->
     <div style="margin: 20px 0 16px;">
-      <h4 style="margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #475569;">
+      <h4 style="margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #574769;">
         Special Privileges & Capabilities Allotted:
       </h4>
-      ${capsHtml || '<p style="font-size: 12px; color: #94a3b8; font-style: italic;">No capability tags attached.</p>'}
+      ${capsHtml || '<p style="font-size: 12px; color: #A594B8; font-style: italic;">No capability tags attached.</p>'}
     </div>
 
     ${moduleAccessList.length > 0 ? `
     <div style="margin: 16px 0;">
-      <h4 style="margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #475569;">
+      <h4 style="margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #574769;">
         Module View & Edit Permissions:
       </h4>
       ${modAccessHtml}
@@ -1132,12 +1132,12 @@ export function generateGroupPolicyGrantEmailTemplate(
 
     <!-- Call to action button -->
     <div style="text-align: center; margin: 28px 0 16px;">
-      <a href="${dashboardUrl}" target="_blank" style="display: inline-block; background: #6366f1; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);">
+      <a href="${dashboardUrl}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(234, 113, 83, 0.25);">
         Open RTBI Portal &rarr;
       </a>
     </div>
 
-    <p style="margin: 16px 0 0; font-size: 11px; color: #64748b; text-align: center; line-height: 1.5;">
+    <p style="margin: 16px 0 0; font-size: 11px; color: #76648B; text-align: center; line-height: 1.5;">
       Security Notice: This elevated privilege was provisioned by ${escapeHtml(allottedByName)} via RTBI Group Policy Management. If you believe this grant was allotted in error, please report this immediately to your Administrator.
     </p>
   `;
@@ -1147,7 +1147,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     headerTitle: `Special Access Permission Allotted`,
     headerSubtitle: isTimeLimited ? `Temporary Elevated Privileges Assigned` : `Administrative Privileges Granted`,
     badgeText: isTimeLimited ? `SPECIAL ACCESS (${durationBadge.toUpperCase()})` : `PRIVILEGE GRANT`,
-    badgeColor: isTimeLimited ? `#d97706` : `#6366f1`,
+    badgeColor: isTimeLimited ? `#d97706` : `#EA7153`,
     bodyContentHtml,
   });
 
@@ -1182,19 +1182,19 @@ export function generateOtpEmailTemplate(name: string, otp: string): { subject: 
     headerTitle: `Password Reset Request`,
     headerSubtitle: `Security Verification Code`,
     badgeText: `Security Verification`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You requested a password reset for your RTBI Portal account. Use the verification code below to complete your password update:</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You requested a password reset for your RTBI Portal account. Use the verification code below to complete your password update:</p>
 
       <div style="text-align: center; margin: 28px 0;">
-        <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
+        <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1C0F2A; background: #FEF7F6; border: 1px solid #D5CBE1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
           ${otp}
         </span>
-        <p style="color: #64748b; font-size: 12px; margin-top: 10px;">Valid for 5 minutes</p>
+        <p style="color: #76648B; font-size: 12px; margin-top: 10px;">Valid for 5 minutes</p>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you did not request this code, you can safely ignore this message.</p>
+      <p style="color: #76648B; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you did not request this code, you can safely ignore this message.</p>
     `
   });
 
@@ -1222,18 +1222,18 @@ export function generateWelcomeActivationEmailTemplate(name: string, activationL
     headerTitle: `Account Activation`,
     headerSubtitle: `RTBI Operations Portal`,
     badgeText: `Account Setup`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You have been added to the RTBI Portal roster. Select the link below to set your account password:</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have been added to the RTBI Portal roster. Select the link below to set your account password:</p>
 
       <div style="text-align: center; margin: 28px 0;">
-        <a href="${activationLink}" style="display: inline-block; background: #0284c7; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
+        <a href="${activationLink}" style="display: inline-block; background: #CC3D19; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
           Set Up My Account
         </a>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If the button does not open, copy and paste this link into your browser:<br /><span style="word-break: break-all; color: #0284c7;">${activationLink}</span></p>
+      <p style="color: #76648B; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If the button does not open, copy and paste this link into your browser:<br /><span style="word-break: break-all; color: #CC3D19;">${activationLink}</span></p>
     `
   });
 
@@ -1271,29 +1271,29 @@ export function generateNewMemberWelcomeTemplate(member: {
     headerTitle: `Welcome to RTBI Portal`,
     headerSubtitle: `Member Registration Notice`,
     badgeText: `Official Notice`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${member.name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You have officially been registered as a member of <strong>RTBI Portal</strong>. Here are your onboarding details:</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${member.name}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have officially been registered as a member of <strong>RTBI Portal</strong>. Here are your onboarding details:</p>
 
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0284c7; padding: 18px 22px; border-radius: 10px; margin: 20px 0; font-size: 13px;">
-        <p style="margin: 0 0 8px 0; color: #64748b;"><strong>Designation / Role:</strong> <span style="color: #0f172a; font-weight: 700; font-size: 14px;">${roleStr}</span></p>
-        <p style="margin: 0 0 8px 0; color: #64748b;"><strong>Division:</strong> <span style="color: #0f172a; font-weight: 600;">${divisionStr}${departmentStr}</span></p>
-        <p style="margin: 0; color: #64748b;"><strong>Registered Email:</strong> <span style="color: #0284c7; font-family: monospace; font-weight: 600;">${member.email}</span></p>
+      <div style="background: #FEF7F6; border: 1px solid #E9E2F0; border-left: 4px solid #CC3D19; padding: 18px 22px; border-radius: 10px; margin: 20px 0; font-size: 13px;">
+        <p style="margin: 0 0 8px 0; color: #76648B;"><strong>Designation / Role:</strong> <span style="color: #1C0F2A; font-weight: 700; font-size: 14px;">${roleStr}</span></p>
+        <p style="margin: 0 0 8px 0; color: #76648B;"><strong>Division:</strong> <span style="color: #1C0F2A; font-weight: 600;">${divisionStr}${departmentStr}</span></p>
+        <p style="margin: 0; color: #76648B;"><strong>Registered Email:</strong> <span style="color: #CC3D19; font-family: monospace; font-weight: 600;">${member.email}</span></p>
       </div>
 
-      <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 16px 20px; border-radius: 10px; margin: 20px 0;">
-        <h4 style="margin: 0 0 6px 0; color: #0369a1; font-size: 14px; font-weight: 700;">Password Setup Instructions</h4>
-        <p style="margin: 0; color: #334155; font-size: 13px; line-height: 1.5;">When you log in for the first time, simply enter your registered email address (<strong>${member.email}</strong>). You will be prompted directly to set up your password.</p>
+      <div style="background: #FEF4F1; border: 1px solid #FAC9BD; padding: 16px 20px; border-radius: 10px; margin: 20px 0;">
+        <h4 style="margin: 0 0 6px 0; color: #CC3D19; font-size: 14px; font-weight: 700;">Password Setup Instructions</h4>
+        <p style="margin: 0; color: #422C5C; font-size: 13px; line-height: 1.5;">When you log in for the first time, simply enter your registered email address (<strong>${member.email}</strong>). You will be prompted directly to set up your password.</p>
       </div>
 
       <div style="text-align: center; margin: 28px 0;">
-        <a href="${baseUrl}" style="display: inline-block; background: #0284c7; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
+        <a href="${baseUrl}" style="display: inline-block; background: #CC3D19; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
           Log In & Set Up Password &rarr;
         </a>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you have any questions or require assistance, please reach out to your Administrator.</p>
+      <p style="color: #76648B; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you have any questions or require assistance, please reach out to your Administrator.</p>
     `
   });
 
@@ -1316,19 +1316,19 @@ export function generateEmailChangeOtpTemplate(name: string, otp: string, newEma
     headerTitle: `Email Address Update`,
     headerSubtitle: `Security Verification Code`,
     badgeText: `Security Verification`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">A request was made to update your login email to <strong style="color: #0f172a;">${newEmail}</strong>. Use the verification code below to authorize this change:</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">A request was made to update your login email to <strong style="color: #1C0F2A;">${newEmail}</strong>. Use the verification code below to authorize this change:</p>
 
       <div style="text-align: center; margin: 28px 0;">
-        <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
+        <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1C0F2A; background: #FEF7F6; border: 1px solid #D5CBE1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
           ${otp}
         </span>
-        <p style="color: #64748b; font-size: 12px; margin-top: 10px;">Valid for 5 minutes</p>
+        <p style="color: #76648B; font-size: 12px; margin-top: 10px;">Valid for 5 minutes</p>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you did not request this change, you can safely ignore this message.</p>
+      <p style="color: #76648B; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you did not request this change, you can safely ignore this message.</p>
     `
   });
 
@@ -1355,19 +1355,19 @@ export function generateNewEmailConfirmationOtpTemplate(name: string, otp: strin
     headerTitle: `Confirm Your New Email`,
     headerSubtitle: `Final Step — Security Verification Code`,
     badgeText: `Security Verification`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">This is the second and final step of moving your RTBI Portal login email away from <strong style="color: #0f172a;">${oldEmail}</strong> to this address. Use the code below to confirm you can receive mail here:</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">This is the second and final step of moving your RTBI Portal login email away from <strong style="color: #1C0F2A;">${oldEmail}</strong> to this address. Use the code below to confirm you can receive mail here:</p>
 
       <div style="text-align: center; margin: 28px 0;">
-        <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
+        <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1C0F2A; background: #FEF7F6; border: 1px solid #D5CBE1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
           ${otp}
         </span>
-        <p style="color: #64748b; font-size: 12px; margin-top: 10px;">Valid for 5 minutes</p>
+        <p style="color: #76648B; font-size: 12px; margin-top: 10px;">Valid for 5 minutes</p>
       </div>
 
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you did not request this change, you can safely ignore this message — no change will be made without this code.</p>
+      <p style="color: #76648B; font-size: 12px; line-height: 1.5; margin-bottom: 0;">If you did not request this change, you can safely ignore this message — no change will be made without this code.</p>
     `
   });
 
@@ -1390,12 +1390,12 @@ export function generateAnnouncementEmailTemplate(memberName: string, title: str
     headerTitle: title,
     headerSubtitle: `Published by ${author}`,
     badgeText: `Official Announcement`,
-    badgeColor: `#0369a1`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #334155;">Hello <strong>${memberName}</strong>,</p>
-      <p style="color: #0f172a; white-space: pre-wrap; font-size: 14px; line-height: 1.7;">${content}</p>
-      <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #e2e8f0; text-align: center;">
-        <a href="${baseUrl}/dashboard/announcements" style="background: #0284c7; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">View in Dashboard &rarr;</a>
+      <p style="margin-top: 0; color: #422C5C;">Hello <strong>${memberName}</strong>,</p>
+      <p style="color: #1C0F2A; white-space: pre-wrap; font-size: 14px; line-height: 1.7;">${content}</p>
+      <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #E9E2F0; text-align: center;">
+        <a href="${baseUrl}/dashboard/announcements" style="background: #CC3D19; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">View in Dashboard &rarr;</a>
       </div>
     `
   });
@@ -1421,24 +1421,24 @@ export function generateTaskEmailTemplate(memberName: string, taskTitle: string,
     headerTitle: taskTitle,
     headerSubtitle: `Assigned by ${creatorName || 'Committee Admin'}`,
     badgeText: `Task Assignment`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #334155;">Hello <strong>${memberName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px;">You have been assigned a deliverable on the RTBI Portal:</p>
+      <p style="margin-top: 0; color: #422C5C;">Hello <strong>${memberName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px;">You have been assigned a deliverable on the RTBI Portal:</p>
       
-      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #422C5C; margin: 16px 0;">
         <tr>
-          <td style="padding: 8px 0; color: #64748b; width: 120px;">Context:</td>
-          <td style="padding: 8px 0; font-weight: 600; color: #0f172a;">${eventName || 'RTBI Operations'}</td>
+          <td style="padding: 8px 0; color: #76648B; width: 120px;">Context:</td>
+          <td style="padding: 8px 0; font-weight: 600; color: #1C0F2A;">${eventName || 'RTBI Operations'}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #64748b;">Due Date:</td>
-          <td style="padding: 8px 0; font-weight: 700; color: #0f172a;">${dueDate}</td>
+          <td style="padding: 8px 0; color: #76648B;">Due Date:</td>
+          <td style="padding: 8px 0; font-weight: 700; color: #1C0F2A;">${dueDate}</td>
         </tr>
       </table>
 
       <div style="margin-top: 20px; text-align: center;">
-        <a href="${baseUrl}/dashboard/tasks" style="background: #0284c7; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">Open Tasks Desk &rarr;</a>
+        <a href="${baseUrl}/dashboard/tasks" style="background: #CC3D19; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">Open Tasks Desk &rarr;</a>
       </div>
     `
   });
@@ -1465,16 +1465,16 @@ export function generateTaskDeadlineReminderEmailTemplate(memberName: string, ta
     badgeText: `Deadline Reminder`,
     badgeColor: `#d97706`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #334155;">Hello <strong>${memberName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px;">This is a reminder that the following task is due <strong>tomorrow</strong>:</p>
+      <p style="margin-top: 0; color: #422C5C;">Hello <strong>${memberName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px;">This is a reminder that the following task is due <strong>tomorrow</strong>:</p>
 
-      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #422C5C; margin: 16px 0;">
         <tr>
-          <td style="padding: 8px 0; color: #64748b; width: 120px;">Context:</td>
-          <td style="padding: 8px 0; font-weight: 600; color: #0f172a;">${eventName || 'RTBI Operations'}</td>
+          <td style="padding: 8px 0; color: #76648B; width: 120px;">Context:</td>
+          <td style="padding: 8px 0; font-weight: 600; color: #1C0F2A;">${eventName || 'RTBI Operations'}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #64748b;">Due Date:</td>
+          <td style="padding: 8px 0; color: #76648B;">Due Date:</td>
           <td style="padding: 8px 0; font-weight: 700; color: #d97706;">${dueDate}</td>
         </tr>
       </table>
@@ -1503,17 +1503,17 @@ export function generateEventRosterEmailTemplate(memberName: string, eventTitle:
     headerTitle: eventTitle,
     headerSubtitle: `Committee Assignment`,
     badgeText: `Event Assignment`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #334155;">Hello <strong>${memberName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">You have been assigned to the <strong>${committeeName}</strong> committee for <strong>${eventTitle}</strong>.</p>
+      <p style="margin-top: 0; color: #422C5C;">Hello <strong>${memberName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have been assigned to the <strong>${committeeName}</strong> committee for <strong>${eventTitle}</strong>.</p>
       
-      <div style="background: #f8fafc; border-left: 4px solid #0284c7; padding: 14px 18px; margin: 18px 0; border-radius: 6px;">
-        <p style="margin: 0; font-size: 13px; color: #0f172a;"><strong>Event Start Date:</strong> ${startDate}</p>
+      <div style="background: #FEF7F6; border-left: 4px solid #CC3D19; padding: 14px 18px; margin: 18px 0; border-radius: 6px;">
+        <p style="margin: 0; font-size: 13px; color: #1C0F2A;"><strong>Event Start Date:</strong> ${startDate}</p>
       </div>
 
       <div style="margin-top: 20px; text-align: center;">
-        <a href="${baseUrl}/dashboard/events" style="background: #0284c7; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">View Event Details &rarr;</a>
+        <a href="${baseUrl}/dashboard/events" style="background: #CC3D19; color: #ffffff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-block;">View Event Details &rarr;</a>
       </div>
     `
   });
@@ -1536,11 +1536,11 @@ export function generateBirthdayEmailTemplate(memberName: string): { subject: st
     headerTitle: `Happy Birthday, ${firstName}!`,
     headerSubtitle: `From everyone at RTBI Portal`,
     badgeText: `Greetings`,
-    badgeColor: `#0284c7`,
+    badgeColor: `#CC3D19`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Dear <strong>${memberName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">On behalf of the entire RTBI Portal family, we wish you a wonderful birthday! Thank you for your energy and dedication.</p>
-      <p style="color: #64748b; font-size: 13px; line-height: 1.6; margin-bottom: 0;">Have a fantastic year ahead!</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Dear <strong>${memberName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">On behalf of the entire RTBI Portal family, we wish you a wonderful birthday! Thank you for your energy and dedication.</p>
+      <p style="color: #76648B; font-size: 13px; line-height: 1.6; margin-bottom: 0;">Have a fantastic year ahead!</p>
     `
   });
 
@@ -1637,11 +1637,11 @@ export function generateEventReportApprovedEmailTemplate(
     badgeText: `Report Approved`,
     badgeColor: `#15803d`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">The event report for <strong>${eventTitle}</strong>, submitted by <strong>${submitterName}</strong>, has been approved.</p>
-      ${reviewerName ? `<p style="color: #334155; font-size: 13px; margin: 6px 0;"><strong>Approved by:</strong> ${reviewerName}${reviewerRole ? ` (${reviewerRole})` : ''}</p>` : ''}
-      ${comments ? `<div style="margin: 12px 0; padding: 12px; background-color: #f8fafc; border-left: 3px solid #15803d; border-radius: 4px; font-style: italic; color: #475569; font-size: 13px;">"${comments}"</div>` : ''}
-      <p style="color: #334155; font-size: 14px; line-height: 1.6; margin-top: 12px;">The full report is attached to this email.</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The event report for <strong>${eventTitle}</strong>, submitted by <strong>${submitterName}</strong>, has been approved.</p>
+      ${reviewerName ? `<p style="color: #422C5C; font-size: 13px; margin: 6px 0;"><strong>Approved by:</strong> ${reviewerName}${reviewerRole ? ` (${reviewerRole})` : ''}</p>` : ''}
+      ${comments ? `<div style="margin: 12px 0; padding: 12px; background-color: #FEF7F6; border-left: 3px solid #15803d; border-radius: 4px; font-style: italic; color: #574769; font-size: 13px;">"${comments}"</div>` : ''}
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6; margin-top: 12px;">The full report is attached to this email.</p>
     `
   });
 
@@ -1672,9 +1672,9 @@ export function generateCaptionsApprovedEmailTemplate(
     `Regards,\nRTBI Portal, MSRUAS`;
 
   const captionBlockHtml = (label: string, text?: string) => text ? `
-      <div style="background: #f8fafc; border-left: 3px solid #38bdf8; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">${label}</p>
-        <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${text}</p>
+      <div style="background: #FEF7F6; border-left: 3px solid #E86848; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
+        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">${label}</p>
+        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${text}</p>
       </div>
     ` : '';
 
@@ -1685,11 +1685,11 @@ export function generateCaptionsApprovedEmailTemplate(
     badgeText: `Ready to Post`,
     badgeColor: `#15803d`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">The captions for design <strong>${designTitle}</strong>, submitted by <strong>${designerName}</strong>, have been approved and the design is now ready to post.</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The captions for design <strong>${designTitle}</strong>, submitted by <strong>${designerName}</strong>, have been approved and the design is now ready to post.</p>
       ${captionBlockHtml('Instagram Caption', instagramCaption)}
       ${captionBlockHtml('LinkedIn Caption', linkedinCaption)}
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">The final asset is attached to this email.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The final asset is attached to this email.</p>
     `
   });
 
@@ -1727,10 +1727,10 @@ export function generateDesignApprovedEmailTemplate(
     badgeText: `Style Approved`,
     badgeColor: `#15803d`,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">The design <strong>${designTitle}</strong> has been Style Approved${approvedByName ? ` by <strong>${approvedByName}</strong>` : ''}.</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Submitted by <strong>${designerName}</strong>${submittedAtFormatted ? ` on <strong>${submittedAtFormatted}</strong>` : ''}.</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">The final asset is attached to this email.</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The design <strong>${designTitle}</strong> has been Style Approved${approvedByName ? ` by <strong>${approvedByName}</strong>` : ''}.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Submitted by <strong>${designerName}</strong>${submittedAtFormatted ? ` on <strong>${submittedAtFormatted}</strong>` : ''}.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">The final asset is attached to this email.</p>
     `
   });
 
@@ -1773,15 +1773,15 @@ export function generateDesignDecisionEmailTemplate(
     badgeText: outcome,
     badgeColor,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${designerName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Your design submission <strong>${designTitle}</strong> has been reviewed at the <strong>${stage}</strong> stage by <strong>${decidedByName}</strong>.</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${designerName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your design submission <strong>${designTitle}</strong> has been reviewed at the <strong>${stage}</strong> stage by <strong>${decidedByName}</strong>.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
       ${comments ? `
-      <div style="background: #f8fafc; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Comments</p>
-        <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
+      <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
+        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Comments</p>
+        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
       </div>` : ''}
-      <p style="color: #64748b; font-size: 13px; line-height: 1.6;">${approved ? 'No further action is needed from you at this stage.' : 'Please review the feedback above and resubmit or update your design accordingly.'}</p>
+      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'No further action is needed from you at this stage.' : 'Please review the feedback above and resubmit or update your design accordingly.'}</p>
     `
   });
 
@@ -1818,15 +1818,15 @@ export function generateProcurementDecisionEmailTemplate(
     badgeText: outcome,
     badgeColor,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${requesterName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Your procurement request for <strong>${itemsSummary}</strong> has been reviewed by <strong>${decidedByName}</strong>.</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${requesterName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your procurement request for <strong>${itemsSummary}</strong> has been reviewed by <strong>${decidedByName}</strong>.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
       ${decisionNotes ? `
-      <div style="background: #f8fafc; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Notes</p>
-        <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${decisionNotes}</p>
+      <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
+        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Notes</p>
+        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${decisionNotes}</p>
       </div>` : ''}
-      <p style="color: #64748b; font-size: 13px; line-height: 1.6;">${approved ? 'The items are cleared for procurement.' : 'You may revise and resubmit the request if needed.'}</p>
+      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'The items are cleared for procurement.' : 'You may revise and resubmit the request if needed.'}</p>
     `
   });
 
@@ -1858,12 +1858,12 @@ export function generateDesignResubmittedEmailTemplate(
     headerTitle: 'Design Resubmitted',
     headerSubtitle: designTitle,
     badgeText: 'Revised & Resubmitted',
-    badgeColor: '#6366f1',
+    badgeColor: '#EA7153',
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;"><strong>${designerName}</strong> has revised and resubmitted the design <strong>${designTitle}</strong> following your earlier ${feedbackLabel}.</p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;"><strong>${designerName}</strong> has revised and resubmitted the design <strong>${designTitle}</strong> following your earlier ${feedbackLabel}.</p>
       <div style="text-align: center; margin: 24px 0 12px;">
-        <a href="${designLink}" target="_blank" style="display: inline-block; background: #6366f1; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px;">
+        <a href="${designLink}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px;">
           Review Updated Design
         </a>
       </div>
@@ -1907,15 +1907,15 @@ export function generateApprovalDecisionEmailTemplate(
     badgeText: outcome.toUpperCase(),
     badgeColor,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${requesterName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Your approval request for <strong>${typeCapitalized}</strong> "<strong>${entityTitle}</strong>" has been reviewed and <strong>${outcome.toLowerCase()}</strong> by <strong>${decidedByName}</strong>.</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${requesterName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your approval request for <strong>${typeCapitalized}</strong> "<strong>${entityTitle}</strong>" has been reviewed and <strong>${outcome.toLowerCase()}</strong> by <strong>${decidedByName}</strong>.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
       ${comments ? `
-      <div style="background: #f8fafc; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Reviewer Comments</p>
-        <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
+      <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
+        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Reviewer Comments</p>
+        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
       </div>` : ''}
-      <p style="color: #64748b; font-size: 13px; line-height: 1.6;">${approved ? 'Your request has been approved. No further action is required.' : 'Please review the comments above and make any necessary adjustments.'}</p>
+      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'Your request has been approved. No further action is required.' : 'Please review the comments above and make any necessary adjustments.'}</p>
     `
   });
 
@@ -1955,15 +1955,15 @@ export function generateEventReportDecisionEmailTemplate(
     badgeText: outcome.toUpperCase(),
     badgeColor,
     bodyContentHtml: `
-      <p style="margin-top: 0; color: #0f172a; font-size: 14px;">Hello <strong>${submitterName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Your event report for <strong>${eventTitle}</strong> has been reviewed by <strong>${decidedByName}</strong> (${reviewerRole}).</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
+      <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${submitterName}</strong>,</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Your event report for <strong>${eventTitle}</strong> has been reviewed by <strong>${decidedByName}</strong> (${reviewerRole}).</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">Decision: <strong style="color: ${badgeColor};">${outcome}</strong></p>
       ${comments ? `
-      <div style="background: #f8fafc; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
-        <p style="margin: 0 0 4px; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Reviewer Feedback</p>
-        <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
+      <div style="background: #FEF7F6; border-left: 3px solid ${badgeColor}; padding: 10px 14px; border-radius: 4px; margin: 10px 0;">
+        <p style="margin: 0 0 4px; color: #1C0F2A; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">Reviewer Feedback</p>
+        <p style="margin: 0; color: #422C5C; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p>
       </div>` : ''}
-      <p style="color: #64748b; font-size: 13px; line-height: 1.6;">${approved ? 'The event report has been accepted and finalized.' : 'Please review the feedback above and resubmit a corrected report file.'}</p>
+      <p style="color: #76648B; font-size: 13px; line-height: 1.6;">${approved ? 'The event report has been accepted and finalized.' : 'Please review the feedback above and resubmit a corrected report file.'}</p>
     `
   });
 

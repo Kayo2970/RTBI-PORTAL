@@ -121,7 +121,7 @@ export function AppleWalletPosterPreview(props: ApplePosterPreviewProps) {
         borderRadius: 20,
         overflow: 'hidden',
         position: 'relative',
-        background: passColor || '#0b1526',
+        background: passColor || '#160B2C',
         boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif',
       }}

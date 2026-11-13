@@ -61,7 +61,7 @@ async function sendOne(item: PassEmailScheduleItem, schedule: PassEmailSchedule)
       bodyHtml: built.bodyHtml,
       category: 'EVENT_INVITATION',
       badgeText: 'Official Event Pass',
-      badgeColor: '#0284c7',
+      badgeColor: '#E34A21',
       attachments: built.attachments,
       background: schedule.background,
     });

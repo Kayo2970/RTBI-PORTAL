@@ -80,7 +80,7 @@ export function InteractiveKeycardHolder({
   cardUrl,
   qrUrl = '/card/rtbi-qr-code.png',
   fontScale = 1,
-  qrDark = '#0B1B2E',
+  qrDark = '#361C6A',
   qrLight = '#ffffff',
   qrEye = '',
   qrShape = 'square',
@@ -527,7 +527,7 @@ export function InteractiveKeycardHolder({
                     style={{
                       ...(passThemeStyle(
                         theme,
-                        passGradient || (passColor ? `linear-gradient(145deg, ${passColor} 0%, #030712 100%)` : undefined)
+                        passGradient || (passColor ? `linear-gradient(145deg, ${passColor} 0%, #0F0623 100%)` : undefined)
                       ) || {}),
                       ['--pass-font-scale' as string]: String(fontScale || 1),
                     } as React.CSSProperties}
@@ -610,7 +610,7 @@ export function InteractiveKeycardHolder({
                         <span>↻</span>
                         <span>Tap to Flip for Pass Terms & Security Protocol</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '8px', color: '#94a3b8' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '8px', color: '#B8AEC8' }}>
                         <span>💳 {issuingAuthority || 'RTBI Portal • RUAS'}</span>
                         <span>SECURE CREDENTIAL</span>
                       </div>
@@ -695,7 +695,7 @@ export function InteractiveKeycardHolder({
                     </div>
                     <div className={styles.backFieldRow}>
                       <span className={styles.backFieldLabel}>2. {isEvent ? 'Pass ID / Serial' : 'Member ID / Serial'}</span>
-                      <span className={styles.backFieldVal} style={{ fontFamily: 'monospace', color: '#0284c7' }}>
+                      <span className={styles.backFieldVal} style={{ fontFamily: 'monospace', color: '#E34A21' }}>
                         {isEvent ? (serialNumber || formattedSerial) : (formattedMemberId || formattedSerial)}
                       </span>
                     </div>
@@ -791,7 +791,7 @@ export function InteractiveKeycardHolder({
                 </div>
                 <div className={styles.formSlot}>
                   <span className={styles.formSlotLabel}>{isEvent ? 'Pass ID' : 'Official Member ID'}</span>
-                  <div className={styles.formSlotPill} style={{ fontFamily: 'monospace', fontWeight: 800, color: '#38bdf8' }}>
+                  <div className={styles.formSlotPill} style={{ fontFamily: 'monospace', fontWeight: 800, color: '#F26A44' }}>
                     {isEvent ? (serialNumber || formattedSerial) : formattedMemberId}
                   </div>
                 </div>

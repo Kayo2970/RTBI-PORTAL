@@ -60,7 +60,7 @@ export const DEFAULT_CERTIFICATE_TEMPLATE: CertificateTemplate = {
   signatoryName: '',
   signatoryTitle: 'RTBI',
   nameSource: 'name',
-  textColor: '#1e293b',
+  textColor: '#24113F',
   layout: DEFAULT_CERT_LAYOUT,
 };
 
@@ -409,7 +409,7 @@ export async function renderCertificatePng(
     }
   }
   if (!hasArt) {
-    ctx.strokeStyle = '#b45309';
+    ctx.strokeStyle = '#E34A21';
     ctx.lineWidth = 10;
     ctx.strokeRect(50, 50, W - 100, H - 100);
     ctx.lineWidth = 2;

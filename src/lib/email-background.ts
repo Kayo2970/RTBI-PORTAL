@@ -102,7 +102,7 @@ async function renderBlurredJpeg(storageKey: string, radius: number): Promise<Bu
   const height = Math.min(OUT_MAX_HEIGHT, Math.max(1, Math.round(img.height * scale)));
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#f8fafc';
+  ctx.fillStyle = '#FEF7F6';
   ctx.fillRect(0, 0, width, height);
   // Draw slightly larger than the canvas so the blur doesn't fade to transparent at the edges.
   const bleed = radius * 2;
@@ -187,7 +187,7 @@ export async function resolveEmailBackgroundUrl(
   return path ? `${getAppBaseUrl()}${path}` : null;
 }
 
-const FALLBACK_COLOR = '#f8fafc';
+const FALLBACK_COLOR = '#FEF7F6';
 
 /**
  * Puts `url` behind the whole e-mail: the content is wrapped in a full-width table whose `background` attribute and

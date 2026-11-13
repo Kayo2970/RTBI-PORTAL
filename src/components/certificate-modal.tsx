@@ -15,9 +15,9 @@ interface Attendee { manual?: boolean; passId: string; name: string; email: stri
 interface Template { title: string; introText: string; bodyText: string; signatoryName: string; signatoryTitle: string; nameSource: 'name' | 'organisation' | 'category' | 'serial'; textColor: string; layout: CertLayout }
 interface Schedule { id: string; sendAt: string; passIds: string[]; status: string; sent?: number; failed?: number; error?: string; finishedAt?: string; createdBy?: string }
 
-const field = 'w-full px-3 py-2 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-accent text-xs';
-const label = 'block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px] mb-1';
-const numCls = 'w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-white/15 rounded-lg text-slate-900 dark:text-white text-xs';
+const field = 'w-full px-3 py-2 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-xl text-theme-text-primary dark:text-white focus:outline-none focus:border-accent text-xs';
+const label = 'block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] mb-1';
+const numCls = 'w-full px-2 py-1.5 bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/15 rounded-lg text-theme-text-primary dark:text-white text-xs';
 
 const BOX_HINTS: Record<CertBoxKey, string> = {
   title: 'Big heading at the top',
@@ -30,18 +30,18 @@ const BOX_HINTS: Record<CertBoxKey, string> = {
 
 /** Placeholder shown while the event's design and recipients load, instead of an empty page. */
 function CertificateSkeleton() {
-  const bar = 'rounded-lg bg-slate-200/80 dark:bg-white/10';
+  const bar = 'rounded-lg bg-theme-border/80 dark:bg-white/10';
   return (
     <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(520px,5fr)_minmax(0,7fr)] gap-5 animate-pulse" role="status" aria-label="Loading certificate design">
       <div className="space-y-2.5">
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="rounded-2xl border border-slate-200 dark:border-white/10 px-4 py-3 flex items-center gap-3">
+          <div key={i} className="rounded-2xl border border-theme-card-border dark:border-white/10 px-4 py-3 flex items-center gap-3">
             <div className={`h-6 w-6 rounded-full ${bar}`} />
             <div className={`h-3.5 flex-1 max-w-[220px] ${bar}`} />
             <div className={`h-3.5 w-3.5 ${bar}`} />
           </div>
         ))}
-        <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-4 space-y-2">
+        <div className="rounded-2xl border border-theme-card-border dark:border-white/10 p-4 space-y-2">
           <div className={`h-3 w-3/4 ${bar}`} />
           <div className={`h-9 w-40 rounded-xl ${bar}`} />
         </div>
@@ -740,17 +740,17 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
   const section = (n: number, body: React.ReactNode) => {
     const open = openStep === n;
     return (
-      <div key={n} className={`rounded-2xl border ${open ? 'border-accent/50 bg-accent/5' : 'border-slate-200 dark:border-white/10'}`}>
+      <div key={n} className={`rounded-2xl border ${open ? 'border-accent/50 bg-accent/5' : 'border-theme-card-border dark:border-white/10'}`}>
         <button type="button" onClick={() => setOpenStep(open ? 0 : n)} className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer">
-          <span className={`h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-black ${stepDone(n) ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-white/15 text-slate-700 dark:text-white'}`}>{stepDone(n) ? <Check className="h-3.5 w-3.5" /> : n}</span>
-          <span className="flex-1 font-extrabold text-slate-900 dark:text-white text-sm">{STEPS[n - 1]}</span>
-          {open ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+          <span className={`h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-black ${stepDone(n) ? 'bg-success text-white' : 'bg-theme-border/25 dark:bg-white/15 text-theme-text-primary dark:text-white'}`}>{stepDone(n) ? <Check className="h-3.5 w-3.5" /> : n}</span>
+          <span className="flex-1 font-extrabold text-theme-text-primary dark:text-white text-sm">{STEPS[n - 1]}</span>
+          {open ? <ChevronDown className="h-4 w-4 text-theme-text-secondary" /> : <ChevronRight className="h-4 w-4 text-theme-text-secondary" />}
         </button>
         {open && (
           <div className="px-4 pb-4 space-y-3">
             {body}
             <div className="flex items-center justify-between pt-1">
-              <button type="button" disabled={n === 1} onClick={() => setOpenStep(n - 1)} className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white disabled:opacity-30 cursor-pointer">← Back</button>
+              <button type="button" disabled={n === 1} onClick={() => setOpenStep(n - 1)} className="text-xs font-bold text-theme-text-secondary hover:text-theme-text-primary dark:hover:text-white disabled:opacity-30 cursor-pointer">← Back</button>
               {n < STEPS.length && <button type="button" onClick={() => setOpenStep(n + 1)} className="px-4 py-1.5 rounded-lg bg-accent text-white font-extrabold text-xs cursor-pointer">Next: {STEPS[n]} →</button>}
             </div>
           </div>
@@ -761,18 +761,18 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
 
   return (
     <div className={inline ? '' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-2 md:p-4'}>
-      <div className={`glass-panel rounded-3xl p-4 md:p-6 space-y-3 border border-slate-200/90 dark:border-white/15 bg-white/95 dark:bg-[#0D1F38]/95 shadow-2xl flex flex-col ${inline ? 'w-full h-[calc(100vh-14rem)] min-h-[640px]' : 'w-[98vw] max-w-[1700px] h-[95vh]'}`}>
-        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+      <div className={`glass-panel rounded-3xl p-4 md:p-6 space-y-3 border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-2xl flex flex-col ${inline ? 'w-full h-[calc(100vh-14rem)] min-h-[640px]' : 'w-[98vw] max-w-[1700px] h-[95vh]'}`}>
+        <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent"><Award className="h-5 w-5" /></div>
             <div>
-              <h2 className="text-base font-black text-slate-900 dark:text-white">Attendance Certificates</h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300">Build the certificate step by step, preview the final PDFs, then send or schedule them.</p>
+              <h2 className="text-base font-black text-theme-text-primary dark:text-white">Attendance Certificates</h2>
+              <p className="text-xs text-theme-text-secondary dark:text-theme-text-secondary">Build the certificate step by step, preview the final PDFs, then send or schedule them.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-slate-500">{saveState === 'saving' ? 'Saving…' : saveState === 'dirty' ? 'Unsaved changes…' : saveState === 'saved' ? 'All changes saved' : ''}</span>
-            {!inline && <button onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 cursor-pointer"><X className="h-5 w-5" /></button>}
+            <span className="text-[11px] font-bold text-theme-text-secondary">{saveState === 'saving' ? 'Saving…' : saveState === 'dirty' ? 'Unsaved changes…' : saveState === 'saved' ? 'All changes saved' : ''}</span>
+            {!inline && <button onClick={onClose} className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-theme-border/15 dark:hover:bg-white/10 text-theme-text-secondary cursor-pointer"><X className="h-5 w-5" /></button>}
           </div>
         </div>
 
@@ -781,7 +781,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
             <label className={label}>Event</label>
             <select value={eventId} onChange={(e) => switchTo(e.target.value, 'default')} className={field}>
               {events.filter((e) => !e.isHoliday).map((e) => (
-                <option key={e.id} value={e.id} className="bg-slate-900 text-white">{e.title}{endedEvents.some((x) => x.id === e.id) ? '' : ' (not ended)'}</option>
+                <option key={e.id} value={e.id} className="bg-accent text-white">{e.title}{endedEvents.some((x) => x.id === e.id) ? '' : ' (not ended)'}</option>
               ))}
             </select>
           </div>
@@ -789,22 +789,22 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
             <label className={label}>Certificate type</label>
             <div className="flex items-center gap-1.5">
               <select value={typeId} onChange={(e) => switchTo(eventId, e.target.value)} disabled={loading} className={`${field} !w-auto min-w-[160px]`}>
-                {types.map((t) => <option key={t.id} value={t.id} className="bg-slate-900 text-white">{t.name}</option>)}
+                {types.map((t) => <option key={t.id} value={t.id} className="bg-accent text-white">{t.name}</option>)}
               </select>
               {canEditDesign && (
                 <>
                   <button type="button" title="Add a certificate type" onClick={addType} disabled={busy || loading} className="h-9 px-2.5 rounded-xl bg-accent/15 text-accent border border-accent/30 font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50"><Plus className="h-3.5 w-3.5" /> New type</button>
-                  <button type="button" title="Rename this type" onClick={renameType} disabled={busy || loading} className="h-9 w-9 rounded-xl border border-slate-300 dark:border-white/15 text-slate-500 flex items-center justify-center cursor-pointer disabled:opacity-50"><Pencil className="h-3.5 w-3.5" /></button>
-                  {typeId !== 'default' && <button type="button" title="Delete this type" onClick={removeType} disabled={busy || loading} className="h-9 w-9 rounded-xl border border-rose-500/30 text-rose-400 flex items-center justify-center cursor-pointer disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" /></button>}
+                  <button type="button" title="Rename this type" onClick={renameType} disabled={busy || loading} className="h-9 w-9 rounded-xl border border-theme-card-border dark:border-white/15 text-theme-text-secondary flex items-center justify-center cursor-pointer disabled:opacity-50"><Pencil className="h-3.5 w-3.5" /></button>
+                  {typeId !== 'default' && <button type="button" title="Delete this type" onClick={removeType} disabled={busy || loading} className="h-9 w-9 rounded-xl border border-danger/30 text-danger flex items-center justify-center cursor-pointer disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" /></button>}
                 </>
               )}
             </div>
           </div>
-          {!canEditDesign && <p className="text-amber-500 font-semibold">You can preview the design but not change it.</p>}
+          {!canEditDesign && <p className="text-warning font-semibold">You can preview the design but not change it.</p>}
         </div>
 
         {msg && (
-          <div className={`flex items-center gap-2 p-3 rounded-2xl text-xs border ${msg.kind === 'ok' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
+          <div className={`flex items-center gap-2 p-3 rounded-2xl text-xs border ${msg.kind === 'ok' ? 'bg-success/15 border-success/30 text-success' : 'bg-danger/15 border-danger/30 text-danger'}`}>
             {msg.kind === 'ok' ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
             <span>{msg.text}</span>
           </div>
@@ -818,14 +818,14 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
             <div className="overflow-y-auto pr-1 space-y-2.5">
               {section(1, (
                 <div className="space-y-2">
-                  <p className="text-slate-600 dark:text-slate-300">Upload the certificate background (A4 landscape, PNG / JPG / WebP). Skip it to use the simple framed design.</p>
+                  <p className="text-theme-text-secondary dark:text-theme-text-secondary">Upload the certificate background (A4 landscape, PNG / JPG / WebP). Skip it to use the simple framed design.</p>
                   <div className="flex items-center gap-2">
                     <label className={`px-3 py-2 rounded-xl bg-accent/15 text-accent border border-accent/30 font-bold flex items-center gap-1.5 ${canEditDesign ? 'cursor-pointer' : 'opacity-50'}`}>
                       <ImagePlus className="h-3.5 w-3.5" /> {hasBackground ? 'Replace background' : 'Upload background'}
                       <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={!canEditDesign} onChange={(e) => pickArtwork(e.target.files?.[0])} />
                     </label>
                     {hasBackground && canEditDesign && (
-                      <button type="button" className="px-3 py-2 rounded-xl text-rose-400 border border-rose-500/30 font-bold flex items-center gap-1.5 cursor-pointer" onClick={() => { setBackground(null); setHasBackground(false); versionRef.current += 1; setSaveState('dirty'); }}>
+                      <button type="button" className="px-3 py-2 rounded-xl text-danger border border-danger/30 font-bold flex items-center gap-1.5 cursor-pointer" onClick={() => { setBackground(null); setHasBackground(false); versionRef.current += 1; setSaveState('dirty'); }}>
                         <Trash2 className="h-3.5 w-3.5" /> Remove
                       </button>
                     )}
@@ -835,16 +835,16 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
 
               {section(2, (
                 <div className="space-y-2">
-                  <p className="text-slate-600 dark:text-slate-300">Tick everything you want printed on the certificate, and type its wording.</p>
+                  <p className="text-theme-text-secondary dark:text-theme-text-secondary">Tick everything you want printed on the certificate, and type its wording.</p>
                   {(Object.keys(CERT_BOX_LABELS) as CertBoxKey[]).map((k) => {
                     const on = template.layout[k].enabled;
                     return (
-                      <div key={k} className={`rounded-xl border p-2.5 ${on ? 'border-accent/40 bg-white/60 dark:bg-white/5' : 'border-slate-200 dark:border-white/10'}`}>
+                      <div key={k} className={`rounded-xl border p-2.5 ${on ? 'border-accent/40 bg-white/60 dark:bg-white/5' : 'border-theme-card-border dark:border-white/10'}`}>
                         <label className="flex items-start gap-2.5 cursor-pointer">
                           <input type="checkbox" className="mt-0.5" checked={on} disabled={!canEditDesign} onChange={(e) => { patchBox(k, { enabled: e.target.checked }); if (e.target.checked) setActiveBox(k); }} />
                           <span>
-                            <span className="font-extrabold text-slate-900 dark:text-white block">{CERT_BOX_LABELS[k]}</span>
-                            <span className="text-[10px] text-slate-500">{BOX_HINTS[k]}</span>
+                            <span className="font-extrabold text-theme-text-primary dark:text-white block">{CERT_BOX_LABELS[k]}</span>
+                            <span className="text-[10px] text-theme-text-secondary">{BOX_HINTS[k]}</span>
                           </span>
                         </label>
                         {on && k === 'title' && <input className={`${field} mt-2`} value={template.title} onChange={(e) => edit((t) => ({ ...t, title: e.target.value }))} disabled={!canEditDesign} />}
@@ -864,16 +864,16 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
 
               {section(3, box && (
                 <div className="space-y-3">
-                  <p className="text-slate-600 dark:text-slate-300">Pick an item, then drag it on the preview (corner handle resizes) or type exact values.</p>
+                  <p className="text-theme-text-secondary dark:text-theme-text-secondary">Pick an item, then drag it on the preview (corner handle resizes) or type exact values.</p>
                   <div className="flex flex-wrap gap-1.5">
                     {enabledKeys.map((k) => (
-                      <button key={k} type="button" onClick={() => setActiveBox(k)} className={`px-3 py-1.5 rounded-lg font-bold cursor-pointer ${activeBox === k ? 'bg-accent text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white'}`}>{CERT_BOX_LABELS[k]}</button>
+                      <button key={k} type="button" onClick={() => setActiveBox(k)} className={`px-3 py-1.5 rounded-lg font-bold cursor-pointer ${activeBox === k ? 'bg-accent text-white' : 'bg-theme-border/15 dark:bg-white/10 text-theme-text-primary dark:text-white'}`}>{CERT_BOX_LABELS[k]}</button>
                     ))}
-                    {enabledKeys.length === 0 && <span className="text-amber-500 font-semibold">Nothing is ticked in step 2.</span>}
+                    {enabledKeys.length === 0 && <span className="text-warning font-semibold">Nothing is ticked in step 2.</span>}
                   </div>
                   {enabledKeys.includes(activeBox) && (
                     <div className="space-y-2.5 p-3 rounded-2xl border border-accent/30 bg-accent/5">
-                      <div className="font-extrabold text-slate-800 dark:text-white">Text box: {CERT_BOX_LABELS[activeBox]}</div>
+                      <div className="font-extrabold text-theme-text-primary dark:text-white">Text box: {CERT_BOX_LABELS[activeBox]}</div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {numField('X %', box.x, (n) => patchBox(activeBox, clampBox({ ...box, x: n })))}
                         {numField('Y %', box.y, (n) => patchBox(activeBox, clampBox({ ...box, y: n })))}
@@ -886,22 +886,22 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                             <div>
                               <label className={label}>Font</label>
                               <select className={field} value={box.fontFamily} disabled={!canEditDesign} onChange={(e) => patchBox(activeBox, { fontFamily: e.target.value })}>
-                                {CERT_FONT_OPTIONS.map((f) => <option key={f.id} value={f.id} className="bg-slate-900 text-white">{f.label}</option>)}
-                                {customFonts.map((f) => <option key={f.id} value={`custom:${f.id}`} className="bg-slate-900 text-white">{f.label} (custom)</option>)}
-                                {box.fontFamily.startsWith('custom:') && !customFonts.some((f) => `custom:${f.id}` === box.fontFamily) && <option value={box.fontFamily} className="bg-slate-900 text-white">{box.fontFamily.slice(7)} (missing)</option>}
+                                {CERT_FONT_OPTIONS.map((f) => <option key={f.id} value={f.id} className="bg-accent text-white">{f.label}</option>)}
+                                {customFonts.map((f) => <option key={f.id} value={`custom:${f.id}`} className="bg-accent text-white">{f.label} (custom)</option>)}
+                                {box.fontFamily.startsWith('custom:') && !customFonts.some((f) => `custom:${f.id}` === box.fontFamily) && <option value={box.fontFamily} className="bg-accent text-white">{box.fontFamily.slice(7)} (missing)</option>}
                               </select>
                             </div>
                             {numField('Font size (px)', box.fontSize, (n) => patchBox(activeBox, { fontSize: n }), 1)}
                           </div>
                           {canEditDesign && (
-                            <div className="space-y-1.5 p-2 rounded-xl bg-slate-500/5 border border-slate-300/40 dark:border-white/10">
+                            <div className="space-y-1.5 p-2 rounded-xl bg-theme-card/5 border border-theme-card-border/40 dark:border-white/10">
                               <div className="flex flex-wrap items-center gap-2">
                                 <label className="px-3 py-1.5 rounded-lg bg-accent/15 text-accent border border-accent/30 font-bold cursor-pointer">
                                   Upload font (.ttf .otf .woff)
                                   <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" disabled={busy} onChange={(e) => { pickFont(e.target.files?.[0], activeBox); e.target.value = ''; }} />
                                 </label>
                                 {box.fontFamily.startsWith('custom:') && (
-                                  <button type="button" className="px-3 py-1.5 rounded-lg text-rose-400 border border-rose-500/30 font-bold cursor-pointer" onClick={() => removeFont(box.fontFamily.slice(7))}>Delete this font</button>
+                                  <button type="button" className="px-3 py-1.5 rounded-lg text-danger border border-danger/30 font-bold cursor-pointer" onClick={() => removeFont(box.fontFamily.slice(7))}>Delete this font</button>
                                 )}
                               </div>
                               <div className="flex gap-2">
@@ -912,7 +912,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                           )}
                           <div className="flex flex-wrap items-center gap-3">
                             {([['bold', 'Bold'], ['italic', 'Italic'], ['autoFit', 'Shrink to fit box'], ['underline', 'Underline']] as const).map(([k, lab]) => (
-                              <label key={k} className="flex items-center gap-1.5 font-bold text-slate-600 dark:text-slate-300">
+                              <label key={k} className="flex items-center gap-1.5 font-bold text-theme-text-secondary dark:text-theme-text-secondary">
                                 <input type="checkbox" checked={box[k]} disabled={!canEditDesign} onChange={(e) => patchBox(activeBox, { [k]: e.target.checked })} /> {lab}
                               </label>
                             ))}
@@ -922,23 +922,23 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                               <div>
                                 <label className={label}>Vertical</label>
                                 <select className={field} value={box.valign} disabled={!canEditDesign} onChange={(e) => patchBox('name', { valign: e.target.value as CertBox['valign'] })}>
-                                  <option value="top" className="bg-slate-900">Top</option><option value="middle" className="bg-slate-900">Middle</option><option value="bottom" className="bg-slate-900">Bottom (letters sit on the box&apos;s bottom edge)</option>
+                                  <option value="top" className="bg-theme-card">Top</option><option value="middle" className="bg-theme-card">Middle</option><option value="bottom" className="bg-theme-card">Bottom (letters sit on the box&apos;s bottom edge)</option>
                                 </select>
                               </div>
-                              <p className="text-[10px] text-slate-500 self-end">The name is always centred horizontally in its box.</p>
+                              <p className="text-[10px] text-theme-text-secondary self-end">The name is always centred horizontally in its box.</p>
                             </div>
                           ) : (
                             <div className="grid grid-cols-3 gap-2">
                               <div>
                                 <label className={label}>Align</label>
                                 <select className={field} value={box.align} disabled={!canEditDesign} onChange={(e) => patchBox(activeBox, { align: e.target.value as CertBox['align'] })}>
-                                  <option value="left" className="bg-slate-900">Left</option><option value="center" className="bg-slate-900">Centre</option><option value="right" className="bg-slate-900">Right</option>
+                                  <option value="left" className="bg-theme-card">Left</option><option value="center" className="bg-theme-card">Centre</option><option value="right" className="bg-theme-card">Right</option>
                                 </select>
                               </div>
                               <div>
                                 <label className={label}>Vertical</label>
                                 <select className={field} value={box.valign} disabled={!canEditDesign} onChange={(e) => patchBox(activeBox, { valign: e.target.value as CertBox['valign'] })}>
-                                  <option value="top" className="bg-slate-900">Top</option><option value="middle" className="bg-slate-900">Middle</option><option value="bottom" className="bg-slate-900">Bottom</option>
+                                  <option value="top" className="bg-theme-card">Top</option><option value="middle" className="bg-theme-card">Middle</option><option value="bottom" className="bg-theme-card">Bottom</option>
                                 </select>
                               </div>
                               {numField('Max lines (0 = any)', box.maxLines, (n) => patchBox(activeBox, { maxLines: Math.round(n) }), 1)}
@@ -954,13 +954,13 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                     </div>
                   )}
                   <div className="flex flex-wrap items-center gap-3">
-                    <label className="flex items-center gap-2 font-bold text-slate-600 dark:text-slate-300">Default text colour
+                    <label className="flex items-center gap-2 font-bold text-theme-text-secondary dark:text-theme-text-secondary">Default text colour
                       <input type="color" value={template.textColor} onChange={(e) => edit((t) => ({ ...t, textColor: e.target.value }))} disabled={!canEditDesign} />
                     </label>
                     {canEditDesign && (
                       <select className={`${field} !w-auto`} value="" disabled={busy} onChange={(e) => copyLayoutFrom(e.target.value)}>
-                        <option value="" className="bg-slate-900 text-white">Copy layout from event…</option>
-                        {events.filter((e) => !e.isHoliday && e.id !== eventId).map((e) => <option key={e.id} value={e.id} className="bg-slate-900 text-white">{e.title}</option>)}
+                        <option value="" className="bg-accent text-white">Copy layout from event…</option>
+                        {events.filter((e) => !e.isHoliday && e.id !== eventId).map((e) => <option key={e.id} value={e.id} className="bg-accent text-white">{e.title}</option>)}
                       </select>
                     )}
                   </div>
@@ -972,144 +972,144 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                   <div>
                     <label className={label}>Print in the name box</label>
                     <select className={field} value={template.nameSource} disabled={!canEditDesign} onChange={(e) => edit((t) => ({ ...t, nameSource: e.target.value as Template['nameSource'] }))}>
-                      <option value="name" className="bg-slate-900">Attendee name</option>
-                      <option value="organisation" className="bg-slate-900">Organisation</option>
-                      <option value="category" className="bg-slate-900">Guest category</option>
-                      <option value="serial" className="bg-slate-900">Pass serial number</option>
+                      <option value="name" className="bg-theme-card">Attendee name</option>
+                      <option value="organisation" className="bg-theme-card">Organisation</option>
+                      <option value="category" className="bg-theme-card">Guest category</option>
+                      <option value="serial" className="bg-theme-card">Pass serial number</option>
                     </select>
                   </div>
-                  <p className="text-[10px] text-slate-500">This applies to certificates for event passes. People added manually, including from the Members Directory, always print their own name here.</p>
-                  <p className="text-[10px] text-slate-500">Merge fields for the wording: <code>@name</code> <code>@organisation</code> <code>@category</code> <code>@serial</code> <code>@event_name</code> <code>@event_date</code>. Each is filled from the attendee&apos;s pass when the PDF is made.</p>
+                  <p className="text-[10px] text-theme-text-secondary">This applies to certificates for event passes. People added manually, including from the Members Directory, always print their own name here.</p>
+                  <p className="text-[10px] text-theme-text-secondary">Merge fields for the wording: <code>@name</code> <code>@organisation</code> <code>@category</code> <code>@serial</code> <code>@event_name</code> <code>@event_date</code>. Each is filled from the attendee&apos;s pass when the PDF is made.</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-slate-800 dark:text-white">Recipients ({selected.size}/{attendees.length} selected · {pending} not yet sent{visibleSel.hiddenSelected > 0 ? ` · ${visibleSel.hiddenSelected} ticked outside this filter` : ''})</span>
+                    <span className="font-extrabold text-theme-text-primary dark:text-white">Recipients ({selected.size}/{attendees.length} selected · {pending} not yet sent{visibleSel.hiddenSelected > 0 ? ` · ${visibleSel.hiddenSelected} ticked outside this filter` : ''})</span>
                     <button type="button" disabled={visibleSel.selectable.length === 0} className="font-bold text-accent hover:underline cursor-pointer disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed" title="Ticks only the people shown below and unticks everyone else; anyone already sent, queued or scheduled is skipped" onClick={() => setSelected(visibleSel.allOn && visibleSel.hiddenSelected === 0 ? toggleVisible(selected, visibleAttendees, scheduledIds) : selectOnlyVisible(visibleAttendees, scheduledIds))}>
                       {visibleSel.allOn && visibleSel.hiddenSelected === 0 ? 'Deselect all shown' : 'Select only shown'}
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
-                    <button type="button" onClick={() => setStatusFilter('ALL')} className={`px-2 py-0.5 rounded-full border cursor-pointer ${statusFilter === 'ALL' ? 'bg-accent/20 text-accent border-accent/40' : 'border-slate-300 dark:border-white/15 text-slate-500'}`}>All {attendees.length}</button>
+                    <button type="button" onClick={() => setStatusFilter('ALL')} className={`px-2 py-0.5 rounded-full border cursor-pointer ${statusFilter === 'ALL' ? 'bg-accent/20 text-accent border-accent/40' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary'}`}>All {attendees.length}</button>
                     {CERT_STATUS_FILTERS.map((s) => (
-                      <button key={s} type="button" onClick={() => setStatusFilter(statusFilter === s ? 'ALL' : s)} className={`px-2 py-0.5 rounded-full border cursor-pointer ${statusFilter === s ? 'bg-accent/20 text-accent border-accent/40' : 'border-slate-300 dark:border-white/15 text-slate-500'}`}>{s} {counts[s] || 0}</button>
+                      <button key={s} type="button" onClick={() => setStatusFilter(statusFilter === s ? 'ALL' : s)} className={`px-2 py-0.5 rounded-full border cursor-pointer ${statusFilter === s ? 'bg-accent/20 text-accent border-accent/40' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary'}`}>{s} {counts[s] || 0}</button>
                     ))}
                   </div>
                   {typeOptions.length > 1 && (
                     <div className="rounded-xl border border-accent/30 bg-accent/5 p-2.5 space-y-1.5">
-                      <div className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Quick pick by pass type — ticks everyone of that type who still needs a certificate</div>
+                      <div className="font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[10px]">Quick pick by pass type — ticks everyone of that type who still needs a certificate</div>
                       <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
                         {typeOptions.map((t) => {
                           const ofType = attendees.filter((a) => (a.passType || '(none)') === t);
                           const todo = ofType.filter((a) => isSelectable(a, scheduledIds)).map((a) => a.passId);
                           const on = typeFilter === t;
                           return (
-                            <button key={t} type="button" disabled={todo.length === 0} onClick={() => { setTypeFilter(t); setSelected(new Set(todo)); }} className={`px-2.5 py-1 rounded-full border cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${on ? 'bg-accent/20 text-accent border-accent/40' : 'border-slate-300 dark:border-white/15 text-slate-600 dark:text-slate-300'}`} title={todo.length === 0 ? 'Everyone of this type already has a certificate sent, queued or scheduled' : `Select the ${todo.length} ${t} recipient${todo.length === 1 ? '' : 's'} still to be sent`}>
+                            <button key={t} type="button" disabled={todo.length === 0} onClick={() => { setTypeFilter(t); setSelected(new Set(todo)); }} className={`px-2.5 py-1 rounded-full border cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${on ? 'bg-accent/20 text-accent border-accent/40' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary dark:text-theme-text-secondary'}`} title={todo.length === 0 ? 'Everyone of this type already has a certificate sent, queued or scheduled' : `Select the ${todo.length} ${t} recipient${todo.length === 1 ? '' : 's'} still to be sent`}>
                               {t} · {todo.length} to send
                             </button>
                           );
                         })}
                       </div>
-                      <p className="text-[10px] text-slate-500">Then continue to the wording and use <strong>Send now</strong> or <strong>Schedule</strong> — only the ticked people receive it.</p>
+                      <p className="text-[10px] text-theme-text-secondary">Then continue to the wording and use <strong>Send now</strong> or <strong>Schedule</strong> — only the ticked people receive it.</p>
                     </div>
                   )}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {typeOptions.length > 1 && <select aria-label="Filter by pass type" className={field} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="ALL" className="bg-slate-900">All pass types</option>{typeOptions.map((o) => <option key={o} value={o} className="bg-slate-900">{o}</option>)}</select>}
-                    {categoryOptions.length > 1 && <select aria-label="Filter by guest category" className={field} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}><option value="ALL" className="bg-slate-900">All guest categories</option>{categoryOptions.map((o) => <option key={o} value={o} className="bg-slate-900">{o}</option>)}</select>}
-                    {orgOptions.length > 1 && <select aria-label="Filter by organisation" className={field} value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}><option value="ALL" className="bg-slate-900">All organisations</option>{orgOptions.map((o) => <option key={o} value={o} className="bg-slate-900">{o}</option>)}</select>}
-                    <select aria-label="Filter by days attended" className={field} value={daysFilter} onChange={(e) => setDaysFilter(e.target.value)}><option value="ALL" className="bg-slate-900">Any attendance</option><option value="all" className="bg-slate-900">Attended every valid day</option><option value="some" className="bg-slate-900">Missed some days</option></select>
-                    <select aria-label="Filter by source" className={field} value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}><option value="ALL" className="bg-slate-900">Passes + manual</option><option value="pass" className="bg-slate-900">Event passes only</option><option value="manual" className="bg-slate-900">Added manually only</option></select>
-                    {anyExtraFilter && <button type="button" onClick={clearExtraFilters} className="px-3 py-2 rounded-xl border border-slate-300 dark:border-white/15 text-slate-500 font-bold cursor-pointer">Clear filters</button>}
+                    {typeOptions.length > 1 && <select aria-label="Filter by pass type" className={field} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="ALL" className="bg-theme-card">All pass types</option>{typeOptions.map((o) => <option key={o} value={o} className="bg-theme-card">{o}</option>)}</select>}
+                    {categoryOptions.length > 1 && <select aria-label="Filter by guest category" className={field} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}><option value="ALL" className="bg-theme-card">All guest categories</option>{categoryOptions.map((o) => <option key={o} value={o} className="bg-theme-card">{o}</option>)}</select>}
+                    {orgOptions.length > 1 && <select aria-label="Filter by organisation" className={field} value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}><option value="ALL" className="bg-theme-card">All organisations</option>{orgOptions.map((o) => <option key={o} value={o} className="bg-theme-card">{o}</option>)}</select>}
+                    <select aria-label="Filter by days attended" className={field} value={daysFilter} onChange={(e) => setDaysFilter(e.target.value)}><option value="ALL" className="bg-theme-card">Any attendance</option><option value="all" className="bg-theme-card">Attended every valid day</option><option value="some" className="bg-theme-card">Missed some days</option></select>
+                    <select aria-label="Filter by source" className={field} value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}><option value="ALL" className="bg-theme-card">Passes + manual</option><option value="pass" className="bg-theme-card">Event passes only</option><option value="manual" className="bg-theme-card">Added manually only</option></select>
+                    {anyExtraFilter && <button type="button" onClick={clearExtraFilters} className="px-3 py-2 rounded-xl border border-theme-card-border dark:border-white/15 text-theme-text-secondary font-bold cursor-pointer">Clear filters</button>}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <input className={`${field} flex-1 min-w-[140px]`} placeholder="Search name, email, organisation, serial or certificate ID" value={recipientSearch} onChange={(e) => setRecipientSearch(e.target.value)} />
-                    {counts['Failed'] > 0 && <button type="button" onClick={selectFailed} className="px-3 py-2 rounded-xl bg-rose-500/15 text-rose-500 border border-rose-500/30 font-bold cursor-pointer">Retry failed ({counts['Failed']})</button>}
-                    <button type="button" onClick={exportLedgerCsv} disabled={visibleAttendees.length === 0} className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><Download className="h-3.5 w-3.5" /> CSV</button>
+                    {counts['Failed'] > 0 && <button type="button" onClick={selectFailed} className="px-3 py-2 rounded-xl bg-danger/15 text-danger border border-danger/30 font-bold cursor-pointer">Retry failed ({counts['Failed']})</button>}
+                    <button type="button" onClick={exportLedgerCsv} disabled={visibleAttendees.length === 0} className="px-3 py-2 rounded-xl bg-theme-border/15 dark:bg-white/10 text-theme-text-primary dark:text-white font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><Download className="h-3.5 w-3.5" /> CSV</button>
                   </div>
-                  <div className="border border-slate-200 dark:border-white/10 rounded-xl divide-y divide-slate-100 dark:divide-white/5 max-h-[50vh] overflow-y-auto">
-                    {attendees.length === 0 && <div className="py-6 text-center text-slate-400">{busy ? 'Loading…' : 'No checked-in attendees with an email address for this event.'}</div>}
-                    {attendees.length > 0 && visibleAttendees.length === 0 && <div className="py-6 text-center text-slate-400">No one matches this filter.</div>}
+                  <div className="border border-theme-card-border dark:border-white/10 rounded-xl divide-y divide-theme-card-border dark:divide-white/5 max-h-[50vh] overflow-y-auto">
+                    {attendees.length === 0 && <div className="py-6 text-center text-theme-text-secondary">{busy ? 'Loading…' : 'No checked-in attendees with an email address for this event.'}</div>}
+                    {attendees.length > 0 && visibleAttendees.length === 0 && <div className="py-6 text-center text-theme-text-secondary">No one matches this filter.</div>}
                     {visibleAttendees.map((a) => (
                       <div key={a.passId} onClick={() => toggle(a.passId)} className={`flex items-center justify-between gap-2 p-2 ${scheduledIds.has(a.passId) ? 'opacity-60 cursor-not-allowed' : 'hover:bg-white/10 cursor-pointer'}`}>
                         <div className="flex items-start gap-2 min-w-0">
-                          {selected.has(a.passId) ? <CheckSquare className="h-4 w-4 text-accent shrink-0 mt-0.5" /> : <Square className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />}
+                          {selected.has(a.passId) ? <CheckSquare className="h-4 w-4 text-accent shrink-0 mt-0.5" /> : <Square className="h-4 w-4 text-theme-text-secondary shrink-0 mt-0.5" />}
                           <div className="min-w-0">
-                            <span className="font-bold text-slate-900 dark:text-white block break-words">{a.name}{a.manual && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-400 align-middle">Manual</span>}{scheduledIds.has(a.passId) && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 align-middle">{scheduledTag(a.passId)}</span>}</span>
-                            <span className="text-[10px] text-slate-400 block break-all">{a.email}{a.organisation ? ` · ${a.organisation}` : ''}{a.category ? ` · ${a.category}` : ''}</span>
-                            {a.status === 'Failed' && a.error && <span className="text-[10px] text-rose-400 block break-words">{a.error}</span>}
+                            <span className="font-bold text-theme-text-primary dark:text-white block break-words">{a.name}{a.manual && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-secondary/15 text-secondary align-middle">Manual</span>}{scheduledIds.has(a.passId) && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent align-middle">{scheduledTag(a.passId)}</span>}</span>
+                            <span className="text-[10px] text-theme-text-secondary block break-all">{a.email}{a.organisation ? ` · ${a.organisation}` : ''}{a.category ? ` · ${a.category}` : ''}</span>
+                            {a.status === 'Failed' && a.error && <span className="text-[10px] text-danger block break-words">{a.error}</span>}
                           </div>
                         </div>
                         <div className="shrink-0 flex items-center gap-2">
-                          {a.manual && <button type="button" title="Download this certificate as a PDF" onClick={(ev) => { ev.stopPropagation(); downloadRecordPdf(a.passId, a.name); }} className="h-7 w-7 rounded-lg border border-slate-300 dark:border-white/15 text-slate-500 flex items-center justify-center cursor-pointer"><Download className="h-3.5 w-3.5" /></button>}
+                          {a.manual && <button type="button" title="Download this certificate as a PDF" onClick={(ev) => { ev.stopPropagation(); downloadRecordPdf(a.passId, a.name); }} className="h-7 w-7 rounded-lg border border-theme-card-border dark:border-white/15 text-theme-text-secondary flex items-center justify-center cursor-pointer"><Download className="h-3.5 w-3.5" /></button>}
                           <CertificateStatusBadge status={a.status} sentAt={a.sentAt} issuedAt={a.issuedAt} error={a.error} sentBy={a.sentBy} />
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="rounded-xl border border-slate-200 dark:border-white/10">
+                  <div className="rounded-xl border border-theme-card-border dark:border-white/10">
                     <button type="button" onClick={() => setManualOpen((o) => !o)} className="w-full flex items-center gap-2 px-3 py-2.5 text-left cursor-pointer">
                       <UserPlus className="h-4 w-4 text-accent" />
-                      <span className="flex-1 font-extrabold text-slate-900 dark:text-white">Add someone manually</span>
-                      {manualOpen ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                      <span className="flex-1 font-extrabold text-theme-text-primary dark:text-white">Add someone manually</span>
+                      {manualOpen ? <ChevronDown className="h-4 w-4 text-theme-text-secondary" /> : <ChevronRight className="h-4 w-4 text-theme-text-secondary" />}
                     </button>
                     {manualOpen && (
                       <div className="px-3 pb-3 space-y-2">
-                        <p className="text-[10px] text-slate-500">For someone without an event pass. Uses the &ldquo;{types.find((t) => t.id === typeId)?.name}&rdquo; design, and the person is added to the list above.</p>
+                        <p className="text-[10px] text-theme-text-secondary">For someone without an event pass. Uses the &ldquo;{types.find((t) => t.id === typeId)?.name}&rdquo; design, and the person is added to the list above.</p>
                         {canPickMembers && (
-                          <div className="rounded-xl border border-slate-200 dark:border-white/10">
+                          <div className="rounded-xl border border-theme-card-border dark:border-white/10">
                             <button type="button" onClick={() => setPickerOpen((o) => !o)} className="w-full flex items-center gap-2 px-3 py-2 text-left cursor-pointer">
                               <Users className="h-4 w-4 text-accent" />
-                              <span className="flex-1 font-bold text-slate-800 dark:text-white">Pick people — Members Directory or an event&apos;s team</span>
-                              {pickerOpen ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                              <span className="flex-1 font-bold text-theme-text-primary dark:text-white">Pick people — Members Directory or an event&apos;s team</span>
+                              {pickerOpen ? <ChevronDown className="h-4 w-4 text-theme-text-secondary" /> : <ChevronRight className="h-4 w-4 text-theme-text-secondary" />}
                             </button>
                             {pickerOpen && (
                               <div className="px-3 pb-3 space-y-2">
                                 <div className="flex gap-1.5 text-[11px] font-bold">
                                   {([['directory', 'Members Directory'], ['event', 'By event (committees & team)']] as const).map(([k, lab]) => (
-                                    <button key={k} type="button" onClick={() => setPickerMode(k)} className={`px-3 py-1.5 rounded-lg border cursor-pointer ${pickerMode === k ? 'bg-accent text-white border-accent' : 'border-slate-300 dark:border-white/15 text-slate-600 dark:text-slate-300'}`}>{lab}</button>
+                                    <button key={k} type="button" onClick={() => setPickerMode(k)} className={`px-3 py-1.5 rounded-lg border cursor-pointer ${pickerMode === k ? 'bg-accent text-white border-accent' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary dark:text-theme-text-secondary'}`}>{lab}</button>
                                   ))}
                                 </div>
                                 {pickerMode === 'event' && (
                                   <select className={field} value={pickerEvent?.id || ''} onChange={(e) => setPickerEventId(e.target.value)}>
-                                    {events.filter((e) => !e.isHoliday).map((e) => <option key={e.id} value={e.id} className="bg-slate-900 text-white">{e.title}{e.id === eventId ? ' (this event)' : ''}</option>)}
+                                    {events.filter((e) => !e.isHoliday).map((e) => <option key={e.id} value={e.id} className="bg-accent text-white">{e.title}{e.id === eventId ? ' (this event)' : ''}</option>)}
                                   </select>
                                 )}
                                 <input className={field} placeholder="Search name, email, role or department" value={pickerSearch} onChange={(e) => setPickerSearch(e.target.value)} />
                                 {pickerMode === 'directory' && (
                                 <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
                                   {['ALL', ...pickerDivisions].map((d) => (
-                                    <button key={d} type="button" onClick={() => setPickerDivision(d)} className={`px-2 py-0.5 rounded-full border cursor-pointer ${pickerDivision === d ? 'bg-accent/20 text-accent border-accent/40' : 'border-slate-300 dark:border-white/15 text-slate-500'}`}>{d === 'ALL' ? 'All' : d}</button>
+                                    <button key={d} type="button" onClick={() => setPickerDivision(d)} className={`px-2 py-0.5 rounded-full border cursor-pointer ${pickerDivision === d ? 'bg-accent/20 text-accent border-accent/40' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary'}`}>{d === 'ALL' ? 'All' : d}</button>
                                   ))}
                                 </div>
                                 )}
                                 {pickerMode === 'event' && (
-                                  <div className="border border-slate-200 dark:border-white/10 rounded-xl max-h-64 overflow-y-auto">
+                                  <div className="border border-theme-card-border dark:border-white/10 rounded-xl max-h-64 overflow-y-auto">
                                     {eventGroups.length === 0 ? (
-                                      <div className="py-4 px-3 text-center text-slate-400">{pickerEvent ? 'No committee members or task assignees with an email for this event.' : 'Pick an event.'}</div>
+                                      <div className="py-4 px-3 text-center text-theme-text-secondary">{pickerEvent ? 'No committee members or task assignees with an email for this event.' : 'Pick an event.'}</div>
                                     ) : (
                                       <>
-                                        <div className="flex items-center justify-between gap-2 px-2 py-1.5 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
-                                          <span className="text-[10px] font-bold text-slate-500">{eventPeopleTotal} {eventPeopleTotal === 1 ? 'person' : 'people'} across {eventGroups.length} group{eventGroups.length === 1 ? '' : 's'}</span>
+                                        <div className="flex items-center justify-between gap-2 px-2 py-1.5 bg-theme-background/50 dark:bg-white/5 border-b border-theme-card-border dark:border-white/10">
+                                          <span className="text-[10px] font-bold text-theme-text-secondary">{eventPeopleTotal} {eventPeopleTotal === 1 ? 'person' : 'people'} across {eventGroups.length} group{eventGroups.length === 1 ? '' : 's'}</span>
                                           <button type="button" onClick={selectEveryoneInEvent} className="text-[11px] font-bold text-accent hover:underline cursor-pointer">Select everyone</button>
                                         </div>
                                         {eventGroups.map((g) => {
                                           const sel = groupSelectable(g);
                                           const allOn = sel.length > 0 && sel.every(({ m }) => pickerSelected.has(m.id));
                                           return (
-                                            <div key={g.key} className="border-b last:border-b-0 border-slate-200 dark:border-white/10">
+                                            <div key={g.key} className="border-b last:border-b-0 border-theme-card-border dark:border-white/10">
                                               <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-                                                <span className="font-extrabold text-slate-800 dark:text-white break-words">{g.title} <span className="text-[10px] font-bold text-slate-400">({g.people.length})</span></span>
+                                                <span className="font-extrabold text-theme-text-primary dark:text-white break-words">{g.title} <span className="text-[10px] font-bold text-theme-text-secondary">({g.people.length})</span></span>
                                                 <button type="button" disabled={sel.length === 0} onClick={() => toggleGroup(g)} className="text-[11px] font-bold text-accent hover:underline cursor-pointer disabled:opacity-40 shrink-0">{allOn ? 'Deselect group' : 'Select group'}</button>
                                               </div>
-                                              <div className="divide-y divide-slate-100 dark:divide-white/5">
+                                              <div className="divide-y divide-theme-card-border dark:divide-white/5">
                                                 {g.people.map(({ m, lead }) => {
                                                   const has = hasCert(m);
                                                   return (
                                                     <label key={m.id} className={`flex items-center gap-2 px-2 py-1.5 ${has ? 'opacity-50' : 'hover:bg-white/10 cursor-pointer'}`}>
                                                       <input type="checkbox" disabled={has} checked={pickerSelected.has(m.id)} onChange={() => togglePick(m.id)} />
                                                       <span className="min-w-0 flex-1">
-                                                        <span className="font-bold text-slate-900 dark:text-white block break-words">{m.name}{lead && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 align-middle">Lead</span>}</span>
-                                                        <span className="text-[10px] text-slate-400 block break-all">{m.email} · {m.role}</span>
+                                                        <span className="font-bold text-theme-text-primary dark:text-white block break-words">{m.name}{lead && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-warning/15 text-warning align-middle">Lead</span>}</span>
+                                                        <span className="text-[10px] text-theme-text-secondary block break-all">{m.email} · {m.role}</span>
                                                       </span>
-                                                      {has && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 shrink-0">Already has one</span>}
+                                                      {has && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-success/15 text-success shrink-0">Already has one</span>}
                                                     </label>
                                                   );
                                                 })}
@@ -1122,27 +1122,27 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                                   </div>
                                 )}
                                 {pickerMode === 'directory' && (
-                                <div className="border border-slate-200 dark:border-white/10 rounded-xl divide-y divide-slate-100 dark:divide-white/5 max-h-48 overflow-y-auto">
-                                  {pickerRows.length === 0 && <div className="py-4 text-center text-slate-400">{members.length === 0 ? 'No members loaded yet.' : 'No members match.'}</div>}
+                                <div className="border border-theme-card-border dark:border-white/10 rounded-xl divide-y divide-theme-card-border dark:divide-white/5 max-h-48 overflow-y-auto">
+                                  {pickerRows.length === 0 && <div className="py-4 text-center text-theme-text-secondary">{members.length === 0 ? 'No members loaded yet.' : 'No members match.'}</div>}
                                   {pickerRows.map((m) => {
                                     const has = hasCert(m);
                                     return (
                                       <label key={m.id} className={`flex items-center gap-2 p-2 ${has ? 'opacity-50' : 'hover:bg-white/10 cursor-pointer'}`}>
                                         <input type="checkbox" disabled={has} checked={pickerSelected.has(m.id)} onChange={() => togglePick(m.id)} />
                                         <span className="min-w-0 flex-1">
-                                          <span className="font-bold text-slate-900 dark:text-white block break-words">{m.name}</span>
-                                          <span className="text-[10px] text-slate-400 block break-all">{m.email} · {m.role}{` · ${m.division}`}</span>
+                                          <span className="font-bold text-theme-text-primary dark:text-white block break-words">{m.name}</span>
+                                          <span className="text-[10px] text-theme-text-secondary block break-all">{m.email} · {m.role}{` · ${m.division}`}</span>
                                         </span>
-                                        {has && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 shrink-0">Already has one</span>}
+                                        {has && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-success/15 text-success shrink-0">Already has one</span>}
                                       </label>
                                     );
                                   })}
                                 </div>
                                 )}
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <button type="button" disabled={busy || pickerSelected.size !== 1} onClick={fillFromMember} className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white font-bold cursor-pointer disabled:opacity-50">Fill the form with this member</button>
+                                  <button type="button" disabled={busy || pickerSelected.size !== 1} onClick={fillFromMember} className="px-3 py-2 rounded-xl bg-theme-border/15 dark:bg-white/10 text-theme-text-primary dark:text-white font-bold cursor-pointer disabled:opacity-50">Fill the form with this member</button>
                                   <button type="button" disabled={busy || !canSend || pickerSelected.size === 0} onClick={addPickedMembers} className="px-3 py-2 rounded-xl bg-accent text-white font-extrabold cursor-pointer disabled:opacity-50">Add {pickerSelected.size || ''} selected as recipients</button>
-                                  {pickerProgress && <span className="text-[10px] text-slate-500">{pickerProgress}</span>}
+                                  {pickerProgress && <span className="text-[10px] text-theme-text-secondary">{pickerProgress}</span>}
                                 </div>
                               </div>
                             )}
@@ -1158,7 +1158,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                           <button type="button" disabled={busy || !canSend || !manual.name.trim()} onClick={() => createManual('download')} className="px-3 py-2 rounded-xl bg-accent text-white font-extrabold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><Download className="h-3.5 w-3.5" /> Create &amp; download PDF</button>
                           <button type="button" disabled={busy || !canSend || !manual.name.trim() || !manual.email.trim()} onClick={() => createManual('send')} className="px-3 py-2 rounded-xl bg-accent/15 text-accent border border-accent/30 font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><Send className="h-3.5 w-3.5" /> Create &amp; email</button>
                         </div>
-                        {!canSend && <p className="text-[10px] text-amber-500">You need the Send Certificates permission to create certificates.</p>}
+                        {!canSend && <p className="text-[10px] text-warning">You need the Send Certificates permission to create certificates.</p>}
                       </div>
                     )}
                   </div>
@@ -1167,12 +1167,12 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
 
               {section(5, (
                 <div className="space-y-2">
-                  <p className="text-slate-600 dark:text-slate-300">See the real certificate for {selectedPeople.length > 0 ? `the ${selectedPeople.length} selected recipient${selectedPeople.length === 1 ? '' : 's'}` : 'any attendee'}, exactly as the PDF will be emailed.</p>
+                  <p className="text-theme-text-secondary dark:text-theme-text-secondary">See the real certificate for {selectedPeople.length > 0 ? `the ${selectedPeople.length} selected recipient${selectedPeople.length === 1 ? '' : 's'}` : 'any attendee'}, exactly as the PDF will be emailed.</p>
                   <select className={field} value={previewPassId} onChange={(e) => setPreviewPassId(e.target.value)}>
-                    {(selectedPeople.length > 0 ? selectedPeople : attendees).map((a) => <option key={a.passId} value={a.passId} className="bg-slate-900 text-white">{a.name}</option>)}
+                    {(selectedPeople.length > 0 ? selectedPeople : attendees).map((a) => <option key={a.passId} value={a.passId} className="bg-accent text-white">{a.name}</option>)}
                   </select>
                   <div className="flex gap-2">
-                    <button type="button" disabled={busy || !previewPassId} onClick={loadFinalPreview} className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} /> Refresh</button>
+                    <button type="button" disabled={busy || !previewPassId} onClick={loadFinalPreview} className="px-3 py-2 rounded-xl bg-theme-border/15 dark:bg-white/10 text-theme-text-primary dark:text-white font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} /> Refresh</button>
                     <button type="button" disabled={!previewPassId} onClick={downloadPdf} className="px-3 py-2 rounded-xl bg-accent/15 text-accent border border-accent/30 font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"><Download className="h-3.5 w-3.5" /> Download PDF</button>
                   </div>
                 </div>
@@ -1180,21 +1180,21 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
 
               {section(6, (
                 <div className="space-y-3">
-                  {!eventOver && sendMode === 'now' && <p className="text-amber-500 font-semibold">Sending opens on the event's last day — send now becomes available then. You can schedule it for that day or later.</p>}
-                  <div className="flex flex-wrap gap-4 font-bold text-slate-700 dark:text-slate-200">
+                  {!eventOver && sendMode === 'now' && <p className="text-warning font-semibold">Sending opens on the event's last day — send now becomes available then. You can schedule it for that day or later.</p>}
+                  <div className="flex flex-wrap gap-4 font-bold text-theme-text-primary dark:text-theme-text-primary">
                     <label className="flex items-center gap-2 cursor-pointer"><input type="radio" checked={sendMode === 'now'} onChange={() => setSendMode('now')} /> Send now</label>
                     <label className="flex items-center gap-2 cursor-pointer"><input type="radio" checked={sendMode === 'later'} onChange={() => setSendMode('later')} /> Schedule</label>
                   </div>
                   <button type="button" onClick={() => setEmailEditorOpen((o) => !o)} aria-expanded={emailEditorOpen} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-accent/40 bg-accent/10 text-left cursor-pointer">
                     <Mail className="h-4 w-4 text-accent shrink-0" />
                     <span className="flex-1 min-w-0">
-                      <span className="font-extrabold text-slate-900 dark:text-white block">Customize certificate email</span>
-                      <span className="text-[10px] text-slate-500 block truncate">Subject: {emailSubject || '(none)'}</span>
+                      <span className="font-extrabold text-theme-text-primary dark:text-white block">Customize certificate email</span>
+                      <span className="text-[10px] text-theme-text-secondary block truncate">Subject: {emailSubject || '(none)'}</span>
                     </span>
-                    {emailEditorOpen ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                    {emailEditorOpen ? <ChevronDown className="h-4 w-4 text-theme-text-secondary" /> : <ChevronRight className="h-4 w-4 text-theme-text-secondary" />}
                   </button>
                   {emailEditorOpen && (<>
-                  <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+                  <div className="space-y-2 p-3 rounded-xl border border-theme-card-border dark:border-white/10">
                     <div className="flex items-center justify-between gap-2">
                       <label className={`${label} mb-0`}>Email message</label>
                       <button type="button" onClick={() => { setEmailSubject(DEFAULT_CERT_EMAIL.subject); setEmailBody(DEFAULT_CERT_EMAIL.bodyText); }} className="text-[10px] font-bold text-accent cursor-pointer">Reset to default</button>
@@ -1206,23 +1206,23 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                         <button key={f.token} type="button" title={f.label} onClick={() => insertField(f.token)} className="px-2 py-1 rounded-lg bg-accent/10 text-accent border border-accent/30 font-bold cursor-pointer">{f.token}</button>
                       ))}
                     </div>
-                    <p className="text-[10px] text-slate-500">Each placeholder is filled in for every attendee. The certificate PDF is always attached.</p>
+                    <p className="text-[10px] text-theme-text-secondary">Each placeholder is filled in for every attendee. The certificate PDF is always attached.</p>
                   </div>
 
                   <EmailBackgroundPicker value={bgPick} onChange={setBgPick} disabled={busy} />
                   </>)}
 
-                  <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+                  <div className="space-y-2 p-3 rounded-xl border border-theme-card-border dark:border-white/10">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <label className={`${label} mb-0`}>Who gets this ({selected.size} selected in Link to data)</label>
                       <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold">
                         <button type="button" className="text-accent hover:underline cursor-pointer" onClick={() => setOpenStep(4)}>Change selection (Link to data)</button>
-                        <button type="button" className="text-slate-500 hover:underline cursor-pointer" onClick={() => setOpenPreviews(openPreviews.size ? new Set() : new Set(selectedPeople.map((a) => a.passId)))}>{openPreviews.size ? 'Hide all messages' : 'Show all messages'}</button>
+                        <button type="button" className="text-theme-text-secondary hover:underline cursor-pointer" onClick={() => setOpenPreviews(openPreviews.size ? new Set() : new Set(selectedPeople.map((a) => a.passId)))}>{openPreviews.size ? 'Hide all messages' : 'Show all messages'}</button>
                       </div>
                     </div>
-                    <p className="text-[10px] text-slate-500">Only the people you selected in <strong>Link to data</strong> are listed. Remove anyone here, or go back to Link to data to pick a different group. Open any row to read that person&apos;s own message.</p>
-                    <div className="border border-slate-200 dark:border-white/10 rounded-xl divide-y divide-slate-100 dark:divide-white/5 max-h-[45vh] overflow-y-auto">
-                      {selectedPeople.length === 0 && <div className="py-4 text-center text-slate-400">Nobody is selected. Go to Link to data and tick the people this send is for.</div>}
+                    <p className="text-[10px] text-theme-text-secondary">Only the people you selected in <strong>Link to data</strong> are listed. Remove anyone here, or go back to Link to data to pick a different group. Open any row to read that person&apos;s own message.</p>
+                    <div className="border border-theme-card-border dark:border-white/10 rounded-xl divide-y divide-theme-card-border dark:divide-white/5 max-h-[45vh] overflow-y-auto">
+                      {selectedPeople.length === 0 && <div className="py-4 text-center text-theme-text-secondary">Nobody is selected. Go to Link to data and tick the people this send is for.</div>}
                       {selectedPeople.map((a) => {
                         const on = selected.has(a.passId);
                         const open = openPreviews.has(a.passId);
@@ -1231,31 +1231,31 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                           <div key={a.passId} className={on ? 'bg-accent/5' : ''}>
                             <div className="flex items-start justify-between gap-2 p-2">
                               <button type="button" disabled={scheduledIds.has(a.passId)} onClick={() => toggle(a.passId)} className={`flex items-start gap-2 min-w-0 flex-1 text-left ${scheduledIds.has(a.passId) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
-                                {on ? <CheckSquare className="h-4 w-4 text-accent shrink-0 mt-0.5" /> : <Square className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />}
+                                {on ? <CheckSquare className="h-4 w-4 text-accent shrink-0 mt-0.5" /> : <Square className="h-4 w-4 text-theme-text-secondary shrink-0 mt-0.5" />}
                                 <span className="min-w-0">
-                                  <span className="font-bold text-slate-900 dark:text-white block break-words">{a.name}{a.manual && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-400 align-middle">Manual</span>}{scheduledIds.has(a.passId) && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 align-middle">{scheduledTag(a.passId)}</span>}</span>
-                                  <span className="text-[10px] text-slate-400 block break-all">{a.email}</span>
+                                  <span className="font-bold text-theme-text-primary dark:text-white block break-words">{a.name}{a.manual && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-secondary/15 text-secondary align-middle">Manual</span>}{scheduledIds.has(a.passId) && <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent align-middle">{scheduledTag(a.passId)}</span>}</span>
+                                  <span className="text-[10px] text-theme-text-secondary block break-all">{a.email}</span>
                                 </span>
                               </button>
                               <div className="shrink-0 flex items-center gap-2">
                                 <CertificateStatusBadge status={a.status} sentAt={a.sentAt} issuedAt={a.issuedAt} error={a.error} sentBy={a.sentBy} />
- <button type="button" title="Remove from this send" onClick={() => toggle(a.passId)} className="h-7 px-2 rounded-lg border border-rose-500/30 text-rose-400 text-[10px] font-bold cursor-pointer">Remove</button>
-                                <button type="button" title="Read this person's message" onClick={() => togglePreview(a.passId)} className="h-7 px-2 rounded-lg border border-slate-300 dark:border-white/15 text-slate-500 text-[10px] font-bold flex items-center gap-1 cursor-pointer">{open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />} Message</button>
+ <button type="button" title="Remove from this send" onClick={() => toggle(a.passId)} className="h-7 px-2 rounded-lg border border-danger/30 text-danger text-[10px] font-bold cursor-pointer">Remove</button>
+                                <button type="button" title="Read this person's message" onClick={() => togglePreview(a.passId)} className="h-7 px-2 rounded-lg border border-theme-card-border dark:border-white/15 text-theme-text-secondary text-[10px] font-bold flex items-center gap-1 cursor-pointer">{open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />} Message</button>
                               </div>
                             </div>
                             {open && (
-                              <div className="mx-2 mb-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 p-2.5 space-y-1">
-                                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">To {a.name} &lt;{a.email}&gt;</span>
-                                <p className="font-bold text-slate-900 dark:text-white">{mergeCertEmail(emailSubject, v) || '(no subject)'}</p>
+                              <div className="mx-2 mb-2 rounded-lg bg-theme-background/50 dark:bg-theme-background/60 border border-theme-card-border dark:border-white/10 p-2.5 space-y-1">
+                                <span className="text-[10px] uppercase tracking-wider text-theme-text-secondary font-bold">To {a.name} &lt;{a.email}&gt;</span>
+                                <p className="font-bold text-theme-text-primary dark:text-white">{mergeCertEmail(emailSubject, v) || '(no subject)'}</p>
                                 <EmailHtmlPreview
                                   title={`Email preview for ${a.name}`}
                                   subject={mergeCertEmail(emailSubject, v)}
                                   bodyText={mergeCertEmail(emailBody, v)}
                                   category="CERTIFICATE"
                                   background={backgroundChoiceFor(bgPick)}
-                                  className="w-full h-[420px] rounded-lg border border-slate-200 dark:border-white/10 bg-slate-200"
+                                  className="w-full h-[420px] rounded-lg border border-theme-card-border dark:border-white/10 bg-theme-border/25"
                                 />
-                                <p className="text-[10px] text-slate-500">Attached: Certificate-{a.name.replace(/[^\w]+/g, '_')}.pdf</p>
+                                <p className="text-[10px] text-theme-text-secondary">Attached: Certificate-{a.name.replace(/[^\w]+/g, '_')}.pdf</p>
                               </div>
                             )}
                           </div>
@@ -1264,13 +1264,13 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                     </div>
                     {selectedPeople.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto min-w-0">
-                        <span className="text-[10px] font-bold text-slate-500 self-center">{sendMode === 'later' ? 'Scheduling for:' : 'Sending to:'}</span>
+                        <span className="text-[10px] font-bold text-theme-text-secondary self-center">{sendMode === 'later' ? 'Scheduling for:' : 'Sending to:'}</span>
                         {selectedPeople.map((a) => <span key={a.passId} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/30 text-[10px] font-bold break-words">{a.name}</span>)}
                       </div>
                     )}
                   </div>
                   {sendMode === 'later' && <input type="datetime-local" className={`${field} max-w-xs`} value={sendAt} onChange={(e) => setSendAt(e.target.value)} />}
-                  {!canSend && <p className="text-amber-500 font-semibold">You can design and preview certificates but not send them.</p>}
+                  {!canSend && <p className="text-warning font-semibold">You can design and preview certificates but not send them.</p>}
                   <button type="button" disabled={!canSend || !emailReady || busy || selected.size === 0 || (sendMode === 'now' && !eventOver)} onClick={send} className="px-6 py-2.5 bg-accent text-white font-extrabold rounded-xl text-xs shadow-lg shadow-accent/25 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     {busy ? <RefreshCw className="h-4 w-4 animate-spin" /> : sendMode === 'later' ? <CalendarClock className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                     {sendMode === 'later' ? `Schedule ${selected.size} certificate${selected.size === 1 ? '' : 's'}${sendAt ? ` for ${new Date(sendAt).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : ''}` : `Send ${selected.size} certificate${selected.size === 1 ? '' : 's'} now`}
@@ -1279,12 +1279,12 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                     <div className="space-y-1">
                       <label className={label}>Scheduled sends</label>
                       {schedules.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-200 dark:border-white/10">
+                        <div key={s.id} className="flex items-center justify-between gap-2 p-2 rounded-lg border border-theme-card-border dark:border-white/10">
                           <span className="min-w-0">
-                            <span className="font-bold text-slate-900 dark:text-white block">{new Date(s.sendAt).toLocaleString()} · {s.passIds.length} certificate{s.passIds.length === 1 ? '' : 's'}</span>
-                            <span className="text-[10px] text-slate-500">{s.status}{s.status === 'Done' ? ` — ${s.sent} sent${s.failed ? `, ${s.failed} failed` : ''}` : ''}{s.finishedAt ? ` · finished ${new Date(s.finishedAt).toLocaleString()}` : ''}{s.createdBy ? ` · scheduled by ${s.createdBy}` : ''}{s.error ? ` — ${s.error}` : ''}</span>
+                            <span className="font-bold text-theme-text-primary dark:text-white block">{new Date(s.sendAt).toLocaleString()} · {s.passIds.length} certificate{s.passIds.length === 1 ? '' : 's'}</span>
+                            <span className="text-[10px] text-theme-text-secondary">{s.status}{s.status === 'Done' ? ` — ${s.sent} sent${s.failed ? `, ${s.failed} failed` : ''}` : ''}{s.finishedAt ? ` · finished ${new Date(s.finishedAt).toLocaleString()}` : ''}{s.createdBy ? ` · scheduled by ${s.createdBy}` : ''}{s.error ? ` — ${s.error}` : ''}</span>
                           </span>
-                          {s.status === 'Scheduled' && <button type="button" onClick={() => cancelSchedule(s.id)} className="px-2.5 py-1 rounded-lg text-rose-400 border border-rose-500/30 font-bold cursor-pointer">Cancel</button>}
+                          {s.status === 'Scheduled' && <button type="button" onClick={() => cancelSchedule(s.id)} className="px-2.5 py-1 rounded-lg text-danger border border-danger/30 font-bold cursor-pointer">Cancel</button>}
                         </div>
                       ))}
                     </div>
@@ -1299,7 +1299,7 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
               <div ref={stageRef} className="relative w-full select-none touch-none">
                 {(openStep === 5 ? finalPreview || preview : preview) && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={openStep === 5 ? finalPreview || preview : preview} alt="Certificate preview" draggable={false} className="w-full rounded-xl border border-slate-200 dark:border-white/15 shadow-lg" />
+                  <img src={openStep === 5 ? finalPreview || preview : preview} alt="Certificate preview" draggable={false} className="w-full rounded-xl border border-theme-card-border dark:border-white/15 shadow-lg" />
                 )}
                 {showOverlay && enabledKeys.map((k) => {
                   const b = template.layout[k];
@@ -1310,15 +1310,15 @@ export function CertificateModal({ isOpen, onClose, events, initialEventId, canE
                       onPointerDown={(e) => startDrag(e, k, 'move')}
                       title={CERT_BOX_LABELS[k]}
                       style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` }}
-                      className={`absolute border ${on ? 'border-accent bg-accent/10 border-2 z-10' : 'border-dashed border-sky-400/60 hover:border-accent'} ${canEditDesign && openStep === 3 ? 'cursor-move' : 'cursor-pointer'}`}
+                      className={`absolute border ${on ? 'border-accent bg-accent/10 border-2 z-10' : 'border-dashed border-accent/60 hover:border-accent'} ${canEditDesign && openStep === 3 ? 'cursor-move' : 'cursor-pointer'}`}
                     >
-                      <span className={`absolute -top-4 left-0 px-1 text-[9px] font-bold rounded-t ${on ? 'bg-accent text-white' : 'bg-sky-500/70 text-white'}`}>{CERT_BOX_LABELS[k]}</span>
+                      <span className={`absolute -top-4 left-0 px-1 text-[9px] font-bold rounded-t ${on ? 'bg-accent text-white' : 'bg-accent/70 text-white'}`}>{CERT_BOX_LABELS[k]}</span>
                       {canEditDesign && openStep === 3 && <span onPointerDown={(e) => startDrag(e, k, 'size')} className="absolute -right-1.5 -bottom-1.5 h-3.5 w-3.5 rounded-sm bg-accent border border-white cursor-nwse-resize" />}
                     </div>
                   );
                 })}
               </div>
-              <p className="text-[10px] text-slate-500 mt-2">Every certificate is made as an A4 PDF with the attendee&apos;s details in the boxes above, and emailed to them. Changes save automatically.</p>
+              <p className="text-[10px] text-theme-text-secondary mt-2">Every certificate is made as an A4 PDF with the attendee&apos;s details in the boxes above, and emailed to them. Changes save automatically.</p>
             </div>
           </div>
         )}

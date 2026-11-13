@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     const x = c.getContext('2d');
     const font = 'DejaVu Sans, Arial, sans-serif';
 
-    x.fillStyle = '#1e293b';
+    x.fillStyle = '#2B1D3C';
     x.fillRect(0, 0, W, H);
     x.fillStyle = '#ffffff';
     x.fillRect(870, 0, 290, H); // stub (covered by the white tear-off in the final ticket)
@@ -37,17 +37,17 @@ export async function GET(request: Request) {
       x.font = `bold 15px ${font}`;
       x.fillText(label, zx + 10, zy + 22);
     };
-    zone(50, 28, 790, 56, '#38bdf8', 'Brand / logo zone (top-left)');
+    zone(50, 28, 790, 56, '#E86848', 'Brand / logo zone (top-left)');
     zone(50, 96, 790, 70, '#f59e0b', 'EVENT NAME text (auto-fits)');
-    zone(50, 176, 790, 96, '#a78bfa', 'GUEST CATEGORY + ATTENDEE NAME');
+    zone(50, 176, 790, 96, '#EA7153', 'GUEST CATEGORY + ATTENDEE NAME');
     zone(50, 290, 790, 90, '#34d399', 'PASS TYPE · VENUE · VALID DAYS');
     zone(905, 50, 220, 220, '#ef4444', 'QR code 220×220');
-    x.fillStyle = '#0f172a';
+    x.fillStyle = '#1C0F2A';
     x.font = `13px ${font}`;
     x.fillText('SCAN AT ENTRY + serial (auto)', 888, 310);
 
     // perforation + notches
-    x.strokeStyle = '#475569';
+    x.strokeStyle = '#574769';
     x.setLineDash([8, 8]);
     x.lineWidth = 3;
     x.beginPath();
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     x.stroke();
     x.setLineDash([]);
 
-    x.fillStyle = '#94a3b8';
+    x.fillStyle = '#A594B8';
     x.font = `13px ${font}`;
     x.fillText(`Design at ${W}×${H} px (PNG/JPG). Keep important art outside the coloured zones, or accept the darkening overlay.`, 50, H - 14);
 

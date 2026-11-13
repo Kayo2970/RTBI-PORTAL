@@ -85,7 +85,7 @@ export async function renderWalletPosterJpeg(input: PosterRenderInput, theme: Pa
 
   const stops = gradientStops(input.passGradient);
   const base = stops[0] || input.passColor || theme.backgroundColor || DEFAULT_PASS_THEME.backgroundColor;
-  const end = stops[1] || '#030712';
+  const end = stops[1] || '#0F0623';
   const fg = input.textColor || theme.foregroundColor || DEFAULT_PASS_THEME.foregroundColor;
   const label = input.labelColor || theme.labelColor || DEFAULT_PASS_THEME.labelColor;
   const overlay = typeof theme.overlay === 'number' ? theme.overlay : DEFAULT_PASS_THEME.overlay;
@@ -111,16 +111,16 @@ export async function renderWalletPosterJpeg(input: PosterRenderInput, theme: Pa
   if (!hasArt) {
     const g = ctx.createLinearGradient(0, 0, W * 0.6, H);
     g.addColorStop(0, base);
-    g.addColorStop(1, input.passGradient ? end : '#030712');
+    g.addColorStop(1, input.passGradient ? end : '#0F0623');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   }
 
   // Dark fade behind Apple's field row (always: white field text must stay readable on any artwork)
   const fade = ctx.createLinearGradient(0, H * POSTER_ZONES.fadeStart, 0, H);
-  fade.addColorStop(0, 'rgba(3,7,18,0)');
-  fade.addColorStop(0.55, 'rgba(3,7,18,0.72)');
-  fade.addColorStop(1, 'rgba(3,7,18,0.94)');
+  fade.addColorStop(0, 'rgba(10, 3, 18,0)');
+  fade.addColorStop(0.55, 'rgba(10, 3, 18,0.72)');
+  fade.addColorStop(1, 'rgba(10, 3, 18,0.94)');
   ctx.fillStyle = fade;
   ctx.fillRect(0, H * POSTER_ZONES.fadeStart, W, H * (1 - POSTER_ZONES.fadeStart));
 

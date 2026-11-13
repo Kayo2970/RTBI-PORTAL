@@ -13,8 +13,8 @@ export function passEmailButtonsHtml(origin: string, serial: string, extras: { m
   ].filter(Boolean);
   return `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:552px;margin:16px auto;">
-  <tr>${btn(`${origin}/pass/${s}/wallet?to=apple`, '&#63743; Add to Apple Wallet', '#000000')}${btn(`${origin}/pass/${s}/wallet?to=google`, 'Add to Google Wallet', '#1a73e8')}</tr>
-  <tr>${btn(`${origin}/api/pass/${s}/calendar`, '&#128197; Add to Calendar', '#334155')}${btn(`${origin}/pass/${s}`, 'View Digital Pass &rarr;', '#0284c7')}</tr>${extraBtns.length ? `
+  <tr>${btn(`${origin}/pass/${s}/wallet?to=apple`, '&#63743; Add to Apple Wallet', '#000000')}${btn(`${origin}/pass/${s}/wallet?to=google`, 'Add to Google Wallet', '#E3461F')}</tr>
+  <tr>${btn(`${origin}/api/pass/${s}/calendar`, '&#CC3D19; Add to Calendar', '#3A2160')}${btn(`${origin}/pass/${s}`, 'View Digital Pass &rarr;', '#E34A21')}</tr>${extraBtns.length ? `
   <tr>${extraBtns.join('')}</tr>` : ''}
 </table>`;
 }
