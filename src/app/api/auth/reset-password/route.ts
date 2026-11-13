@@ -4,6 +4,7 @@ import { readCollection, mutateCollection } from '@/lib/server-db';
 import { hashPassword } from '@/lib/password';
 import { invalidateAllSessionsForMember } from '@/lib/session';
 import { recordAuthFailure, recordAuthSuccess } from '@/lib/rate-limit';
+import { resolveDevice, deviceJson, checkDeviceGuard, recordDeviceFailure, recordDeviceSuccess, lockMessage } from '@/lib/device-security';
 import { parseJsonBody } from '@/lib/validation';
 import { apiError } from '@/lib/api-error';
 
@@ -17,14 +18,30 @@ export async function POST(request: Request) {
   try {
     const { email, otp, newPassword } = await parseJsonBody(request, ResetPasswordSchema);
     const trimmedEmail = email.trim().toLowerCase();
+
+    // Device lockout for OTP guessing (see lib/device-security.ts).
+    const device = resolveDevice(request);
+    const guard = await checkDeviceGuard(device, trimmedEmail);
+    if (!guard.allowed) {
+      const wait = guard.retryAfterSeconds ?? 60;
+      return deviceJson(device, request, { error: lockMessage(wait), locked: true, retryAfterSeconds: wait }, { status: 429, headers: { 'Retry-After': String(wait) } });
+    }
+
     const resets = await readCollection('passwordResets');
     const matchedReset = resets.find((r: any) => r.email === trimmedEmail && r.otp === otp.trim());
 
     if (!matchedReset) {
       recordAuthFailure(trimmedEmail);
-      return NextResponse.json({ error: 'Invalid verification code. Please check your email and try again.' }, { status: 400 });
+      const f = await recordDeviceFailure(device, trimmedEmail);
+      if (f.locked) {
+        const wait = f.retryAfterSeconds ?? 900;
+        return deviceJson(device, request, { error: lockMessage(wait), locked: true, retryAfterSeconds: wait }, { status: 429, headers: { 'Retry-After': String(wait) } });
+      }
+      return deviceJson(device, request, { error: 'Invalid verification code. Please check your email and try again.' }, { status: 400 });
     }
     recordAuthSuccess(trimmedEmail);
+    // A correct OTP proves control of the mailbox, not of a known device, so clear the streak but don't mark it trusted.
+    await recordDeviceSuccess(device, trimmedEmail, { trust: false });
 
     // 5-minute validity check
     const now = Date.now();

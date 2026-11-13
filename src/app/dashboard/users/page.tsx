@@ -15,6 +15,7 @@ import {
   type MemberDivision,
 } from '@/lib/local-data';
 import { TIER_LABELS, tierLabel, isSuperUser } from '@/lib/permissions';
+import { LockedDevicesPanel } from '@/components/locked-devices-panel';
 
 const TIERS: { tier: 1 | 2 | 3 | 4; label: MemberDivision; blurb: string }[] = [
   { tier: 1, label: 'Super User', blurb: 'Full system control' },
@@ -332,6 +333,8 @@ export default function UsersPage() {
           </form>
         </div>
       )}
+
+      <LockedDevicesPanel />
     </div>
   );
 }
