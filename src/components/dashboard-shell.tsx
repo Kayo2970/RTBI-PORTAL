@@ -55,6 +55,7 @@ import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { NotFoundScreen } from '@/components/not-found-screen';
+import { ZeroTrustRestrictedScreen } from '@/components/zero-trust-screen';
 import { LoadingScreen } from '@/components/loading-screen';
 import dynamic from 'next/dynamic';
 import { BackgroundTaskTray } from '@/components/background-task-tray';
@@ -1317,12 +1318,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     );
   }
 
-  // Site-wide lockdown: everyone except the real Super User (tier 1) sees a
-  // plain 404 instead of the dashboard. Applies during impersonation too —
-  // if the Super User is viewing the app as someone else, they see what that
-  // person would see.
-  if (lockdownEnabled && user.tier !== 1) {
-    return <NotFoundScreen />;
+  // Zero-Trust, Zero-Access site-wide policy:
+  // Only the Super User (tier 1) has access to modules and controls right now.
+  // Not even the CEO or anyone else is granted access while the site is under construction.
+  if (user.tier !== 1) {
+    return <ZeroTrustRestrictedScreen user={user} onSignOut={handleLogout} />;
   }
 
   return (

@@ -1,14 +1,16 @@
 /**
  * permissions-server.ts — Server-side authorization checks for API routes.
  *
- * Mirrors src/lib/permissions.ts against the real server-side collections.
- * Tiers: 1 = Super User, 2 = CEO, 3 = Employee, 4 = Startup. Phase 1 is
- * blanket module access for every signed-in member; only account
- * administration is restricted to the Super User (see permissions.ts).
- * Group Policy grants are resolved per request (resolvePolicyGrants) and
- * attached to the member by session.ts, ready for the later scope work.
+ * ZERO-TRUST, ZERO-ACCESS POLICY (ACTIVE):
+ * Under the site-wide Zero-Trust policy, ONLY the Super User (tier 1) has
+ * access to portal modules, models, and controls. Not even the CEO or
+ * employees have access at this time.
+ * Granular permissions, department views, and role-based capabilities will
+ * be provisioned in future rollout phases as the site is finalized.
  */
 import { readCollection } from './server-db';
+
+export const ZERO_TRUST_POLICY_ACTIVE = true;
 
 // Below this point: additive ports of specific composite `can*` checks from
 // permissions.ts (client) needed to gate the Events/Tasks/Ratings API routes.
@@ -198,63 +200,63 @@ export function canSetMemberPassword(user: ServerUser): boolean {
 }
 
 export function canEditDirectory(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canAddMember(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user && user.tier === 1;
+  return isSuperUser(user);
 }
 
 export function canApproveAsSectorHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canVerifyReimbursementCentreHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canApproveAsFinanceHead(user: ServerUser, settings: AccessLevelSettings, claim?: any): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canVerifyBudgetCentreHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canDecideBudget(user: ServerUser, settings: AccessLevelSettings, budget?: any): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canSubmitBudget(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canDecideProcurementRequest(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canViewProcurementRequest(user: ServerUser, settings: AccessLevelSettings, request: any): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canApproveAnnouncement(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canRemoveGuestContact(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export async function canDeleteForms(user: ServerUser, settings: AccessLevelSettings): Promise<boolean> {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canDeleteEvent(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canDeleteTask(user: ServerUser, settings: AccessLevelSettings, task?: any): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canManageBackup(user: ServerUser): boolean {
@@ -278,23 +280,23 @@ export function isGeneralSecretary(user: ServerUser): boolean {
 }
 
 export function canSubmitEventReport(user: ServerUser): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canReviewEventReports(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canScoreEventReports(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canViewEventReports(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canReviewDesignProofread(user: ServerUser, settings: AccessLevelSettings, design?: { assignedProofreaderIds?: string[]; assignedProofreaderEmail?: string; assignedProofreaderId?: string }): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function isSuperUser(user: ServerUser): boolean {
@@ -386,35 +388,35 @@ export async function isTaskAssignee(task: ServerTask, user: ServerUser): Promis
 }
 
 export function canCreateEvent(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canEditEvent(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canCreateTask(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canEditTask(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export async function canChangeTaskStatus(task: ServerTask, user: ServerUser, settings: AccessLevelSettings): Promise<boolean> {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canApprovePendingEvent(event: ServerEvent, user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canApprovePendingTask(task: ServerTask, user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export async function canEvaluateEventStudent(user: ServerUser, settings: AccessLevelSettings): Promise<boolean> {
-  return !!user;
+  return isSuperUser(user);
 }
 
 /**
@@ -429,7 +431,7 @@ export function isTaskRatable(task: { workflowType?: string; isProcurement?: boo
 }
 
 export function canEditRating(rating: ServerRating, user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 // --- Designs / Forms / Announcements / Guests / Event Reports (ported from
@@ -476,11 +478,11 @@ export function isSocialMediaPostTask(task: {
 }
 
 export function canViewAllDesigns(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canBuildForms(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function isTrainingAssociate(user: ServerUser): boolean {
@@ -488,7 +490,7 @@ export function isTrainingAssociate(user: ServerUser): boolean {
 }
 
 export function canCreateForms(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function seesOnlyOwnForms(user: ServerUser, settings: AccessLevelSettings): boolean {
@@ -502,11 +504,11 @@ export function isOwnForm(form: { createdById?: string; submittedByEmail?: strin
 }
 
 export function canCreateAnnouncement(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export function canAccessGuestDirectory(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export type ServerGuest = { createdBy?: string; metBy?: string } | null | undefined;
@@ -530,17 +532,18 @@ export function isOwnCreatedGuest(guest: ServerGuest, user: ServerUser): boolean
 }
 
 export function canEditGuestRecord(guest: ServerGuest, user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 export const canViewGuestRecord = canEditGuestRecord;
 
 export function canApproveProposal(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+  return isSuperUser(user);
 }
 
 // Bookings / Invoices & Payments / Inventory — mirrors permissions.ts.
 export function isStaffTier(user: ServerUser): boolean {
+  if (ZERO_TRUST_POLICY_ACTIVE) return isSuperUser(user);
   return !!user && typeof user.tier === 'number' && user.tier <= 3;
 }
 export const canManageBilling = isStaffTier;

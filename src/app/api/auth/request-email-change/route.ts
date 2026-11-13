@@ -25,7 +25,7 @@ const RequestEmailChangeSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    const actor = await requireSession(request);
+    const actor = await requireSession(request, { allowNonSuperUser: true });
     const { memberId, currentEmail, newEmail } = await parseJsonBody(request, RequestEmailChangeSchema);
     if (actor.id !== memberId) {
       return NextResponse.json({ error: 'You can only request an email change for your own account.' }, { status: 403 });

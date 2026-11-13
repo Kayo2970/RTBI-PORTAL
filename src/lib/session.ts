@@ -107,18 +107,34 @@ export class UnauthorizedError extends Error {
   }
 }
 
-/** Resolve the calling member or throw a 401 — the standard guard for any route that requires being signed in at all. Route handlers should catch this alongside their existing try/catch (UnauthorizedError -> its own .status). */
-export async function requireSession(request: Request): Promise<any> {
-  const member = await getSessionMember(request);
-  if (!member) throw new UnauthorizedError();
-  return member;
-}
-
 export class ForbiddenError extends Error {
   status = 403;
   constructor(message = "You don't have permission to do that.") {
     super(message);
   }
+}
+
+/**
+ * Zero-Trust, Zero-Access site-wide security policy flag.
+ * When active, ONLY the Super User (tier 1) has access to portal models, collections, and controls.
+ * Non-super-user accounts (CEO tier 2, Employee tier 3, Startup tier 4) receive 403 Forbidden.
+ */
+export const ZERO_TRUST_POLICY_ACTIVE = true;
+
+/**
+ * Resolve the calling member or throw a 401 / 403.
+ * Under the site-wide Zero-Trust, Zero-Access policy, only the Super User (tier 1)
+ * is granted access to portal models and controls.
+ */
+export async function requireSession(request: Request, options?: { allowNonSuperUser?: boolean }): Promise<any> {
+  const member = await getSessionMember(request);
+  if (!member) throw new UnauthorizedError();
+  if (ZERO_TRUST_POLICY_ACTIVE && !options?.allowNonSuperUser && member.tier !== 1) {
+    throw new ForbiddenError(
+      'Zero-Trust Access Policy Enforced: Only the Super User currently has access to portal models and controls while the site is under construction.'
+    );
+  }
+  return member;
 }
 
 /** Throw a 403 unless `allowed` is true — pairs with a permissions.ts can*() check at the call site. */
