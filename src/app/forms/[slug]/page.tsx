@@ -6,7 +6,12 @@ import Link from 'next/link';
 import { getForms, getEvents, addSubmission, PublicFormItem, FormEventInfo, resolveFieldDefault, hasLockedDefault, formatEventDateRange, isFormClosed } from '@/lib/local-data';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
-import { GhostFibers } from '@/components/ui/ghost-fibers';
+import dynamic from 'next/dynamic';
+
+const AeroShardsBackground = dynamic(
+  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+  { ssr: false }
+);
 import { DEFAULT_HEADER_FRAMING, headerImageStyle } from '@/components/form-header-framing';
 
 export default function PublicFormPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -199,31 +204,20 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="absolute top-1/3 -right-24 h-[28rem] w-[28rem] rounded-full bg-cyan-400/50 blur-3xl" />
       <div className="absolute -bottom-24 left-1/4 h-96 w-96 rounded-full bg-amber-400/50 blur-3xl" />
       <div className="absolute bottom-1/4 -left-16 h-72 w-72 rounded-full bg-emerald-400/40 blur-3xl" />
-      <GhostFibers
-        lineColor="#361C6A"
-        glowColor="#E34A21"
-        speed={0.2}
-        scale={2}
-        rotation={-24}
-        rotationSpeed={0.25}
-        layers={4}
-        waveAmplitude={0.015}
-        waveFrequency={3}
-        waveSpeed={0.15}
-        layerSpeed={0.08}
-        twist={0.1}
-        twistFrequency={5}
-        twistSpeed={1.2}
-        lineFrequency={5}
-        lineSpacing={2}
-        lineSharpness={16}
-        glowFalloff={10}
-        glowIntensity={1.6}
-        brightness={2}
-        blueBoost={1.25}
-        vignette={0.8}
-        grain={0.05}
-        dpr={1}
+      <AeroShardsBackground
+        shardColor="#361C6A"
+        accentColor="#E34A21"
+        placement="full"
+        material="glass"
+        markers="plus"
+        count={1250}
+        depthOfField={0.75}
+        vignette={0.3}
+        mouseInteraction
+        pulseOnClick
+        holdToGather
+        spread={2}
+        speed={2.56}
       />
     </div>
   );

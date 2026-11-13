@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ShieldAlert, CheckCircle2, Lock, Eye, EyeOff, LogIn, Sparkles, Cake, Phone, ArrowRight } from 'lucide-react';
 import { InteractiveKeycardHolder } from '@/components/interactive-keycard-holder';
+import dynamic from 'next/dynamic';
+
+const AeroShardsBackground = dynamic(
+  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+  { ssr: false }
+);
 
 function ActivateAccountForm() {
   const searchParams = useSearchParams();
@@ -147,8 +153,25 @@ function ActivateAccountForm() {
   }
 
   return (
-    <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-md glass-panel rounded-3xl p-6 md:p-8 flex flex-col space-y-6 relative border border-white/15 shadow-2xl">
+    <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8 relative z-0 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
+        <AeroShardsBackground
+          shardColor="#361C6A"
+          accentColor="#E34A21"
+          placement="full"
+          material="glass"
+          markers="plus"
+          count={1250}
+          depthOfField={0.75}
+          vignette={0.3}
+          mouseInteraction
+          pulseOnClick
+          holdToGather
+          spread={2}
+          speed={2.56}
+        />
+      </div>
+      <div className="w-full max-w-md glass-panel rounded-3xl p-6 md:p-8 flex flex-col space-y-6 relative z-10 border border-white/15 shadow-2xl">
         {/* Brand Header */}
         <Link
           href="/"

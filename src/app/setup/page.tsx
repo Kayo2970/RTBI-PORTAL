@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SetupWizard } from '@/components/setup-wizard';
 import { LoadingScreen } from '@/components/loading-screen';
+import dynamic from 'next/dynamic';
+
+const AeroShardsBackground = dynamic(
+  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+  { ssr: false }
+);
 
 export default function SetupPage() {
   const router = useRouter();
@@ -47,8 +53,25 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-theme-background via-theme-background to-primary-dark/20 text-theme-text-primary">
-      <div className="w-full max-w-lg space-y-4">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-space-theme text-theme-text-primary relative z-0 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
+        <AeroShardsBackground
+          shardColor="#361C6A"
+          accentColor="#E34A21"
+          placement="full"
+          material="glass"
+          markers="plus"
+          count={1250}
+          depthOfField={0.75}
+          vignette={0.3}
+          mouseInteraction
+          pulseOnClick
+          holdToGather
+          spread={2}
+          speed={2.56}
+        />
+      </div>
+      <div className="w-full max-w-lg space-y-4 relative z-10">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="h-14 w-14 flex items-center justify-center">

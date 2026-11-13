@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { GhostFibers } from '@/components/ui/ghost-fibers';
+import dynamic from 'next/dynamic';
+
+const AeroShardsBackground = dynamic(
+  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+  { ssr: false }
+);
 
 interface LoadingScreenProps {
   /** How long the splash stays on screen before onComplete fires, in ms. */
@@ -12,7 +17,7 @@ interface LoadingScreenProps {
 
 /**
  * Full-screen branded splash shown during login and dashboard module transitions
- * with the animated LEADS GhostFibers WebGL backdrop behind the rotating logo badge.
+ * with the animated AeroShards WebGPU/WebGL backdrop behind the rotating logo badge.
  */
 export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingScreenProps) {
   useEffect(() => {
@@ -23,40 +28,29 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-space-theme overflow-hidden select-none">
-      {/* Background Animated GhostFibers WebGL Shader with LEADS Palette */}
-      <div className="absolute inset-0 pointer-events-none z-0 opacity-75 dark:opacity-90">
-        <GhostFibers
-          lineColor="#361C6A"
-          glowColor="#E34A21"
-          speed={0.4}
-          scale={2}
-          rotation={-24}
-          rotationSpeed={0.5}
-          layers={4}
-          waveAmplitude={0.015}
-          waveFrequency={3}
-          waveSpeed={0.3}
-          layerSpeed={0.16}
-          twist={0.1}
-          twistFrequency={5}
-          twistSpeed={2.4}
-          lineFrequency={5}
-          lineSpacing={2}
-          lineSharpness={16}
-          glowFalloff={10}
-          glowIntensity={1.6}
-          brightness={2}
-          blueBoost={1.25}
-          vignette={0.8}
-          grain={0.05}
-          dpr={1}
+      {/* Background Animated AeroShards / GhostFibers Canvas with RTBI Palette */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-80 dark:opacity-95">
+        <AeroShardsBackground
+          shardColor="#361C6A"
+          accentColor="#E34A21"
+          placement="full"
+          material="glass"
+          markers="plus"
+          count={1250}
+          depthOfField={0.75}
+          vignette={0.3}
+          mouseInteraction
+          pulseOnClick
+          holdToGather
+          spread={2}
+          speed={2.56}
         />
       </div>
 
       {/* Subtle Frosted Radial Glass Layer */}
       <div className="absolute inset-0 bg-space-theme/40 backdrop-blur-[2px] pointer-events-none z-[1]" />
 
-      {/* Centered Elevated LEADS Logo Badge */}
+      {/* Centered Elevated RTBI Logo Badge */}
       <div className="relative z-10 flex flex-col items-center gap-5 animate-splash-logo p-6 rounded-3xl glass-panel border border-white/20 shadow-2xl backdrop-blur-md">
         <div className="relative h-24 w-24 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border-4 border-accent/20 border-t-accent animate-spin"></div>
