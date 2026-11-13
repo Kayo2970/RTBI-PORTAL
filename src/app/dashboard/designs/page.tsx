@@ -38,7 +38,6 @@ import { SearchableSelect } from '@/components/searchable-select';
 import {
   getDesigns,
   addDesign,
-  updateDesignReview,
   updateDesignStyleReview,
   updateDesignFile,
   deleteDesign,
@@ -49,148 +48,14 @@ import {
   getTasks,
   updateTask,
   isTaskAssignee,
-  submitDesignCaptions,
-  reviewDesignCaptions,
-  completeDesignPosting,
-  resolveDesignReviewer,
-  getEligibleFacultyProofreaders,
   DesignSubmissionItem,
   Member,
   EventItem,
   TaskItem,
-  OcrScanResult,
   authHeaders
 } from '@/lib/local-data';
-import { canViewAllDesigns, isDesignHead, isCentreHead, canManageCanvaLibrary, hasCapability, canReviewDesignProofread } from '@/lib/permissions';
+import { canViewAllDesigns, isCentreHead, canManageCanvaLibrary, hasCapability } from '@/lib/permissions';
 import { parseCsvLine, splitCsvLines, toCsvRow, downloadCsv } from '@/lib/csv';
-
-/** Renders an OCR scan's flagged spelling issues + extracted text preview. Advisory only. */
-function OcrScanPanel({
-  result,
-  error,
-  showExtractedText,
-  onToggleExtractedText,
-}: {
-  result: OcrScanResult | null;
-  error: string;
-  showExtractedText: boolean;
-  onToggleExtractedText: () => void;
-}) {
-  const [activeIssue, setActiveIssue] = useState<number | null>(null);
-
-  if (error) {
-    return (
-      <p className="text-amber-500 font-medium text-[11px] flex items-center gap-1 pt-2">
-        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-        {error} You can still submit this file without scanning it.
-      </p>
-    );
-  }
-  if (!result) return null;
-
-  return (
-    <div className="mt-2 p-3 bg-muted/20 border border-border rounded-lg space-y-2 text-xs">
-      <div className="flex items-center justify-between">
-        <span className="font-semibold text-foreground">
-          {result.issues.length === 0 ? 'No spelling issues detected' : `${result.issues.length} possible spelling issue${result.issues.length === 1 ? '' : 's'} found`}
-        </span>
-        <span className="text-[10px] text-muted-foreground font-mono">
-          {new Date(result.scannedAt).toLocaleTimeString()}
-        </span>
-      </div>
-
-      {result.partial && (
-        <p className="text-[11px] text-amber-500 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3 shrink-0" />
-          Scanned the first {result.pageCount} of {result.totalPages} pages.
-        </p>
-      )}
-
-      {/* Page previews with a highlight box drawn directly over each flagged word */}
-      {result.pageImages.length > 0 && result.issues.length > 0 && (
-        <div className="space-y-2">
-          {result.pageImages.map((page, pageIndex) => {
-            const pageIssues = result.issues
-              .map((issue, i) => ({ issue, i }))
-              .filter(({ issue }) => issue.pageIndex === pageIndex);
-            if (pageIssues.length === 0) return null;
-            return (
-              <div key={pageIndex} className="space-y-1">
-                {result.pageImages.length > 1 && (
-                  <p className="text-[10px] font-semibold text-muted-foreground">Page {pageIndex + 1}</p>
-                )}
-                <div className="relative w-full border border-border rounded-lg overflow-hidden bg-background">
-                  <img src={page.dataUrl} alt={`Scanned page ${pageIndex + 1}`} className="w-full h-auto block" />
-                  {pageIssues.map(({ issue, i }) => (
-                    <div
-                      key={i}
-                      onMouseEnter={() => setActiveIssue(i)}
-                      onMouseLeave={() => setActiveIssue(null)}
-                      className={`absolute rounded-sm transition-colors cursor-help ${
-                        activeIssue === i ? 'border-2 border-accent bg-accent/20' : 'border-2 border-rose-500 bg-rose-500/10'
-                      }`}
-                      style={{
-                        left: `${(issue.bbox.x0 / page.width) * 100}%`,
-                        top: `${(issue.bbox.y0 / page.height) * 100}%`,
-                        width: `${Math.max(((issue.bbox.x1 - issue.bbox.x0) / page.width) * 100, 0.5)}%`,
-                        height: `${Math.max(((issue.bbox.y1 - issue.bbox.y0) / page.height) * 100, 0.5)}%`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {result.issues.length > 0 && (
-        <ul className="space-y-1">
-          {result.issues.map((issue, i) => (
-            <li
-              key={i}
-              onMouseEnter={() => setActiveIssue(i)}
-              onMouseLeave={() => setActiveIssue(null)}
-              className={`flex items-center gap-1.5 flex-wrap px-1.5 py-1 rounded-md transition-colors ${activeIssue === i ? 'bg-accent/15' : ''}`}
-            >
-              <span className="font-mono font-semibold text-rose-500">{issue.word}</span>
-              {result.pageImages.length > 1 && (
-                <span className="text-[10px] text-muted-foreground">(page {issue.pageIndex + 1})</span>
-              )}
-              {issue.suggestions.length > 0 && (
-                <>
-                  <span className="text-muted-foreground">&rarr;</span>
-                  <span className="text-emerald-500 font-medium">{issue.suggestions.join(', ')}</span>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <p className="text-[10px] text-muted-foreground italic">
-        Automatic suggestions only — review manually. This never blocks submission.
-      </p>
-
-      {result.extractedText && (
-        <div className="pt-1 border-t border-border">
-          <button
-            type="button"
-            onClick={onToggleExtractedText}
-            className="text-[11px] text-accent hover:underline font-medium cursor-pointer"
-          >
-            {showExtractedText ? 'Hide extracted text' : 'Show extracted text'}
-          </button>
-          {showExtractedText && (
-            <pre className="mt-1.5 p-2 bg-background border border-border rounded-lg text-[10px] whitespace-pre-wrap max-h-40 overflow-y-auto text-muted-foreground">
-              {result.extractedText}
-            </pre>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function DesignPortalPage() {
   const [designs, setDesigns] = useState<DesignSubmissionItem[]>([]);
@@ -198,9 +63,10 @@ export default function DesignPortalPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [user, setUser] = useState<any>(null);
+  const canReviewDesign = !!user && (isCentreHead(user) || hasCapability(user, 'DESIGN_STYLE_APPROVE'));
 
   // Filter & Search states
-  const [activeTab, setActiveTab] = useState<'all' | 'mine' | 'proofread' | 'expired' | 'canva'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'mine' | 'review' | 'expired' | 'canva'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -286,29 +152,6 @@ export default function DesignPortalPage() {
   const [fileData, setFileData] = useState<string>('');
   const [fileError, setFileError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  // Faculty Proofreaders selection: must select at least 1, can select all
-  const eligibleFaculty = React.useMemo(() => getEligibleFacultyProofreaders(members), [members]);
-  const [selectedProofreaderIds, setSelectedProofreaderIds] = useState<string[]>([]);
-  const [proofreaderSearch, setProofreaderSearch] = useState<string>('');
-
-  // Pre-populate with Centre Head and Advisor by default (Social Media Heads are optional)
-  useEffect(() => {
-    if (selectedProofreaderIds.length === 0 && eligibleFaculty.length > 0) {
-      const defaultSelected = eligibleFaculty.filter(f => {
-        const roleLower = (f.role || '').toLowerCase();
-        return (
-          roleLower.includes('ceo') ||
-          roleLower.includes('director') ||
-          roleLower.includes('head') ||
-          f.tier <= 2
-        );
-      });
-      const defaultIds = defaultSelected.length > 0
-        ? defaultSelected.map(f => f.id)
-        : eligibleFaculty.map(f => f.id);
-      setSelectedProofreaderIds(defaultIds);
-    }
-  }, [eligibleFaculty]);
   // Reading the file into base64 happens asynchronously (FileReader), separately
   // from the "Uploading..." server round-trip — both get their own progress state
   // so a large file doesn't look "attached and ready" before it actually is.
@@ -321,17 +164,7 @@ export default function DesignPortalPage() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadEtaSeconds, setUploadEtaSeconds] = useState<number | null>(null);
 
-  // OCR + spell-check scan (advisory only — never blocks submission)
-  const [ocrScanResult, setOcrScanResult] = useState<OcrScanResult | null>(null);
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [scanError, setScanError] = useState<string>('');
-  const [showExtractedText, setShowExtractedText] = useState<boolean>(false);
-
-  // Proofread Review form state inside Inspector Modal
-  const [reviewStatus, setReviewStatus] = useState<'Proofread Approved' | 'Changes Requested'>('Proofread Approved');
-  const [reviewComments, setReviewComments] = useState('');
-
-  // Design Head Style Review form state inside Inspector Modal
+  // Review form state inside Inspector Modal
   const [styleStatus, setStyleStatus] = useState<'Style Approved' | 'Style Rejected'>('Style Approved');
   const [styleFeedback, setStyleFeedback] = useState('');
 
@@ -344,73 +177,21 @@ export default function DesignPortalPage() {
   const [replaceReadProgress, setReplaceReadProgress] = useState<number>(0);
   const [replaceUploadProgress, setReplaceUploadProgress] = useState<number>(0);
   const [replaceUploadEtaSeconds, setReplaceUploadEtaSeconds] = useState<number | null>(null);
-  const [replaceOcrScanResult, setReplaceOcrScanResult] = useState<OcrScanResult | null>(null);
-  const [isScanningReplace, setIsScanningReplace] = useState<boolean>(false);
-  const [replaceScanError, setReplaceScanError] = useState<string>('');
-
-  // Social Media Workflow form state inside Inspector Modal
-  const [instaCaptionInput, setInstaCaptionInput] = useState('');
-  const [linkedinCaptionInput, setLinkedinCaptionInput] = useState('');
-  const [captionReviewApproved, setCaptionReviewApproved] = useState(true);
-  const [captionReviewCommentsInput, setCaptionReviewCommentsInput] = useState('');
 
   // Deep link from a notification (?highlight=<designId>) — auto-open its Inspector once
   const [highlightDesignId, setHighlightDesignId] = useState<string | null>(null);
   const [hasOpenedHighlight, setHasOpenedHighlight] = useState(false);
 
-  // Inspector modal tabs — replaces the old single long-scrolling panel so
-  // Overview / Proofreading / Style Approval / Social Workflow are each a
-  // focused, short screen instead of one continuous scroll.
-  type InspectorTab = 'overview' | 'proofreading' | 'style' | 'workflow';
+  // Inspector modal tabs: Overview / Review.
+  type InspectorTab = 'overview' | 'style';
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('overview');
 
   const openInspector = (design: DesignSubmissionItem) => {
     setSelectedDesign(design);
-    setReviewComments(design.review?.comments || '');
-    setReviewStatus(design.review?.status === 'Changes Requested' ? 'Changes Requested' : 'Proofread Approved');
     setStyleFeedback(design.styleFeedback || '');
     setStyleStatus(design.styleStatus === 'Style Rejected' ? 'Style Rejected' : 'Style Approved');
-    setInstaCaptionInput(design.draftInstagramCaption || design.approvedInstagramCaption || '');
-    setLinkedinCaptionInput(design.draftLinkedinCaption || design.approvedLinkedinCaption || '');
-    setCaptionReviewApproved(true);
-    setCaptionReviewCommentsInput(design.captionReviewComments || '');
-    setShowExtractedText(false);
-    setReplaceOcrScanResult(null);
-    setReplaceScanError('');
     setInspectorTab('overview');
     setShowInspectorModal(true);
-  };
-
-  const handleSubmitCaptions = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedDesign || !user || !instaCaptionInput.trim()) return;
-    const updated = submitDesignCaptions(selectedDesign.id, instaCaptionInput.trim(), linkedinCaptionInput.trim(), user.name);
-    if (updated) {
-      setSelectedDesign(updated);
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-    }
-  };
-
-  const handleReviewCaptions = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedDesign || !user) return;
-    const updated = reviewDesignCaptions(selectedDesign.id, captionReviewApproved, captionReviewCommentsInput.trim(), user.name);
-    if (updated) {
-      setSelectedDesign(updated);
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-    }
-  };
-
-  const handleCompletePosting = (platform: 'instagram' | 'linkedin') => {
-    if (!selectedDesign || !user) return;
-    const updated = completeDesignPosting(selectedDesign.id, platform, user.name);
-    if (updated) {
-      setSelectedDesign(updated);
-      setDesigns(getDesigns());
-      setTasks(getTasks());
-    }
   };
 
   const handleSaveStyleReview = (e: React.FormEvent) => {
@@ -443,8 +224,6 @@ export default function DesignPortalPage() {
     setReplaceFileData('');
     setIsReadingReplaceFile(true);
     setReplaceReadProgress(0);
-    setReplaceOcrScanResult(null);
-    setReplaceScanError('');
     setReplaceUploadProgress(0);
     setReplaceUploadEtaSeconds(null);
     const reader = new FileReader();
@@ -490,7 +269,6 @@ export default function DesignPortalPage() {
         replaceFile.size,
         replaceFile.type || 'application/octet-stream',
         user.name,
-        replaceOcrScanResult || undefined,
         tracker
       );
       if (updated) {
@@ -498,8 +276,6 @@ export default function DesignPortalPage() {
         setDesigns(getDesigns());
         setReplaceFile(null);
         setReplaceFileData('');
-        setReplaceOcrScanResult(null);
-        setReplaceScanError('');
         setReplaceUploadProgress(0);
         setReplaceUploadEtaSeconds(null);
       }
@@ -569,8 +345,6 @@ export default function DesignPortalPage() {
     setFileData('');
     setIsReadingFile(true);
     setReadProgress(0);
-    setOcrScanResult(null);
-    setScanError('');
     setSubmitError('');
     setUploadProgress(0);
     setUploadEtaSeconds(null);
@@ -599,58 +373,6 @@ export default function DesignPortalPage() {
     reader.readAsDataURL(selected);
   };
 
-  const runOcrScan = async (
-    dataUrl: string,
-    fileType: string,
-    setResult: (r: OcrScanResult | null) => void,
-    setScanning: (b: boolean) => void,
-    setError: (s: string) => void
-  ) => {
-    setScanning(true);
-    setError('');
-    setResult(null);
-    try {
-      const res = await fetch('/api/designs/ocr-scan', {
-        method: 'POST',
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ fileData: dataUrl, fileType }),
-      });
-
-      // Read as text first — a non-JSON body (an HTML error page) means the
-      // request never reached this app's own route handler (which always
-      // returns JSON) and was rejected by something in front of it, most
-      // commonly a reverse proxy's own upload size limit.
-      const responseText = await res.text();
-      let body: any = {};
-      try {
-        body = JSON.parse(responseText);
-      } catch {
-        throw new Error(
-          res.status === 413
-            ? 'This file is too large for the server proxy — it was rejected before reaching the app. Try a smaller file, or ask your server admin to raise the proxy\'s upload size limit.'
-            : 'The server returned an invalid response (connection timed out or a server proxy error) — you can still submit without scanning.'
-        );
-      }
-      if (!res.ok) throw new Error(body.error || 'OCR scan failed.');
-      setResult(body as OcrScanResult);
-    } catch (err: any) {
-      setError(err.message || 'OCR scan failed. You can still submit without scanning.');
-    } finally {
-      setScanning(false);
-    }
-  };
-
-  const handleScanFile = () => {
-    if (!file || !fileData.startsWith('data:')) return;
-    setShowExtractedText(false);
-    runOcrScan(fileData, file.type || 'application/octet-stream', setOcrScanResult, setIsScanning, setScanError);
-  };
-
-  const handleScanReplaceFile = () => {
-    if (!replaceFile || !replaceFileData.startsWith('data:')) return;
-    runOcrScan(replaceFileData, replaceFile.type || 'application/octet-stream', setReplaceOcrScanResult, setIsScanningReplace, setReplaceScanError);
-  };
-
   const handleUploadSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!title.trim()) return;
@@ -667,11 +389,6 @@ export default function DesignPortalPage() {
       return;
     }
 
-    if (selectedProofreaderIds.length === 0) {
-      setFileError('Please select at least one faculty member to do the proofreading.');
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmitError('');
     setUploadProgress(0);
@@ -679,11 +396,6 @@ export default function DesignPortalPage() {
     try {
       const selectedEvent = events.find(ev => ev.id === eventId);
       const tracker = createProgressTracker((pct, eta) => { setUploadProgress(pct); setUploadEtaSeconds(eta); });
-
-      const selectedFacultyObjs = selectedProofreaderIds
-        .map(id => eligibleFaculty.find(f => f.id === id))
-        .filter((f): f is Member => Boolean(f))
-        .map(f => ({ id: f.id, name: f.name, email: f.email, role: f.role }));
 
       await addDesign({
         title: title.trim(),
@@ -696,12 +408,8 @@ export default function DesignPortalPage() {
         designerId: user?.id || 'guest',
         designerName: user?.name || 'Designer',
         designerEmail: user?.email || 'designer@example.com',
-        proofreadRequested: true,
-        assignedProofreaderIds: selectedProofreaderIds,
-        assignedProofreaders: selectedFacultyObjs,
         eventId: selectedEvent?.id,
         eventName: selectedEvent?.title,
-        ocrScan: ocrScanResult || undefined,
         sourceTaskId: sourceTaskId || undefined,
       }, tracker);
 
@@ -717,8 +425,6 @@ export default function DesignPortalPage() {
       setFile(null);
       setFileData('');
       setFileError('');
-      setOcrScanResult(null);
-      setScanError('');
       setUploadProgress(0);
       setUploadEtaSeconds(null);
     } catch (err: any) {
@@ -738,14 +444,12 @@ export default function DesignPortalPage() {
     setSubmitError('');
     setTitle(task.title.replace(/^\[.*?\]\s*/, ''));
     setDescription(task.briefDescription || '');
-    setCategory(task.designCategory || (task.isSocialMediaPost ? 'Social Media' : 'Poster'));
+    setCategory(task.designCategory || 'Poster');
     setEventId(task.eventId || '');
     setSourceTaskId(task.id);
     setFile(null);
     setFileData('');
     setFileError('');
-    setOcrScanResult(null);
-    setScanError('');
     setShowUploadModal(true);
   };
 
@@ -779,23 +483,6 @@ export default function DesignPortalPage() {
       }
     }
   }, [designs, tasks, hasHandledTaskRedirect]);
-
-  const handleSaveReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedDesign) return;
-
-    updateDesignReview(
-      selectedDesign.id,
-      reviewStatus,
-      reviewComments.trim(),
-      user?.name || 'Proofreader'
-    );
-
-    refreshData();
-    setShowInspectorModal(false);
-    setSelectedDesign(null);
-    setReviewComments('');
-  };
 
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
@@ -944,20 +631,14 @@ export default function DesignPortalPage() {
     // Category
     if (categoryFilter !== 'all' && d.category !== categoryFilter) return false;
 
-    // Helper to check if current user is an assigned proofreader or eligible reviewer
-    const isDesignActionableByMe = (d: DesignSubmissionItem) => {
-      if (!user) return false;
-      if (Array.isArray(d.assignedProofreaderIds) && d.assignedProofreaderIds.includes(user.id)) return true;
-      if (d.assignedProofreaderEmail === user.email) return true;
-      if (Array.isArray(d.assignedProofreaders) && d.assignedProofreaders.some(p => p.email === user.email || p.id === user.id)) return true;
-      return canReviewDesignProofread(user, d);
-    };
+    // Reviewers (Super User / CEO / Group Policy grant) can act on any design.
+    const isDesignActionableByMe = (_d: DesignSubmissionItem) => canReviewDesign;
 
     // Tabs
     if (activeTab === 'mine') {
       return d.designerEmail === user?.email;
     }
-    if (activeTab === 'proofread') {
+    if (activeTab === 'review') {
       return isDesignActionableByMe(d) || canViewAllDesigns(user);
     }
     if (activeTab === 'expired') {
@@ -974,20 +655,10 @@ export default function DesignPortalPage() {
 
   // Metrics
   const totalSubmissions = designs.length;
-  const pendingProofreads = designs.filter(d => d.proofreadRequested && d.review?.status === 'Pending Proofread').length;
-  const approvedDesigns = designs.filter(d => d.review?.status === 'Proofread Approved').length;
+  const pendingReviews = designs.filter(d => (d.styleStatus || 'Pending') === 'Pending').length;
+  const approvedDesigns = designs.filter(d => d.styleStatus === 'Style Approved').length;
   const expiredCount = designs.filter(d => d.isExpired).length;
-  // "Assigned to me" means any design awaiting proofread that THIS viewer is assigned to or can act on
-  const assignedToMeCount = designs.filter(d =>
-    d.proofreadRequested &&
-    d.review?.status === 'Pending Proofread' &&
-    (
-      (Array.isArray(d.assignedProofreaderIds) && user?.id && d.assignedProofreaderIds.includes(user.id)) ||
-      d.assignedProofreaderEmail === user?.email ||
-      (Array.isArray(d.assignedProofreaders) && user?.email && d.assignedProofreaders.some(p => p.email === user.email || p.id === user?.id)) ||
-      canReviewDesignProofread(user, d)
-    )
-  ).length;
+  const assignedToMeCount = canReviewDesign ? pendingReviews : 0;
 
   // Design-brief Tasks (Tasks module, taskCategory === 'design') waiting on
   // a submission here — visible to the assigned designer, plus anyone who
@@ -1045,10 +716,10 @@ export default function DesignPortalPage() {
 
         <div className="glass-panel p-4 rounded-2xl space-y-1 border border-white/20">
           <div className="flex items-center justify-between text-xs text-theme-text-secondary">
-            <span className="font-semibold">Pending Proofread</span>
+            <span className="font-semibold">Pending Review</span>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{pendingProofreads}</p>
+          <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{pendingReviews}</p>
           <p className="text-[11px] text-theme-text-secondary">{assignedToMeCount} assigned to you</p>
         </div>
 
@@ -1146,13 +817,13 @@ export default function DesignPortalPage() {
                         >
                           <span className="truncate">{d.fileName}</span>
                           <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            d.review?.status === 'Proofread Approved'
+                            d.styleStatus === 'Style Approved'
                               ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                              : d.review?.status === 'Changes Requested'
+                              : d.styleStatus === 'Style Rejected'
                               ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
                               : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                           }`}>
-                            {d.review?.status || 'Pending Proofread'}
+                            {d.styleStatus === 'Style Approved' ? 'Approved' : d.styleStatus === 'Style Rejected' ? 'Rejected' : 'Pending Review'}
                           </span>
                         </button>
                       ))}
@@ -1192,9 +863,9 @@ export default function DesignPortalPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('proofread')}
+            onClick={() => setActiveTab('review')}
             className={`relative px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              activeTab === 'proofread'
+              activeTab === 'review'
                 ? 'bg-accent text-white shadow-md shadow-accent/20'
                 : 'text-theme-text-secondary hover:bg-white/40 dark:hover:bg-white/5 hover:text-theme-text-primary'
             }`}
@@ -1356,7 +1027,7 @@ export default function DesignPortalPage() {
                           <div className="truncate" title={task.title}>{task.title}</div>
                           {linkedSubmission && (
                             <div className="text-[10px] text-theme-text-secondary font-normal">
-                              Submission: {linkedSubmission.review?.status || 'Pending Proofread'}
+                              Submission: {linkedSubmission.styleStatus === 'Style Approved' ? 'Approved' : linkedSubmission.styleStatus === 'Style Rejected' ? 'Rejected' : 'Pending Review'}
                             </div>
                           )}
                         </td>
@@ -1458,12 +1129,7 @@ export default function DesignPortalPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredDesigns.map(design => {
             const daysRemaining = getDaysRemaining(design.expiresAt);
-            const isAssignedToMe = Boolean(
-              (Array.isArray(design.assignedProofreaderIds) && user?.id && design.assignedProofreaderIds.includes(user.id)) ||
-              design.assignedProofreaderEmail === user?.email ||
-              (Array.isArray(design.assignedProofreaders) && user?.email && design.assignedProofreaders.some(p => p.email === user.email || p.id === user?.id)) ||
-              canReviewDesignProofread(user, design)
-            );
+            const isAssignedToMe = canReviewDesign;
 
             return (
               <div
@@ -1536,43 +1202,25 @@ export default function DesignPortalPage() {
                       )}
                     </div>
 
-                    {/* Proofreading Status Box */}
+                    {/* Review Status */}
                     <div className="pt-2 border-t border-theme-border/30">
-                      {design.proofreadRequested ? (
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary block">
-                              Proofreading Status
-                            </span>
-
-                            {design.review?.status === 'Proofread Approved' ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                Approved
-                              </span>
-                            ) : design.review?.status === 'Changes Requested' ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400">
-                                <AlertCircle className="h-3.5 w-3.5" />
-                                Changes Requested
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
-                                <Clock className="h-3.5 w-3.5" />
-                                Pending Proofread
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="text-right">
-                            <span className="text-[10px] font-semibold text-theme-text-secondary block">Assigned Proofreader</span>
-                            <span className="text-xs font-bold text-theme-text-primary truncate max-w-[120px] block">
-                              {design.assignedProofreaderName || 'Unassigned'}
-                            </span>
-                          </div>
-                        </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary block">
+                        Review Status
+                      </span>
+                      {design.styleStatus === 'Style Approved' ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Approved
+                        </span>
+                      ) : design.styleStatus === 'Style Rejected' ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400">
+                          <AlertCircle className="h-3.5 w-3.5" />
+                          Rejected
+                        </span>
                       ) : (
-                        <span className="text-xs text-theme-text-secondary italic flex items-center gap-1">
-                          <FileCheck className="h-3 w-3" /> No Proofreading Requested
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+                          <Clock className="h-3.5 w-3.5" />
+                          Pending Review
                         </span>
                       )}
                     </div>
@@ -1586,7 +1234,7 @@ export default function DesignPortalPage() {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    {isAssignedToMe && design.review?.status === 'Pending Proofread' && (
+                    {isAssignedToMe && (design.styleStatus || 'Pending') === 'Pending' && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500 text-slate-950 animate-pulse">
                         Action Required
                       </span>
@@ -1604,7 +1252,7 @@ export default function DesignPortalPage() {
                       <button
                         onClick={() => setApprovalRequestDesign(design)}
                         className="p-1.5 rounded-xl text-theme-text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
-                        title="Ask a Faculty member or Super User to approve this design"
+                        title="Ask someone to approve this design"
                       >
                         <UserCheck className="h-3.5 w-3.5" />
                       </button>
@@ -1803,167 +1451,11 @@ export default function DesignPortalPage() {
                   </p>
                 )}
 
-                {file && !isReadingFile && fileData.startsWith('data:') && (
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={handleScanFile}
-                      disabled={isScanning}
-                      className="w-full py-2 rounded-lg bg-muted border border-border text-foreground font-medium hover:bg-muted/70 text-xs flex items-center justify-center gap-1.5 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      <Search className="h-3.5 w-3.5" />
-                      {isScanning ? 'Scanning for typos... this can take a while for multi-page PDFs' : 'Scan for Typos & Spelling'}
-                    </button>
-                    <OcrScanPanel
-                      result={ocrScanResult}
-                      error={scanError}
-                      showExtractedText={showExtractedText}
-                      onToggleExtractedText={() => setShowExtractedText(v => !v)}
-                    />
-                  </div>
-                )}
               </div>
 
-              {/* Faculty Proofreader Selection Panel (Must select at least 1, up to all) */}
-              <div className="p-4 bg-muted/40 dark:bg-muted/20 border border-border/80 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center text-accent">
-                      <GraduationCap className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        Select Design Proofreaders <span className="text-rose-500">*</span>
-                      </h4>
-                      <p className="text-[10px] text-muted-foreground">
-                        Leadership and designated reviewers are selected by default.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const defaults = eligibleFaculty.filter(f => {
-                          const r = (f.role || '').toLowerCase();
-                          return r.includes('ceo') || r.includes('director') || r.includes('head') || f.tier <= 2;
-                        });
-                        setSelectedProofreaderIds(defaults.length > 0 ? defaults.map(f => f.id) : eligibleFaculty.map(f => f.id));
-                      }}
-                      className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-accent/10 hover:bg-accent/20 text-accent border border-accent/25 transition-all cursor-pointer"
-                      title="Reset selection to default reviewers"
-                    >
-                      Defaults
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProofreaderIds(eligibleFaculty.map(f => f.id))}
-                      className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition-all cursor-pointer"
-                    >
-                      Select All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProofreaderIds([])}
-                      className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground border border-border transition-all cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                      selectedProofreaderIds.length > 0
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                        : 'bg-rose-500/10 text-rose-500 border-rose-500/30 animate-pulse'
-                    }`}>
-                      {selectedProofreaderIds.length} / {eligibleFaculty.length} Selected
-                    </span>
-                  </div>
-                </div>
-
-                {eligibleFaculty.length > 4 && (
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Search faculty by name or role..."
-                      value={proofreaderSearch}
-                      onChange={e => setProofreaderSearch(e.target.value)}
-                      className="w-full bg-background/80 border border-border rounded-xl pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-accent placeholder:text-muted-foreground/60"
-                    />
-                  </div>
-                )}
-
-                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
-                  {eligibleFaculty
-                    .filter(f =>
-                      !proofreaderSearch.trim() ||
-                      f.name.toLowerCase().includes(proofreaderSearch.toLowerCase()) ||
-                      (f.role || '').toLowerCase().includes(proofreaderSearch.toLowerCase()) ||
-                      (f.department || '').toLowerCase().includes(proofreaderSearch.toLowerCase())
-                    )
-                    .map(faculty => {
-                      const isSelected = selectedProofreaderIds.includes(faculty.id);
-                      return (
-                        <div
-                          key={faculty.id}
-                          onClick={() => {
-                            setSelectedProofreaderIds(prev =>
-                              prev.includes(faculty.id)
-                                ? prev.filter(id => id !== faculty.id)
-                                : [...prev, faculty.id]
-                            );
-                          }}
-                          className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                            isSelected
-                              ? 'bg-accent/10 border-accent/40 shadow-xs shadow-accent/10 text-foreground'
-                              : 'bg-background/60 hover:bg-muted/50 border-border/70 text-muted-foreground'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`h-5 w-5 rounded-md border flex items-center justify-center transition-all ${
-                              isSelected
-                                ? 'bg-accent border-accent text-white shadow-xs'
-                                : 'border-border bg-background'
-                            }`}>
-                              {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
-                            </div>
-
-                            <div className="h-7 w-7 rounded-full bg-linear-to-br from-accent/30 to-sky-500/20 border border-accent/30 flex items-center justify-center text-xs font-black text-foreground shrink-0">
-                              {faculty.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                            </div>
-
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-foreground truncate flex items-center gap-1.5">
-                                {faculty.name}
-                                {faculty.division && (
-                                  <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-md bg-muted text-muted-foreground border border-border">
-                                    {faculty.division}
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground truncate">
-                                {faculty.role || faculty.department || 'Faculty Member'} • {faculty.email}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                  {eligibleFaculty.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-3 italic">
-                      No faculty members found in directory.
-                    </p>
-                  )}
-                </div>
-
-                {selectedProofreaderIds.length === 0 && (
-                  <p className="text-[11px] font-semibold text-rose-500 flex items-center gap-1.5 pt-0.5">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    Please select at least 1 faculty member to review this design.
-                  </p>
-                )}
-              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Your submission is sent to the default approvers for review.
+              </p>
 
               {/* Real upload percent + ETA and retry now live inline on the
                   FilePreviewRow above — no separate indeterminate bar or
@@ -2160,16 +1652,11 @@ export default function DesignPortalPage() {
             <div className="shrink-0 flex items-center gap-1.5 overflow-x-auto -mx-1 px-1 pb-1 border-b border-border">
               {([
                 { id: 'overview', label: 'Overview', icon: FileText },
-                { id: 'proofreading', label: 'Proofreading', icon: UserCheck },
-                { id: 'style', label: 'Style Approval', icon: Sparkles },
-                ...(selectedDesign.styleStatus === 'Style Approved' || selectedDesign.workflowStage
-                  ? [{ id: 'workflow' as InspectorTab, label: 'Social Workflow', icon: Send }]
-                  : []),
+                { id: 'style', label: 'Review', icon: Sparkles },
               ] as { id: InspectorTab; label: string; icon: typeof FileText }[]).map(tab => {
                 const Icon = tab.icon;
                 const isActive = inspectorTab === tab.id;
                 const needsAttention =
-                  (tab.id === 'proofreading' && (!selectedDesign.review || selectedDesign.review.status === 'Pending Proofread')) ||
                   (tab.id === 'style' && (!selectedDesign.styleStatus || selectedDesign.styleStatus === 'Pending'));
                 return (
                   <button
@@ -2239,7 +1726,7 @@ export default function DesignPortalPage() {
                   Replace Uploaded File
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Uploading a new file resets any proofread or style decision back to pending, since the reviewed asset no longer exists.
+                  Uploading a new file resets any review decision back to pending, since the reviewed asset no longer exists.
                 </p>
                 <FileDropzone
                   onFilesSelected={(files) => handleReplaceFile(files[0])}
@@ -2281,25 +1768,6 @@ export default function DesignPortalPage() {
                         style={{ width: `${replaceReadProgress}%` }}
                       />
                     </div>
-                  </div>
-                )}
-                {replaceFile && !isReadingReplaceFile && replaceFileData.startsWith('data:') && (
-                  <div>
-                    <button
-                      type="button"
-                      onClick={handleScanReplaceFile}
-                      disabled={isScanningReplace}
-                      className="w-full py-2 rounded-lg bg-muted border border-border text-foreground font-medium hover:bg-muted/70 text-xs flex items-center justify-center gap-1.5 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      <Search className="h-3.5 w-3.5" />
-                      {isScanningReplace ? 'Scanning for typos...' : 'Scan for Typos & Spelling'}
-                    </button>
-                    <OcrScanPanel
-                      result={replaceOcrScanResult}
-                      error={replaceScanError}
-                      showExtractedText={showExtractedText}
-                      onToggleExtractedText={() => setShowExtractedText(v => !v)}
-                    />
                   </div>
                 )}
               </form>
@@ -2346,357 +1814,7 @@ export default function DesignPortalPage() {
               </div>
             )}
 
-            {/* Automated OCR + Spell-Check pass (run by the designer at upload time) */}
-            {selectedDesign.ocrScan && (
-              <div className="border-t border-border pt-4 space-y-2">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Search className="h-4 w-4 text-accent" />
-                  Automated Spelling Scan
-                </h3>
-                <OcrScanPanel
-                  result={selectedDesign.ocrScan}
-                  error=""
-                  showExtractedText={showExtractedText}
-                  onToggleExtractedText={() => setShowExtractedText(v => !v)}
-                />
-              </div>
-            )}
             </>
-            )}
-
-            {/* Automated 3-Stage Social Media Workflow Tracker Card */}
-            {inspectorTab === 'workflow' && (selectedDesign.styleStatus === 'Style Approved' || selectedDesign.workflowStage) && (
-              <div className="bg-slate-900/60 dark:bg-slate-900/80 bg-slate-50 border border-accent/30 p-5 rounded-2xl space-y-4 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-foreground flex items-center gap-2 text-sm">
-                    <Send className="h-4.5 w-4.5 text-accent" />
-                    Automated 3-Stage Social Media Workflow
-                  </span>
-                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                    selectedDesign.workflowStage === 'completed'
-                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/20'
-                      : 'bg-accent/15 text-accent border border-accent/20'
-                  }`}>
-                    {selectedDesign.workflowStage === 'completed' ? '✨ Workflow Completed' : `Stage: ${selectedDesign.workflowStage || 'caption_required'}`}
-                  </span>
-                </div>
-
-                {/* Stepper Progress Bar */}
-                <div className="grid grid-cols-3 gap-2 text-center text-[11px] pt-1">
-                  <div className={`p-2 rounded-xl border font-semibold ${
-                    selectedDesign.workflowStage === 'caption_required' || !selectedDesign.workflowStage
-                      ? 'bg-accent text-white border-accent'
-                      : selectedDesign.workflowStage === 'caption_approval' || selectedDesign.workflowStage === 'posting_required' || selectedDesign.workflowStage === 'completed'
-                      ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
-                      : 'bg-muted/40 text-muted-foreground border-border'
-                  }`}>
-                    1. Draft Captions
-                  </div>
-                  <div className={`p-2 rounded-xl border font-semibold ${
-                    selectedDesign.workflowStage === 'caption_approval'
-                      ? 'bg-accent text-white border-accent'
-                      : selectedDesign.workflowStage === 'posting_required' || selectedDesign.workflowStage === 'completed'
-                      ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
-                      : 'bg-muted/40 text-muted-foreground border-border'
-                  }`}>
-                    2. Proofreader Approval
-                  </div>
-                  <div className={`p-2 rounded-xl border font-semibold ${
-                    selectedDesign.workflowStage === 'posting_required'
-                      ? 'bg-accent text-white border-accent'
-                      : selectedDesign.workflowStage === 'completed'
-                      ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
-                      : 'bg-muted/40 text-muted-foreground border-border'
-                  }`}>
-                    3. Post on Social Media
-                  </div>
-                </div>
-
-                {/* Stage 1: Designer Drafts Captions */}
-                {(!selectedDesign.workflowStage || selectedDesign.workflowStage === 'caption_required') && (
-                  <form onSubmit={handleSubmitCaptions} className="space-y-3 bg-background/50 p-4 rounded-xl border border-border">
-                    <p className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Edit2 className="h-3.5 w-3.5 text-accent" />
-                      Stage 1: Submit Instagram & LinkedIn Captions (Designer Task)
-                    </p>
-                    {selectedDesign.captionReviewComments && (
-                      <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-lg text-[11px]">
-                        <strong>Proofreader Revision Notes:</strong> {selectedDesign.captionReviewComments}
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      <label className="font-medium text-foreground">Instagram Caption *</label>
-                      <textarea
-                        rows={2}
-                        required
-                        placeholder="Write Instagram caption..."
-                        value={instaCaptionInput}
-                        onChange={e => setInstaCaptionInput(e.target.value)}
-                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="font-medium text-foreground">LinkedIn Caption</label>
-                      <textarea
-                        rows={2}
-                        placeholder="Write LinkedIn caption (optional if same as IG)..."
-                        value={linkedinCaptionInput}
-                        onChange={e => setLinkedinCaptionInput(e.target.value)}
-                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full py-2.5 rounded-xl bg-accent text-white font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-primary-light transition-all shadow-md shadow-accent/20 cursor-pointer"
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                      Submit Captions for Proofreader Approval
-                    </button>
-                  </form>
-                )}
-
-                {/* Stage 2: Original Proofreader Approves Captions */}
-                {selectedDesign.workflowStage === 'caption_approval' && (
-                  <div className="space-y-3 bg-background/50 p-4 rounded-xl border border-border">
-                    <p className="font-semibold text-foreground flex items-center gap-1.5">
-                      <UserCheck className="h-3.5 w-3.5 text-accent" />
-                      Stage 2: Review Draft Captions ({selectedDesign.assignedProofreaderName || 'Proofreader'}&apos;s Task)
-                    </p>
-                    <div className="space-y-2 text-[11px] bg-muted/30 p-3 rounded-lg border border-border">
-                      <div>
-                        <span className="font-bold text-foreground">Draft Instagram Caption:</span>
-                        <p className="text-muted-foreground whitespace-pre-wrap mt-0.5">{selectedDesign.draftInstagramCaption || 'N/A'}</p>
-                      </div>
-                      {selectedDesign.draftLinkedinCaption && (
-                        <div>
-                          <span className="font-bold text-foreground">Draft LinkedIn Caption:</span>
-                          <p className="text-muted-foreground whitespace-pre-wrap mt-0.5">{selectedDesign.draftLinkedinCaption}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {(selectedDesign.assignedProofreaderEmail === user?.email || canReviewDesignProofread(user) || canViewAllDesigns(user)) ? (
-                      <form onSubmit={handleReviewCaptions} className="space-y-3 pt-1">
-                        <div className="flex items-center gap-4">
-                          <label className="flex items-center gap-2 cursor-pointer font-medium">
-                            <input
-                              type="radio"
-                              name="captionReviewApproved"
-                              checked={captionReviewApproved}
-                              onChange={() => setCaptionReviewApproved(true)}
-                              className="text-accent focus:ring-accent"
-                            />
-                            <span className="text-emerald-500 font-semibold flex items-center gap-1">
-                              <CheckCircle2 className="h-3.5 w-3.5" /> Approve Captions
-                            </span>
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer font-medium">
-                            <input
-                              type="radio"
-                              name="captionReviewApproved"
-                              checked={!captionReviewApproved}
-                              onChange={() => setCaptionReviewApproved(false)}
-                              className="text-accent focus:ring-accent"
-                            />
-                            <span className="text-rose-500 font-semibold flex items-center gap-1">
-                              <AlertCircle className="h-3.5 w-3.5" /> Request Caption Revision
-                            </span>
-                          </label>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="font-medium text-foreground">Review Comments / Revision Notes</label>
-                          <textarea
-                            rows={2}
-                            placeholder="Feedback or guidelines for the designer..."
-                            value={captionReviewCommentsInput}
-                            onChange={e => setCaptionReviewCommentsInput(e.target.value)}
-                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent"
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 rounded-xl bg-accent text-white font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-primary-light transition-all shadow-md shadow-accent/20 cursor-pointer"
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                          Submit Caption Review Decision
-                        </button>
-                      </form>
-                    ) : (
-                      <p className="text-[11px] text-muted-foreground italic">
-                        Draft captions submitted. Pending evaluation by {selectedDesign.assignedProofreaderName || 'the assigned proofreader'}.
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Stage 3: Two independent posting tasks — Instagram and LinkedIn each
-                    get their own card and are marked done separately, since posting to
-                    one platform doesn't mean the other is done. */}
-                {(selectedDesign.workflowStage === 'posting_required' || selectedDesign.workflowStage === 'completed') && (
-                  <div className="space-y-3">
-                    <p className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Send className="h-3.5 w-3.5 text-accent" />
-                      Stage 3: Social Media Posting Tasks (Designer Task — two separate tasks)
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className={`space-y-2.5 p-4 rounded-xl border ${
-                        selectedDesign.postingInstagramDone
-                          ? 'bg-emerald-500/10 border-emerald-500/20'
-                          : 'bg-background/50 border-border'
-                      }`}>
-                        <span className="font-bold text-foreground flex items-center gap-1.5">
-                          Instagram
-                          {selectedDesign.postingInstagramDone && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
-                        </span>
-                        <p className="text-[11px] text-muted-foreground whitespace-pre-wrap">{selectedDesign.approvedInstagramCaption}</p>
-                        {selectedDesign.postingInstagramDone ? (
-                          <p className="text-[11px] font-semibold text-emerald-500">Posted &amp; marked complete</p>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleCompletePosting('instagram')}
-                            className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Task Done: Mark Posted on Instagram
-                          </button>
-                        )}
-                      </div>
-                      <div className={`space-y-2.5 p-4 rounded-xl border ${
-                        selectedDesign.postingLinkedinDone
-                          ? 'bg-emerald-500/10 border-emerald-500/20'
-                          : 'bg-background/50 border-border'
-                      }`}>
-                        <span className="font-bold text-foreground flex items-center gap-1.5">
-                          LinkedIn
-                          {selectedDesign.postingLinkedinDone && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
-                        </span>
-                        <p className="text-[11px] text-muted-foreground whitespace-pre-wrap">{selectedDesign.approvedLinkedinCaption || selectedDesign.approvedInstagramCaption}</p>
-                        {selectedDesign.postingLinkedinDone ? (
-                          <p className="text-[11px] font-semibold text-emerald-500">Posted &amp; marked complete</p>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleCompletePosting('linkedin')}
-                            className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Task Done: Mark Posted on LinkedIn
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Stage Completed */}
-                {selectedDesign.workflowStage === 'completed' && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl space-y-2 text-xs">
-                    <div className="flex items-center gap-2 text-emerald-500 font-bold">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Social Media Workflow Completed
-                    </div>
-                    <p className="text-muted-foreground text-[11px]">
-                      The design and approved captions have been successfully verified and posted on both Instagram and LinkedIn.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Proofreading Action Form (for Assigned Proofreader / Admins) */}
-            {inspectorTab === 'proofreading' && (
-            <div className="pt-1 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-accent" />
-                  Proofreading Desk Review
-                </h3>
-                {selectedDesign.assignedProofreaderName && (
-                  <span className="text-xs text-muted-foreground">
-                    Assigned: <span className="font-semibold text-foreground">{selectedDesign.assignedProofreaderName}</span>
-                  </span>
-                )}
-              </div>
-
-              {selectedDesign.review?.comments && (
-                <div className="bg-muted/30 p-3 rounded-lg border border-border space-y-1 text-xs">
-                  <div className="flex items-center justify-between text-muted-foreground">
-                    <span className="font-semibold text-foreground">Current Review Status:</span>
-                    <span className="font-mono text-[10px]">{selectedDesign.review.reviewedAt?.split('T')[0]}</span>
-                  </div>
-                  <p className="text-foreground font-medium">{selectedDesign.review.status}</p>
-                  <p className="text-muted-foreground italic">"{selectedDesign.review.comments}"</p>
-                </div>
-              )}
-
-              {(
-                (Array.isArray(selectedDesign.assignedProofreaderIds) && user?.id && selectedDesign.assignedProofreaderIds.includes(user.id)) ||
-                selectedDesign.assignedProofreaderEmail === user?.email ||
-                (Array.isArray(selectedDesign.assignedProofreaders) && user?.email && selectedDesign.assignedProofreaders.some(p => p.email === user.email || p.id === user?.id)) ||
-                canReviewDesignProofread(user, selectedDesign) ||
-                canViewAllDesigns(user)
-              ) ? (
-                <form onSubmit={handleSaveReview} className="space-y-3 text-xs bg-muted/20 p-4 rounded-xl border border-border">
-                  <p className="font-medium text-foreground">Update Proofreading Decision:</p>
-
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer font-medium">
-                      <input
-                        type="radio"
-                        name="reviewStatus"
-                        checked={reviewStatus === 'Proofread Approved'}
-                        onChange={() => setReviewStatus('Proofread Approved')}
-                        className="text-accent focus:ring-accent"
-                      />
-                      <span className="text-emerald-500 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve Design
-                      </span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer font-medium">
-                      <input
-                        type="radio"
-                        name="reviewStatus"
-                        checked={reviewStatus === 'Changes Requested'}
-                        onChange={() => setReviewStatus('Changes Requested')}
-                        className="text-accent focus:ring-accent"
-                      />
-                      <span className="text-rose-500 font-semibold flex items-center gap-1">
-                        <AlertCircle className="h-3.5 w-3.5" /> Request Changes
-                      </span>
-                    </label>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-medium text-foreground">
-                      Proofreader Comments & Feedback{reviewStatus === 'Changes Requested' ? ' *' : ' (optional)'}
-                    </label>
-                    <textarea
-                      rows={3}
-                      required={reviewStatus === 'Changes Requested'}
-                      placeholder="Add specific corrections, text typos, color scheme notes..."
-                      value={reviewComments}
-                      onChange={e => setReviewComments(e.target.value)}
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-accent text-xs"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-xl bg-accent text-white font-bold hover:bg-primary-light text-xs flex items-center justify-center gap-1.5 shadow-md shadow-accent/20 cursor-pointer transition-all"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    Submit Proofreading Decision
-                  </button>
-                </form>
-              ) : (
-                <div className="p-3 bg-muted/20 rounded-lg text-xs text-muted-foreground flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                  Only the assigned proofreader ({selectedDesign.assignedProofreaderName || 'assigned member'}) or Tier 1–3 leadership can submit a proofread decision for this design.
-                </div>
-              )}
-            </div>
             )}
 
             {/* Design Head Style Evaluation Section */}
@@ -2705,7 +1823,7 @@ export default function DesignPortalPage() {
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
                   <Sparkles className="h-4 w-4 text-accent" />
-                  Design Style & Aesthetics Approval (Design Head)
+                  Design Review
                 </h3>
                 {selectedDesign.styleStatus && (
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
@@ -2723,14 +1841,14 @@ export default function DesignPortalPage() {
               {selectedDesign.styleFeedback && (
                 <div className="bg-muted/30 p-3 rounded-lg border border-border space-y-1 text-xs">
                   <div className="flex items-center justify-between text-muted-foreground">
-                    <span className="font-semibold text-foreground">Design Head Style Notes:</span>
+                    <span className="font-semibold text-foreground">Reviewer Notes:</span>
                     <span className="font-mono text-[10px]">{selectedDesign.styleDecidedAt?.split('T')[0]} ({selectedDesign.styleDecidedBy})</span>
                   </div>
                   <p className="text-muted-foreground italic">"{selectedDesign.styleFeedback}"</p>
                 </div>
               )}
 
-              {(isDesignHead(user) || isCentreHead(user) || hasCapability(user, 'DESIGN_STYLE_APPROVE')) ? (
+              {canReviewDesign ? (
                 <form onSubmit={handleSaveStyleReview} className="space-y-3 text-xs bg-accent/5 p-4 rounded-xl border border-accent/20">
                   <p className="font-medium text-foreground">{selectedDesign.styleStatus ? 'Update Design Style Decision:' : 'Submit Design Style Decision:'}</p>
 
@@ -2796,7 +1914,7 @@ export default function DesignPortalPage() {
             {/* Sticky Bottom Close Inspector Bar */}
             <div className="sticky -bottom-6 -mx-6 -mb-6 p-4 bg-slate-900/95 dark:bg-[#0B1B2E]/95 bg-white/95 border-t border-border z-30 flex items-center justify-between rounded-b-2xl mt-6">
               <span className="text-xs text-muted-foreground font-medium">
-                Design Inspection & Proofread Desk
+                Design Inspection
               </span>
               <button
                 type="button"
