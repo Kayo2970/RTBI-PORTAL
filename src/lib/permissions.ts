@@ -693,3 +693,25 @@ export function canManageEmailSettings(user: SessionUser): boolean {
  * relevance check can use the exact same scope-matching rules.
  */
 export { getAnnouncementScopeMatch } from './announcement-scope';
+
+// ---------------------------------------------------------------------------
+// Bookings / Invoices & Payments / Inventory
+// Staff = Super User, CEO and Employee (tiers 1–3). Startups (tier 4) can book
+// rooms and see/pay only their own invoices.
+// ---------------------------------------------------------------------------
+export function isStaffTier(user: SessionUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= TIER_EMPLOYEE;
+}
+export function canBookRoom(user: SessionUser): boolean {
+  return !!user;
+}
+/** Rooms setup, invoices/due amounts/breakups, payment verification, billing settings. */
+export function canManageBilling(user: SessionUser): boolean {
+  return isStaffTier(user);
+}
+export function canManageRooms(user: SessionUser): boolean {
+  return isStaffTier(user);
+}
+export function canManageInventory(user: SessionUser): boolean {
+  return isStaffTier(user);
+}

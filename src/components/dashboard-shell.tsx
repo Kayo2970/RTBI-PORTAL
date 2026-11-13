@@ -9,6 +9,9 @@ import {
   CheckSquare,
   Star,
   Receipt,
+  ReceiptText,
+  DoorOpen,
+  Boxes,
   FileText,
   BarChart3,
   Megaphone,
@@ -69,6 +72,7 @@ interface SidebarItem {
   href: string;
   icon: React.ComponentType<any>;
   superUserOnly?: boolean;
+  staffOnly?: boolean; // tiers 1–3 (Super User, CEO, Employee)
   groupPoliciesOnly?: boolean;
 }
 
@@ -90,6 +94,7 @@ const navSections: NavSection[] = [
       { name: 'Ratings', href: '/dashboard/ratings', icon: Star },
       { name: 'Design Portal', href: '/dashboard/designs', icon: Palette },
       { name: 'Visiting Card', href: '/dashboard/visiting-card', icon: IdCard },
+      { name: 'Bookings', href: '/dashboard/bookings', icon: DoorOpen },
     ],
   },
   {
@@ -97,6 +102,8 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Reimbursements', href: '/dashboard/reimbursements', icon: Receipt },
       { name: 'Budget & Funds', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Invoices & Payments', href: '/dashboard/invoices', icon: ReceiptText },
+      { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes, staffOnly: true },
       { name: 'Public Forums', href: '/dashboard/forms', icon: FileText },
       { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
       { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
@@ -1389,7 +1396,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   </h4>
                 )}
                 <div className="space-y-1">
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -1505,7 +1512,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   <h4 className="px-2 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                     {section.title}
                   </h4>
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
