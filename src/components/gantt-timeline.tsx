@@ -434,11 +434,6 @@ export function GanttTimeline({ events, tasks, maxRows = 10 }: GanttTimelineProp
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize bg-theme-border/30 text-theme-text-primary border border-theme-border/40">
                 {getEffectiveEventStatus(selectedEvent, tasks)}
               </span>
-              {selectedEvent.campus && (
-                <span className="text-[10px] text-theme-text-secondary bg-theme-border/20 px-2 py-0.5 rounded-full border border-theme-border/30">
-                  {selectedEvent.campus}
-                </span>
-              )}
             </div>
 
             <h4 className="text-sm md:text-base font-bold text-theme-text-primary truncate">

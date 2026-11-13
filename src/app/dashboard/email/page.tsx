@@ -42,6 +42,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { EmailHtmlPreview } from '@/components/email-html-preview';
 import { EmailBackgroundField, EmailBackgroundPicker, DEFAULT_BACKGROUND_PICK, EMAIL_BLUR_DEFAULT, backgroundChoiceFor, type EmailBackgroundPick } from '@/components/email-background-picker';
 import { ComposedAttachment, filesToAttachments, formatBytes, buildAttachmentNoticeLine, MAX_TOTAL_ATTACHMENT_BYTES } from '@/lib/email-attachments';
+import { AutomaticEmailsPanel } from '@/components/automatic-emails-panel';
 
 interface PendingQueueItem {
   email: string;
@@ -920,9 +921,14 @@ export default function EmailManagementPage() {
                 <option value="ANNOUNCEMENT">Announcements</option>
                 <option value="DIRECT_MESSAGE">Direct Messages</option>
                 <option value="SYSTEM">System Broadcasts</option>
-                <option value="EVENT_REPORT_APPROVAL">Report Approvals</option>
                 <option value="DESIGN_APPROVAL">Design Approvals</option>
-                <option value="PROCUREMENT_DECISION">Procurement Decisions</option>
+                <option value="APPROVAL_REQUEST">Approval Requests</option>
+                <option value="PROPOSAL">Proposals</option>
+                <option value="TASK_DEADLINE_REMINDER">Deadline Reminders</option>
+                <option value="BIRTHDAY">Birthday Greetings</option>
+                <option value="ACCOUNT_ACTIVATION">Account Activation</option>
+                <option value="AUTH_OTP">Security Codes</option>
+                <option value="CERTIFICATE">Certificates</option>
               </select>
             </div>
           </div>
@@ -1597,6 +1603,7 @@ export default function EmailManagementPage() {
       )}
 
       {/* TAB 4: SMTP SERVER SETTINGS */}
+      {activeTab === 'settings' && <AutomaticEmailsPanel />}
       {activeTab === 'settings' && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="glass-panel p-6 rounded-3xl xl:col-span-2 space-y-6 border border-theme-card-border">

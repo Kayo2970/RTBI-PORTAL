@@ -39,7 +39,6 @@ export interface OnboardingTourUser {
   role?: string;
   division?: string;
   department?: string;
-  committee?: string;
   avatarUrl?: string;
 }
 
@@ -86,7 +85,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'RTBI Team'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
         whatYouCanDo: [
           'Navigate through your assigned workspaces from the sidebar',
-          'Track live committee tasks, events, and performance metrics',
+          'Track live tasks, events, and performance metrics',
           'Access data and approval pipelines aligned with your authorization level',
         ],
         keyInformation: [
@@ -123,20 +122,20 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/events',
         icon: CalendarDays,
         color: 'accent',
-        summary: 'Coordinates event lifecycles across campuses from initial proposal and budget approval to venue logistics and post-event reporting.',
+        summary: 'Coordinates event lifecycles from initial proposal and budget approval to venue logistics and post-event reporting.',
         whatYouCanDo: isSuper || isHead
           ? [
               'Approve, reject, or archive event proposals',
-              'Assign organizing committees and set financial budgets',
-              'Monitor cross-campus venue allocations and schedules',
+              'Assign event tasks and set financial budgets',
+              'Monitor venue allocations and schedules',
             ]
           : [
               'Submit new event proposals for leadership review',
-              'View event logistics, schedules, and committee assignments',
+              'View event logistics, schedules, and task assignments',
               'Track registration counts and post-event feedback',
             ],
         keyInformation: [
-          'Inter-campus event cards with status badges (Ongoing, Planned, Archived)',
+          'Event cards with status badges (Ongoing, Planned, Archived)',
           'Speaker, coordinator, and venue details',
           'Associated budget requirements and clearance status',
         ],
@@ -174,15 +173,15 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           ? [
               'Add, edit, or modify member roles, tiers, and permissions',
               'View full student dossiers, performance history, and audit trails',
-              'Execute Quick-Switch impersonation to verify committee views',
+              'Execute Quick-Switch impersonation to verify what each member sees',
             ]
           : [
-              'Browse member contacts and committee divisions',
+              'Browse member contacts and tiers',
               'View peer student leadership profiles and assigned portfolios',
               'Filter directory by division (Core Committee, Associates, Faculty)',
             ],
         keyInformation: [
-          'Official contact emails, roles, and campus affiliations',
+          'Official contact emails and roles',
           'Tier badges (Tier 1 through Tier 7)',
           'Performance ratings and portfolio assignments',
         ],
@@ -190,15 +189,15 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       },
       {
         id: 'calendar',
-        title: 'Inter-Campus Event Calendar',
+        title: 'Event Calendar',
         moduleName: 'Calendar Desk',
         href: '/dashboard/calendar',
         icon: Calendar,
         color: 'accent',
-        summary: 'Interactive 7x5 month grid mapping all university deadlines, committee meetings, workshops, and flagship festivals.',
+        summary: 'Interactive 7x5 month grid mapping all deadlines, meetings, workshops, and events.',
         whatYouCanDo: [
           'Browse upcoming milestones month-by-month',
-          'Filter by campus location (Main Campus, South Campus, Virtual)',
+          'Filter by event status and date',
           'Click any calendar date to inspect scheduled events and timings',
         ],
         keyInformation: [
@@ -206,7 +205,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           'Meeting links, room numbers, and speaker agendas',
           'Real-time sync with newly approved event proposals',
         ],
-        accessBadge: 'All Campuses View',
+        accessBadge: 'Full Calendar View',
       },
     ];
 
@@ -221,7 +220,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         color: 'warning',
         summary: 'Executive ledger managing capital allocations, departmental operating funds, event sponsorships, and expenditure audits.',
         whatYouCanDo: [
-          'Review financial allocation caps by committee department',
+          'Review financial allocation caps by department',
           'Verify budget requests before disbursement',
           'Export audited financial spreadsheets for university accounting',
         ],
@@ -279,7 +278,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           ]
         : [
             'Browse approved marketing materials and banners',
-            'Download official promotional creatives for campus drives',
+            'Download official promotional creatives for events',
             'Verify release status before sharing content externally',
           ],
       keyInformation: [
@@ -302,7 +301,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       whatYouCanDo: [
         'Inspect your 5-point competency radar chart and historical growth',
         'Review feedback notes and peer recognitions',
-        isSuper ? 'Record semester ratings and feedback for committee members' : 'View personal performance scorecards',
+        isSuper ? 'Record ratings and feedback for team members' : 'View personal performance scorecards',
       ],
       keyInformation: [
         '5-Axis Radar Diagram (Initiative, Quality, Teamwork, Timeliness, Leadership)',
@@ -352,7 +351,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         keyInformation: [
           'Cryptographic status and database integrity verification',
           'Comprehensive audit trails recording every user login and mutation',
-          'Global campus configuration and maintenance switches',
+          'Global configuration and maintenance switches',
         ],
         accessBadge: 'Super User Exclusive (Tier 1)',
       });

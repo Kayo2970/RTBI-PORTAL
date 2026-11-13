@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     } else if (created.assignedProofreaderEmail) {
       selectedFaculty = [{
         id: created.assignedProofreaderId || created.assignedProofreaderEmail,
-        name: created.assignedProofreaderName || 'Faculty Proofreader',
+        name: created.assignedProofreaderName || 'Proofreader',
         email: created.assignedProofreaderEmail,
       }];
     }
@@ -97,12 +97,12 @@ export async function POST(request: Request) {
           requesterId: created.designerId || '',
           requesterName: created.designerName || 'A designer',
           requesterEmail: created.designerEmail,
-          message: 'This design submission needs your faculty proofreading sign-off.',
+          message: 'This design submission needs your proofreading sign-off.',
           customPanel: selectedFaculty.map(f => ({
             id: f.id,
             name: f.name,
             email: f.email,
-            label: f.role || 'Faculty Proofreader',
+            label: f.role || 'Proofreader',
           })),
         });
       } catch (approvalErr) {
@@ -121,17 +121,17 @@ export async function POST(request: Request) {
 
         for (const faculty of selectedFaculty) {
           if (!faculty.email) continue;
-          const bodyText = `Dear ${faculty.name},\n\nA design asset has been submitted and assigned to you for faculty proofreading: "${created.title}".\n\nCategory: ${created.category || 'Design Asset'}\nEvent: ${created.eventTitle || 'RTBI Event'}\nSubmitted By: ${created.designerName || 'Designer'} (${created.designerEmail || 'N/A'})\n\nPlease inspect and complete your proofread review here:\n${designLink}\n\nRegards,\nRTBI Design Portal`;
+          const bodyText = `Dear ${faculty.name},\n\nA design asset has been submitted and assigned to you for proofreading: "${created.title}".\n\nCategory: ${created.category || 'Design Asset'}\nEvent: ${created.eventTitle || 'RTBI Event'}\nSubmitted By: ${created.designerName || 'Designer'} (${created.designerEmail || 'N/A'})\n\nPlease inspect and complete your proofread review here:\n${designLink}\n\nRegards,\nRTBI Design Portal`;
 
           const bodyHtml = wrapInMasterEmailTemplate({
             pageTitle: subject,
             badgeText: 'PROOFREAD REQUEST',
             badgeColor: '#EA7153',
-            headerTitle: 'Faculty Proofread Request',
+            headerTitle: 'Proofread Request',
             bodyContentHtml: `
             <p style="margin: 0 0 16px; font-size: 14px; color: #574769; line-height: 1.6;">
               Dear <strong>${faculty.name}</strong>,<br/>
-              A new design asset has been submitted and assigned to you for faculty proofreading sign-off.
+              A new design asset has been submitted and assigned to you for proofreading sign-off.
             </p>
 
             <div style="background: #FEF7F6; border: 1px solid #E9E2F0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
             subject,
             bodyText,
             bodyHtml,
-            category: 'SYSTEM',
+            category: 'DESIGN_APPROVAL',
           });
         }
       } catch (emailErr) {

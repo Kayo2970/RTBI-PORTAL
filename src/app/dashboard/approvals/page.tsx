@@ -40,13 +40,10 @@ import {
   rejectAnnouncement,
   approveForm,
   rejectForm,
-  approveEventReport,
-  rejectEventReport,
   getTasks,
   getDesigns,
   getEvents,
   getAnnouncements,
-  getEventReports,
   getForms,
   getMembers,
   ApprovalRequest,
@@ -54,7 +51,6 @@ import {
   DesignSubmissionItem,
   EventItem,
   AnnouncementItem,
-  EventReportItem,
   PublicFormItem,
   Member,
 } from '@/lib/local-data';
@@ -62,6 +58,7 @@ import { reconcilePassesFromServer } from '@/lib/local-data';
 import { isEventsHeadGgCampus } from '@/lib/permissions';
 import { EmptyState } from '@/components/ui/empty-state';
 import { decideProposal } from '@/lib/proposals-client';
+import { DefaultApproversPanel } from '@/components/default-approvers-panel';
 
 type Tab = 'inbox' | 'sent' | 'decided';
 
@@ -69,7 +66,6 @@ const entityIcon = (type: ApprovalRequest['entityType']) => {
   if (type === 'task') return CheckSquare;
   if (type === 'event') return Calendar;
   if (type === 'design') return Palette;
-  if (type === 'event-report') return FileText;
   if (type === 'announcement') return Megaphone;
   if (type === 'proposal') return FileText;
   if (type === 'form') return LayoutTemplate;
@@ -82,7 +78,6 @@ const entityLink = (req: ApprovalRequest) => {
   if (req.entityType === 'event') return `/dashboard/events/${req.entityId}`;
   if (req.entityType === 'member') return '/dashboard/directory';
   if (req.entityType === 'design') return '/dashboard/designs';
-  if (req.entityType === 'event-report') return '/dashboard/event-reports';
   if (req.entityType === 'announcement') return '/dashboard/announcements';
   if (req.entityType === 'proposal') return `/dashboard/proposals?highlight=${req.entityId}`;
   if (req.entityType === 'form') return '/dashboard/forms';
@@ -129,7 +124,6 @@ export default function ApprovalsPage() {
     designs: DesignSubmissionItem[];
     events: EventItem[];
     announcements: AnnouncementItem[];
-    eventReports: EventReportItem[];
     members: Member[];
     forms: PublicFormItem[];
   }>({
@@ -137,7 +131,6 @@ export default function ApprovalsPage() {
     designs: [],
     events: [],
     announcements: [],
-    eventReports: [],
     members: [],
     forms: [],
   });
@@ -149,7 +142,6 @@ export default function ApprovalsPage() {
       const designs = getDesigns();
       const events = getEvents();
       const announcements = getAnnouncements();
-      const eventReports = getEventReports();
       const members = getMembers();
       const forms = getForms();
 
@@ -158,7 +150,6 @@ export default function ApprovalsPage() {
         designs,
         events,
         announcements,
-        eventReports,
         members,
         forms,
       });
@@ -169,12 +160,8 @@ export default function ApprovalsPage() {
         if (r.entityType === 'design') return designs.some(d => d.id === r.entityId);
         if (r.entityType === 'event') return events.some(e => e.id === r.entityId);
         if (r.entityType === 'announcement') return announcements.some(a => a.id === r.entityId);
-        if (r.entityType === 'event-report') return eventReports.some(er => er.id === r.entityId);
         if (r.entityType === 'form') return forms.some(f => f.id === r.entityId);
         if (r.entityType === 'member') return members.some(m => m.id === r.entityId);
-        if (r.entityType === 'committee') {
-          return events.some(e => e.committees?.some(c => c.id === r.entityId));
-        }
         return true;
       });
 
@@ -229,7 +216,7 @@ export default function ApprovalsPage() {
   const list = tab === 'inbox' ? pendingInbox : tab === 'decided' ? decidedInbox : sentRequests;
   const pendingInboxCount = pendingInbox.length;
 
-  const directlyResolvable = (type: ApprovalRequest['entityType']) => type === 'task' || type === 'event' || type === 'announcement' || type === 'form' || type === 'event-report' || type === 'event-pass' || type === 'proposal';
+  const directlyResolvable = (type: ApprovalRequest['entityType']) => type === 'task' || type === 'event' || type === 'announcement' || type === 'form' || type === 'event-pass' || type === 'proposal';
 
   const handleDecide = (id: string, decision: 'approved' | 'rejected', note?: string) => {
     const req = requests.find(r => r.id === id);
@@ -247,9 +234,6 @@ export default function ApprovalsPage() {
         decideProposal(req.entityId, decision === 'approved' ? 'Approved' : 'Rejected', note).catch(err => console.error('[approvals] proposal decision failed:', err));
       } else if (req.entityType === 'form') {
         decision === 'approved' ? approveForm(req.entityId, actorName, note) : rejectForm(req.entityId, actorName, note);
-      } else if (req.entityType === 'event-report') {
-        const as = (req.approverLabel?.toLowerCase().includes('gg') || (user && isEventsHeadGgCampus(user))) ? 'gg_events_head' : 'centre_head';
-        decision === 'approved' ? approveEventReport(req.entityId, as, actorName, note) : rejectEventReport(req.entityId, actorName, note);
       }
     }
     decideApprovalRequest(id, decision, actorName, note);
@@ -284,27 +268,11 @@ export default function ApprovalsPage() {
     if (req.entityType === 'design') {
       return { type: 'design' as const, item: entitiesData.designs.find(d => d.id === req.entityId) };
     }
-    if (req.entityType === 'event-report') {
-      return { type: 'event-report' as const, item: entitiesData.eventReports.find(er => er.id === req.entityId) };
-    }
     if (req.entityType === 'form') {
       return { type: 'form' as const, item: entitiesData.forms.find(f => f.id === req.entityId) };
     }
     if (req.entityType === 'member') {
       return { type: 'member' as const, item: entitiesData.members.find(m => m.id === req.entityId) };
-    }
-    if (req.entityType === 'committee') {
-      let matchedComm: any = null;
-      let matchedEvent: EventItem | undefined;
-      for (const e of entitiesData.events) {
-        const c = e.committees?.find(cm => cm.id === req.entityId);
-        if (c) {
-          matchedComm = c;
-          matchedEvent = e;
-          break;
-        }
-      }
-      return { type: 'committee' as const, item: matchedComm, event: matchedEvent };
     }
     return { type: 'unknown' as const, item: null };
   };
@@ -323,8 +291,10 @@ export default function ApprovalsPage() {
           <UserCheck className="h-5 w-5 text-accent" />
           Approvals
         </h1>
-        <p className="text-xs text-theme-text-secondary">Requests to sign off on announcements, tasks, events, designs, or committee rosters</p>
+        <p className="text-xs text-theme-text-secondary">Requests to sign off on announcements, tasks, events, designs and forms</p>
       </div>
+
+      {isSuperUser && <DefaultApproversPanel />}
 
       <div className="flex items-center gap-2 border-b border-theme-border/20">
         <button
@@ -362,10 +332,10 @@ export default function ApprovalsPage() {
           title={tab === 'inbox' ? 'Nothing waiting on you' : tab === 'decided' ? 'No decided requests yet' : 'No requests sent yet'}
           description={
             tab === 'inbox'
-              ? "When a member asks you to approve an announcement, task, committee, or event, it'll show up here."
+              ? "When a member asks you to approve an announcement, task, or event, it'll show up here."
               : tab === 'decided'
                 ? 'Requests you\'ve approved or rejected will move here, out of your Awaiting My Decision list.'
-                : 'Use the "Request Approval" button on an announcement, task, committee, or event to ask a member to sign off on it.'
+                : 'Use the "Request Approval" button on an announcement, task, or event to ask a member to sign off on it.'
           }
         />
       ) : (
@@ -488,7 +458,6 @@ export default function ApprovalsPage() {
                               {entityResolved.item.datesTBD ? 'Dates TBD' : `${entityResolved.item.startDate} ${entityResolved.item.endDate ? `to ${entityResolved.item.endDate}` : ''}`}
                             </span>
                             {entityResolved.item.location && <span>• {entityResolved.item.location}</span>}
-                            {entityResolved.item.campus && <span>({entityResolved.item.campus})</span>}
                           </div>
                           {entityResolved.item.description && (
                             <p className="line-clamp-2 text-theme-text-primary text-[11px]">
@@ -514,20 +483,6 @@ export default function ApprovalsPage() {
                         </div>
                       )}
 
-                      {/* Event Report Preview */}
-                      {entityResolved.type === 'event-report' && (
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary flex-wrap">
-                            <span>Event: {entityResolved.item.eventTitle}</span>
-                            <span>• Submitter: {entityResolved.item.submittedBy}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-theme-text-primary">
-                            <FileText className="h-3.5 w-3.5 text-accent shrink-0" />
-                            <span className="truncate">{entityResolved.item.fileName}</span>
-                            <span className="text-[10px] text-theme-text-secondary">({(entityResolved.item.fileSize / 1024).toFixed(0)} KB)</span>
-                          </div>
-                        </div>
-                      )}
 
                       {/* Member Preview */}
                       {entityResolved.type === 'member' && (
@@ -536,17 +491,6 @@ export default function ApprovalsPage() {
                             <span className="font-semibold text-theme-text-primary">{entityResolved.item.role}</span>
                             <span>• {entityResolved.item.division}</span>
                             {entityResolved.item.department && <span>({entityResolved.item.department})</span>}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Committee Preview */}
-                      {entityResolved.type === 'committee' && entityResolved.item && (
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary flex-wrap">
-                            <span>Lead: {entityResolved.item.leadName || 'Unassigned'}</span>
-                            {entityResolved.event && <span>• Event: {entityResolved.event.title}</span>}
-                            <span>• {entityResolved.item.members?.length || 0} Members</span>
                           </div>
                         </div>
                       )}
@@ -754,12 +698,8 @@ export default function ApprovalsPage() {
                         </p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Location & Campus</p>
-                        <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.location || 'TBD'} ({entityResolved.item.campus || 'Both'})</p>
-                      </div>
-                      <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Committees</p>
-                        <p className="text-xs font-semibold text-accent mt-0.5">{entityResolved.item.committees?.length || 0} formed</p>
+                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Location</p>
+                        <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.location || 'TBD'}</p>
                       </div>
                     </div>
 
@@ -807,50 +747,6 @@ export default function ApprovalsPage() {
                   </div>
                 )}
 
-                {/* Specific Event Report Details */}
-                {entityResolved.type === 'event-report' && entityResolved.item && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Event</p>
-                        <p className="text-xs font-semibold text-accent mt-0.5">{entityResolved.item.eventTitle}</p>
-                      </div>
-                      <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Submitted By</p>
-                        <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.submittedBy}</p>
-                      </div>
-                      <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">File Size</p>
-                        <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{(entityResolved.item.fileSize / 1024).toFixed(0)} KB</p>
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-theme-background/60 border border-theme-border/40 space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1.5">
-                        <FileText className="h-4 w-4 text-accent" /> Attached Report File
-                      </p>
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-accent" />
-                          <div>
-                            <p className="text-xs font-medium text-theme-text-primary">{entityResolved.item.fileName}</p>
-                            <p className="text-[10px] text-theme-text-secondary">{entityResolved.item.fileType}</p>
-                          </div>
-                        </div>
-                        {entityResolved.item.fileUrl && (
-                          <a
-                            href={entityResolved.item.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-1 bg-accent/15 hover:bg-accent/25 text-accent text-xs font-semibold rounded-lg transition-all"
-                          >
-                            Download / View
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Requester's Personal Message */}
                 {req.message && (

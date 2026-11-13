@@ -3,7 +3,7 @@ import { mutateCollection, readCollection } from '@/lib/server-db';
 import { gateFormAction, formEditKeys, holdEditForApproval, classifyApprovalUpdate, canDecidePending } from '@/lib/approval-gate';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { getAccessLevelSettingsServer, canCreateForms, canDeleteForms, seesOnlyOwnForms, isOwnForm, isEventsHeadGgCampus } from '@/lib/permissions-server';
-import { fanOutAutoApproval, cascadeCloseAutoApprovals, deleteLinkedApprovalRequests, resolveCustomApprovalPanel, resolveTraineeFormPanel } from '@/lib/approval-sync';
+import { fanOutAutoApproval, cascadeCloseAutoApprovals, deleteLinkedApprovalRequests, resolveCustomApprovalPanel } from '@/lib/approval-sync';
 import { apiError } from '@/lib/api-error';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
@@ -68,7 +68,7 @@ export async function PATCH(
         try {
           const customPanel = result.approverType && result.approverType !== 'CENTER_HEAD'
             ? await resolveCustomApprovalPanel(result.approverType, result.approverMemberId, result.approverPolicyTagId)
-            : result.createdByDivision === 'Training Associate' ? await resolveTraineeFormPanel() : undefined;
+            : undefined;
           await fanOutAutoApproval({
             entityType: 'form',
             entityId: result.id,

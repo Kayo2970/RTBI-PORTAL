@@ -6,7 +6,7 @@ import { apiError } from '@/lib/api-error';
 import { cascadeCloseAutoApprovals, deleteLinkedApprovalRequests } from '@/lib/approval-sync';
 import { getAccessLevelSettingsServer } from '@/lib/permissions-server';
 import { viewProposalAs } from '@/lib/proposals-server';
-import { dispatchProposalEmails } from '@/lib/proposal-email';
+import { dispatchProposalEmails, dispatchProposalReplyEmail } from '@/lib/proposal-email';
 import type { ProposalItem, ProposalResponseStatus } from '@/lib/proposals';
 import type { Member } from '@/lib/local-data';
 
@@ -14,7 +14,7 @@ const RESPONSE_STATUSES: ProposalResponseStatus[] = ['Under Review', 'Accepted',
 
 /**
  * PATCH body is one of:
- *   { action: 'decide', decision: 'Approved' | 'Rejected', note?: string }  — approvers only
+ *   { action: 'decide', decision: 'Approved' | 'Rejected', note?: string }  — Super User, for proposals still awaiting a decision
  *   { action: 'respond', status: 'Under Review' | 'Accepted' | 'Declined', comment?: string } — recipients only
  */
 export async function PATCH(
@@ -35,6 +35,7 @@ export async function PATCH(
     const nowIso = new Date().toISOString();
     let newlyApproved = false;
     let newlyRejected = false;
+    let reply: { status: ProposalResponseStatus; comment?: string } | null = null;
 
     if (body.action === 'decide') {
       if (!view.viewer?.canDecide) throw new ForbiddenError();
@@ -54,6 +55,7 @@ export async function PATCH(
       if (!view.viewer?.isRecipient) throw new ForbiddenError('Only the proposal\'s recipients can respond.');
       if (!RESPONSE_STATUSES.includes(body.status)) return NextResponse.json({ error: 'Invalid response.' }, { status: 400 });
       const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 2000) : undefined;
+      reply = { status: body.status, comment: comment || undefined };
       await mutateCollection('proposals', (current) => (current || []).map((p: any) => {
         if (p.id !== id) return p;
         const others = (p.responses || []).filter((r: any) => r.memberId !== actor.id);
@@ -73,6 +75,8 @@ export async function PATCH(
       }
       if (newlyApproved) await dispatchProposalEmails(updated);
     }
+    // A reply from a recipient goes straight back to whoever sent the proposal.
+    if (updated && reply) await dispatchProposalReplyEmail(updated, { name: actor.name, status: (reply as { status: ProposalResponseStatus; comment?: string }).status, comment: (reply as { status: ProposalResponseStatus; comment?: string }).comment });
     const final = updated ? (await readCollection<ProposalItem>('proposals')).find(p => p.id === id) : undefined;
     return NextResponse.json(final ? viewProposalAs(final, actor, members, settings) : null);
   } catch (err: any) {

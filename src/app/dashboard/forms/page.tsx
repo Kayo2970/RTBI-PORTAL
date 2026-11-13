@@ -237,7 +237,6 @@ export default function FormsBuilderPage() {
   const [backgroundImageUrl, setBackgroundImageUrl] = useState('');
   const [backgroundBlur, setBackgroundBlur] = useState(0);
   const [backgroundDim, setBackgroundDim] = useState(10);
-  const [committee, setCommittee] = useState('Senior Student Leadership');
   const [eventId, setEventId] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [fields, setFields] = useState<FormField[]>([
@@ -306,7 +305,6 @@ export default function FormsBuilderPage() {
     setBackgroundImageUrl('');
     setBackgroundBlur(0);
     setBackgroundDim(10);
-    setCommittee(user?.committee === 'All Committees' ? 'Senior Student Leadership' : user?.committee || 'Senior Student Leadership');
     setEventId('');
     setSelectedTemplateId('');
     setFields([
@@ -334,7 +332,6 @@ export default function FormsBuilderPage() {
     setBackgroundImageUrl(form.backgroundImageUrl || '');
     setBackgroundBlur(form.backgroundBlur ?? 0);
     setBackgroundDim(form.backgroundDim ?? 10);
-    setCommittee(form.committee);
     setEventId(form.eventId || '');
     setSelectedTemplateId('');
     setFields(form.fields);
@@ -498,7 +495,6 @@ export default function FormsBuilderPage() {
         backgroundImageUrl: backgroundImageUrl || undefined,
         backgroundBlur: backgroundImageUrl ? backgroundBlur : undefined,
         backgroundDim: backgroundImageUrl ? backgroundDim : undefined,
-        committee,
         fields,
         eventId: eventId || undefined,
         eventName: linkedEvent?.title,
@@ -536,7 +532,6 @@ export default function FormsBuilderPage() {
         backgroundImageUrl: backgroundImageUrl || undefined,
         backgroundBlur: backgroundImageUrl ? backgroundBlur : undefined,
         backgroundDim: backgroundImageUrl ? backgroundDim : undefined,
-        committee,
         fields,
         eventId: eventId || undefined,
         eventName: linkedEvent?.title,

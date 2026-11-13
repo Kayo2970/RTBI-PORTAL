@@ -38,11 +38,9 @@ export async function POST(request: Request) {
       try {
         const entityLabelMap: Record<string, string> = {
           task: 'Task',
-          committee: 'Committee',
           event: 'Event',
           member: 'Member',
           design: 'Design',
-          'event-report': 'Event Report',
           announcement: 'Announcement',
         };
         const entityLabel = entityLabelMap[created.entityType] || 'Event';

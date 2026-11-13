@@ -36,7 +36,6 @@ import {
   initialGuests,
   initialBudgets,
   initialIncomeSources,
-  initialProcurementRequests,
   FEEDBACK_FORM_TEMPLATE_ID,
   isFacultyMember,
   isSocialMediaTeamMember,
@@ -68,19 +67,21 @@ export interface DbSchema {
   passwordResets: any[];
   // Per-device login lockout state — see src/lib/device-security.ts. Hashed device ids only.
   deviceSecurity: any[];
+  // Super User switches for automatic emails (pause-all + per-type) — see lib/email-service.ts getEmailPolicy().
+  emailPolicy: any[];
+  // Super-User-chosen default approvers for automatic approval requests — see lib/approval-sync.ts.
+  approvalSettings: any[];
   emailChanges: any[];
   accountActivations: any[];
   emailSettings: any[];
   guests: any[];
   budgets: any[];
   incomeSources: any[];
-  eventReports: any[];
   event_passes: any[];
   certificates: any[];
   certificateSchedules: any[];
   passEmailSchedules: any[];
   approvalRequests: any[];
-  procurementRequests: any[];
   // One row per (memberId, date) a birthday email was actually sent for —
   // see src/lib/birthday-scheduler.ts. Purely an idempotency guard so a
   // PM2 restart near midnight (or two scheduler ticks landing on the same
@@ -128,19 +129,19 @@ const EMPTY_DB: DbSchema = {
   emails: [],
   passwordResets: [],
   deviceSecurity: [],
+  emailPolicy: [],
+  approvalSettings: [],
   emailChanges: [],
   accountActivations: [],
   emailSettings: [],
   guests: [],
   budgets: [],
   incomeSources: [],
-  eventReports: [],
   event_passes: [],
   certificates: [],
   certificateSchedules: [],
   passEmailSchedules: [],
   approvalRequests: [],
-  procurementRequests: [],
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
@@ -178,6 +179,8 @@ const SEED_DB: DbSchema = {
   emails: [],
   passwordResets: [],
   deviceSecurity: [],
+  emailPolicy: [],
+  approvalSettings: [],
   emailChanges: [],
   accountActivations: [],
   emailSettings: [
@@ -198,13 +201,11 @@ const SEED_DB: DbSchema = {
   guests: initialGuests,
   budgets: initialBudgets,
   incomeSources: initialIncomeSources,
-  eventReports: [],
   event_passes: [],
   certificates: [],
   certificateSchedules: [],
   passEmailSchedules: [],
   approvalRequests: [],
-  procurementRequests: initialProcurementRequests,
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],

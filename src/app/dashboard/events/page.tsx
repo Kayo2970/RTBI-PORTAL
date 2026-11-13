@@ -42,7 +42,6 @@ import {
   getMembers,
   isFestivalEvent,
   EventItem,
-  EventCommittee,
   EventSponsor,
   Member,
 } from '@/lib/local-data';
@@ -101,7 +100,6 @@ export default function EventsPage() {
   const [planningStartDate, setPlanningStartDate] = useState('');
   const [durationDays, setDurationDays] = useState('');
   const [location, setLocation] = useState('');
-  const [campus, setCampus] = useState<'GG Campus' | 'RTC Campus' | 'Both Campuses'>('GG Campus');
   const [status, setStatus] = useState<EventItem['status']>('planned');
   const [sponsors, setSponsors] = useState<EventSponsor[]>([]);
   const [formError, setFormError] = useState('');
@@ -114,10 +112,6 @@ export default function EventsPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Initial Committee State (optional during event creation)
-  const [initialCommitteePreset, setInitialCommitteePreset] = useState<string>('None');
-  const [initialCustomCommitteeName, setInitialCustomCommitteeName] = useState<string>('');
-  const [initialCommitteeMemberIds, setInitialCommitteeMemberIds] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isDragOver: isCsvDragOver, dragHandlers: csvDragHandlers } = useDropTarget((files) => handleCsvFile(files[0]));
 
@@ -244,7 +238,6 @@ export default function EventsPage() {
             location: locationIndex !== -1 ? values[locationIndex] : '',
             status: evStatus,
             createdBy: user?.name || 'User',
-            committees: []
           });
           importCount++;
         }
@@ -298,13 +291,9 @@ export default function EventsPage() {
     setPlanningStartDate('');
     setDurationDays('');
     setLocation('');
-    setCampus('GG Campus');
     setStatus('planned');
     setSponsors([]);
     setFormError('');
-    setInitialCommitteePreset('None');
-    setInitialCustomCommitteeName('');
-    setInitialCommitteeMemberIds([]);
     setIsCreateModalOpen(true);
   };
 
@@ -318,7 +307,6 @@ export default function EventsPage() {
     setPlanningStartDate(event.planningStartDate || '');
     setDurationDays('');
     setLocation(event.location || '');
-    setCampus(event.campus || 'GG Campus');
     setStatus(event.status);
     setSponsors(event.sponsors || []);
     setFormError('');
@@ -368,7 +356,6 @@ export default function EventsPage() {
         datesTBD,
         planningStartDate,
         location: location.trim(),
-        campus,
         status,
         sponsors: cleanedSponsors,
       };
@@ -387,18 +374,6 @@ export default function EventsPage() {
       }
       setEditingEvent(null);
     } else {
-      const initialCommittees: EventCommittee[] = [];
-      if (initialCommitteePreset !== 'None') {
-        const commName = initialCommitteePreset === 'Others' ? initialCustomCommitteeName.trim() : initialCommitteePreset;
-        if (commName) {
-          initialCommittees.push({
-            id: 'comm_' + Date.now(),
-            name: commName,
-            memberIds: initialCommitteeMemberIds,
-          });
-        }
-      }
-
       const newEventBase = {
         title: title.trim(),
         description: description.trim(),
@@ -407,11 +382,9 @@ export default function EventsPage() {
         datesTBD,
         planningStartDate,
         location: location.trim(),
-        campus,
         status,
         sponsors: cleanedSponsors,
         createdBy: user?.name || 'User',
-        committees: initialCommittees
       };
       const approval = getEventApprovalRequirement(user, 'CREATE');
       if (approval.requiresApproval) {
@@ -550,7 +523,7 @@ export default function EventsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Events & Milestone Operations</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Manage symposiums, create event-specific sub-committees, and assign student teams</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Plan events and assign tasks to your team</p>
         </div>
         {canManage && (
           <div className="flex flex-wrap items-center gap-2.5">
@@ -590,14 +563,6 @@ export default function EventsPage() {
             >
               <Ticket className="h-4 w-4" />
               Event Passes
-            </Link>
-
-            <Link
-              href="/dashboard/festivals"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-800 dark:text-white border border-slate-300 dark:border-white/15 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
-            >
-              <Sparkles className="h-4 w-4" />
-              Festivals & Observances
             </Link>
 
             {canCreate && (
@@ -669,14 +634,7 @@ export default function EventsPage() {
                       <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(effectiveStatus)}`}>
                         {effectiveStatus}
                       </span>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/20">
-                        {event.campus || 'GG Campus'}
-                      </span>
                     </div>
-                    <span className="text-[11px] text-accent font-semibold flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {(event.committees || []).length} Committees
-                    </span>
                   </div>
 
                   {(event.approvalStatus === 'pending_create' || event.approvalStatus === 'pending_edit' || event.approvalStatus === 'pending_delete') && canSeeApprovalMeta(event) && (
@@ -900,18 +858,6 @@ export default function EventsPage() {
                     className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="block font-medium text-theme-text-secondary">Host Campus *</label>
-                  <select
-                    value={campus || 'GG Campus'}
-                    onChange={(e) => setCampus(e.target.value as any)}
-                    className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold text-accent"
-                  >
-                    <option value="GG Campus">GG Campus</option>
-                    <option value="RTC Campus">RTC Campus</option>
-                    <option value="Both Campuses">Both Campuses</option>
-                  </select>
-                </div>
               </div>
 
               </div>
@@ -978,7 +924,7 @@ export default function EventsPage() {
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                 />
                 <p className="text-[11px] text-theme-text-secondary">
-                  When prep work (bookings, committees, design briefs...) actually starts. Independent of the Event Date(s) above — set this even while the event's own dates are still To Be Decided, so planning can begin before the event date is locked in.
+                  When prep work (bookings, design briefs...) actually starts. Independent of the Event Date(s) above — set this even while the event's own dates are still To Be Decided, so planning can begin before the event date is locked in.
                 </p>
               </div>
 
@@ -1061,79 +1007,6 @@ export default function EventsPage() {
                 />
               </div>
 
-              {!editingEvent && (
-                <div className="space-y-3 border-t border-theme-border/30 pt-3">
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                      Initial Committee Unit (optional)
-                    </label>
-                    <select
-                      value={initialCommitteePreset}
-                      onChange={(e) => setInitialCommitteePreset(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent text-xs"
-                    >
-                      <option value="None">None (Create later)</option>
-                      <option value="Food">Food</option>
-                      <option value="Stage">Stage</option>
-                      <option value="Organizing">Organizing</option>
-                      <option value="Hospitality">Hospitality</option>
-                      <option value="Design">Design</option>
-                      <option value="Photography">Photography</option>
-                      <option value="Others">Others (Enter Custom Tag)</option>
-                    </select>
-                  </div>
-
-                  {initialCommitteePreset === 'Others' && (
-                    <div className="space-y-1.5 animate-in fade-in duration-150">
-                      <label className="block text-[11px] font-medium text-theme-text-secondary">Custom Committee Name / Tag *</label>
-                      <input
-                        type="text"
-                        required={initialCommitteePreset === 'Others'}
-                        value={initialCustomCommitteeName}
-                        onChange={(e) => setInitialCustomCommitteeName(e.target.value)}
-                        placeholder="e.g. Media Production, Logistics"
-                        className="w-full px-4 py-2 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent text-xs"
-                      />
-                    </div>
-                  )}
-
-                  {initialCommitteePreset !== 'None' && (
-                    <div className="space-y-1.5 animate-in fade-in duration-150">
-                      <label className="block text-[11px] font-medium text-theme-text-secondary">
-                        Assign Students to Committee ({initialCommitteeMemberIds.length} selected)
-                      </label>
-                      <div className="max-h-36 overflow-y-auto rounded-xl border border-theme-card-border divide-y divide-theme-border/20 p-1 bg-theme-background/20">
-                        {members
-                          .filter(m => m.status !== 'Terminated')
-                          .slice()
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map(student => (
-                            <label
-                              key={student.id}
-                              className="flex items-center justify-between gap-2 px-2.5 py-1.5 hover:bg-theme-border/20 cursor-pointer rounded-lg text-xs"
-                            >
-                              <span className="flex items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={initialCommitteeMemberIds.includes(student.id)}
-                                  onChange={(e) => {
-                                    setInitialCommitteeMemberIds(prev =>
-                                      e.target.checked ? [...prev, student.id] : prev.filter(id => id !== student.id)
-                                    );
-                                  }}
-                                  className="accent-accent"
-                                />
-                                <span className="font-medium text-theme-text-primary">{student.name}</span>
-                              </span>
-                              <span className="text-theme-text-secondary text-[10px]">{student.division}</span>
-                            </label>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
               </div>
 
               </div>
@@ -1142,7 +1015,7 @@ export default function EventsPage() {
                 type="submit"
                 className="w-full lg:col-span-2 py-3 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl transition-all shadow-md shadow-accent/15 cursor-pointer mt-4"
               >
-                {editingEvent ? 'Save Event Updates' : 'Create Event & Initialize Sub-Committees'}
+                {editingEvent ? 'Save Event Updates' : 'Create Event'}
               </button>
             </form>
           </div>
@@ -1153,7 +1026,7 @@ export default function EventsPage() {
       <ConfirmModal
         isOpen={Boolean(deletingEventId)}
         title="Delete Event"
-        message="Are you sure you want to delete this event? All sub-committees and linked event deliverables will be removed."
+        message="Are you sure you want to delete this event? All linked event tasks and deliverables will be removed."
         confirmLabel="Delete Event"
         variant="danger"
         onConfirm={handleConfirmDelete}

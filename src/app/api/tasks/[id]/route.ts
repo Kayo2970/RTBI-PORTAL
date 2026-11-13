@@ -35,17 +35,6 @@ export async function PATCH(
     // Chain of command: only a genuinely pending task can be decided (by its approver); a content edit by someone whose
     // access comes from an approval-required Group Policy is held as pending_edit instead of applying.
     const storedTask = (await readCollection<any>('tasks')).find((t: any) => t.id === id);
-    // An Event Report Request task can only be completed by actually uploading the report for its event
-    if (updates?.status === 'Completed' && storedTask?.status !== 'Completed' && storedTask?.workflowType === 'event_report_request') {
-      const reports = await readCollection<any>('eventReports');
-      const uploaded = !!storedTask.eventId && reports.some((r: any) => r.eventId === storedTask.eventId && r.status !== 'rejected');
-      if (!uploaded) {
-        return NextResponse.json(
-          { error: "Upload the event report (Event Reports module) to complete this task — it can't be marked completed any other way." },
-          { status: 400 }
-        );
-      }
-    }
     if (classifyApprovalUpdate(storedTask, updates) === 'decision') {
       if (!(await canDecidePending(storedTask, actor, isEventsHeadGgCampus))) {
         throw new ForbiddenError('You are not authorized to decide this task — it needs sign-off from the designated approver.');
@@ -135,40 +124,11 @@ export async function PATCH(
       }
     }
 
-    // Bi-directional completion: if a procurement task is marked Completed, mark the corresponding procurement request Completed
-    if (result && updates.status === 'Completed' && (result.workflowType === 'procurement' || result.procurementId || result.isProcurement)) {
-      const procId = result.procurementId || result.id.replace(/^task_procurement_/, '');
-      try {
-        await mutateCollection('procurementRequests', (current) =>
-          (current || []).map((r: any) =>
-            (r.id === procId || r.procurementTaskId === result.id) && r.status !== 'Completed'
-              ? { ...r, status: 'Completed', completedBy: actor.name, completedAt: new Date().toISOString() }
-              : r
-          )
-        );
-      } catch (procErr) {
-        console.error('[tasks-api] Failed to sync procurement request completion:', procErr);
-      }
-    }
-
     return NextResponse.json(result);
   } catch (err: any) {
     return apiError(err, 'tasks-id-api-patch', 400);
   }
 }
-
-// Scheduler-generated workflows (see holiday-scheduler.ts / event-social-scheduler.ts)
-// that recreate a deterministic-id task for an event on every boot/weekly/daily
-// catch-up run as long as the event still exists and no such task is present.
-const AUTO_RECREATED_WORKFLOWS = new Set([
-  'holiday_social_approval',
-  'holiday_design_social',
-  'event_social_post',
-  'event_poster_request',
-  'event_report_request',
-  'event_report_assignment',
-  'procurement',
-]);
 
 export async function DELETE(
   request: Request,
@@ -202,66 +162,6 @@ export async function DELETE(
     // Direct correlation check: if a task is deleted, purge any correlated ratings —
     // if there is not any task, then it makes no sense that there would be a rating for said task.
     await mutateCollection('ratings', (current) => current.filter((r: any) => r.taskId !== id));
-
-    // Deleting an auto-generated task is a deliberate "no, don't ask about
-    // this one" — without this, the next scheduler run sees the event still
-    // there and no task for it, and recreates the exact task the user just
-    // deleted (it comes back like a zombie). Flag the event and persist the
-    // task id in systemSettings so schedulers never recreate it going forward.
-    const isAutoTask =
-      (deleted?.workflowType && AUTO_RECREATED_WORKFLOWS.has(deleted.workflowType)) ||
-      id.startsWith('task_event_') ||
-      id.startsWith('task_holiday_');
-
-    // Gated strictly on isAutoTask: this bookkeeping exists only so scheduler-
-    // generated tasks don't resurrect themselves. It must never fire for a
-    // manually created task that merely happens to reference an eventId (e.g.
-    // a Design Portal brief with a Canva link) — the boot-time cleanup below
-    // purges every task whose eventId is dismissed here, so treating a manual
-    // task's eventId as "dismissed" would wipe out unrelated, unsubmitted
-    // design tasks for the same event on the next server restart.
-    if (isAutoTask) {
-      // 1. Record in systemSettings.dismissedAutoTaskIds
-      await mutateCollection<any>('systemSettings', (current) => {
-        const currentSettings = current[0] || { id: 'default', lockdownEnabled: false };
-        const dismissed = new Set<string>(currentSettings.dismissedAutoTaskIds || []);
-        dismissed.add(id);
-        if (deleted?.eventId) {
-          dismissed.add(deleted.eventId);
-          if (deleted?.workflowType) {
-            dismissed.add(`${deleted.workflowType}_${deleted.eventId}`);
-          }
-        }
-        return [{ ...currentSettings, dismissedAutoTaskIds: Array.from(dismissed) }];
-      });
-
-      // 2. Mark event as dismissed
-      if (deleted?.eventId || deleted?.event) {
-        await mutateCollection<any>('events', (current) => {
-          return current.map((e: any) => {
-            const match =
-              (deleted?.eventId && (e.id === deleted.eventId || e.id.includes(deleted.eventId) || deleted.eventId.includes(e.id))) ||
-              (deleted?.event && e.title?.toLowerCase() === deleted.event.toLowerCase());
-            if (!match) return e;
-            const dismissedTypes = new Set(e.dismissedAutoTaskTypes || []);
-            if (deleted?.workflowType) dismissedTypes.add(deleted.workflowType);
-            const isPoster = deleted?.workflowType === 'event_poster_request' || id.startsWith('task_event_poster_');
-            const isSocial =
-              deleted?.workflowType === 'event_social_post' ||
-              deleted?.workflowType === 'holiday_social_approval' ||
-              deleted?.workflowType === 'holiday_design_social' ||
-              id.startsWith('task_event_social_') ||
-              id.startsWith('task_holiday_');
-            return {
-              ...e,
-              posterTaskDismissed: isPoster ? true : e.posterTaskDismissed,
-              socialTaskDismissed: isSocial ? true : e.socialTaskDismissed,
-              dismissedAutoTaskTypes: Array.from(dismissedTypes),
-            };
-          });
-        });
-      }
-    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

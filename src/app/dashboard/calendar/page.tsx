@@ -370,7 +370,7 @@ export default function CalendarPage() {
                     >
                       <div>
                         <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">{ev.title}</h5>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5">{(ev.committees || []).length} Sub-Committees</p>
+                        <p className="text-[10px] text-theme-text-secondary mt-0.5">{ev.location || 'Location TBD'}</p>
                       </div>
                       <span className="text-[10px] px-2.5 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">
                         {getEffectiveEventStatus(ev)}

@@ -139,7 +139,6 @@ export default function BudgetPage() {
   const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false);
   const [newEventLineItemIndex, setNewEventLineItemIndex] = useState<number | null>(null);
   const [newEventTitle, setNewEventTitle] = useState('');
-  const [newEventCampus, setNewEventCampus] = useState<'GG Campus' | 'RTC Campus' | 'Both Campuses'>('GG Campus');
   const [newEventLocation, setNewEventLocation] = useState('');
   const [newEventDatesTBD, setNewEventDatesTBD] = useState(true);
   const [newEventStartDate, setNewEventStartDate] = useState('');
@@ -554,7 +553,6 @@ export default function BudgetPage() {
   const openCreateEventModal = (lineItemIndex: number) => {
     setNewEventLineItemIndex(lineItemIndex);
     setNewEventTitle('');
-    setNewEventCampus('GG Campus');
     setNewEventLocation('');
     setNewEventDatesTBD(true);
     setNewEventStartDate('');
@@ -583,10 +581,8 @@ export default function BudgetPage() {
       endDate: newEventDatesTBD ? '' : newEventEndDate,
       datesTBD: newEventDatesTBD,
       location: newEventLocation.trim(),
-      campus: newEventCampus,
       status: 'planned' as EventItem['status'],
       createdBy: user?.name || 'User',
-      committees: [],
     };
 
     const approval = getEventApprovalRequirement(user, 'CREATE');
@@ -1659,7 +1655,7 @@ export default function BudgetPage() {
                         allValue=""
                         options={[
                           { value: 'CREATE_NEW', label: '✨ + Create New Event On The Spot...' },
-                          ...events.filter(ev => isApprovedEvent(ev, tasks)).map((ev) => ({ value: ev.id, label: ev.title, sublabel: ev.campus })),
+                          ...events.filter(ev => isApprovedEvent(ev, tasks)).map((ev) => ({ value: ev.id, label: ev.title, sublabel: ev.location })),
                         ]}
                       />
 
@@ -1787,19 +1783,6 @@ export default function BudgetPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block font-medium text-theme-text-secondary">Campus</label>
-                  <select
-                    value={newEventCampus}
-                    onChange={(e) => setNewEventCampus(e.target.value as any)}
-                    className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-                  >
-                    <option value="GG Campus">GG Campus</option>
-                    <option value="RTC Campus">RTC Campus</option>
-                    <option value="Both Campuses">Both Campuses</option>
-                  </select>
-                </div>
-
                 <div className="space-y-1.5">
                   <label className="block font-medium text-theme-text-secondary">Location</label>
                   <input
@@ -1988,7 +1971,7 @@ export default function BudgetPage() {
                   onChange={setIncomeEventId}
                   allLabel="🏛️ General Centre Income (Unlinked)"
                   allValue=""
-                  options={events.filter(ev => isApprovedEvent(ev, tasks)).map((ev) => ({ value: ev.id, label: `🎯 Event: ${ev.title}`, sublabel: ev.campus }))}
+                  options={events.filter(ev => isApprovedEvent(ev, tasks)).map((ev) => ({ value: ev.id, label: `🎯 Event: ${ev.title}`, sublabel: ev.location }))}
                 />
                 <p className="text-[10px] text-theme-text-secondary italic">
                   Note: Event sponsors deplete first when event expenses occur. Leftover sponsor money returns to Centre main account.

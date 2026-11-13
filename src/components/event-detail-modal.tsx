@@ -77,12 +77,6 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
               <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
                 {effectiveStatus}
               </span>
-              {event.campus && (
-                <span className="text-[10px] font-medium bg-theme-border/30 text-theme-text-secondary px-2.5 py-0.5 rounded-full border border-theme-border/30 flex items-center gap-1">
-                  <Building className="h-3 w-3" />
-                  {event.campus}
-                </span>
-              )}
               {event.approvalStatus && event.approvalStatus !== 'approved' && (
                 <span className="text-[10px] font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-full">
                   Approval: {event.approvalStatus.replace('pending_', 'pending ')}
@@ -149,11 +143,8 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
               <MapPin className="h-3 w-3 text-emerald-500" />
               Venue & Location
             </span>
-            <span className="text-xs font-bold text-theme-text-primary mt-1 truncate" title={event.location || event.campus || 'On Campus'}>
-              {event.location || event.campus || 'On Campus'}
-            </span>
-            <span className="text-[10px] text-theme-text-secondary truncate">
-              {event.campus || 'Main Campus'}
+            <span className="text-xs font-bold text-theme-text-primary mt-1 truncate" title={event.location || 'Location TBD'}>
+              {event.location || 'Location TBD'}
             </span>
           </div>
 
@@ -183,60 +174,6 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
           </div>
         )}
 
-        {/* Committees Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-accent" />
-              Organizing Committees ({event.committees?.length || 0})
-            </h3>
-          </div>
-
-          {!event.committees || event.committees.length === 0 ? (
-            <div className="p-4 rounded-xl border border-dashed border-theme-border/30 text-center text-xs text-theme-text-secondary">
-              No specific committees configured for this event.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {event.committees.map(comm => (
-                <div key={comm.id} className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-theme-text-primary">{comm.name}</span>
-                    <span className="text-[10px] text-theme-text-secondary font-medium">
-                      {comm.memberIds?.length || 0} members
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {comm.memberIds && comm.memberIds.length > 0 ? (
-                      comm.memberIds.map(memId => {
-                        const mem = getMemberById(memId);
-                        const initials = mem?.name
-                          ? mem.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-                          : memId.slice(0, 2).toUpperCase();
-                        return (
-                          <div
-                            key={memId}
-                            className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-theme-card border border-theme-border/30 text-[11px]"
-                            title={mem?.name ? `${mem.name} · ${mem.role}` : memId}
-                          >
-                            <span className="h-4 w-4 rounded-full bg-accent/20 text-accent font-bold text-[9px] flex items-center justify-center">
-                              {initials}
-                            </span>
-                            <span className="font-medium text-theme-text-primary truncate max-w-[110px]">
-                              {mem?.name || memId}
-                            </span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <span className="text-[11px] text-theme-text-secondary italic">No members assigned</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Linked Tasks Section */}
         <div className="space-y-3">

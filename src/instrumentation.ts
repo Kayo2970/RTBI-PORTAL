@@ -34,8 +34,5 @@ export async function register() {
 
     const { startEmailBackgroundScheduler } = await import('./lib/email-background-retention');
     startEmailBackgroundScheduler();
-
-    const { startCommitteeReviewScheduler } = await import('./lib/committee-review-scheduler');
-    startCommitteeReviewScheduler();
   }
 }

@@ -49,8 +49,8 @@ import {
   Lightbulb,
   Users,
 } from 'lucide-react';
-import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
-import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
+import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
+import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
@@ -194,7 +194,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     tier: 1,
     division: 'Super User',
     department: undefined as string | undefined,
-    committee: undefined as string | undefined,
     avatarUrl: undefined as string | undefined,
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -343,7 +342,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         if (r.entityType === 'task') link = `/dashboard/tasks?highlight=${r.entityId}`;
         else if (r.entityType === 'event') link = `/dashboard/events`;
         else if (r.entityType === 'design') link = `/dashboard/designs?highlight=${r.entityId}`;
-        else if (r.entityType === 'event-report') link = `/dashboard/event-reports?highlight=${r.entityId}`;
 
         approvedByOthersNotifs.push({
           id: 'appr_decided_' + r.id,
@@ -404,36 +402,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         });
       });
 
-    // 4. From event reports approved directly
-    getEventReports()
-      .filter(er => er.status === 'approved' && (er.centreHeadApprovedBy || er.eventsHeadGgApprovedBy))
-      .filter(er => {
-        const d = er.centreHeadApprovedAt || er.eventsHeadGgApprovedAt;
-        return d ? new Date(d).getTime() >= recentCutoff : false;
-      })
-      .forEach(er => {
-        if (!canUserGiveApproval) return;
-        const approverName = er.centreHeadApprovedBy || er.eventsHeadGgApprovedBy || 'Approver';
-        if (
-          approverName.toLowerCase() === (currentUser.name || '').toLowerCase() ||
-          approverName.toLowerCase() === (currentUser.email || '').toLowerCase()
-        ) {
-          return;
-        }
-        if (approvedByOthersNotifs.some(n => n.id.includes(er.id))) return;
-
-        const at = er.centreHeadApprovedAt || er.eventsHeadGgApprovedAt;
-        approvedByOthersNotifs.push({
-          id: 'report_approved_' + er.id,
-          title: `Approved by ${approverName}: ${er.eventTitle}`,
-          time: at ? new Date(at).toLocaleDateString() : 'Recently',
-          read: false,
-          actionNeeded: false,
-          link: `/dashboard/event-reports?highlight=${er.id}`,
-        });
-      });
-
-    const dismissed = loadDismissedNotifIds();
+const dismissed = loadDismissedNotifIds();
     return [...budgetNotifs, ...reimbursementNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...proofreadNotifs, ...recentAnnounce, ...recentTasks]
       .filter(n => !dismissed.has(n.id));
   };

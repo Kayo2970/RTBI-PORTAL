@@ -226,7 +226,6 @@ export default function DesignPortalPage() {
   const [showQuickEventModal, setShowQuickEventModal] = useState<boolean>(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDesc, setNewEventDesc] = useState('');
-  const [newEventCampus, setNewEventCampus] = useState<'GG Campus' | 'RTC Campus' | 'Both Campuses'>('GG Campus');
   const [newEventStartDate, setNewEventStartDate] = useState('');
   const [newEventEndDate, setNewEventEndDate] = useState('');
   const [newEventDatesTBD, setNewEventDatesTBD] = useState(false);
@@ -245,7 +244,6 @@ export default function DesignPortalPage() {
       const created = addEvent({
         title: newEventTitle.trim(),
         description: newEventDesc.trim(),
-        campus: newEventCampus,
         startDate: newEventDatesTBD ? '' : newEventStartDate,
         endDate: newEventDatesTBD ? '' : newEventEndDate,
         datesTBD: newEventDatesTBD,
@@ -1000,11 +998,7 @@ export default function DesignPortalPage() {
     if (!(t.taskCategory === 'design' || t.isDesignDeliverable || t.designCategory) || t.status === 'Completed') return false;
     if (canViewAllDesigns(user)) return true;
     // isTaskAssignee is the canonical "is this assigned to me" check used
-    // across the app (Tasks page, notifications, etc.) — it correctly
-    // resolves committee assignment (assigneeType === 'committee') via the
-    // event's committee member list, which the old inline check here didn't
-    // handle at all, so a design task assigned to a committee never showed
-    // up in this queue for any of that committee's members.
+    // across the app (Tasks page, notifications, etc.).
     return isTaskAssignee(t, user);
   });
 
@@ -2028,19 +2022,6 @@ export default function DesignPortalPage() {
                   onChange={e => setNewEventTitle(e.target.value)}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-accent"
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-medium text-foreground">Campus</label>
-                <select
-                  value={newEventCampus}
-                  onChange={e => setNewEventCampus(e.target.value as any)}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-accent"
-                >
-                  <option value="GG Campus">GG Campus</option>
-                  <option value="RTC Campus">RTC Campus</option>
-                  <option value="Both Campuses">Both Campuses</option>
-                </select>
               </div>
 
               <div className="space-y-1">

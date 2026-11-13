@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { mutateCollection, readCollection } from '@/lib/server-db';
 import { deleteStoredFile, deleteStoredFilesForRecord, saveBase64File, readStoredFile } from '@/lib/file-storage';
-import { cascadeCloseAutoApprovals, deleteLinkedApprovalRequests, fanOutAutoApproval } from '@/lib/approval-sync';
+import { cascadeCloseAutoApprovals, deleteLinkedApprovalRequests, fanOutAutoApproval, resolveApprovalPanel } from '@/lib/approval-sync';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { getAccessLevelSettingsServer, canReviewDesignProofread, canViewAllDesigns, hasCap } from '@/lib/permissions-server';
 import { apiError } from '@/lib/api-error';
@@ -201,15 +201,11 @@ export async function PATCH(
     // dashboard/designs/page.tsx, which already treats Advisor as Centre
     // Head) — email the design asset as an attachment to all three, using
     // each member's own registered email address (Member.email, collected at
-    // account activation/registration — see findApprovalRecipients).
+    // account activation/registration).
     if (justStyleApproved && mergedRecord?.storageKey) {
       try {
-        const [members, { dispatchEmail, generateDesignApprovedEmailTemplate, findApprovalRecipients }] = await Promise.all([
-          readCollection('members'),
-          import('@/lib/email-service'),
-        ]);
-        const recipients = findApprovalRecipients(members as any[]);
-        const to = [recipients.centreHead?.email, recipients.advisor?.email, recipients.eventsHeadGg?.email].filter(Boolean) as string[];
+        const { dispatchEmail, generateDesignApprovedEmailTemplate } = await import('@/lib/email-service');
+        const to = (await resolveApprovalPanel()).map((m) => m.email).filter(Boolean) as string[];
 
         if (to.length > 0) {
           const fileBuffer = await readStoredFile(mergedRecord.storageKey);
@@ -259,12 +255,8 @@ export async function PATCH(
     // recipient resolution as the style-approval email above.
     if (justCaptionApproved) {
       try {
-        const [members, { dispatchEmail, generateCaptionsApprovedEmailTemplate, findApprovalRecipients }] = await Promise.all([
-          readCollection('members'),
-          import('@/lib/email-service'),
-        ]);
-        const recipients = findApprovalRecipients(members as any[]);
-        const to = [recipients.centreHead?.email, recipients.advisor?.email, recipients.eventsHeadGg?.email].filter(Boolean) as string[];
+        const { dispatchEmail, generateCaptionsApprovedEmailTemplate } = await import('@/lib/email-service');
+        const to = (await resolveApprovalPanel()).map((m) => m.email).filter(Boolean) as string[];
 
         if (to.length > 0) {
           const template = generateCaptionsApprovedEmailTemplate(
@@ -317,7 +309,7 @@ export async function PATCH(
     // cascadeCloseAutoApprovals already closed the earlier rejected rows.
     if (justResubmittedAfterProofreadRejection || justResubmittedAfterStyleRejection) {
       try {
-        const [{ dispatchEmail, generateDesignResubmittedEmailTemplate, findApprovalRecipients }, { getAppBaseUrl }] = await Promise.all([
+        const [{ dispatchEmail, generateDesignResubmittedEmailTemplate }, { getAppBaseUrl }] = await Promise.all([
           import('@/lib/email-service'),
           import('@/lib/app-url'),
         ]);
@@ -360,15 +352,13 @@ export async function PATCH(
             const template = generateDesignResubmittedEmailTemplate(designTitle, designerName, 'Proofreading', designLink);
             for (const f of proofreaders) {
               if (!f.email) continue;
-              await dispatchEmail({ to: f.email, subject: template.subject, bodyText: template.bodyText, bodyHtml: template.bodyHtml, category: 'SYSTEM' });
+              await dispatchEmail({ to: f.email, subject: template.subject, bodyText: template.bodyText, bodyHtml: template.bodyHtml, category: 'DESIGN_APPROVAL' });
             }
           }
         }
 
         if (justResubmittedAfterStyleRejection) {
-          const members = await readCollection('members');
-          const recipients = findApprovalRecipients(members as any[]);
-          const panel = [recipients.centreHead, recipients.advisor, recipients.eventsHeadGg].filter((m): m is { name: string; email: string } => Boolean(m?.email));
+          const panel = (await resolveApprovalPanel()).filter((m) => Boolean(m.email));
 
           if (panel.length > 0) {
             await fanOutAutoApproval({
@@ -388,7 +378,7 @@ export async function PATCH(
               subject: template.subject,
               bodyText: template.bodyText,
               bodyHtml: template.bodyHtml,
-              category: 'SYSTEM',
+              category: 'DESIGN_APPROVAL',
             });
           }
         }

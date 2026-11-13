@@ -70,12 +70,6 @@ export async function cascadeDeleteEvent(eventId: string): Promise<{ removed: Re
   const passes = await takeByEvent('event_passes', byEvent);
   for (const pass of passes) await purgeEventPassArtifacts(pass);
 
-  const reports = await takeByEvent('eventReports', byEvent);
-  for (const r of reports) {
-    await purgeFolders([['event-reports', r.id]]);
-    await deleteLinkedApprovalRequests('event-report', r.id);
-  }
-
   const designs = await takeByEvent('designs', byEvent);
   for (const d of designs) {
     await purgeFolders([['designs', d.id]]);
