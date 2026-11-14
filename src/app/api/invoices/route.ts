@@ -61,6 +61,9 @@ export async function POST(request: Request) {
         taxPercent,
         ...totals,
         notes: str(body.notes),
+        isStartup: Boolean(body.isStartup),
+        startupName: str(body.startupName),
+        clientId: str(body.clientId),
         status: 'Issued',
         createdBy: actor.name,
         createdByEmail: actor.email,
@@ -68,6 +71,43 @@ export async function POST(request: Request) {
       };
       return [created!, ...current];
     });
+
+    if (body.saveToRegister !== false && clientName) {
+      try {
+        await mutateCollection('clients', (clients: any[] = []) => {
+          const matchIdx = clients.findIndex(c =>
+            (body.clientId && c.id === body.clientId) ||
+            (c.name && c.name.trim().toLowerCase() === clientName.toLowerCase()) ||
+            (body.clientEmail && c.email && c.email.trim().toLowerCase() === String(body.clientEmail).trim().toLowerCase())
+          );
+          const existing = matchIdx >= 0 ? clients[matchIdx] : null;
+          const entry = {
+            id: existing?.id || body.clientId || 'cli_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            name: clientName,
+            email: str(body.clientEmail) ?? existing?.email,
+            address: str(body.clientAddress) ?? existing?.address,
+            gstin: str(body.clientGstin) ?? existing?.gstin,
+            isStartup: Boolean(body.isStartup ?? existing?.isStartup),
+            startupName: str(body.startupName) ?? existing?.startupName,
+            notes: str(body.notes) ?? existing?.notes,
+            defaultTaxPercent: taxPercent || existing?.defaultTaxPercent || 18,
+            lastBilledAt: body.issueDate,
+            totalBilled: (Number(existing?.totalBilled) || 0) + totals.totalAmount,
+            invoiceCount: (Number(existing?.invoiceCount) || 0) + 1,
+            updatedAt: new Date().toISOString(),
+            createdAt: existing?.createdAt || new Date().toISOString(),
+          };
+          if (matchIdx >= 0) {
+            clients[matchIdx] = { ...existing, ...entry };
+            return [...clients];
+          }
+          return [entry, ...clients];
+        });
+      } catch (clientErr) {
+        console.warn('Failed to auto-save client to register:', clientErr);
+      }
+    }
+
     return NextResponse.json(created, { status: 201 });
   } catch (err: any) {
     return apiError(err, 'invoices-api-post', 400);

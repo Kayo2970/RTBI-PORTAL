@@ -72,6 +72,7 @@ export interface DbSchema {
   annualBudgets: any[];
   expenses: any[];
   invoices: any[];
+  clients: any[];
   incomeSources: any[];
   event_passes: any[];
   certificates: any[];
@@ -132,6 +133,7 @@ const EMPTY_DB: DbSchema = {
   annualBudgets: [],
   expenses: [],
   invoices: [],
+  clients: [],
   incomeSources: [],
   event_passes: [],
   certificates: [],
@@ -196,6 +198,7 @@ const SEED_DB: DbSchema = {
   annualBudgets: [],
   expenses: [],
   invoices: [],
+  clients: [],
   incomeSources: initialIncomeSources,
   event_passes: [],
   certificates: [],

@@ -80,6 +80,25 @@ export interface InvoicePayment {
   rejectionNote?: string; // set (and payment cleared) when a verifier sends it back — kept in history on the invoice
 }
 
+export interface ClientRecord {
+  id: string;
+  name: string; // Client / Company / Startup name
+  email?: string;
+  address?: string;
+  gstin?: string;
+  isStartup?: boolean;
+  startupName?: string;
+  founderName?: string;
+  phone?: string;
+  notes?: string;
+  defaultTaxPercent?: number;
+  lastBilledAt?: string;
+  totalBilled?: number;
+  invoiceCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface InvoiceItem {
   id: string;
   invoiceNumber: string;
@@ -88,6 +107,9 @@ export interface InvoiceItem {
   clientEmail?: string;
   clientAddress?: string;
   clientGstin?: string;
+  isStartup?: boolean;
+  startupName?: string;
+  clientId?: string;
   issueDate: string;
   dueDate?: string;
   lineItems: InvoiceLine[];

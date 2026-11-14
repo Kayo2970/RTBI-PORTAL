@@ -11,6 +11,7 @@ import {
   InvoiceItem,
   InvoiceLine,
   InvoicePayment,
+  ClientRecord,
   annualBudgetId,
   computeInvoiceTotals,
   getExpenseHeadLabel,
@@ -4259,6 +4260,7 @@ export async function refreshFinanceFromServer(): Promise<boolean> {
     ['/api/expenses', 'rtbi_expenses'],
     ['/api/invoices', 'rtbi_invoices'],
     ['/api/income-sources', 'rtbi_income_sources'],
+    ['/api/clients', 'rtbi_clients'],
   ];
   let ok = false;
   await Promise.all(targets.map(async ([url, key]) => {
@@ -4356,6 +4358,119 @@ export function deleteExpense(id: string, actorName: string): boolean {
 
 // ---- Invoices ------------------------------------------------------
 
+export function getClients(): ClientRecord[] {
+  return readLocalArray<ClientRecord>('rtbi_clients');
+}
+
+export function saveClients(clients: ClientRecord[]): void {
+  writeLocalArray('rtbi_clients', clients);
+}
+
+export async function createOrUpdateClient(client: Partial<ClientRecord>): Promise<ClientRecord> {
+  const created: ClientRecord = await serverPost('/api/clients', client);
+  if (created) {
+    const current = getClients();
+    saveClients([created, ...current.filter(c => c.id !== created.id)]);
+  }
+  return created;
+}
+
+/**
+ * Assembles the unified Client & Startup Register combining:
+ * 1. Saved clients in `rtbi_clients`
+ * 2. Incubated Startups from members roster (tier 4 or startupProfile)
+ * 3. Historical clients from past invoices (deduplicated by clientName)
+ */
+export function getClientRegister(): ClientRecord[] {
+  const savedClients = getClients();
+  const invoices = getInvoices();
+  const members = getMembers();
+
+  const map = new Map<string, ClientRecord>();
+
+  // 1. Saved Clients from Register
+  for (const c of savedClients) {
+    if (c.name) {
+      map.set(c.name.trim().toLowerCase(), { ...c });
+    }
+  }
+
+  // 2. Incubated Startups from Members
+  for (const m of members) {
+    const isStartupMember = m.tier === 4 || !!m.startupProfile || m.role?.toLowerCase().includes('startup') || m.role?.toLowerCase().includes('incubatee');
+    if (isStartupMember) {
+      const startupName = m.startupProfile?.startupName || m.name;
+      const key = startupName.trim().toLowerCase();
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, {
+          id: 'startup_' + m.id,
+          name: startupName,
+          startupName: startupName,
+          founderName: m.name,
+          email: m.email,
+          phone: m.phone,
+          address: m.startupProfile?.location || '',
+          isStartup: true,
+          notes: m.startupProfile?.sector ? `Sector: ${m.startupProfile.sector}` : undefined,
+          defaultTaxPercent: 18,
+          invoiceCount: 0,
+          totalBilled: 0,
+        });
+      } else {
+        existing.isStartup = true;
+        if (!existing.startupName) existing.startupName = startupName;
+        if (!existing.founderName) existing.founderName = m.name;
+        if (!existing.email) existing.email = m.email;
+        if (!existing.phone && m.phone) existing.phone = m.phone;
+        if (!existing.address && m.startupProfile?.location) existing.address = m.startupProfile.location;
+      }
+    }
+  }
+
+  // 3. Historical Invoices (Deduplicate & populate stats)
+  for (const inv of invoices) {
+    if (!inv.clientName) continue;
+    const key = inv.clientName.trim().toLowerCase();
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, {
+        id: 'hist_' + inv.id,
+        name: inv.clientName.trim(),
+        email: inv.clientEmail,
+        address: inv.clientAddress,
+        gstin: inv.clientGstin,
+        isStartup: Boolean(inv.isStartup),
+        startupName: inv.startupName,
+        defaultTaxPercent: inv.taxPercent || 18,
+        notes: inv.notes,
+        lastBilledAt: inv.issueDate,
+        totalBilled: inv.totalAmount || 0,
+        invoiceCount: 1,
+      });
+    } else {
+      if (!existing.email && inv.clientEmail) existing.email = inv.clientEmail;
+      if (!existing.address && inv.clientAddress) existing.address = inv.clientAddress;
+      if (!existing.gstin && inv.clientGstin) existing.gstin = inv.clientGstin;
+      if (!existing.isStartup && inv.isStartup) existing.isStartup = true;
+      if (!existing.startupName && inv.startupName) existing.startupName = inv.startupName;
+      if (!existing.lastBilledAt || inv.issueDate > existing.lastBilledAt) {
+        existing.lastBilledAt = inv.issueDate;
+      }
+      existing.invoiceCount = (existing.invoiceCount || 0) + 1;
+      existing.totalBilled = (existing.totalBilled || 0) + (inv.totalAmount || 0);
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => {
+    if (a.isStartup !== b.isStartup) return a.isStartup ? -1 : 1;
+    if (a.lastBilledAt && b.lastBilledAt) return b.lastBilledAt.localeCompare(a.lastBilledAt);
+    if (a.lastBilledAt) return -1;
+    if (b.lastBilledAt) return 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function getInvoices(): InvoiceItem[] {
   return readLocalArray<InvoiceItem>('rtbi_invoices');
 }
@@ -4368,6 +4483,7 @@ function upsertInvoiceLocally(invoice: InvoiceItem): void {
 export async function createInvoice(
   input: {
     clientName: string; clientEmail?: string; clientAddress?: string; clientGstin?: string;
+    isStartup?: boolean; startupName?: string; clientId?: string; saveToRegister?: boolean;
     issueDate: string; dueDate?: string; lineItems: InvoiceLine[]; taxPercent: number; notes?: string;
   },
   actor: { name: string; email: string }
@@ -4386,6 +4502,33 @@ export async function createInvoice(
   const created: InvoiceItem = await serverPost('/api/invoices', draft);
   if (!created) throw new Error('The invoice failed to reach the server. Please check your connection and try again.');
   upsertInvoiceLocally(created);
+
+  // If client details should be saved to register, update local cache too
+  if (input.saveToRegister !== false && input.clientName) {
+    const clients = getClients();
+    const existing = clients.find(c =>
+      (input.clientId && c.id === input.clientId) ||
+      (c.name && c.name.toLowerCase() === input.clientName.toLowerCase())
+    );
+    const updatedClient: ClientRecord = {
+      id: existing?.id || input.clientId || 'cli_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      name: input.clientName,
+      email: input.clientEmail ?? existing?.email,
+      address: input.clientAddress ?? existing?.address,
+      gstin: input.clientGstin ?? existing?.gstin,
+      isStartup: Boolean(input.isStartup ?? existing?.isStartup),
+      startupName: input.startupName ?? existing?.startupName,
+      defaultTaxPercent: input.taxPercent || existing?.defaultTaxPercent || 18,
+      lastBilledAt: input.issueDate,
+      totalBilled: (Number(existing?.totalBilled) || 0) + totals.totalAmount,
+      invoiceCount: (Number(existing?.invoiceCount) || 0) + 1,
+      notes: input.notes ?? existing?.notes,
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    saveClients([updatedClient, ...clients.filter(c => c.id !== updatedClient.id)]);
+  }
+
   logAuditEvent('INVOICE_ISSUED', actor.name, `Issued invoice ${created.invoiceNumber} to ${created.clientName} for ₹${created.totalAmount.toLocaleString()}`, actor.email);
   return created;
 }
