@@ -16,3 +16,4 @@ export async function DELETE(
     return apiError(err, 'clients-delete', 400);
   }
 }
+
