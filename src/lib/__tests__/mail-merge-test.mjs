@@ -37,3 +37,4 @@ test('placeholders: case/space-insensitive, unknown ones left as typed', () => {
 test('a value containing braces is not expanded a second time', () => {
   assert.equal(applyMailMerge('{{name}}', { name: '{{email}}', email: 'a@x.com' }), '{{email}}');
 });
+

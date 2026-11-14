@@ -42,10 +42,12 @@ import { getRatingColor } from '@/lib/design-tokens';
 import { StudentProfileModal } from '@/components/student-profile-modal';
 import { GanttTimeline } from '@/components/gantt-timeline';
 import { TaskErrorToast } from '@/components/task-error-toast';
+import type { Booking } from '@/lib/billing';
 
 export default function DashboardHome() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [membersCount, setMembersCount] = useState(0);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -92,6 +94,18 @@ export default function DashboardHome() {
       }
 
       setLastUpdatedAt(new Date());
+
+      // Fetch confirmed room/facility bookings for the upcoming TBI schedule
+      fetch('/api/bookings')
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setBookings(data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load bookings for Gantt schedule:', err);
+        });
     };
     refreshData();
 
@@ -386,8 +400,8 @@ export default function DashboardHome() {
         </p>
       )}
 
-      {/* Cross-Module Project Timeline (Gantt) */}
-      <GanttTimeline events={visibleEvents} tasks={displayedTasks} />
+      {/* Upcoming TBI Schedule (Gantt View) */}
+      <GanttTimeline events={visibleEvents} tasks={displayedTasks} bookings={bookings} />
 
       {/* Grid: Calendar & Leaderboard Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
