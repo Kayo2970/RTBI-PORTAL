@@ -112,6 +112,7 @@ const navSections: NavSection[] = [
       { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
       { name: 'Users', href: '/dashboard/users', icon: Users, superUserOnly: true },
       { name: 'Group Policies', href: '/dashboard/policies', icon: ShieldCheck, groupPoliciesOnly: true },
+      { name: 'Mail Broadcaster', href: '/dashboard/broadcaster', icon: Send, superUserOnly: true },
       { name: 'Email Management', href: '/dashboard/email', icon: Mail, superUserOnly: true },
       { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ],

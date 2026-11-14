@@ -5,7 +5,7 @@ import { AlertTriangle, X } from 'lucide-react';
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'warning' | 'primary';
@@ -59,9 +59,9 @@ export function ConfirmModal({
           </button>
         </div>
 
-        <p className="text-xs text-theme-text-secondary leading-relaxed bg-theme-background/30 p-3.5 rounded-xl border border-theme-border/30">
+        <div className="text-xs text-theme-text-secondary leading-relaxed bg-theme-background/30 p-3.5 rounded-xl border border-theme-border/30">
           {message}
-        </p>
+        </div>
 
         <div className="flex items-center justify-end gap-2.5 pt-2">
           <button

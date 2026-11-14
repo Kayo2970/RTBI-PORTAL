@@ -5,6 +5,7 @@ import { Member } from '@/lib/local-data';
 import { requireSession } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
 import { cleanBackgroundChoice } from '@/lib/email-background';
+import { applyMailMerge } from '@/lib/mail-merge';
 
 /**
  * Client-supplied attachments arrive as base64 (JSON has no Buffer type) —
@@ -63,7 +64,65 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Subject and email content are required' }, { status: 400 });
     }
 
-    // 1. Single recipient dispatch (explicit SINGLE, or to/recipientEmail passed directly)
+    // 1. Personalized mail-merge batch dispatch
+    if (Array.isArray(body.recipients) && body.recipients.length > 0) {
+      const dispatchedLogs = [];
+      const seen = new Set<string>();
+      for (const rec of body.recipients) {
+        const rawEmail = typeof rec === 'string' ? rec : rec?.email;
+        const email = (rawEmail || '').trim();
+        if (!email || seen.has(email.toLowerCase())) continue;
+        seen.add(email.toLowerCase());
+
+        const fields: Record<string, string> = { email };
+        if (rec && typeof rec === 'object' && rec.fields && typeof rec.fields === 'object') {
+          for (const [k, v] of Object.entries(rec.fields)) {
+            fields[k] = typeof v === 'string' ? v : String(v ?? '');
+          }
+        }
+
+        const mergedSubject = applyMailMerge(finalSubject, fields).replace(/[\r\n]+/g, ' ');
+        const mergedBodyText = applyMailMerge(textContent, fields);
+        const mergedBodyHtml = bodyHtml ? applyMailMerge(bodyHtml, fields) : undefined;
+
+        const log = await dispatchEmail({
+          to: email,
+          subject: mergedSubject,
+          bodyText: mergedBodyText,
+          bodyHtml: mergedBodyHtml,
+          badgeText,
+          badgeColor,
+          category: category || 'ANNOUNCEMENT',
+          attachments: attachments.length > 0 ? attachments : undefined,
+          background,
+        });
+        dispatchedLogs.push(log);
+      }
+      return NextResponse.json({ count: dispatchedLogs.length, dispatched: dispatchedLogs });
+    }
+
+    // 2. Pre-assembled messages batch dispatch
+    if (Array.isArray(body.messages) && body.messages.length > 0) {
+      const dispatchedLogs = [];
+      for (const msg of body.messages) {
+        if (!msg.to || !msg.subject) continue;
+        const log = await dispatchEmail({
+          to: msg.to.trim(),
+          subject: msg.subject,
+          bodyText: msg.bodyText || '',
+          bodyHtml: msg.bodyHtml,
+          badgeText,
+          badgeColor,
+          category: category || 'ANNOUNCEMENT',
+          attachments: attachments.length > 0 ? attachments : undefined,
+          background,
+        });
+        dispatchedLogs.push(log);
+      }
+      return NextResponse.json({ count: dispatchedLogs.length, dispatched: dispatchedLogs });
+    }
+
+    // 3. Single recipient dispatch (explicit SINGLE, or to/recipientEmail passed directly)
     if (scope === 'SINGLE' || (!scope && emailTo) || (scope !== 'ALL' && scope !== 'All Members' && emailTo)) {
       if (!emailTo) {
         return NextResponse.json({ error: 'Recipient email address is required' }, { status: 400 });

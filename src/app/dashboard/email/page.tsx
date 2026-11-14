@@ -43,6 +43,7 @@ import { EmailHtmlPreview } from '@/components/email-html-preview';
 import { EmailBackgroundField, EmailBackgroundPicker, DEFAULT_BACKGROUND_PICK, EMAIL_BLUR_DEFAULT, backgroundChoiceFor, type EmailBackgroundPick } from '@/components/email-background-picker';
 import { ComposedAttachment, filesToAttachments, formatBytes, buildAttachmentNoticeLine, MAX_TOTAL_ATTACHMENT_BYTES } from '@/lib/email-attachments';
 import { AutomaticEmailsPanel } from '@/components/automatic-emails-panel';
+import { MailComposerBroadcaster } from '@/components/mail-composer-broadcaster';
 
 interface PendingQueueItem {
   email: string;
@@ -129,18 +130,10 @@ export default function EmailManagementPage() {
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  // Email Client Composer State
-  const [dispatchScope, setDispatchScope] = useState<'SINGLE' | 'All Members' | 'Super User' | 'CEO' | 'Employee' | 'Startup'>('SINGLE');
-  const [customRecipient, setCustomRecipient] = useState('');
-  const [subject, setSubject] = useState('');
-  const [category, setCategory] = useState<'ANNOUNCEMENT' | 'DIRECT_MESSAGE' | 'SYSTEM'>('ANNOUNCEMENT');
-  const [bodyText, setBodyText] = useState('');
-  const [previewTab, setPreviewTab] = useState<'edit' | 'preview'>('edit');
-  const [isSendingDispatch, setIsSendingDispatch] = useState(false);
-  const [showDispatchConfirm, setShowDispatchConfirm] = useState(false);
-  const [attachments, setAttachments] = useState<ComposedAttachment[]>([]);
-  const [isProcessingAttachments, setIsProcessingAttachments] = useState(false);
-  const [attachmentError, setAttachmentError] = useState('');
+  // Pre-fill state for Composer from Outbox inspector
+  const [composerInitial, setComposerInitial] = useState<{ subject?: string; bodyText?: string; recipientsText?: string } | null>(null);
+
+
 
   // Outbox & Audit Logs State
   const [outboxLogs, setOutboxLogs] = useState<EmailLog[]>([]);
@@ -598,94 +591,7 @@ export default function EmailManagementPage() {
     }
   };
 
-  const [badgeOption, setBadgeOption] = useState<string>('NONE');
-  const [customBadgeText, setCustomBadgeText] = useState<string>('');
-  const [bgPick, setBgPick] = useState<EmailBackgroundPick>(DEFAULT_BACKGROUND_PICK);
   const [isSavingBackground, setIsSavingBackground] = useState(false);
-
-  const handleAttachFiles = async (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) return;
-    setAttachmentError('');
-    setIsProcessingAttachments(true);
-    try {
-      const files = Array.from(fileList);
-      const existingBytes = attachments.reduce((sum, a) => sum + a.size, 0);
-      const incomingBytes = files.reduce((sum, f) => sum + f.size, 0);
-      if (existingBytes + incomingBytes > MAX_TOTAL_ATTACHMENT_BYTES) {
-        setAttachmentError(`Total attachment size can't exceed ${formatBytes(MAX_TOTAL_ATTACHMENT_BYTES)} — most SMTP servers (including Outlook) reject larger messages.`);
-        return;
-      }
-      const newAttachments = await filesToAttachments(files);
-      setAttachments(prev => [...prev, ...newAttachments]);
-    } catch (err: any) {
-      setAttachmentError(err?.message || 'Failed to read one or more files.');
-    } finally {
-      setIsProcessingAttachments(false);
-    }
-  };
-
-  const handleRemoveAttachment = (filename: string) => {
-    setAttachments(prev => prev.filter(a => a.filename !== filename));
-  };
-
-  const handleInsertAttachmentNote = () => {
-    if (attachments.length === 0) return;
-    const line = buildAttachmentNoticeLine(attachments.map(a => a.filename));
-    setBodyText(prev => (prev.trim() ? `${prev}\n\n${line}` : line));
-  };
-
-  /** The header tag chosen for the email (shared by the real send and the live preview). */
-  const resolveBadgeText = (): string | undefined => {
-    if (badgeOption === 'INVITATION') return '🎉 Official Invitation';
-    if (badgeOption === 'ANNOUNCEMENT') return '📢 Official Announcement';
-    if (badgeOption === 'ACTION_REQUIRED') return '📌 Action Required';
-    if (badgeOption === 'IMPORTANT') return '⚠️ Important Notice';
-    if (badgeOption === 'CUSTOM') return customBadgeText.trim() || undefined;
-    return undefined;
-  };
-
-  const handleExecuteDispatch = async () => {
-    setShowDispatchConfirm(false);
-    setIsSendingDispatch(true);
-    const task = beginTask({ label: dispatchScope === 'SINGLE' ? 'Sending email' : 'Dispatching broadcast email' });
-    try {
-      const resolvedBadgeText = resolveBadgeText();
-
-      const payload = {
-        scope: dispatchScope,
-        recipientEmail: dispatchScope === 'SINGLE' ? customRecipient : undefined,
-        subject,
-        bodyText,
-        category,
-        badgeText: resolvedBadgeText,
-        background: backgroundChoiceFor(bgPick),
-        attachments: attachments.map(({ filename, contentBase64, contentType }) => ({ filename, contentBase64, contentType })),
-      };
-      const res = await fetch('/api/email/send', {
-        method: 'POST',
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        triggerToast('success', `Dispatched ${data.count} email notification(s) successfully.`);
-        task.finish(`Queued ${data.count} email${data.count === 1 ? '' : 's'} (10-minute hold applies).`);
-        setSubject('');
-        setBodyText('');
-        setCustomRecipient('');
-        setAttachments([]);
-        fetchLogs();
-      } else {
-        triggerToast('error', data.error || 'Failed to dispatch emails.');
-        task.fail(data.error || 'Failed to dispatch emails.');
-      }
-    } catch (err: any) {
-      triggerToast('error', err?.message || 'Error executing email dispatch.');
-      task.fail(err?.message || 'Error executing email dispatch.');
-    } finally {
-      setIsSendingDispatch(false);
-    }
-  };
 
   // Logs arrive already filtered and paginated from the server.
   const filteredLogs = outboxLogs;
@@ -1399,207 +1305,21 @@ export default function EmailManagementPage() {
 
       {/* TAB 3: COMPOSE BROADCAST */}
       {activeTab === 'composer' && (
-        <div className="glass-panel p-6 md:p-8 rounded-3xl space-y-6 border border-theme-card-border">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-theme-border/20 pb-4">
-            <div>
-              <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Send className="h-4 w-4 text-accent" />
-                Broadcast Email Composer
-              </h3>
-              <p className="text-xs text-theme-text-secondary mt-0.5">
-                Compose custom HTML/text email broadcasts to member divisions or individual recipients directly via your configured mail server.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPreviewTab('edit')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
-                  previewTab === 'edit' ? 'bg-accent text-white' : 'bg-theme-border/20 text-theme-text-secondary'
-                }`}
-              >
-                Edit Content
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewTab('preview')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
-                  previewTab === 'preview' ? 'bg-accent text-white' : 'bg-theme-border/20 text-theme-text-secondary'
-                }`}
-              >
-                Live Preview
-              </button>
-            </div>
-          </div>
-
-          {previewTab === 'edit' ? (
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block font-medium text-theme-text-secondary">Target Recipient Scope *</label>
-                  <select
-                    value={dispatchScope}
-                    onChange={e => setDispatchScope(e.target.value as any)}
-                    className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold"
-                  >
-                    <option value="SINGLE">Single Recipient Email</option>
-                    <option value="All Members">All Members (Full Roster Broadcast)</option>
-                    <option value="Super User">Super Users</option>
-                    <option value="CEO">CEOs</option>
-                    <option value="Employee">Employees</option>
-                    <option value="Startup">Startups</option>
-                  </select>
-                </div>
-
-                {dispatchScope === 'SINGLE' ? (
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="block font-medium text-theme-text-secondary">Recipient Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      value={customRecipient}
-                      onChange={e => setCustomRecipient(e.target.value)}
-                      placeholder="student@example.com"
-                      className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="block font-medium text-theme-text-secondary">Category Tag</label>
-                    <select
-                      value={category}
-                      onChange={e => setCategory(e.target.value as any)}
-                      className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-                    >
-                      <option value="ANNOUNCEMENT">Announcement Broadcast</option>
-                      <option value="DIRECT_MESSAGE">Direct Notification</option>
-                      <option value="SYSTEM">System Broadcast</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-medium text-theme-text-secondary">Subject Line *</label>
-                <input
-                  type="text"
-                  required
-                  value={subject}
-                  onChange={e => setSubject(e.target.value)}
-                  placeholder="e.g. [RTBI Announcement] General Body Meeting Schedule & Deliverables"
-                  className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block font-medium text-theme-text-secondary">Email Message Body *</label>
-                  {attachments.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleInsertAttachmentNote}
-                      className="px-2 py-0.5 bg-accent/15 text-accent border border-accent/30 rounded-md font-semibold hover:bg-accent/25 transition-all cursor-pointer text-[10px]"
-                      title="Insert a 'Please find attached...' line naming the current attachments"
-                    >
-                      + Insert Attachment Note
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  rows={8}
-                  required
-                  value={bodyText}
-                  onChange={e => setBodyText(e.target.value)}
-                  placeholder="Type message content here..."
-                  className="w-full px-4 py-3 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono text-xs leading-relaxed"
-                />
-              </div>
-
-              <EmailBackgroundPicker value={bgPick} onChange={setBgPick} disabled={isSendingDispatch} />
-
-              <div className="space-y-1.5">
-                <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                  <Paperclip className="h-3.5 w-3.5" />
-                  Attachments (optional)
-                </label>
-                <label className="flex items-center justify-center gap-2 px-4 py-3 bg-theme-background/40 border border-dashed border-theme-card-border rounded-xl text-theme-text-secondary cursor-pointer hover:border-accent hover:text-accent transition-all">
-                  {isProcessingAttachments ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Paperclip className="h-4 w-4" />
-                  )}
-                  <span className="font-medium">Click to attach one or more files (max {formatBytes(MAX_TOTAL_ATTACHMENT_BYTES)} total)</span>
-                  <input
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={e => { handleAttachFiles(e.target.files); e.target.value = ''; }}
-                    disabled={isProcessingAttachments}
-                  />
-                </label>
-                {attachmentError && (
-                  <p className="text-[11px] text-danger">{attachmentError}</p>
-                )}
-                {attachments.length > 0 && (
-                  <div className="space-y-1.5">
-                    {attachments.map(a => (
-                      <div key={a.filename} className="flex items-center justify-between gap-2 px-3 py-2 bg-theme-background/30 border border-theme-border/20 rounded-xl">
-                        <div className="min-w-0 flex items-center gap-2">
-                          <Paperclip className="h-3.5 w-3.5 text-theme-text-secondary shrink-0" />
-                          <span className="font-semibold text-theme-text-primary truncate">{a.filename}</span>
-                          <span className="text-theme-text-secondary shrink-0">({formatBytes(a.size)})</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAttachment(a.filename)}
-                          className="p-1 text-danger hover:bg-danger/10 rounded-lg transition-all cursor-pointer shrink-0"
-                          title="Remove attachment"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-end pt-3">
-                <button
-                  type="button"
-                  disabled={!subject || !bodyText || (dispatchScope === 'SINGLE' && !customRecipient) || isSendingDispatch}
-                  onClick={() => setShowDispatchConfirm(true)}
-                  className="px-6 py-2.5 bg-accent hover:bg-primary-light text-white font-bold rounded-xl transition-all shadow-md shadow-accent/20 cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                >
-                  <Send className="h-4 w-4" />
-                  {isSendingDispatch ? 'Dispatching...' : 'Broadcast Email Payload'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Live HTML Preview Box */
-            <div className="space-y-4">
-              <div className="p-4 bg-theme-background/60 border border-theme-card-border rounded-2xl space-y-3">
-                <div className="border-b border-theme-border/20 pb-3 text-xs space-y-1">
-                  <p className="text-theme-text-secondary">From: <strong className="text-theme-text-primary">{settings.fromName} &lt;{settings.fromEmail}&gt;</strong></p>
-                  <p className="text-theme-text-secondary">To: <strong className="text-theme-text-primary">{dispatchScope === 'SINGLE' ? customRecipient || 'recipient@domain.com' : `[Broadcast Scope: ${dispatchScope}]`}</strong></p>
-                  <p className="text-theme-text-secondary">Subject: <strong className="text-accent">{subject || 'No Subject Provided'}</strong></p>
-                </div>
-                
-                <EmailHtmlPreview
-                  title="Email preview"
-                  subject={subject || 'Subject Line Preview'}
-                  bodyText={bodyText || 'Your message text will appear here...'}
-                  category={category}
-                  badgeText={resolveBadgeText()}
-                  background={backgroundChoiceFor(bgPick)}
-                  className="w-full h-[520px] rounded-xl border border-theme-border/30 bg-slate-200"
-                />
-                {attachments.length > 0 && <p className="text-[10px] text-theme-text-secondary">Attached: {attachments.map(a => a.filename).join(', ')}</p>}
-              </div>
-            </div>
-          )}
-        </div>
+        <MailComposerBroadcaster
+          senderName={settings.fromName}
+          senderEmail={settings.fromEmail}
+          initialSubject={composerInitial?.subject}
+          initialBodyText={composerInitial?.bodyText}
+          initialRecipientsText={composerInitial?.recipientsText}
+          onNavigateToSettings={() => {
+            setActiveTab('settings');
+            fetchSettings();
+          }}
+          onSent={() => {
+            setActiveTab('outbox');
+            fetchLogs();
+          }}
+        />
       )}
 
       {/* TAB 4: SMTP SERVER SETTINGS */}
@@ -2016,18 +1736,7 @@ export default function EmailManagementPage() {
         </div>
       )}
 
-      {/* Confirm Dispatch Modal */}
-      {showDispatchConfirm && (
-        <ConfirmModal
-          isOpen={showDispatchConfirm}
-          title="Confirm Email Dispatch"
-          message={`Are you sure you want to dispatch this email broadcast? Target Scope: "${dispatchScope}". This will deliver emails through your configured SMTP server.`}
-          confirmLabel="Execute Dispatch"
-          cancelLabel="Cancel"
-          onConfirm={handleExecuteDispatch}
-          onCancel={() => setShowDispatchConfirm(false)}
-        />
-      )}
+
 
       {/* Inspect Email Log Modal */}
       {selectedLog && (
@@ -2151,10 +1860,11 @@ export default function EmailManagementPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setDispatchScope('SINGLE');
-                  setCustomRecipient(selectedLog.to);
-                  setSubject(selectedLog.subject);
-                  setBodyText(selectedLog.bodyText);
+                  setComposerInitial({
+                    subject: selectedLog.subject,
+                    bodyText: selectedLog.bodyText,
+                    recipientsText: selectedLog.to,
+                  });
                   setSelectedLog(null);
                   setActiveTab('composer');
                   triggerToast('success', `Pre-filled composer with message payload for ${selectedLog.to}`);
