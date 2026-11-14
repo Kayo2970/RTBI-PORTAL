@@ -42,6 +42,7 @@ import { getRatingColor } from '@/lib/design-tokens';
 import { StudentProfileModal } from '@/components/student-profile-modal';
 import { GanttTimeline } from '@/components/gantt-timeline';
 import { TaskErrorToast } from '@/components/task-error-toast';
+import { QuickActionsWidget } from '@/components/quick-actions-widget';
 import type { Booking } from '@/lib/billing';
 
 export default function DashboardHome() {
@@ -393,6 +394,9 @@ export default function DashboardHome() {
         </Link>
 
       </div>
+
+      {/* Customizable Quick Actions Dock (Permission-Guarded) */}
+      <QuickActionsWidget user={user} />
 
       {lastUpdatedAt && (
         <p className="text-[10px] text-theme-text-secondary font-medium -mt-2 text-right">
