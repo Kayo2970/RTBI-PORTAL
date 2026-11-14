@@ -11,10 +11,12 @@
  * Granular permissions, department views, and role-based capabilities will
  * be provisioned in future rollout phases as the site is finalized.
  */
-import { Member, Guest, TaskItem, RatingItem, ReimbursementItem, BudgetItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey } from './local-data';
+import { Member, Guest, TaskItem, RatingItem, ReimbursementItem, BudgetItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey, getGroupPolicies, isTaskAssignee } from './local-data';
 
 export type SessionUser = {
   id?: string;
+  employeeId?: string;
+  policyIds?: string[];
   name: string;
   email: string;
   tier: number;
@@ -212,8 +214,34 @@ export const CAPABILITY_CATALOG: { key: string; label: string; description: stri
   { key: 'MANAGE_GROUP_POLICIES', label: 'Manage Group Policies', description: 'Create and configure group policies.', module: 'Administration' },
 ];
 
+export function isPolicyActive(policy: GroupPolicy): boolean {
+  if (policy.enabled === false) return false;
+  if (policy.expiresAt && new Date(policy.expiresAt).getTime() <= Date.now()) return false;
+  return true;
+}
+
+export function memberMatchesPolicy(user: SessionUser, policy: GroupPolicy): boolean {
+  if (!user) return false;
+  if (user.id && policy.targetMemberIds?.includes(user.id)) return true;
+  if (user.id && (user as any).policyIds?.includes(policy.id)) return true;
+  if (policy.targetDivisions?.length && user.division && policy.targetDivisions.includes(user.division as any)) return true;
+  if (policy.targetTiers?.length && typeof user.tier === 'number' && policy.targetTiers.includes(user.tier)) return true;
+  if (policy.targetDesignationKeyword?.trim()) {
+    const kw = policy.targetDesignationKeyword.trim().toLowerCase();
+    if ((user.role || '').toLowerCase().includes(kw)) return true;
+  }
+  return false;
+}
+
 export function hasCapability(user: SessionUser, capability: string): boolean {
-  return isSuperUser(user);
+  if (!user) return false;
+  if (user.tier === 1) return true;
+  try {
+    const policies = getGroupPolicies();
+    return policies.some((p) => isPolicyActive(p) && p.capabilities?.includes(capability) && memberMatchesPolicy(user, p));
+  } catch {
+    return false;
+  }
 }
 
 export const MODULE_CATALOG: { key: ModuleAccessKey; label: string; description: string; ownershipNote?: string }[] = [
@@ -241,20 +269,49 @@ export const MODULE_CATALOG: { key: ModuleAccessKey; label: string; description:
 ];
 
 export function hasModuleViewAllGrant(user: SessionUser, moduleKey: ModuleAccessKey): boolean {
-  return isSuperUser(user);
+  if (!user) return false;
+  if (user.tier === 1) return true;
+  try {
+    const policies = getGroupPolicies();
+    return policies.some((p) => isPolicyActive(p) && p.moduleAccess?.[moduleKey]?.view === 'ALL' && memberMatchesPolicy(user, p));
+  } catch {
+    return false;
+  }
 }
 
 export function hasModuleViewOwnRestriction(user: SessionUser, moduleKey: ModuleAccessKey): boolean {
-  return !isSuperUser(user);
+  if (!user) return false;
+  if (user.tier === 1) return false;
+  try {
+    const policies = getGroupPolicies();
+    return policies.some((p) => isPolicyActive(p) && p.moduleAccess?.[moduleKey]?.view === 'OWN' && memberMatchesPolicy(user, p));
+  } catch {
+    return false;
+  }
 }
 
 export function resolveModuleEditOverride(user: SessionUser, moduleKey: ModuleAccessKey): 'ALL' | 'OWN' | 'NONE' | undefined {
-  if (isSuperUser(user)) return 'ALL';
-  return 'NONE';
+  if (!user) return undefined;
+  if (user.tier === 1) return 'ALL';
+  try {
+    const policies = getGroupPolicies();
+    const matching = policies.filter((p) => isPolicyActive(p) && p.moduleAccess?.[moduleKey]?.edit && memberMatchesPolicy(user, p));
+    if (matching.some((p) => p.moduleAccess?.[moduleKey]?.edit === 'ALL')) return 'ALL';
+    if (matching.some((p) => p.moduleAccess?.[moduleKey]?.edit === 'OWN')) return 'OWN';
+    if (matching.some((p) => p.moduleAccess?.[moduleKey]?.edit === 'NONE')) return 'NONE';
+  } catch {}
+  return undefined;
 }
 
 export function resolveModuleViewOverride(user: SessionUser, moduleKey: ModuleAccessKey): 'ALL' | 'OWN' | undefined {
-  if (isSuperUser(user)) return 'ALL';
+  if (!user) return undefined;
+  if (user.tier === 1) return 'ALL';
+  try {
+    const policies = getGroupPolicies();
+    const matching = policies.filter((p) => isPolicyActive(p) && p.moduleAccess?.[moduleKey]?.view && memberMatchesPolicy(user, p));
+    if (matching.some((p) => p.moduleAccess?.[moduleKey]?.view === 'ALL')) return 'ALL';
+    if (matching.some((p) => p.moduleAccess?.[moduleKey]?.view === 'OWN')) return 'OWN';
+  } catch {}
   return undefined;
 }
 
@@ -340,75 +397,81 @@ export function canViewReimbursement(claim: ReimbursementItem, user: SessionUser
 }
 
 export function canCreateEvent(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENTS_CREATE') || resolveModuleEditOverride(user, 'EVENTS') === 'ALL';
 }
 
 export function canEditEvent(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENTS_EDIT') || resolveModuleEditOverride(user, 'EVENTS') === 'ALL';
 }
 
 export function canDeleteEvent(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENTS_DELETE');
 }
 
 export function canManageEvents(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENTS_CREATE') || hasCapability(user, 'EVENTS_EDIT');
 }
 
 export function canManageEventPasses(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_EVENT_PASSES');
 }
 
 export function canScanEventPasses(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'SCAN_EVENT_PASSES') || hasCapability(user, 'MANAGE_EVENT_PASSES');
 }
 
 export function canEditEventPasses(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENT_PASSES_EDIT') || hasCapability(user, 'MANAGE_EVENT_PASSES');
 }
 
 export function canDispatchEventPasses(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENT_PASSES_DISPATCH') || hasCapability(user, 'MANAGE_EVENT_PASSES');
 }
 
 export function canSendCertificates(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'CERTIFICATES_SEND');
 }
 
 export function canDesignCertificates(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'CERTIFICATES_DESIGN');
 }
 
 export function canDeleteEventPasses(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENT_PASSES_DELETE');
 }
 
 export function canDeleteCertificates(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'CERTIFICATES_DELETE');
 }
 
 export function canViewIssuedEventPasses(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENT_PASSES_VIEW') || isStaffTier(user);
 }
 
 export function canViewEventGuestList(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENT_PASSES_VIEW') || isStaffTier(user);
 }
 
 export function canViewIssuedCertificates(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EVENT_PASSES_VIEW') || isStaffTier(user);
 }
 
 export function canAccessEventPassesModule(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_EVENT_PASSES') || hasCapability(user, 'EVENT_PASSES_VIEW') || hasCapability(user, 'SCAN_EVENT_PASSES');
 }
 
 export function canAccessGroupPolicies(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_GROUP_POLICIES');
 }
 
 export function canViewEvent(event: EventItem, user: SessionUser): boolean {
-  return isSuperUser(user);
+  if (!user) return false;
+  if (isSuperUser(user)) return true;
+  if (hasCapability(user, 'EVENTS_VIEW_ALL') || hasModuleViewAllGrant(user, 'EVENTS')) return true;
+  if (hasModuleViewOwnRestriction(user, 'EVENTS')) {
+    return event.submittedByEmail === user.email || event.createdBy === user.email;
+  }
+  return true;
 }
 
 export function getEventApprovalRequirement(user: SessionUser, action: 'CREATE' | 'EDIT' | 'DELETE'): ApprovalRequirement {
@@ -440,23 +503,27 @@ export function canViewTaskDelegationTrail(user: SessionUser): boolean {
 }
 
 export function canCreateTask(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'TASKS_CREATE') || resolveModuleEditOverride(user, 'TASKS') === 'ALL';
 }
 
 export function canEditTask(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'TASKS_EDIT') || resolveModuleEditOverride(user, 'TASKS') === 'ALL';
 }
 
 export function canDeleteTask(user: SessionUser, task?: TaskItem): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'TASKS_DELETE');
 }
 
 export function canManageTasks(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'TASKS_EDIT') || hasCapability(user, 'TASKS_CREATE');
 }
 
 export function canViewTaskExtended(task: TaskItem, user: SessionUser): boolean {
-  return isSuperUser(user);
+  if (!user) return false;
+  if (isSuperUser(user)) return true;
+  if (hasCapability(user, 'TASKS_VIEW_ALL') || hasModuleViewAllGrant(user, 'TASKS')) return true;
+  if (isTaskAssignee(task, user) || (task as any).creatorName === user.name || (task as any).assignedBy === user.name) return true;
+  return typeof user.tier === 'number' && user.tier <= 3;
 }
 
 export function canViewHiddenAccounts(user: SessionUser): boolean {
@@ -472,11 +539,11 @@ export function canEditRating(rating: RatingItem, user: SessionUser): boolean {
 }
 
 export function canViewFullDirectory(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'VIEW_FULL_DIRECTORY') || hasModuleViewAllGrant(user, 'DIRECTORY') || isStaffTier(user);
 }
 
 export function canEditDirectory(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'EDIT_DIRECTORY');
 }
 
 export function canAddMember(user: SessionUser): boolean {
@@ -492,7 +559,7 @@ export function canApprovePendingMember(member: Member, user: SessionUser): bool
 }
 
 export function canTerminateMember(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'TERMINATE_MEMBER');
 }
 
 export function canSetMemberPassword(user: SessionUser): boolean {
@@ -500,15 +567,15 @@ export function canSetMemberPassword(user: SessionUser): boolean {
 }
 
 export function canAccessGuestDirectory(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'GUEST_DIRECTORY_ACCESS') || isStaffTier(user);
 }
 
 export function canRemoveGuestContact(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'GUEST_DIRECTORY_DELETE');
 }
 
 export function canBuildForms(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'BUILD_FORMS') || resolveModuleEditOverride(user, 'FORMS') === 'ALL';
 }
 
 export function isTrainingAssociate(user: SessionUser): boolean {
@@ -516,7 +583,7 @@ export function isTrainingAssociate(user: SessionUser): boolean {
 }
 
 export function canCreateForms(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'BUILD_FORMS') || resolveModuleEditOverride(user, 'FORMS') === 'ALL';
 }
 
 export function seesOnlyOwnForms(user: SessionUser): boolean {
@@ -530,7 +597,7 @@ export function isOwnForm(form: { createdById?: string; submittedByEmail?: strin
 }
 
 export function canDeleteForms(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'FORMS_DELETE');
 }
 
 export function getFormApprovalRequirement(user: SessionUser, action: 'CREATE' | 'EDIT' | 'DELETE'): ApprovalRequirement {
@@ -542,15 +609,15 @@ export function canApprovePendingForm(form: PublicFormItem, user: SessionUser): 
 }
 
 export function canCreateAnnouncement(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'CREATE_ANNOUNCEMENT') || resolveModuleEditOverride(user, 'ANNOUNCEMENTS') === 'ALL';
 }
 
 export function canDeleteAnnouncement(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'DELETE_ANNOUNCEMENT');
 }
 
 export function canViewAllDesigns(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'VIEW_ALL_DESIGNS');
 }
 
 export function canRequestTaskExtension(task: TaskItem, user: SessionUser): boolean {
@@ -558,7 +625,7 @@ export function canRequestTaskExtension(task: TaskItem, user: SessionUser): bool
 }
 
 export function canDecideTaskExtension(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'DECIDE_TASK_EXTENSION');
 }
 
 export function canChangeTaskStatus(task: TaskItem, user: SessionUser): boolean {
@@ -566,40 +633,38 @@ export function canChangeTaskStatus(task: TaskItem, user: SessionUser): boolean 
 }
 
 export function canManageGuestInvites(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_GUEST_INVITES');
 }
 
 export function canManageBackup(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_BACKUP');
 }
 
 export function canManageEmailSettings(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_EMAIL_SETTINGS');
 }
 
 export { getAnnouncementScopeMatch } from './announcement-scope';
 
 // ---------------------------------------------------------------------------
 // Bookings / Invoices & Payments / Inventory
-// Under Zero-Trust site-wide policy: restricted exclusively to Super User.
 // ---------------------------------------------------------------------------
 export function isStaffTier(user: SessionUser): boolean {
-  if (ZERO_TRUST_POLICY_ACTIVE) return isSuperUser(user);
   return !!user && typeof user.tier === 'number' && user.tier <= TIER_EMPLOYEE;
 }
 
 export function canBookRoom(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return !!user;
 }
 
 export function canManageBilling(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_BILLING') || isStaffTier(user);
 }
 
 export function canManageRooms(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_ROOMS') || isStaffTier(user);
 }
 
 export function canManageInventory(user: SessionUser): boolean {
-  return isSuperUser(user);
+  return isSuperUser(user) || hasCapability(user, 'MANAGE_INVENTORY') || isStaffTier(user);
 }

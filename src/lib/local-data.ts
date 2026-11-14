@@ -62,6 +62,8 @@ export type MemberDivision = 'Super User' | 'CEO' | 'Employee' | 'Startup';
 
 export interface Member {
   id: string;
+  employeeId?: string; // e.g. "RTBI-EMP-001" assigned on user creation
+  policyIds?: string[]; // IDs of assigned GroupPolicy records granting access
   name: string;
   email: string;
   role: string;
@@ -5511,6 +5513,65 @@ export function deleteGroupPolicy(id: string, actorName: string): boolean {
   serverDelete('/api/group-policies', id);
   logAuditEvent('GROUP_POLICY_DELETED', actorName, `Deleted group policy tag "${target.name}" [${target.tag}]`);
   return true;
+}
+
+export function generateNextEmployeeId(members?: Member[]): string {
+  const list = members || getMembers();
+  const nums = list
+    .map(m => {
+      const match = (m.employeeId || '').match(/EMP-(\d+)/i) || (m.employeeId || '').match(/(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter(n => !isNaN(n) && n > 0);
+  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
+  return `RTBI-EMP-${String(next).padStart(3, '0')}`;
+}
+
+export function getEffectiveMemberPolicies(memberIdOrMember: string | Member, allPolicies?: GroupPolicy[]): GroupPolicy[] {
+  const policies = allPolicies || getGroupPolicies();
+  const members = getMembers();
+  const member = typeof memberIdOrMember === 'string'
+    ? members.find(m => m.id === memberIdOrMember)
+    : memberIdOrMember;
+  if (!member) return [];
+
+  return policies.filter(p => {
+    if (p.enabled === false) return false;
+    if (p.expiresAt && new Date(p.expiresAt).getTime() <= Date.now()) return false;
+    if (p.targetMemberIds?.includes(member.id)) return true;
+    if (member.policyIds?.includes(p.id)) return true;
+    if (p.targetDivisions?.length && p.targetDivisions.includes(member.division)) return true;
+    if (p.targetTiers?.length && p.targetTiers.includes(member.tier)) return true;
+    if (p.targetDesignationKeyword?.trim()) {
+      const kw = p.targetDesignationKeyword.trim().toLowerCase();
+      if ((member.role || '').toLowerCase().includes(kw)) return true;
+    }
+    return false;
+  });
+}
+
+export function syncMemberPolicies(memberId: string, assignedPolicyIds: string[], actorName: string): void {
+  const policies = getGroupPolicies();
+  let policiesChanged = false;
+
+  updateMember(memberId, { policyIds: assignedPolicyIds }, actorName);
+
+  policies.forEach(p => {
+    const shouldHave = assignedPolicyIds.includes(p.id);
+    const currentlyHas = (p.targetMemberIds || []).includes(memberId);
+
+    if (shouldHave && !currentlyHas) {
+      p.targetMemberIds = [...(p.targetMemberIds || []), memberId];
+      policiesChanged = true;
+    } else if (!shouldHave && currentlyHas) {
+      p.targetMemberIds = (p.targetMemberIds || []).filter(id => id !== memberId);
+      policiesChanged = true;
+    }
+  });
+
+  if (policiesChanged) {
+    saveGroupPolicies(policies);
+  }
 }
 
 // -------------------------------------------------------------

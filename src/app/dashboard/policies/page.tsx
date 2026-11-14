@@ -20,6 +20,9 @@ import {
   RotateCcw,
   Save,
   Clock,
+  Shield,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import {
   getGroupPolicies,
@@ -30,6 +33,8 @@ import {
   getAccessLevelSettings,
   updateAccessLevelSettings,
   DEFAULT_ACCESS_LEVEL_SETTINGS,
+  getEffectiveMemberPolicies,
+  syncMemberPolicies,
   GroupPolicy,
   Member,
   MemberDivision,
@@ -97,6 +102,14 @@ export default function GroupPoliciesPage() {
   const [editingPolicy, setEditingPolicy] = useState<GroupPolicy | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Active view tab & Employee Access Matrix state
+  const [activeTab, setActiveTab] = useState<'policies' | 'matrix'>('policies');
+  const [matrixQuery, setMatrixQuery] = useState('');
+  const [matrixTierFilter, setMatrixTierFilter] = useState<number | 'all'>('all');
+  const [managingMemberAccess, setManagingMemberAccess] = useState<Member | null>(null);
+  const [managingPolicyIds, setManagingPolicyIds] = useState<string[]>([]);
+  const [isSavingMemberAccess, setIsSavingMemberAccess] = useState(false);
 
   // Form state
   const [name, setName] = useState('');
@@ -292,16 +305,31 @@ export default function GroupPoliciesPage() {
   };
 
   const draftCriteria: TargetCriteria = { targetDivisions, targetTiers, targetDesignationKeyword, targetMemberIds };
-  const draftMatches = members.filter(m => memberMatchesCriteria(m, draftCriteria));
+  const draftMatches = members.filter(m =>
+    (editingPolicy?.id && m.policyIds?.includes(editingPolicy.id)) ||
+    memberMatchesCriteria(m, draftCriteria)
+  );
 
   const memberSearchResults = members.filter(m => {
     const q = memberSearchQuery.toLowerCase();
-    return !q || m.name.toLowerCase().includes(q) || m.role.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+    return (
+      !q ||
+      m.name.toLowerCase().includes(q) ||
+      m.role.toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q) ||
+      (m.employeeId || '').toLowerCase().includes(q)
+    );
   });
 
   const approverSearchResults = members.filter(m => {
     const q = approverSearchQuery.toLowerCase();
-    return !q || m.name.toLowerCase().includes(q) || m.role.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+    return (
+      !q ||
+      m.name.toLowerCase().includes(q) ||
+      m.role.toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q) ||
+      (m.employeeId || '').toLowerCase().includes(q)
+    );
   });
   const selectedApproverMember = members.find(m => m.id === approverMemberId);
   const otherPolicies = policies.filter(p => p.id !== editingPolicy?.id);
@@ -394,6 +422,7 @@ export default function GroupPoliciesPage() {
 
   const getMatchingMembers = (policy: GroupPolicy) =>
     members.filter(m =>
+      (m.policyIds && m.policyIds.includes(policy.id)) ||
       memberMatchesCriteria(m, {
         targetDivisions: policy.targetDivisions || [],
         targetTiers: policy.targetTiers || [],
@@ -419,8 +448,39 @@ export default function GroupPoliciesPage() {
     if (policy.targetDivisions?.length) parts.push(`Division: ${policy.targetDivisions.join(', ')}`);
     if (policy.targetTiers?.length) parts.push(`Tier: ${policy.targetTiers.join(', ')}`);
     if (policy.targetDesignationKeyword) parts.push(`Designation contains "${policy.targetDesignationKeyword}"`);
-    if (policy.targetMemberIds?.length) parts.push(`${policy.targetMemberIds.length} explicit member(s)`);
+    if (policy.targetMemberIds?.length) {
+      const names = policy.targetMemberIds
+        .map(id => {
+          const m = members.find(mm => mm.id === id);
+          return m ? (m.employeeId ? `${m.name} (${m.employeeId})` : m.name) : id;
+        })
+        .slice(0, 3);
+      const remaining = policy.targetMemberIds.length - names.length;
+      parts.push(`Members: ${names.join(', ')}${remaining > 0 ? ` +${remaining} more` : ''}`);
+    }
     return parts.length ? parts : ['No targeting criteria set'];
+  };
+
+  const openMemberAccess = (m: Member) => {
+    setManagingMemberAccess(m);
+    const eff = getEffectiveMemberPolicies(m, policies);
+    setManagingPolicyIds(eff.map(p => p.id));
+  };
+
+  const handleSaveMemberAccess = () => {
+    if (!managingMemberAccess) return;
+    setIsSavingMemberAccess(true);
+    try {
+      syncMemberPolicies(managingMemberAccess.id, managingPolicyIds, user?.name || 'Super User');
+      setMembers(getMembers());
+      setPolicies(getGroupPolicies());
+      triggerSuccess(`Updated group policies for ${managingMemberAccess.name} (${managingMemberAccess.employeeId || 'ID unset'}).`);
+      setManagingMemberAccess(null);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setIsSavingMemberAccess(false);
+    }
   };
 
   // Wait for localStorage user hydration before deciding what to render, so a real
@@ -475,6 +535,34 @@ export default function GroupPoliciesPage() {
         </button>
       </div>
 
+      {/* View Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-theme-border/20 pb-1">
+        <button
+          onClick={() => setActiveTab('policies')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === 'policies'
+              ? 'bg-accent/15 text-accent border border-accent/30'
+              : 'text-theme-text-secondary hover:text-theme-text-primary'
+          }`}
+        >
+          <Tag className="h-3.5 w-3.5" />
+          <span>Policy Tags ({policies.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('matrix')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            activeTab === 'matrix'
+              ? 'bg-accent/15 text-accent border border-accent/30'
+              : 'text-theme-text-secondary hover:text-theme-text-primary'
+          }`}
+        >
+          <Users className="h-3.5 w-3.5" />
+          <span>Employee Access Matrix ({members.length})</span>
+        </button>
+      </div>
+
+      {activeTab === 'policies' ? (
+        <>
       {policies.length === 0 ? (
         <EmptyState
           icon={Tag}
@@ -608,9 +696,18 @@ export default function GroupPoliciesPage() {
                       <p className="text-[11px] text-theme-text-secondary py-2">No members currently match this tag.</p>
                     ) : (
                       matches.map(m => (
-                        <div key={m.id} className="flex items-center justify-between text-[11px] py-1">
-                          <span className="text-theme-text-primary font-medium">{m.name}</span>
-                          <span className="text-theme-text-secondary">{m.role}</span>
+                        <div key={m.id} className="flex items-center justify-between text-[11px] py-1 border-b border-theme-border/10 last:border-0">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {m.employeeId ? (
+                              <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/25 shrink-0">
+                                {m.employeeId}
+                              </span>
+                            ) : (
+                              <span className="text-[9px] text-theme-text-secondary italic">No ID</span>
+                            )}
+                            <span className="text-theme-text-primary font-medium truncate">{m.name}</span>
+                          </div>
+                          <span className="text-theme-text-secondary text-[10px] shrink-0 ml-2">{m.role || m.division}</span>
                         </div>
                       ))
                     )}
@@ -794,6 +891,141 @@ export default function GroupPoliciesPage() {
           </div>
         )}
       </div>
+      </>
+      ) : (
+        /* Employee Access Matrix View */
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="relative w-full max-w-sm">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-secondary" />
+              <input
+                value={matrixQuery}
+                onChange={e => setMatrixQuery(e.target.value)}
+                placeholder="Search by Employee ID, name, or role..."
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-theme-sidebar/50 border border-theme-border/30 text-xs text-theme-text-primary outline-none focus:border-accent"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] text-theme-text-secondary mr-1">Filter by Tier:</span>
+              {(['all', 1, 2, 3, 4] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setMatrixTierFilter(t)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                    matrixTierFilter === t
+                      ? 'bg-accent text-white border-accent'
+                      : 'bg-theme-background/30 border-theme-border/30 text-theme-text-secondary hover:text-theme-text-primary'
+                  }`}
+                >
+                  {t === 'all' ? 'All' : `Tier ${t}`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+                  <th className="px-4 py-3">Employee ID</th>
+                  <th className="px-4 py-3">Employee &amp; Role</th>
+                  <th className="px-4 py-3">Tier</th>
+                  <th className="px-4 py-3">Assigned Group Policies</th>
+                  <th className="px-4 py-3">Effective Capabilities</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members
+                  .filter(m => {
+                    if (matrixTierFilter !== 'all' && m.tier !== matrixTierFilter) return false;
+                    if (!matrixQuery.trim()) return true;
+                    const q = matrixQuery.trim().toLowerCase();
+                    return (
+                      m.name.toLowerCase().includes(q) ||
+                      m.email.toLowerCase().includes(q) ||
+                      (m.employeeId || '').toLowerCase().includes(q) ||
+                      (m.role || '').toLowerCase().includes(q)
+                    );
+                  })
+                  .map(m => {
+                    const isRoot = m.id === 'm1';
+                    const effPolicies = getEffectiveMemberPolicies(m, policies);
+                    const capabilitiesSet = new Set<string>();
+                    effPolicies.forEach(p => p.capabilities?.forEach(c => capabilitiesSet.add(c)));
+
+                    return (
+                      <tr key={m.id} className="border-b border-theme-border/10">
+                        <td className="px-4 py-3">
+                          {m.employeeId ? (
+                            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/25">
+                              {m.employeeId}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-theme-text-secondary italic">Not assigned</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-theme-text-primary">{m.name}</div>
+                          <div className="text-theme-text-secondary text-[11px]">{m.role || m.division}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              m.tier === 1
+                                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                                : m.tier === 2
+                                ? 'bg-accent/15 text-accent border-accent/30'
+                                : m.tier === 3
+                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                : 'bg-purple-500/15 text-purple-400 border-purple-500/30'
+                            }`}
+                          >
+                            Tier {m.tier}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 max-w-xs">
+                          {effPolicies.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {effPolicies.map(p => (
+                                <span
+                                  key={p.id}
+                                  title={p.name}
+                                  className="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
+                                >
+                                  {p.tag}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-theme-text-secondary">Default Tier Rules</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {isRoot ? (
+                            <span className="text-amber-400 font-semibold text-[11px]">Unrestricted Access</span>
+                          ) : (
+                            <span className="text-theme-text-primary font-medium text-[11px]">
+                              {capabilitiesSet.size} granted capabilities
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => openMemberAccess(m)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer text-[11px]"
+                          >
+                            <Shield className="h-3.5 w-3.5" /> Manage Policies
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Create / Edit Policy Tag Modal */}
       {isModalOpen && (
@@ -1079,8 +1311,15 @@ export default function GroupPoliciesPage() {
                                 targetMemberIds.includes(m.id) ? 'bg-accent/10' : ''
                               }`}
                             >
-                              <span className="font-medium text-theme-text-primary">{m.name}</span>
-                              <span className="text-theme-text-secondary shrink-0">{m.role}</span>
+                              <div className="flex items-center gap-2 min-w-0">
+                                {m.employeeId && (
+                                  <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/25 shrink-0">
+                                    {m.employeeId}
+                                  </span>
+                                )}
+                                <span className="font-medium text-theme-text-primary truncate">{m.name}</span>
+                              </div>
+                              <span className="text-theme-text-secondary text-[11px] shrink-0">{m.role || m.division}</span>
                             </button>
                           ))
                         )}
@@ -1098,7 +1337,7 @@ export default function GroupPoliciesPage() {
                             key={id}
                             className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-accent/10 text-accent text-[11px] font-semibold rounded-lg border border-accent/20"
                           >
-                            {m.name}
+                            {m.employeeId ? `[${m.employeeId}] ${m.name}` : m.name}
                             <button
                               type="button"
                               onClick={() => removeTargetMember(id)}
@@ -1245,6 +1484,105 @@ export default function GroupPoliciesPage() {
                 {editingPolicy ? 'Save Policy Tag' : 'Create Policy Tag'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Manage Member Access Modal in Policies Page */}
+      {managingMemberAccess && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setManagingMemberAccess(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="glass-panel w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 space-y-4 border border-white/15 shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
+              <div>
+                <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-accent" />
+                  Assign Group Policies
+                </h2>
+                <p className="text-[11px] text-theme-text-secondary">
+                  Grant or revoke policy tags for {managingMemberAccess.name} (
+                  {managingMemberAccess.employeeId ? (
+                    <span className="font-mono text-accent font-semibold">{managingMemberAccess.employeeId}</span>
+                  ) : (
+                    'No ID'
+                  )}
+                  ).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setManagingMemberAccess(null)}
+                className="p-1 hover:bg-white/10 rounded-lg cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+              {policies.map(p => {
+                const isChecked = managingPolicyIds.includes(p.id);
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() =>
+                      setManagingPolicyIds(prev =>
+                        prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                      )
+                    }
+                    className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                      isChecked
+                        ? 'bg-accent/15 border-accent/40 text-theme-text-primary'
+                        : 'bg-theme-sidebar/40 border-theme-border/30 hover:border-theme-border/50 text-theme-text-secondary'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => {}}
+                      className="accent-accent mt-0.5 pointer-events-none"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
+                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
+                          {p.tag}
+                        </span>
+                      </div>
+                      {p.description && (
+                        <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
+                      )}
+                      <div className="text-[9px] text-theme-text-secondary/80 mt-0.5">
+                        {p.capabilities?.length || 0} capabilities granted
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-theme-border/20">
+              <button
+                type="button"
+                onClick={() => setManagingMemberAccess(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveMemberAccess}
+                disabled={isSavingMemberAccess}
+                className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl cursor-pointer disabled:opacity-60 shadow-md shadow-accent/20"
+              >
+                {isSavingMemberAccess && <Loader2 className="h-4 w-4 animate-spin" />} Save Policy Assignments
+              </button>
+            </div>
           </div>
         </div>
       )}

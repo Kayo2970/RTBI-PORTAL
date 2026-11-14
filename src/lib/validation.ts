@@ -39,6 +39,8 @@ const MemberDivisionEnum = z.enum(['Super User', 'CEO', 'Employee', 'Startup']);
 
 export const MemberWriteSchema = z.object({
   id: z.string().trim().min(1).max(128).optional(),
+  employeeId: z.string().trim().max(64).optional(),
+  policyIds: z.array(z.string()).optional(),
   name: z.string().trim().min(1).max(200).optional(),
   email: z.string().trim().min(1).max(254).email().optional(),
   role: z.string().trim().max(200).optional(),

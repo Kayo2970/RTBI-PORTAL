@@ -129,6 +129,7 @@ export async function hasCapabilityServer(user: ServerUser, capability: string):
     if (p.expiresAt && p.expiresAt <= now) return false;
     if (!p.capabilities?.includes(capability)) return false;
     if (user.id && p.targetMemberIds?.includes(user.id)) return true;
+    if (user.id && (user as any).policyIds?.includes(p.id)) return true;
     if (p.targetDivisions?.length && user.division && p.targetDivisions.includes(user.division)) return true;
     if (p.targetTiers?.length && typeof user.tier === 'number' && p.targetTiers.includes(user.tier)) return true;
     if (p.targetDesignationKeyword?.trim()) {

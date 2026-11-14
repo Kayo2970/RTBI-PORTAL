@@ -766,3 +766,4 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
     </section>
   );
 }
+
