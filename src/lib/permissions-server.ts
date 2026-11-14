@@ -208,23 +208,29 @@ export function canApproveAsSectorHead(user: ServerUser, settings: AccessLevelSe
   return isSuperUser(user);
 }
 
-export function canVerifyReimbursementCentreHead(user: ServerUser, settings: AccessLevelSettings): boolean {
+export function canManageAnnualBudget(user: ServerUser): boolean {
+  return isSuperUser(user) || (typeof user?.tier === 'number' && user.tier <= 2);
+}
+
+export function canDeleteExpense(user: ServerUser, expense: { submittedByEmail?: string }): boolean {
+  if (!user) return false;
+  if (isSuperUser(user) || (typeof user.tier === 'number' && user.tier <= 2)) return true;
+  return !!expense.submittedByEmail && !!user.email && String(expense.submittedByEmail).toLowerCase() === String(user.email).toLowerCase();
+}
+
+export function canVerifyInvoicePayment(user: ServerUser): boolean {
+  return isSuperUser(user) || (typeof user?.tier === 'number' && user.tier <= 2);
+}
+
+export function canManageIncome(user: ServerUser): boolean {
+  return isSuperUser(user) || (typeof user?.tier === 'number' && user.tier <= 2);
+}
+
+export function canDecideProcurementRequest(user: ServerUser, settings: AccessLevelSettings): boolean {
   return isSuperUser(user);
 }
 
-export function canApproveAsFinanceHead(user: ServerUser, settings: AccessLevelSettings, claim?: any): boolean {
-  return isSuperUser(user);
-}
-
-export function canVerifyBudgetCentreHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return isSuperUser(user);
-}
-
-export function canDecideBudget(user: ServerUser, settings: AccessLevelSettings, budget?: any): boolean {
-  return isSuperUser(user);
-}
-
-export function canSubmitBudget(user: ServerUser, settings: AccessLevelSettings): boolean {
+export function canViewProcurementRequest(user: ServerUser, settings: AccessLevelSettings, request: any): boolean {
   return isSuperUser(user);
 }
 

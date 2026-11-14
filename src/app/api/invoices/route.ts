@@ -1,56 +1,75 @@
 import { NextResponse } from 'next/server';
-import { readCollection } from '@/lib/server-db';
-import { requireSession, requirePermission } from '@/lib/session';
-import { canManageBilling } from '@/lib/permissions-server';
+import { readCollection, mutateCollection } from '@/lib/server-db';
+import { requireSession } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
-import { bad, str, num, cleanLines, createInvoice } from '@/lib/billing-server';
-import type { Invoice } from '@/lib/billing';
+import { computeInvoiceTotals, getFinancialYearForDate, type InvoiceItem, type InvoiceLine } from '@/lib/finance';
 
 export async function GET(request: Request) {
   try {
-    const actor = await requireSession(request);
-    const all = await readCollection<Invoice>('invoices');
-    const rows = canManageBilling(actor) ? all : all.filter(i => i.customerId === actor.id);
-    return NextResponse.json(rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-  } catch (err) {
-    return apiError(err, 'invoices-get');
+    await requireSession(request);
+    return NextResponse.json(await readCollection('invoices'));
+  } catch (err: any) {
+    return apiError(err, 'invoices-api-get', 500);
   }
 }
 
-/** Staff create an invoice: pick a member (or type a customer), list the due items with their breakup, and the number is assigned automatically. */
+/** Issue an invoice. Totals are recomputed here and the sequential number (INV-<FY start>-NNN) is assigned here. */
 export async function POST(request: Request) {
   try {
     const actor = await requireSession(request);
-    requirePermission(canManageBilling(actor), 'Only Super User, CEO and Employees can raise invoices.');
-    const b = await request.json();
+    const body = await request.json();
 
-    let customerName = str(b.customerName, 120);
-    let customerEmail = str(b.customerEmail, 160);
-    let customerOrganisation = str(b.customerOrganisation, 120);
-    let customerId: string | undefined;
-    if (b.customerId) {
-      const member = (await readCollection<any>('members')).find(m => m.id === b.customerId);
-      if (!member) bad('Selected member was not found.');
-      customerId = member.id;
-      customerName = member.name;
-      customerEmail = member.email;
-      customerOrganisation = customerOrganisation || member.organisation || member.company || '';
+    const clientName = typeof body.clientName === 'string' ? body.clientName.trim() : '';
+    if (!clientName) throw new Error('Client name is required.');
+    if (!body.issueDate || Number.isNaN(new Date(body.issueDate).getTime())) throw new Error('A valid invoice date is required.');
+
+    const lineItems: InvoiceLine[] = (Array.isArray(body.lineItems) ? body.lineItems : [])
+      .map((l: any) => ({ description: String(l?.description || '').trim(), quantity: Number(l?.quantity), rate: Number(l?.rate) }))
+      .filter((l: InvoiceLine) => l.description);
+    if (lineItems.length === 0) throw new Error('Add at least one line item.');
+    for (const l of lineItems) {
+      if (!Number.isFinite(l.quantity) || l.quantity <= 0 || !Number.isFinite(l.rate) || l.rate < 0) {
+        throw new Error(`Line item "${l.description}" needs a positive quantity and a valid rate.`);
+      }
     }
-    if (!customerName) bad('Choose a member or enter the customer name.');
+    const taxPercent = Number(body.taxPercent) || 0;
+    if (taxPercent < 0 || taxPercent > 100) throw new Error('Tax must be between 0 and 100 percent.');
+    const totals = computeInvoiceTotals(lineItems, taxPercent);
+    if (totals.totalAmount <= 0) throw new Error('The invoice total must be greater than zero.');
 
-    const inv = await createInvoice(
-      {
-        customerId, customerName, customerEmail, customerOrganisation,
-        issueDate: b.issueDate, dueDate: b.dueDate,
-        lines: cleanLines(b.lines),
-        discount: num(b.discount),
-        notes: str(b.notes, 1000),
-        source: 'Manual',
-      },
-      { id: actor.id, name: actor.name }
-    );
-    return NextResponse.json(inv, { status: 201 });
-  } catch (err) {
-    return apiError(err, 'invoices-post', 400);
+    const financialYear = getFinancialYearForDate(body.issueDate);
+    const fyStart = financialYear.split('-')[0];
+    const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+
+    let created: InvoiceItem | null = null;
+    await mutateCollection('invoices', (current: any[]) => {
+      const prefix = `INV-${fyStart}-`;
+      const maxSeq = current
+        .map(i => (typeof i.invoiceNumber === 'string' && i.invoiceNumber.startsWith(prefix) ? parseInt(i.invoiceNumber.slice(prefix.length), 10) : 0))
+        .reduce((m, n) => (Number.isFinite(n) && n > m ? n : m), 0);
+      created = {
+        id: 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        invoiceNumber: `${prefix}${String(maxSeq + 1).padStart(3, '0')}`,
+        financialYear,
+        clientName,
+        clientEmail: str(body.clientEmail),
+        clientAddress: str(body.clientAddress),
+        clientGstin: str(body.clientGstin),
+        issueDate: body.issueDate,
+        dueDate: str(body.dueDate),
+        lineItems,
+        taxPercent,
+        ...totals,
+        notes: str(body.notes),
+        status: 'Issued',
+        createdBy: actor.name,
+        createdByEmail: actor.email,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      return [created!, ...current];
+    });
+    return NextResponse.json(created, { status: 201 });
+  } catch (err: any) {
+    return apiError(err, 'invoices-api-post', 400);
   }
 }

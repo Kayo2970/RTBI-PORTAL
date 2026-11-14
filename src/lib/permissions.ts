@@ -11,7 +11,7 @@
  * Granular permissions, department views, and role-based capabilities will
  * be provisioned in future rollout phases as the site is finalized.
  */
-import { Member, Guest, TaskItem, RatingItem, ReimbursementItem, BudgetItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey, getGroupPolicies, isTaskAssignee } from './local-data';
+import { Member, Guest, TaskItem, RatingItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey, getGroupPolicies, isTaskAssignee } from './local-data';
 
 export type SessionUser = {
   id?: string;
@@ -180,11 +180,7 @@ export const CAPABILITY_CATALOG: { key: string; label: string; description: stri
   { key: 'VIEW_ALL_DESIGNS', label: 'View All Design Submissions', description: 'See every submission in the Design Portal, not just their own.', module: 'Design Portal' },
   { key: 'DESIGN_STYLE_APPROVE', label: 'Style Approve/Reject Designs', description: 'Approve or reject a design submission on the Style Review step.', module: 'Design Portal' },
   { key: 'DESIGN_DELETE', label: 'Delete Design Submissions', description: 'Delete any design submission, not just their own.', module: 'Design Portal' },
-  { key: 'APPROVE_REIMBURSEMENTS_SECTOR', label: 'Approve Reimbursements (Sector Head stage)', description: 'First-pass reimbursement review and approval.', module: 'Reimbursements' },
-  { key: 'APPROVE_REIMBURSEMENTS_FINANCE', label: 'Approve Reimbursements (Finance Head stage)', description: 'Final-stage reimbursement approval.', module: 'Reimbursements' },
-  { key: 'REIMBURSEMENTS_VIEW_ALL', label: 'View All Reimbursements', description: 'See all reimbursement claims across the organization.', module: 'Reimbursements' },
-  { key: 'PROPOSE_BUDGET', label: 'Propose Budgets', description: 'Propose an annual or monthly budget request.', module: 'Budget & Funds' },
-  { key: 'MANAGE_BUDGET', label: 'Manage Budget & Funds', description: 'Propose and manage budget requests.', module: 'Budget & Funds' },
+  { key: 'MANAGE_FINANCE', label: 'Manage Finance', description: 'Set the annual budget and verify invoice payments.', module: 'Finance' },
   { key: 'BUILD_FORMS', label: 'Build Public Forms', description: 'Create and edit public-facing forms.', module: 'Public Forms' },
   { key: 'FORMS_VIEW_RESPONSES', label: 'View Form Responses', description: 'View and export submissions for public forms.', module: 'Public Forms' },
   { key: 'FORMS_DELETE', label: 'Delete Public Forms', description: 'Delete public forms and their configurations.', module: 'Public Forms' },
@@ -251,8 +247,7 @@ export const MODULE_CATALOG: { key: ModuleAccessKey; label: string; description:
   { key: 'DIRECTORY', label: 'Members Directory', description: 'The member roster.' },
   { key: 'GUEST_DIRECTORY', label: 'Guest Directory', description: 'Visiting-card guest contacts.' },
   { key: 'DESIGNS', label: 'Design Portal', description: 'Design submissions and proofreading.' },
-  { key: 'REIMBURSEMENTS', label: 'Reimbursements', description: 'Reimbursement claims.' },
-  { key: 'BUDGET', label: 'Budget & Funds', description: 'Budget proposals and verification.' },
+  { key: 'BUDGET', label: 'Finance', description: 'Annual budget, expenses, income and invoices.' },
   { key: 'FORMS', label: 'Public Forms', description: 'Public-facing forms and their submissions.' },
   { key: 'ANNOUNCEMENTS', label: 'Announcements', description: 'Published announcements.' },
   { key: 'RATINGS', label: 'Ratings & Performance', description: 'Student performance evaluations.' },
@@ -368,23 +363,43 @@ export function canApproveAsSectorHead(user: SessionUser): boolean {
   return isSuperUser(user);
 }
 
-export function canVerifyReimbursementCentreHead(user: SessionUser): boolean {
+/** Set/replace the annual budget and its head-wise breakup. Super User / CEO. */
+export function canManageAnnualBudget(user: SessionUser): boolean {
+  return isSuperUser(user) || (typeof user?.tier === 'number' && user.tier <= 2) || hasCapability(user, 'MANAGE_FINANCE');
+}
+
+/** Anyone signed in may book an expense (bill + description + head are mandatory). */
+export function canAddExpense(user: SessionUser): boolean {
+  return !!user;
+}
+
+/** Delete an expense: whoever booked it, or Super User / CEO. */
+export function canDeleteExpense(user: SessionUser, expense: { submittedByEmail?: string }): boolean {
+  if (!user) return false;
+  if (isSuperUser(user) || (typeof user.tier === 'number' && user.tier <= 2)) return true;
+  return !!expense.submittedByEmail && !!user.email && expense.submittedByEmail.toLowerCase() === String(user.email).toLowerCase();
+}
+
+/** Phase 1: anyone signed in may issue invoices and record that a payment arrived. */
+export function canManageInvoices(user: SessionUser): boolean {
+  return !!user;
+}
+
+/** Verifying a payment books it as income, so it needs finance authority: Super User / CEO. */
+export function canVerifyInvoicePayment(user: SessionUser): boolean {
+  return isSuperUser(user) || (typeof user?.tier === 'number' && user.tier <= 2) || hasCapability(user, 'MANAGE_FINANCE');
+}
+
+/** Manually add / edit / delete income entries. Super User / CEO. */
+export function canManageIncome(user: SessionUser): boolean {
+  return isSuperUser(user) || (typeof user?.tier === 'number' && user.tier <= 2);
+}
+
+export function canDecideProcurementRequest(user: SessionUser): boolean {
   return isSuperUser(user);
 }
 
-export function canApproveAsFinanceHead(user: SessionUser, claim?: ReimbursementItem): boolean {
-  return isSuperUser(user);
-}
-
-export function canSubmitBudget(user: SessionUser): boolean {
-  return isSuperUser(user);
-}
-
-export function canVerifyBudgetCentreHead(user: SessionUser): boolean {
-  return isSuperUser(user);
-}
-
-export function canDecideBudget(user: SessionUser, budget?: BudgetItem): boolean {
+export function canViewProcurementRequest(user: SessionUser, request: any): boolean {
   return isSuperUser(user);
 }
 
@@ -392,9 +407,6 @@ export function canApproveAnnouncement(user: SessionUser): boolean {
   return isSuperUser(user);
 }
 
-export function canViewReimbursement(claim: ReimbursementItem, user: SessionUser): boolean {
-  return isSuperUser(user);
-}
 
 export function canCreateEvent(user: SessionUser): boolean {
   return isSuperUser(user) || hasCapability(user, 'EVENTS_CREATE') || resolveModuleEditOverride(user, 'EVENTS') === 'ALL';

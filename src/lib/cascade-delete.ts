@@ -52,7 +52,7 @@ export async function purgeMemberArtifacts(memberId: string, email?: string): Pr
  * Event deletion: removes everything that only makes sense while the event exists —
  * passes (+pkpass files, wallet revoke), reports (+files), designs (+assets), tasks
  * (+attachments, ratings, approvals), forms (+submissions) and the pass-theme assets.
- * Finance records (reimbursements, budgets, income) are intentionally kept for history.
+ * Finance records (expenses, annual budgets, invoices, income) are intentionally kept for history.
  */
 export async function cascadeDeleteEvent(eventId: string): Promise<{ removed: Record<string, number> }> {
   const removed: Record<string, number> = {};

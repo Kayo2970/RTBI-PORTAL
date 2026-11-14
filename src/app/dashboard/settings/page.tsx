@@ -38,7 +38,7 @@ import { IntegrationsPanel } from '@/components/integrations-panel';
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'account' | 'reimbursement' | 'roles' | 'audit' | 'emails' | 'integrations'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'roles' | 'audit' | 'emails' | 'integrations'>('account');
   const [user, setUser] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [auditSearchQuery, setAuditSearchQuery] = useState('');
@@ -77,10 +77,6 @@ export default function SettingsPage() {
   const [emailChangeMsg, setEmailChangeMsg] = useState('');
   const [emailChangeErr, setEmailChangeErr] = useState('');
 
-  // Reimbursement Settlement Coordinates
-  const [savedBankName, setSavedBankName] = useState('');
-  const [savedAccountNumber, setSavedAccountNumber] = useState('');
-  const [savedIfscCode, setSavedIfscCode] = useState('');
 
   // Notification state
   const [successMsg, setSuccessMsg] = useState('');
@@ -98,9 +94,6 @@ export default function SettingsPage() {
         setUser(u);
         setDisplayName(u.name);
         const me = allMembers.find(m => m.id === u.id || m.email.toLowerCase() === u.email.toLowerCase());
-        setSavedBankName(u.bankName || me?.bankName || '');
-        setSavedAccountNumber(u.accountNumber || me?.accountNumber || '');
-        setSavedIfscCode(u.ifscCode || me?.ifscCode || '');
         setDateOfBirth(u.dateOfBirth || me?.dateOfBirth || '');
         setTestTo(u.email || '');
       } catch (e) {
@@ -358,9 +351,6 @@ export default function SettingsPage() {
 
     const changes = {
       name: displayName.trim(),
-      bankName: savedBankName.trim(),
-      accountNumber: savedAccountNumber.trim(),
-      ifscCode: savedIfscCode.trim().toUpperCase(),
       dateOfBirth: dateOfBirth || undefined,
     };
     const updatedMember = updateMember(user.id, changes, user.name);
@@ -378,7 +368,7 @@ export default function SettingsPage() {
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    triggerSuccess('Account profile and reimbursement settlement bank coordinates saved successfully.');
+    triggerSuccess('Account profile saved successfully.');
   };
 
   const handleSendTestEmail = async (e: React.FormEvent) => {
@@ -419,10 +409,10 @@ export default function SettingsPage() {
 
   const rolePrivileges = [
     { tier: 1, role: 'Super User', access: 'Full unconstrained system administration, user management, audit logs, and forms building.' },
-    { tier: 2, role: 'Centre Head', access: 'Final reimbursement authorization, event oversight, performance evaluations, and reporting.' },
+    { tier: 2, role: 'Centre Head', access: 'Annual budget, invoice payment verification, event oversight, performance evaluations, and reporting.' },
     { tier: 3, role: 'Head of Events', access: 'Event creation & management, task assignments, deadline extensions, and ratings.' },
     { tier: 4, role: 'Advisory Board', access: 'Strategic read-only oversight, quarterly analytics, and event calendar reviews.' },
-    { tier: 5, role: 'Core Committee', access: 'Event organizing, task assignments, public form creation, and reimbursement first-pass checks.' },
+    { tier: 5, role: 'Core Committee', access: 'Event organizing, task assignments, and public form creation.' },
     { tier: 6, role: 'Training Associate', access: 'Assigned deliverable execution, task acknowledgment, and personal claim submissions.' },
   ];
 
@@ -490,7 +480,7 @@ export default function SettingsPage() {
       {/* Header section */}
       <div>
         <h1 className="text-xl font-bold text-theme-text-primary">System Settings & Governance</h1>
-        <p className="text-xs text-theme-text-secondary">Configure your profile credentials, saved reimbursement settlement bank details, inspect role privileges, manage email dispatcher, and review audit records</p>
+        <p className="text-xs text-theme-text-secondary">Configure your profile credentials, inspect role privileges, manage email dispatcher, and review audit records</p>
       </div>
 
       {/* Tabs navigation */}
@@ -505,18 +495,6 @@ export default function SettingsPage() {
         >
           <User className="h-4 w-4" />
           Account Profile
-        </button>
-
-        <button
-          onClick={() => setActiveTab('reimbursement')}
-          className={`pb-3 flex items-center gap-2 transition-all cursor-pointer shrink-0 ${
-            activeTab === 'reimbursement'
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-theme-text-secondary hover:text-theme-text-primary'
-          }`}
-        >
-          <CreditCard className="h-4 w-4" />
-          Reimbursement Account
         </button>
 
         <button
@@ -863,54 +841,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Saved Bank Details for Auto-filling Reimbursements */}
-              <div className="pt-2 border-t border-theme-border/20 space-y-3">
-                <h4 className="font-bold text-xs text-theme-text-primary uppercase tracking-wider flex items-center gap-1.5">
-                  <Building2 className="h-4 w-4 text-accent" />
-                  Default Reimbursement Bank Settlement Coordinates
-                </h4>
-                <p className="text-[11px] text-theme-text-secondary">
-                  Save your bank credentials here so they automatically pre-fill whenever you submit reimbursement claims.
-                </p>
-
-                <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">Bank Name</label>
-                    <input
-                      type="text"
-                      value={savedBankName}
-                      onChange={(e) => setSavedBankName(e.target.value)}
-                      placeholder="e.g. HDFC Bank, SBI, ICICI Bank"
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="block font-medium text-theme-text-secondary">Account Number</label>
-                      <input
-                        type="text"
-                        value={savedAccountNumber}
-                        onChange={(e) => setSavedAccountNumber(e.target.value)}
-                        placeholder="e.g. 50100293849182"
-                        className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block font-medium text-theme-text-secondary">IFSC Code</label>
-                      <input
-                        type="text"
-                        value={savedIfscCode}
-                        onChange={(e) => setSavedIfscCode(e.target.value)}
-                        placeholder="e.g. HDFC0000123"
-                        className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono uppercase"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <div className="pt-2 border-t border-theme-border/20 space-y-3">
                 <h4 className="font-bold text-xs text-theme-text-primary uppercase tracking-wider flex items-center gap-1.5">
                   <Key className="h-4 w-4 text-accent" />
@@ -948,7 +878,7 @@ export default function SettingsPage() {
                   className="px-5 py-2.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl transition-all shadow-md shadow-accent/15 cursor-pointer flex items-center gap-1.5 text-xs"
                 >
                   <Save className="h-4 w-4" />
-                  Save Profile & Bank Details
+                  Save Profile
                 </button>
               </div>
             </form>
@@ -967,12 +897,6 @@ export default function SettingsPage() {
                   <strong className="text-theme-text-primary">{user?.role} (Level {user?.tier})</strong>
                 </div>
 
-                {savedBankName && (
-                  <div className="pt-2 border-t border-theme-border/20 text-theme-text-secondary">
-                    <span>Saved Reimbursement Bank: </span>
-                    <strong className="text-accent font-medium">{savedBankName}</strong>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -981,87 +905,6 @@ export default function SettingsPage() {
               <p>Build version: v2026.8.19-email-sync</p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Tab 2: Reimbursement Settlement Account */}
-      {activeTab === 'reimbursement' && (
-        <div className="glass-panel rounded-2xl p-6 space-y-6 max-w-3xl">
-          <div className="flex items-center justify-between border-b border-theme-border/20 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-accent/15 border border-accent/25 rounded-2xl text-accent">
-                <CreditCard className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-theme-text-primary">Saved Reimbursement Bank Settlement Account</h3>
-                <p className="text-xs text-theme-text-secondary">Students & organizers can save bank coordinates here to auto-fill every reimbursement claim submission</p>
-              </div>
-            </div>
-          </div>
-
-          <form onSubmit={handleUpdateAccount} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-accent" />
-                Bank Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={savedBankName}
-                onChange={(e) => setSavedBankName(e.target.value)}
-                placeholder="e.g. HDFC Bank, State Bank of India, ICICI Bank, Axis Bank"
-                className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                  <CreditCard className="h-4 w-4 text-accent" />
-                  Bank Account Number *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={savedAccountNumber}
-                  onChange={(e) => setSavedAccountNumber(e.target.value)}
-                  placeholder="e.g. 50100293849182"
-                  className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                  <Hash className="h-4 w-4 text-accent" />
-                  IFSC Code *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={savedIfscCode}
-                  onChange={(e) => setSavedIfscCode(e.target.value)}
-                  placeholder="e.g. HDFC0000123"
-                  className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono uppercase"
-                />
-              </div>
-            </div>
-
-            <div className="p-3 bg-theme-background/20 border border-theme-border/20 rounded-xl text-[11px] text-theme-text-secondary flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-              <span>Your bank credentials are saved locally to your member profile and automatically auto-filled whenever you open the reimbursement claim form.</span>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl transition-all shadow-md shadow-accent/15 cursor-pointer flex items-center gap-2 text-xs"
-              >
-                <Save className="h-4 w-4" />
-                Save Reimbursement Bank Coordinates
-              </button>
-            </div>
-          </form>
         </div>
       )}
 

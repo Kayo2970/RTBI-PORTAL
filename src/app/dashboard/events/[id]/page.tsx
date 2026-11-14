@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { getExpenseHeadLabel } from '@/lib/finance';
 import {
   ChevronLeft,
   Calendar,
@@ -30,8 +31,7 @@ import {
   getEventById,
   getMembers,
   getTasks,
-  getBudgets,
-  getReimbursements,
+  getExpenses,
   addTask,
   deleteTask,
   formatEventDateRange,
@@ -229,39 +229,18 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      {/* Event Financial & Budget Health Card (Integrated with Budgeting Module) */}
+      {/* Event expenses — booked in the Finance module against this event */}
       {(() => {
-        const allBudgets = getBudgets();
-        const allReimbursements = getReimbursements();
+        const eventExpenses = getExpenses().filter((x) => x.eventId === event.id);
+        const actualSpent = eventExpenses.reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
 
-        // Calculate proposed budget allocated to this event
-        let proposedAmount = 0;
-        allBudgets.forEach((b) => {
-          if (b.eventId === event.id) {
-            proposedAmount += b.amount || b.proposedAmount || 0;
-          }
-          if (b.lineItems) {
-            b.lineItems.forEach((li) => {
-              if (li.eventId === event.id) {
-                proposedAmount += li.amount || li.proposedAmount || 0;
-              }
-            });
-          }
-        });
+        const spentByHead: Record<string, number> = {};
+        eventExpenses.forEach((x) => { spentByHead[x.head] = (spentByHead[x.head] || 0) + (Number(x.amount) || 0); });
 
-        // Calculate actual approved reimbursements for this event
-        const actualSpent = allReimbursements
-          .filter((r) => r.eventId === event.id && r.status === 'Approved')
-          .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-
-        // Calculate sponsors and surplus for this event
         const eventSponsors = getEventSponsors(event.id);
         const sponsorTotal = getEventSponsorTotal(event);
         const sponsorCovered = Math.min(actualSpent, sponsorTotal);
         const surplusReturned = Math.max(0, sponsorTotal - actualSpent);
-
-        const variance = proposedAmount - actualSpent;
-        const percentUsed = proposedAmount > 0 ? Math.min(Math.round((actualSpent / proposedAmount) * 100), 100) : 0;
 
         return (
           <div className="glass-panel rounded-2xl p-5 border border-theme-card-border space-y-3">
@@ -272,53 +251,32 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
-                    Event Financial Health & Budget Status
-                    <Link
-                      href="/dashboard/budget"
-                      className="text-[10px] text-accent hover:underline font-semibold flex items-center gap-0.5"
-                    >
-                      View in Budget Module &rarr;
+                    Event Expenses
+                    <Link href="/dashboard/budget" className="text-[10px] text-accent hover:underline font-semibold flex items-center gap-0.5">
+                      View in Finance &rarr;
                     </Link>
                   </h3>
                   <p className="text-[11px] text-theme-text-secondary">
-                    Synced live with Budgeting Module & Approved Reimbursements
+                    Bill-backed expenses booked against this event in the Finance module
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-4 text-xs">
-                <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium uppercase tracking-wider">
-                    Allocated Proposed Budget
-                  </span>
-                  <span className="font-extrabold text-accent text-sm">
-                    ₹{proposedAmount.toLocaleString()}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium uppercase tracking-wider">
-                    Realized Actual Spent
-                  </span>
-                  <span className="font-extrabold text-emerald-400 text-sm">
-                    ₹{actualSpent.toLocaleString()}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium uppercase tracking-wider">
-                    Variance / Forecast
-                  </span>
-                  <span
-                    className={`font-extrabold text-sm ${
-                      variance >= 0 ? 'text-emerald-400' : 'text-danger'
-                    }`}
-                  >
-                    {variance >= 0 ? `+₹${variance.toLocaleString()}` : `-₹${Math.abs(variance).toLocaleString()}`}
-                  </span>
-                </div>
+              <div className="text-xs">
+                <span className="text-[10px] text-theme-text-secondary block font-medium uppercase tracking-wider">Total Spent</span>
+                <span className="font-extrabold text-emerald-400 text-sm">₹{actualSpent.toLocaleString()}</span>
               </div>
             </div>
 
-            {/* Event Sponsorship & Surplus Return Status Banner */}
+            {Object.keys(spentByHead).length > 0 && (
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                {Object.entries(spentByHead).map(([head, amt]) => (
+                  <span key={head} className="px-2.5 py-1 rounded-lg bg-theme-background/40 border border-theme-border/30 text-theme-text-secondary">
+                    {getExpenseHeadLabel(head)}: <strong className="text-theme-text-primary">₹{amt.toLocaleString()}</strong>
+                  </span>
+                ))}
+              </div>
+            )}
+
             {sponsorTotal > 0 && (
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2">
@@ -335,28 +293,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   ) : (
                     <span>Fully sponsored — ₹{sponsorTotal.toLocaleString()} surplus available</span>
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* Budget Progress Bar */}
-            {proposedAmount > 0 && (
-              <div className="space-y-1 pt-1">
-                <div className="flex justify-between text-[10px] text-theme-text-secondary font-medium">
-                  <span>Budget Utilization: {percentUsed}%</span>
-                  <span>{variance >= 0 ? `₹${variance.toLocaleString()} remaining` : 'Over budget!'}</span>
-                </div>
-                <div className="h-2 w-full bg-theme-background/60 rounded-full overflow-hidden border border-theme-border/20">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      actualSpent > proposedAmount
-                        ? 'bg-danger'
-                        : percentUsed > 85
-                        ? 'bg-warning'
-                        : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${percentUsed}%` }}
-                  />
                 </div>
               </div>
             )}

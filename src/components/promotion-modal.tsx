@@ -47,7 +47,7 @@ export function PromotionModal({ data, isOpen, onClose }: PromotionModalProps) {
     if (tier === 1) {
       list.push('Full System & Master Administrative Clearance (Tier 1 Super User)');
       list.push('Instant Quick-Switch into any member session without password');
-      list.push('Global Event, Budget, Reimbursement & Policy Approval Authority');
+      list.push('Global Event, Annual Budget, Invoice Payment Verification & Policy Approval Authority');
       list.push('Security Lockdown, Database Encryption & Audit Log Controls');
       return list;
     }

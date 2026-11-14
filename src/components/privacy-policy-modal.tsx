@@ -44,7 +44,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
             </p>
             <ul className="list-disc pl-5 text-theme-text-secondary space-y-1">
               <li><strong>Member records:</strong> name, email, phone number, role, tier, division/department, and (optionally) date of birth and a profile photo.</li>
-              <li><strong>Operational records:</strong> events, tasks, ratings, reimbursement claims and receipt scans, budgets, design submissions, guest/visiting-card contacts, and public form responses.</li>
+              <li><strong>Operational records:</strong> events, tasks, ratings, expenses and uploaded bills, invoices, the annual budget, design submissions, guest/visiting-card contacts, and public form responses.</li>
               <li><strong>Account security data:</strong> a salted, hashed password (never the plaintext password itself), and short-lived session tokens used to keep you signed in.</li>
               <li><strong>Public form respondents:</strong> whatever a public form itself asks for — no account or login is required to submit one, and only the fields that form defines are collected.</li>
             </ul>
@@ -66,7 +66,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
               3. Who Can See It
             </h3>
             <p className="text-theme-text-secondary">
-              Your data is visible only to other members of RTBI Portal whose role grants them access to that particular record — e.g. your department Head, the Centre Head, or a Finance Head reviewing a claim you submitted. We do not sell, rent, or share your data with outside companies. The only external service this portal talks to is the email provider used to send you notifications (e.g. Gmail/SMTP, configured by the Centre) and, for anonymous site-traffic counts only, Cloudflare Web Analytics — a cookieless analytics tool that does not track you individually or across other sites.
+              Your data is visible only to other members of RTBI Portal whose role grants them access to that particular record — e.g. your department Head, the Centre Head, or a Super User or CEO verifying an invoice payment you recorded. We do not sell, rent, or share your data with outside companies. The only external service this portal talks to is the email provider used to send you notifications (e.g. Gmail/SMTP, configured by the Centre) and, for anonymous site-traffic counts only, Cloudflare Web Analytics — a cookieless analytics tool that does not track you individually or across other sites.
             </p>
           </div>
 

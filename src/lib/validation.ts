@@ -24,7 +24,7 @@ export class ValidationError extends Error {
 /**
  * Member create/update schema. The Member type (local-data.ts) has 25+
  * optional fields covering several distinct workflows (avatar upload,
- * approval routing, bank details, etc.) — rather than a `.strict()` schema
+ * approval routing, etc.) — rather than a `.strict()` schema
  * that would need to enumerate every one of them exactly (and risk quietly
  * rejecting a legitimate field a future feature adds), this validates the
  * TYPE, FORMAT, and LENGTH of every field it recognizes, and uses
@@ -49,9 +49,6 @@ export const MemberWriteSchema = z.object({
   department: z.string().trim().max(200).optional(),
   program: z.string().trim().max(200).optional(),
   batch: z.string().trim().max(100).optional(),
-  bankName: z.string().trim().max(200).optional(),
-  accountNumber: z.string().trim().max(64).optional(),
-  ifscCode: z.string().trim().max(32).optional(),
   phone: z.string().trim().max(32).optional(),
   dateOfBirth: z.union([z.literal(''), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]).optional(),
   status: z.enum(['Active', 'Terminated']).optional(),

@@ -7,7 +7,7 @@
  * collection, and unrelated collections never block each other's writes
  * (each has its own async mutex). The files stay "interconnected" the same
  * way real relational tables do: by referencing each other's ids (tasks
- * reference eventId/assigneeId, ratings reference targetId, reimbursements
+ * reference eventId/assigneeId, ratings reference targetId, expenses
  * reference eventId, etc.) — the connections are in the data, not in a
  * shared physical file.
  *
@@ -24,7 +24,6 @@ import {
   initialEvents,
   initialTasks,
   initialRatings,
-  initialReimbursements,
   initialAnnouncements,
   initialForms,
   initialFormTemplates,
@@ -34,7 +33,6 @@ import {
   initialAccessLevelSettings,
   initialSystemSettings,
   initialGuests,
-  initialBudgets,
   initialIncomeSources,
   FEEDBACK_FORM_TEMPLATE_ID,
 } from './local-data';
@@ -49,7 +47,6 @@ export interface DbSchema {
   events: any[];
   tasks: any[];
   ratings: any[];
-  reimbursements: any[];
   announcements: any[];
   proposals: any[];
   forms: any[];
@@ -72,7 +69,9 @@ export interface DbSchema {
   accountActivations: any[];
   emailSettings: any[];
   guests: any[];
-  budgets: any[];
+  annualBudgets: any[];
+  expenses: any[];
+  invoices: any[];
   incomeSources: any[];
   event_passes: any[];
   certificates: any[];
@@ -99,7 +98,6 @@ export interface DbSchema {
   // Bookings / billing / inventory modules — see src/lib/billing.ts for the row shapes.
   rooms: any[];
   bookings: any[];
-  invoices: any[];
   payments: any[];
   billingSettings: any[];
   inventoryItems: any[];
@@ -112,7 +110,6 @@ const EMPTY_DB: DbSchema = {
   events: [],
   tasks: [],
   ratings: [],
-  reimbursements: [],
   announcements: [],
   proposals: [],
   forms: [],
@@ -132,7 +129,9 @@ const EMPTY_DB: DbSchema = {
   accountActivations: [],
   emailSettings: [],
   guests: [],
-  budgets: [],
+  annualBudgets: [],
+  expenses: [],
+  invoices: [],
   incomeSources: [],
   event_passes: [],
   certificates: [],
@@ -144,7 +143,6 @@ const EMPTY_DB: DbSchema = {
   walletSettings: [],
   rooms: [],
   bookings: [],
-  invoices: [],
   payments: [],
   billingSettings: [],
   inventoryItems: [],
@@ -162,7 +160,6 @@ const SEED_DB: DbSchema = {
   events: initialEvents,
   tasks: initialTasks,
   ratings: initialRatings,
-  reimbursements: initialReimbursements,
   announcements: initialAnnouncements,
   proposals: [],
   forms: initialForms,
@@ -196,7 +193,9 @@ const SEED_DB: DbSchema = {
     }
   ],
   guests: initialGuests,
-  budgets: initialBudgets,
+  annualBudgets: [],
+  expenses: [],
+  invoices: [],
   incomeSources: initialIncomeSources,
   event_passes: [],
   certificates: [],
@@ -208,7 +207,6 @@ const SEED_DB: DbSchema = {
   walletSettings: [],
   rooms: [],
   bookings: [],
-  invoices: [],
   payments: [],
   billingSettings: [],
   inventoryItems: [],
@@ -309,8 +307,7 @@ function processDesignRetention(designs: any[]): any[] {
 
 /**
  * One-time, idempotent migration of any legacy inline-base64 file payloads
- * (designs.json's fileData, reimbursements.json's receiptFiles[].dataUrl /
- * receiptData) out to real files under data/uploads/, rewriting the JSON
+ * (designs.json's fileData) out to real files under data/uploads/, rewriting the JSON
  * records to reference them via storageKey/url instead. Safe to run on every
  * boot — a record that's already migrated has no dataUrl/fileData left to act
  * on, so it's skipped. Cached in module scope like ensureMigrated().
@@ -320,7 +317,6 @@ function ensureFilesMigrated(): Promise<void> {
   if (!fileMigrationPromise) {
     fileMigrationPromise = (async () => {
       await migrateDesignFilesToDisk();
-      await migrateReimbursementFilesToDisk();
     })();
   }
   return fileMigrationPromise;
@@ -407,47 +403,6 @@ async function migrateDesignFilesToDisk(): Promise<void> {
     }
   }
   if (changed) await writeCollectionFile('designs', designs);
-}
-
-async function migrateReimbursementFilesToDisk(): Promise<void> {
-  let items: any[];
-  try {
-    items = JSON.parse(await fs.readFile(collectionPath('reimbursements'), 'utf-8'));
-  } catch {
-    return;
-  }
-  if (!Array.isArray(items)) return;
-
-  let changed = false;
-  for (const item of items) {
-    const files = Array.isArray(item.receiptFiles) ? item.receiptFiles : [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (f && typeof f.dataUrl === 'string' && f.dataUrl.startsWith('data:')) {
-        try {
-          const stored = await saveBase64File('reimbursements', item.id, i, f.name || 'file', f.dataUrl);
-          f.url = stored.url;
-          f.storageKey = stored.storageKey;
-          delete f.dataUrl;
-          changed = true;
-        } catch (err) {
-          console.error('[server-db] Failed to migrate receipt file to disk for', item.id, i, err);
-        }
-      }
-    }
-    // Legacy single-file shape predating receiptFiles[] entirely.
-    if (files.length === 0 && typeof item.receiptData === 'string' && item.receiptData.startsWith('data:')) {
-      try {
-        const stored = await saveBase64File('reimbursements', item.id, 0, item.receiptUrl || 'receipt.pdf', item.receiptData);
-        item.receiptFiles = [{ name: item.receiptUrl || 'receipt.pdf', url: stored.url, storageKey: stored.storageKey }];
-        delete item.receiptData;
-        changed = true;
-      } catch (err) {
-        console.error('[server-db] Failed to migrate legacy receipt for', item.id, err);
-      }
-    }
-  }
-  if (changed) await writeCollectionFile('reimbursements', items);
 }
 
 async function readCollectionFile<T = any>(key: keyof DbSchema): Promise<T[]> {

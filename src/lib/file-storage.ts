@@ -1,6 +1,6 @@
 /**
  * file-storage.ts — Real on-disk storage for uploaded documents (design assets,
- * reimbursement receipts), replacing the previous approach of embedding a file's
+ * expense bills, invoice payment proofs), replacing the previous approach of embedding a file's
  * full base64 payload directly inside its JSON record.
  *
  * Every uploaded file lives under data/uploads/<category>/<recordId>/<index>__<name>
