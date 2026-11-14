@@ -79,7 +79,7 @@ const SUPER_USER_RULE = {
 };
 const EVERYONE_ELSE_RULE = {
   name: 'Everyone else (no matching rule below, and no policy tag)',
-  description: 'Sees their own tasks/ratings, every event (unless a policy restricts them), and their own Design Portal / reimbursement submissions. Cannot create, edit, or delete events, tasks, forms, announcements, or directory records.',
+  description: 'Sees their own tasks/ratings, every event (unless a policy restricts them), and their own Design Portal submissions. Cannot create, edit, or delete events, tasks, forms, announcements, or directory records.',
 };
 
 export default function GroupPoliciesPage() {
@@ -720,7 +720,7 @@ export default function GroupPoliciesPage() {
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Sector / Centre Head</h4>
               <p className="text-[11px] text-theme-text-secondary leading-relaxed">
-                First-stage reimbursement approval. Also the built-in &quot;Center Head&quot; approver for any policy that requires approval without naming a specific person or tag.
+                Also the built-in &quot;Center Head&quot; approver for any policy that requires approval without naming a specific person or tag.
               </p>
               <div className="flex flex-col gap-1.5 text-[11px] text-theme-text-secondary">
                 <div className="flex items-center gap-2">
@@ -749,7 +749,7 @@ export default function GroupPoliciesPage() {
             {/* Finance Head */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Finance Head</h4>
-              <p className="text-[11px] text-theme-text-secondary leading-relaxed">Final-stage reimbursement approval, after the Sector Head stage.</p>
+              <p className="text-[11px] text-theme-text-secondary leading-relaxed">Finance authority label.</p>
               <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary">
                 <span>Title or department contains</span>
                 <input

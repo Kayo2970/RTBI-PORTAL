@@ -210,56 +210,32 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       },
     ];
 
-    // Conditionally append Budgeting desk for Finance / Centre Heads / Super Users
-    if (isSuper || isHead || isFinance) {
-      steps.push({
-        id: 'budget',
-        title: 'Financial Portfolios & Budgets',
-        moduleName: 'Finance & Budgets',
-        href: '/dashboard/budget',
-        icon: DollarSign,
-        color: 'warning',
-        summary: 'Executive ledger managing capital allocations, departmental operating funds, event sponsorships, and expenditure audits.',
-        whatYouCanDo: [
-          'Review financial allocation caps by committee department',
-          'Verify budget requests before disbursement',
-          'Export audited financial spreadsheets for university accounting',
-        ],
-        keyInformation: [
-          'Total Allocation, Utilized Funds, and Remaining Capital KPIs',
-          'Department-wise progress bars and transaction ledgers',
-          'Cleared vs. Pending expenditure reconciliations',
-        ],
-        accessBadge: 'Executive Financial Clearance',
-      });
-    }
-
-    // Reimbursements desk
+    // Finance desk — every member books expenses; Super User / CEO set the budget and verify invoice payments
     steps.push({
-      id: 'reimbursements',
-      title: 'Expense Claims & Reimbursements',
-      moduleName: 'Reimbursements Pipeline',
-      href: '/dashboard/reimbursements',
-      icon: Receipt,
-      color: 'success',
-      summary: 'Dual-Stage verification workflow for member out-of-pocket expenses, travel claims, and purchase bills.',
+      id: 'budget',
+      title: 'Finance, Expenses & Invoices',
+      moduleName: 'Finance',
+      href: '/dashboard/budget',
+      icon: DollarSign,
+      color: 'warning',
+      summary: 'The annual budget split across eight overhead heads, bill-backed expenses, and income — including invoice payments once verified.',
       whatYouCanDo: isSuper || isHead || isFinance
         ? [
-            'Audit attached receipt bills and invoice documents',
-            'Grant Stage 1 (Verification) and Stage 2 (Disbursement) approvals',
-            'Issue settlement receipts and track payment status',
+            'Set the annual budget and its head-wise breakup',
+            'Verify payments recorded against invoices — they become income automatically',
+            'Review every expense with its attached bill',
           ]
         : [
-            'Submit new reimbursement claims with receipt photo uploads',
-            'Track live status through the verification pipeline',
-            'Receive disbursement confirmations upon financial settlement',
+            'Add an expense with its bill, a description and the head it falls under',
+            'Generate invoices and record payments received',
+            'Track how much of each head is left',
           ],
       keyInformation: [
-        'Claim ID, requester details, expense category, and amount',
-        'Verification status pills (Pending, Verified, Approved, Settled)',
-        'Attached digital bills, GST invoices, and payment receipts',
+        'Heads: Manpower, Travel, Utilities & Maintenance, Marketing, Networking & Training, Admin, Startup Support, Miscellaneous',
+        'Income by head, with the invoice each payment came from',
+        'Over-budget heads are flagged in red',
       ],
-      accessBadge: isSuper || isHead || isFinance ? 'Approval Authority' : 'Submitter',
+      accessBadge: isSuper || isHead || isFinance ? 'Budget & Verification Authority' : 'Expense Submitter',
     });
 
     // Designs & Media Desk

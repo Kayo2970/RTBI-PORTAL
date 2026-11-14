@@ -1,6 +1,17 @@
 import { trackSync } from './sync-status';
 import { averageScore } from './rating-criteria';
 import { buildStudentFinalScores } from './final-score';
+import {
+  AnnualBudgetItem,
+  ExpenseItem,
+  InvoiceItem,
+  InvoiceLine,
+  InvoicePayment,
+  annualBudgetId,
+  computeInvoiceTotals,
+  getExpenseHeadLabel,
+  getFinancialYearForDate,
+} from './finance';
 
 // -------------------------------------------------------------
 // Session token — attached to every authenticated API call so the server
@@ -58,9 +69,6 @@ export interface Member {
   batch?: string; // e.g. "Class of 2025" for Alumni
   passwordHash?: string; // scrypt hash ("salt:hash"), set via password.ts — never plaintext
   hasPassword?: boolean; // client-side only: server derives this from passwordHash and strips the hash itself before sending member data to the browser
-  bankName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
   // Collected once at account activation (or added later from Directory /
   // Settings) — the member's own contact number, stored in the Directory.
   // Separate from cardPhone, which is what shows on the public visiting
@@ -267,8 +275,7 @@ export interface EventItem {
   dismissedAutoTaskTypes?: string[];
   // External sponsor contributions. In the Budget module, sponsor money is
   // drawn down against an event's actual spend before the Centre's own
-  // budget is counted as used — see getEventSponsorTotal() and the Budget
-  // page's getLineItemActual().
+  // budget is counted as used — see getEventSponsorTotal().
   sponsors?: EventSponsor[];
   createdBy?: string;
   // Group Policy approval workflow — set only when the creator/editor's grant came
@@ -762,72 +769,6 @@ export interface ReceiptFile {
   type?: string;
 }
 
-export interface ReimbursementItem {
-  id: string;
-  memberName: string;
-  memberEmail: string;
-  amount: number;
-  category: string;
-  description: string;
-  receiptUrl?: string;
-  receiptData?: string; // Legacy fallback
-  receiptFiles?: ReceiptFile[]; // Up to 3 attached bills & supporting documents
-  status: 'Pending' | 'Verified by Centre Head' | 'Under Review' | 'Approved' | 'Denied';
-  bankDetails: string; // Summary string formatted for legacy/display
-  bankName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
-  submittedAt: string;
-  centreHeadVerified?: boolean;
-  centreHeadVerifiedBy?: string;
-  centreHeadVerifiedAt?: string;
-  firstPassReviewer?: string;
-  finalApprover?: string;
-  decidedAt?: string;
-  eventId?: string;
-  eventName?: string;
-}
-
-export interface BudgetLineItem {
-  id?: string;
-  eventId?: string;  // set when the line item points at an existing event
-  eventName: string; // display label
-  category?: string; // 'Event' | 'Operational' | 'Equipment' | 'Marketing' | 'Logistics' | 'Other'
-  amount: number;    // Proposed / Amount alias for compatibility
-  proposedAmount?: number;
-  actualAmount?: number;
-  variance?: number;
-}
-
-export interface BudgetItem {
-  id: string;
-  // Indian financial year, 'YYYY-YYYY' (Apr 1 - Mar 31), e.g. "2026-2027"
-  financialYear?: string;
-  type: 'annual' | 'event' | 'monthly';
-  eventId?: string;  // set when type === 'event'
-  eventName?: string;
-  month?: string;    // set when type === 'monthly', 'YYYY-MM'
-  amount: number;    // Proposed amount alias
-  proposedAmount?: number;
-  actualAmount?: number;
-  variance?: number;
-  lineItems?: BudgetLineItem[];
-  notes?: string;
-  submittedBy: string;
-  submittedByEmail?: string;
-  submittedAt: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  // Stage-1 checkpoint: the Centre Head must verify a Pending budget before
-  // the Finance Head can give the stage-2 final decision, mirroring the
-  // Reimbursement module's Centre-Head-verify -> Finance-Head-approve flow.
-  centreHeadVerified?: boolean;
-  centreHeadVerifiedBy?: string;
-  centreHeadVerifiedAt?: string;
-  decidedBy?: string;
-  decidedAt?: string;
-  decisionNotes?: string;
-}
-
 export interface ProcurementItemLine {
   name: string;
   quantity: number;
@@ -874,11 +815,13 @@ export interface ProcurementRequestItem {
   decisionEmailError?: string;
 }
 
+export type { InvoiceStatus, InvoiceItem, InvoiceLine, InvoicePayment, ExpenseItem, AnnualBudgetItem } from './finance';
+
 export interface IncomeSourceItem {
   id: string;
   name: string; // e.g. "TCS Sponsorship", "Alumni Innovation Grant"
   amount: number;
-  type?: 'sponsor' | 'grant' | 'donation' | 'other';
+  type?: 'sponsor' | 'grant' | 'donation' | 'other'; // 'other' = "Other Income" head
   eventId?: string; // Linked event ID (optional: if omitted, this is General Centre Income)
   eventName?: string; // Linked event title
   financialYear: string; // e.g. "2026-2027"
@@ -886,6 +829,14 @@ export interface IncomeSourceItem {
   receivedDate?: string;
   submittedBy?: string;
   createdAt: string;
+  // Where the money came from. Absent / 'manual' = typed in on the Finance page;
+  // 'invoice' = booked automatically when an invoice payment was verified.
+  source?: 'manual' | 'invoice';
+  invoiceId?: string;
+  invoiceNumber?: string;
+  clientName?: string;
+  paymentMode?: string;
+  paymentReference?: string;
 }
 
 
@@ -1231,7 +1182,6 @@ export type ModuleAccessKey =
   | 'DIRECTORY'
   | 'GUEST_DIRECTORY'
   | 'DESIGNS'
-  | 'REIMBURSEMENTS'
   | 'BUDGET'
   | 'FORMS'
   | 'ANNOUNCEMENTS'
@@ -1310,9 +1260,6 @@ export const initialTasks: TaskItem[] = [];
 
 export const initialRatings: RatingItem[] = [];
 
-export const initialReimbursements: ReimbursementItem[] = [];
-
-export const initialBudgets: BudgetItem[] = [];
 
 export const initialAnnouncements: AnnouncementItem[] = [];
 
@@ -1566,7 +1513,6 @@ async function doSyncWithServer(): Promise<boolean> {
         hydrateIfStale('leads_events', data.events, requestStartedAt),
         hydrateIfStale('leads_tasks', data.tasks, requestStartedAt),
         hydrateIfStale('leads_ratings', data.ratings, requestStartedAt),
-        hydrateIfStale('leads_reimbursements', data.reimbursements, requestStartedAt),
         hydrateIfStale('leads_announcements', data.announcements, requestStartedAt),
         hydrateIfStale('leads_custom_forms', data.forms, requestStartedAt),
         hydrateIfStale('leads_form_templates', data.formTemplates, requestStartedAt),
@@ -1576,7 +1522,9 @@ async function doSyncWithServer(): Promise<boolean> {
         hydrateIfStale('leads_access_level_settings', data.accessLevelSettings, requestStartedAt),
         hydrateIfStale('leads_system_settings', data.systemSettings, requestStartedAt),
         hydrateIfStale('leads_guests', data.guests, requestStartedAt),
-        hydrateIfStale('leads_budgets', data.budgets, requestStartedAt),
+        hydrateIfStale('leads_annual_budgets', data.annualBudgets, requestStartedAt),
+        hydrateIfStale('leads_expenses', data.expenses, requestStartedAt),
+        hydrateIfStale('leads_invoices', data.invoices, requestStartedAt),
         hydrateIfStale('leads_income_sources', data.incomeSources, requestStartedAt),
         hydrateIfStale('leads_audit_logs', data.auditLogs, requestStartedAt),
         hydrateIfStale('leads_approval_requests', data.approvalRequests, requestStartedAt),
@@ -1660,15 +1608,17 @@ function xhrJson(method: 'POST' | 'PATCH', url: string, body: any, onProgress: U
 }
 
 // Friendly noun for the sync-status pill, keyed by the collection segment of
-// the endpoint (e.g. '/api/reimbursements' -> 'reimbursements'). Falls back
+// the endpoint (e.g. '/api/expenses' -> 'expenses'). Falls back
 // to a generic "changes" for anything not worth naming individually.
 const SYNC_LABELS: Record<string, string> = {
   members: 'member details',
-  reimbursements: 'reimbursement claim',
   guests: 'guest record',
   designs: 'design',
   events: 'event',
-  budgets: 'budget request',
+  'annual-budgets': 'annual budget',
+  expenses: 'expense',
+  invoices: 'invoice',
+  'income-sources': 'income entry',
   tasks: 'task',
   announcements: 'announcement',
   forms: 'form',
@@ -1991,9 +1941,6 @@ export function syncActiveSessionUser(member: Member): void {
         batch: member.batch,
         avatarUrl: member.avatarUrl,
         dateOfBirth: member.dateOfBirth,
-        bankName: member.bankName,
-        accountNumber: member.accountNumber,
-        ifscCode: member.ifscCode,
       };
       delete (updatedSessionUser as any).passwordHash;
       localStorage.setItem('user', JSON.stringify(updatedSessionUser));
@@ -2192,7 +2139,7 @@ export async function updateMemberCardPhoto(id: string, cardPhotoData: string, c
 
 /**
  * Revoke a member's dashboard access without deleting them — every historical
- * record (tasks, ratings, reimbursements, event committees, audit log) keeps
+ * record (tasks, ratings, expenses, event committees, audit log) keeps
  * referencing this member by id/name/email exactly as before, since none of
  * those are live foreign keys. Login is blocked server-side in /api/auth/login.
  */
@@ -2464,7 +2411,6 @@ export function updateEvent(id: string, updates: Partial<EventItem>, actorName: 
   // client-only sample event that was never POSTed) creates a complete record.
   serverPatch('/api/events', id, events[idx]);
   logAuditEvent('EVENT_UPDATED', actorName, `Updated event: ${events[idx].title}`);
-  if (dateChanged) syncBudgetLineItemsForEvent(id);
   return events[idx];
 }
 
@@ -2623,7 +2569,7 @@ export function getEventSponsors(eventId: string): UnifiedSponsor[] {
   }
 
   const incomeSources = getIncomeSources();
-  incomeSources.filter(inc => inc.eventId === eventId).forEach(inc => {
+  incomeSources.filter(inc => inc.eventId === eventId && inc.source !== 'invoice').forEach(inc => {
     const exists = list.some(s => s.name.toLowerCase() === inc.name.toLowerCase() && s.amount === Number(inc.amount));
     if (!exists) {
       list.push({
@@ -4799,198 +4745,212 @@ export function getStudentLeaderboard(): {
 }
 
 // -------------------------------------------------------------
-// Reimbursements (Two-Stage Approval)
+// Finance — annual budget (8 overhead heads), expenses with bills, invoices
 // -------------------------------------------------------------
 
-export function getReimbursements(): ReimbursementItem[] {
-  if (typeof window === 'undefined') return initialReimbursements;
-  const saved = localStorage.getItem('leads_reimbursements');
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
+function readLocalArray<T>(key: string): T[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
-  // Do NOT seed localStorage here — return sample data without writing
-  return initialReimbursements;
 }
 
-export function saveReimbursements(reimbursements: ReimbursementItem[]): void {
+function writeLocalArray(key: string, items: unknown[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_reimbursements', JSON.stringify(reimbursements));
-  markLocalWrite('leads_reimbursements');
-}
-
-export async function addReimbursement(item: Omit<ReimbursementItem, 'id' | 'status' | 'submittedAt'>, onProgress?: UploadProgressCallback): Promise<ReimbursementItem> {
-  const newClaim: ReimbursementItem = {
-    ...item,
-    id: 'rem_' + Date.now(),
-    status: 'Pending',
-    submittedAt: new Date().toISOString().split('T')[0]
-  };
-
-  // POST to server first so receipt files are written to disk and receiptFiles
-  // gets real storageKey/url values, before this claim ever touches localStorage.
-  const serverResult = await serverPost('/api/reimbursements', newClaim, onProgress);
-  if (!serverResult) {
-    throw new Error('The claim failed to reach the server. Please check your connection and try again.');
-  }
-
-  const createdClaim: ReimbursementItem = { ...newClaim, ...serverResult };
-
-  const current = getReimbursements();
-  current.unshift(createdClaim);
-  saveReimbursements(current);
-  logAuditEvent('REIMBURSEMENT_CLAIMED', item.memberName, `Submitted expense claim of ₹${item.amount} under ${item.category}`);
-  return createdClaim;
-}
-
-export function updateReimbursementStatus(
-  id: string,
-  status: ReimbursementItem['status'],
-  reviewerInfo?: { name: string; stage?: 'firstPass' | 'final'; tier?: number }
-): ReimbursementItem | null {
-  const current = getReimbursements();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx === -1) return null;
-
-  const claim = current[idx];
-  claim.status = status;
-  claim.decidedAt = new Date().toISOString().split('T')[0];
-
-  if (reviewerInfo) {
-    const effectiveStage = reviewerInfo.tier !== undefined
-      ? (reviewerInfo.tier <= 3 ? 'final' : 'firstPass')
-      : (reviewerInfo.stage || 'final');
-
-    if (effectiveStage === 'firstPass') {
-      claim.firstPassReviewer = reviewerInfo.name;
-    } else {
-      claim.finalApprover = reviewerInfo.name;
-    }
-    logAuditEvent('REIMBURSEMENT_STATUS_UPDATED', reviewerInfo.name, `Updated claim #${claim.id} status to "${status}" (${effectiveStage})`);
-  }
-
-  saveReimbursements(current);
-  serverPatch('/api/reimbursements', id, claim);
-  return claim;
-}
-
-// -------------------------------------------------------------
-// Budgets — Centre Head submits event/monthly requests, Finance Head decides
-// -------------------------------------------------------------
-
-export function getBudgets(): BudgetItem[] {
-  if (typeof window === 'undefined') return initialBudgets;
-  const saved = localStorage.getItem('leads_budgets');
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return initialBudgets;
-}
-
-export function saveBudgets(budgets: BudgetItem[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('leads_budgets', JSON.stringify(budgets));
-  markLocalWrite('leads_budgets');
-}
-
-export function addBudget(item: Omit<BudgetItem, 'id' | 'status' | 'submittedAt'>): BudgetItem {
-  const current = getBudgets();
-  const newBudget: BudgetItem = {
-    ...item,
-    id: 'bud_' + Date.now(),
-    status: 'Pending',
-    submittedAt: new Date().toISOString().split('T')[0],
-  };
-  current.unshift(newBudget);
-  saveBudgets(current);
-  serverPost('/api/budgets', newBudget);
-  const scopeLabel = item.type === 'event' ? (item.eventName || 'an event') : (item.month || 'a month');
-  logAuditEvent('BUDGET_SUBMITTED', item.submittedBy, `Submitted a ₹${item.amount.toLocaleString()} budget request for ${scopeLabel}`, item.submittedByEmail);
-  return newBudget;
-}
-
-export function decideBudget(
-  id: string,
-  status: 'Approved' | 'Rejected',
-  decidedBy: string,
-  decisionNotes?: string
-): BudgetItem | null {
-  const current = getBudgets();
-  const idx = current.findIndex(b => b.id === id);
-  if (idx === -1) return null;
-
-  current[idx] = {
-    ...current[idx],
-    status,
-    decidedBy,
-    decidedAt: new Date().toISOString().split('T')[0],
-    decisionNotes,
-  };
-  saveBudgets(current);
-  serverPatch('/api/budgets', id, current[idx]);
-  logAuditEvent('BUDGET_DECIDED', decidedBy, `${status} the ₹${current[idx].amount.toLocaleString()} budget request from ${current[idx].submittedBy}`);
-  return current[idx];
-}
-
-/** Centre Head stage-1 verification, gating a budget's stage-2 Finance Head decision. */
-export function verifyBudgetByCentreHead(id: string, reviewerName: string): BudgetItem | null {
-  const current = getBudgets();
-  const idx = current.findIndex(b => b.id === id);
-  if (idx === -1) return null;
-
-  current[idx] = {
-    ...current[idx],
-    centreHeadVerified: true,
-    centreHeadVerifiedBy: reviewerName,
-    centreHeadVerifiedAt: new Date().toISOString().split('T')[0],
-  };
-  saveBudgets(current);
-  serverPatch('/api/budgets', id, current[idx]);
-  logAuditEvent('BUDGET_VERIFIED', reviewerName, `Centre Head verified a ₹${current[idx].amount.toLocaleString()} budget request, sending it to Finance Head`);
-  return current[idx];
+  localStorage.setItem(key, JSON.stringify(items));
+  markLocalWrite(key);
 }
 
 /**
- * Lets the Centre Head revise their own budget request — before Finance
- * Head has decided, or even after it was already Approved. Either way the
- * edit always resets it to Pending: a changed Approved budget no longer
- * reflects what was actually approved, so it must be re-approved rather
- * than silently keeping its old Approved status with new numbers.
+ * Pull the finance collections straight from their own endpoints so the
+ * Finance and Invoices pages are current on open, without waiting for the
+ * background poll. Returns true if anything was refreshed.
  */
-export function updateBudget(id: string, updates: Partial<BudgetItem>, actorName: string): BudgetItem | null {
-  const current = getBudgets();
-  const idx = current.findIndex(b => b.id === id);
-  if (idx === -1) return null;
+export async function refreshFinanceFromServer(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  const targets: [string, string][] = [
+    ['/api/annual-budgets', 'leads_annual_budgets'],
+    ['/api/expenses', 'leads_expenses'],
+    ['/api/invoices', 'leads_invoices'],
+    ['/api/income-sources', 'leads_income_sources'],
+  ];
+  let ok = false;
+  await Promise.all(targets.map(async ([url, key]) => {
+    try {
+      const res = await fetch(url, { cache: 'no-store', headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        writeLocalArray(key, data);
+        ok = true;
+      }
+    } catch {
+      // offline — keep whatever is cached locally
+    }
+  }));
+  if (ok) window.dispatchEvent(new Event('leads-data-sync'));
+  return ok;
+}
 
-  const wasApproved = current[idx].status === 'Approved';
-  current[idx] = {
-    ...current[idx],
-    ...updates,
-    status: 'Pending',
-    decidedBy: undefined,
-    decidedAt: undefined,
-    decisionNotes: undefined,
-    // Composition changed — the Centre Head's earlier verification no longer
-    // reflects what's actually being sent to Finance Head, so it must happen again.
-    centreHeadVerified: false,
-    centreHeadVerifiedBy: undefined,
-    centreHeadVerifiedAt: undefined,
+/** Read browser File objects into the base64 `ReceiptFile` shape the finance APIs expect (the server writes them to disk). */
+export async function filesToReceiptFiles(files: File[]): Promise<ReceiptFile[]> {
+  return Promise.all(files.map(file => new Promise<ReceiptFile>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === 'string'
+      ? resolve({ name: file.name, dataUrl: reader.result, type: file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg') })
+      : reject(new Error(`Could not read "${file.name}".`));
+    reader.onerror = () => reject(new Error(`Could not read "${file.name}". Please try selecting it again.`));
+    reader.readAsDataURL(file);
+  })));
+}
+
+// ---- Annual budget -------------------------------------------------
+
+export function getAnnualBudgets(): AnnualBudgetItem[] {
+  return readLocalArray<AnnualBudgetItem>('leads_annual_budgets');
+}
+
+export function getAnnualBudget(financialYear: string): AnnualBudgetItem | undefined {
+  return getAnnualBudgets().find(b => b.financialYear === financialYear);
+}
+
+/** Create or replace the annual budget (and its head-wise breakup) for a financial year. */
+export async function saveAnnualBudget(
+  input: { financialYear: string; totalAmount: number; allocations: AnnualBudgetItem['allocations']; notes?: string },
+  actorName: string
+): Promise<AnnualBudgetItem> {
+  const record: AnnualBudgetItem = {
+    id: annualBudgetId(input.financialYear),
+    financialYear: input.financialYear,
+    totalAmount: input.totalAmount,
+    allocations: input.allocations,
+    notes: input.notes,
+    updatedBy: actorName,
+    updatedAt: new Date().toISOString().split('T')[0],
   };
-  saveBudgets(current);
-  serverPatch('/api/budgets', id, current[idx]);
-  logAuditEvent(
-    'BUDGET_EDITED',
-    actorName,
-    `Edited a ₹${current[idx].amount.toLocaleString()} budget request${wasApproved ? ' that was previously Approved — now pending re-approval' : ''}`
-  );
-  return current[idx];
+  const saved: AnnualBudgetItem = await serverPost('/api/annual-budgets', record);
+  const current = getAnnualBudgets().filter(b => b.id !== saved.id);
+  writeLocalArray('leads_annual_budgets', [saved, ...current]);
+  logAuditEvent('ANNUAL_BUDGET_SET', actorName, `Set the FY ${input.financialYear} annual budget to ₹${input.totalAmount.toLocaleString()} with a head-wise breakup`);
+  return saved;
+}
+
+// ---- Expenses ------------------------------------------------------
+
+export function getExpenses(): ExpenseItem[] {
+  return readLocalArray<ExpenseItem>('leads_expenses');
+}
+
+/** Book an expense. The server stores the bill files on disk and rejects it without bill, description and head. */
+export async function addExpense(
+  item: Pick<ExpenseItem, 'head' | 'amount' | 'description' | 'expenseDate' | 'billFiles' | 'vendor' | 'eventId' | 'eventName' | 'submittedBy' | 'submittedByEmail'>,
+  onProgress?: UploadProgressCallback
+): Promise<ExpenseItem> {
+  const draft: ExpenseItem = {
+    ...item,
+    id: 'exp_' + Date.now(),
+    financialYear: getFinancialYearForDate(item.expenseDate),
+    submittedAt: new Date().toISOString().split('T')[0],
+  };
+  const created: ExpenseItem = await serverPost('/api/expenses', draft, onProgress);
+  if (!created) throw new Error('The expense failed to reach the server. Please check your connection and try again.');
+  writeLocalArray('leads_expenses', [created, ...getExpenses().filter(e => e.id !== created.id)]);
+  logAuditEvent('EXPENSE_ADDED', item.submittedBy, `Added a ₹${item.amount.toLocaleString()} expense under ${getExpenseHeadLabel(item.head)}: ${item.description}`, item.submittedByEmail);
+  return created;
+}
+
+export function deleteExpense(id: string, actorName: string): boolean {
+  const target = getExpenses().find(e => e.id === id);
+  if (!target) return false;
+  writeLocalArray('leads_expenses', getExpenses().filter(e => e.id !== id));
+  serverDelete('/api/expenses', id);
+  logAuditEvent('EXPENSE_DELETED', actorName, `Deleted a ₹${target.amount.toLocaleString()} ${getExpenseHeadLabel(target.head)} expense: ${target.description}`);
+  return true;
+}
+
+// ---- Invoices ------------------------------------------------------
+
+export function getInvoices(): InvoiceItem[] {
+  return readLocalArray<InvoiceItem>('leads_invoices');
+}
+
+function upsertInvoiceLocally(invoice: InvoiceItem): void {
+  writeLocalArray('leads_invoices', [invoice, ...getInvoices().filter(i => i.id !== invoice.id)]);
+}
+
+/** Generate (issue) an invoice. The server assigns the sequential invoice number. */
+export async function createInvoice(
+  input: {
+    clientName: string; clientEmail?: string; clientAddress?: string; clientGstin?: string;
+    issueDate: string; dueDate?: string; lineItems: InvoiceLine[]; taxPercent: number; notes?: string;
+  },
+  actor: { name: string; email: string }
+): Promise<InvoiceItem> {
+  const totals = computeInvoiceTotals(input.lineItems, input.taxPercent);
+  const draft = {
+    ...input,
+    ...totals,
+    id: 'inv_' + Date.now(),
+    financialYear: getFinancialYearForDate(input.issueDate),
+    status: 'Issued' as const,
+    createdBy: actor.name,
+    createdByEmail: actor.email,
+    createdAt: new Date().toISOString().split('T')[0],
+  };
+  const created: InvoiceItem = await serverPost('/api/invoices', draft);
+  if (!created) throw new Error('The invoice failed to reach the server. Please check your connection and try again.');
+  upsertInvoiceLocally(created);
+  logAuditEvent('INVOICE_ISSUED', actor.name, `Issued invoice ${created.invoiceNumber} to ${created.clientName} for ₹${created.totalAmount.toLocaleString()}`, actor.email);
+  return created;
+}
+
+type InvoiceAction =
+  | { action: 'record-payment'; payment: Pick<InvoicePayment, 'amount' | 'mode' | 'reference' | 'paidOn' | 'proofFiles'> }
+  | { action: 'verify-payment' }
+  | { action: 'reject-payment'; note: string }
+  | { action: 'cancel' };
+
+async function invoiceAction(id: string, body: InvoiceAction, onProgress?: UploadProgressCallback): Promise<{ invoice: InvoiceItem; income?: IncomeSourceItem }> {
+  const result = await serverPatch('/api/invoices', id, body, onProgress);
+  if (!result?.invoice) throw new Error('The server did not return the updated invoice.');
+  upsertInvoiceLocally(result.invoice);
+  if (result.income) {
+    saveIncomeSources([result.income, ...getIncomeSources().filter(i => i.id !== result.income.id)]);
+  }
+  return result;
+}
+
+export async function recordInvoicePayment(
+  id: string,
+  payment: Pick<InvoicePayment, 'amount' | 'mode' | 'reference' | 'paidOn' | 'proofFiles'>,
+  actorName: string,
+  onProgress?: UploadProgressCallback
+): Promise<InvoiceItem> {
+  const { invoice } = await invoiceAction(id, { action: 'record-payment', payment }, onProgress);
+  logAuditEvent('INVOICE_PAYMENT_RECORDED', actorName, `Recorded a ₹${payment.amount.toLocaleString()} payment (${payment.mode}, ref ${payment.reference}) against invoice ${invoice.invoiceNumber} — awaiting verification`);
+  return invoice;
+}
+
+/** Verifying a payment marks the invoice Paid and books the amount as income (Other Income, sourced to the invoice). */
+export async function verifyInvoicePayment(id: string, actorName: string): Promise<InvoiceItem> {
+  const { invoice, income } = await invoiceAction(id, { action: 'verify-payment' });
+  logAuditEvent('INVOICE_PAYMENT_VERIFIED', actorName, `Verified payment on invoice ${invoice.invoiceNumber}; ₹${(income?.amount ?? invoice.totalAmount).toLocaleString()} added to income (Other Income)`);
+  return invoice;
+}
+
+export async function rejectInvoicePayment(id: string, note: string, actorName: string): Promise<InvoiceItem> {
+  const { invoice } = await invoiceAction(id, { action: 'reject-payment', note });
+  logAuditEvent('INVOICE_PAYMENT_REJECTED', actorName, `Sent back the recorded payment on invoice ${invoice.invoiceNumber}: ${note}`);
+  return invoice;
+}
+
+export async function cancelInvoice(id: string, actorName: string): Promise<InvoiceItem> {
+  const { invoice } = await invoiceAction(id, { action: 'cancel' });
+  logAuditEvent('INVOICE_CANCELLED', actorName, `Cancelled invoice ${invoice.invoiceNumber}`);
+  return invoice;
 }
 
 // -------------------------------------------------------------
@@ -5232,103 +5192,8 @@ export function deleteProcurementRequest(id: string, actorName: string): void {
 }
 
 // Indian financial year runs Apr 1 - Mar 31. Month index 0 (Jan) - 11 (Dec).
-function getFinancialYearForDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const y = d.getFullYear();
-  const startYear = d.getMonth() >= 3 ? y : y - 1; // Apr(3)-Dec -> this year; Jan-Mar -> previous year
-  return `${startYear}-${startYear + 1}`;
-}
-
-function getMonthKeyForDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-
 export function getCurrentFinancialYear(): string {
   return getFinancialYearForDate(new Date().toISOString());
-}
-
-/**
- * When a TBD event's date is set (or an already-dated event's date moves to
- * a different month), any budget line item already planned against it needs
- * to move out of its old monthly budget and into the one matching the
- * event's real date, so monthly/annual totals keep reflecting where the
- * money is actually going. Approved months whose composition changes this
- * way are reset to Pending, mirroring updateBudget()'s "edited budgets need
- * re-approval" rule.
- */
-export function syncBudgetLineItemsForEvent(eventId: string): void {
-  const event = getEventById(eventId);
-  if (!event || event.datesTBD || !event.startDate) return; // no real date to bucket by yet
-
-  const targetMonth = getMonthKeyForDate(event.startDate);
-  const targetFY = getFinancialYearForDate(event.startDate);
-  const budgets = getBudgets();
-  const touchedIds = new Set<string>();
-  const pulled: BudgetLineItem[] = [];
-
-  for (const b of budgets) {
-    if (b.type !== 'monthly' || b.month === targetMonth || !b.lineItems?.length) continue;
-    const matching = b.lineItems.filter(li => li.eventId === eventId);
-    if (!matching.length) continue;
-
-    b.lineItems = b.lineItems.filter(li => li.eventId !== eventId);
-    b.amount = b.lineItems.reduce((s, li) => s + (li.amount || li.proposedAmount || 0), 0);
-    b.proposedAmount = b.amount;
-    if (b.status === 'Approved') {
-      b.status = 'Pending';
-      b.decidedBy = undefined;
-      b.decidedAt = undefined;
-      b.decisionNotes = `Auto-reset to Pending: "${event.title}" moved out after its event date changed.`;
-      b.centreHeadVerified = false;
-      b.centreHeadVerifiedBy = undefined;
-      b.centreHeadVerifiedAt = undefined;
-    }
-    pulled.push(...matching);
-    touchedIds.add(b.id);
-  }
-
-  if (!pulled.length) return; // nothing was planned against this event yet
-
-  let target = budgets.find(b => b.type === 'monthly' && b.month === targetMonth);
-  if (!target) {
-    target = {
-      id: 'bud_' + Date.now() + '_auto',
-      type: 'monthly',
-      financialYear: targetFY,
-      month: targetMonth,
-      amount: 0,
-      proposedAmount: 0,
-      lineItems: [],
-      status: 'Pending',
-      submittedBy: 'System (Auto-Recalculated)',
-      submittedAt: new Date().toISOString().split('T')[0],
-    };
-    budgets.unshift(target);
-  } else if (target.status === 'Approved') {
-    target.status = 'Pending';
-    target.decidedBy = undefined;
-    target.decidedAt = undefined;
-    target.decisionNotes = `Auto-reset to Pending: "${event.title}" moved in after its event date changed.`;
-    target.centreHeadVerified = false;
-    target.centreHeadVerifiedBy = undefined;
-    target.centreHeadVerifiedAt = undefined;
-  }
-  target.lineItems = [...(target.lineItems || []), ...pulled];
-  target.amount = target.lineItems.reduce((s, li) => s + (li.amount || li.proposedAmount || 0), 0);
-  target.proposedAmount = target.amount;
-  touchedIds.add(target.id);
-
-  saveBudgets(budgets);
-  touchedIds.forEach(id => {
-    const b = budgets.find(x => x.id === id);
-    if (b) serverPost('/api/budgets', b); // POST upserts by id server-side
-  });
-  logAuditEvent(
-    'BUDGET_LINE_ITEM_RECALCULATED',
-    'System',
-    `Recalculated budget for "${event.title}": moved to ${targetMonth} (FY ${targetFY}) following its event date update.`
-  );
 }
 
 // -------------------------------------------------------------
@@ -5391,26 +5256,6 @@ export function deleteIncomeSource(id: string, actorName: string): boolean {
   serverDelete('/api/income-sources', id);
   logAuditEvent('INCOME_SOURCE_DELETED', actorName, `Deleted income source "${target.name}" (₹${target.amount.toLocaleString()})`);
   return true;
-}
-
-
-export function verifyReimbursementByCentreHead(id: string, reviewerName: string): ReimbursementItem | null {
-  const current = getReimbursements();
-  const idx = current.findIndex(r => r.id === id);
-  if (idx === -1) return null;
-
-  const claim = current[idx];
-  const now = new Date().toISOString().split('T')[0];
-  claim.status = 'Verified by Centre Head';
-  claim.centreHeadVerified = true;
-  claim.centreHeadVerifiedBy = reviewerName;
-  claim.centreHeadVerifiedAt = now;
-  claim.firstPassReviewer = reviewerName;
-
-  saveReimbursements(current);
-  serverPatch('/api/reimbursements', id, claim);
-  logAuditEvent('REIMBURSEMENT_VERIFIED', reviewerName, `Centre Head verified reimbursement claim of ₹${claim.amount} for ${claim.memberName}`);
-  return claim;
 }
 
 

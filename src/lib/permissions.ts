@@ -15,7 +15,7 @@
  * modals and background sync code. The export surface mirrors the ERP's
  * permissions.ts so ported modules compile unchanged.
  */
-import { Member, Guest, TaskItem, RatingItem, ReimbursementItem, BudgetItem, ProcurementRequestItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey, getMembers, getGroupPolicies, getAccessLevelSettings, canViewTask, isTaskAssignee } from './local-data';
+import { Member, Guest, TaskItem, RatingItem, ProcurementRequestItem, GroupPolicy, EventItem, PublicFormItem, ModuleAccessKey, getMembers, getGroupPolicies, getAccessLevelSettings, canViewTask, isTaskAssignee } from './local-data';
 
 export type SessionUser = {
   id?: string;
@@ -227,11 +227,7 @@ export const CAPABILITY_CATALOG: { key: string; label: string; description: stri
   { key: 'VIEW_ALL_DESIGNS', label: 'View All Design Submissions', description: 'See every submission in the Design Portal, not just their own.', module: 'Design Portal' },
   { key: 'DESIGN_STYLE_APPROVE', label: 'Style Approve/Reject Designs', description: 'Approve or reject a design submission on the Style Review step.', module: 'Design Portal' },
   { key: 'DESIGN_DELETE', label: 'Delete Design Submissions', description: 'Delete any design submission, not just their own.', module: 'Design Portal' },
-  { key: 'APPROVE_REIMBURSEMENTS_SECTOR', label: 'Approve Reimbursements (Sector Head stage)', description: 'First-pass reimbursement review and approval.', module: 'Reimbursements' },
-  { key: 'APPROVE_REIMBURSEMENTS_FINANCE', label: 'Approve Reimbursements (Finance Head stage)', description: 'Final-stage reimbursement approval.', module: 'Reimbursements' },
-  { key: 'REIMBURSEMENTS_VIEW_ALL', label: 'View All Reimbursements', description: 'See all reimbursement claims across the organization.', module: 'Reimbursements' },
-  { key: 'PROPOSE_BUDGET', label: 'Propose Budgets', description: 'Propose an annual or monthly budget request.', module: 'Budget & Funds' },
-  { key: 'MANAGE_BUDGET', label: 'Manage Budget & Funds', description: 'Propose and manage budget requests beyond the built-in Centre Head/Finance Head roles.', module: 'Budget & Funds' },
+  { key: 'MANAGE_FINANCE', label: 'Manage Finance', description: 'Set the annual budget and verify invoice payments.', module: 'Finance' },
   { key: 'BUILD_FORMS', label: 'Build Public Forms', description: 'Create and edit public-facing forms.', module: 'Public Forms' },
   { key: 'FORMS_VIEW_RESPONSES', label: 'View Form Responses', description: 'View and export submissions for public forms.', module: 'Public Forms' },
   { key: 'FORMS_DELETE', label: 'Delete Public Forms', description: 'Delete public forms and their configurations.', module: 'Public Forms' },
@@ -283,8 +279,7 @@ export const MODULE_CATALOG: { key: ModuleAccessKey; label: string; description:
   { key: 'DIRECTORY', label: 'Members Directory', description: 'The member roster.', ownershipNote: 'Ownership = whoever added the member record. Edit ‘Own’ is one-time, within 24 hours of adding. Edit here only ever affects editing an existing record’s fields — adding a new member or removing one is locked to Centre Head, Advisor, and Super User and cannot be granted through this Edit column.' },
   { key: 'GUEST_DIRECTORY', label: 'Guest Directory', description: 'Visiting-card guest contacts.', ownershipNote: 'Ownership = whoever added the guest record. Edit ‘Own’ is one-time, within 24 hours of adding.' },
   { key: 'DESIGNS', label: 'Design Portal', description: 'Design submissions and proofreading.' },
-  { key: 'REIMBURSEMENTS', label: 'Reimbursements', description: 'Reimbursement claims.', ownershipNote: 'Ownership = the claimant.' },
-  { key: 'BUDGET', label: 'Budget & Funds', description: 'Budget proposals and verification.' },
+  { key: 'BUDGET', label: 'Finance', description: 'Annual budget, expenses, income and invoices.' },
   { key: 'FORMS', label: 'Public Forms', description: 'Public-facing forms and their submissions.' },
   { key: 'ANNOUNCEMENTS', label: 'Announcements', description: 'Published announcements.' },
   { key: 'RATINGS', label: 'Ratings & Performance', description: 'Student performance evaluations and ratings.', ownershipNote: 'Ownership = the rating’s author.' },
@@ -374,24 +369,36 @@ export function canApproveAsSectorHead(user: SessionUser): boolean {
   return !!user;
 }
 
-export function canVerifyReimbursementCentreHead(user: SessionUser): boolean {
+/** Set/replace the annual budget and its head-wise breakup. Super User / CEO. */
+export function canManageAnnualBudget(user: SessionUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 2;
+}
+
+/** Anyone signed in may book an expense (bill + description + head are mandatory). */
+export function canAddExpense(user: SessionUser): boolean {
   return !!user;
 }
 
-export function canApproveAsFinanceHead(user: SessionUser, claim?: ReimbursementItem): boolean {
+/** Delete an expense: whoever booked it, or Super User / CEO. */
+export function canDeleteExpense(user: SessionUser, expense: { submittedByEmail?: string }): boolean {
+  if (!user) return false;
+  if (typeof user.tier === 'number' && user.tier <= 2) return true;
+  return !!expense.submittedByEmail && !!user.email && expense.submittedByEmail.toLowerCase() === String(user.email).toLowerCase();
+}
+
+/** Phase 1: anyone signed in may issue invoices and record that a payment arrived. */
+export function canManageInvoices(user: SessionUser): boolean {
   return !!user;
 }
 
-export function canSubmitBudget(user: SessionUser): boolean {
-  return !!user;
+/** Verifying a payment books it as income, so it needs finance authority: Super User / CEO. */
+export function canVerifyInvoicePayment(user: SessionUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 2;
 }
 
-export function canVerifyBudgetCentreHead(user: SessionUser): boolean {
-  return !!user;
-}
-
-export function canDecideBudget(user: SessionUser, budget?: BudgetItem): boolean {
-  return !!user;
+/** Manually add / edit / delete income entries. Super User / CEO. */
+export function canManageIncome(user: SessionUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 2;
 }
 
 export function canDecideProcurementRequest(user: SessionUser): boolean {
@@ -403,10 +410,6 @@ export function canViewProcurementRequest(user: SessionUser, request: Procuremen
 }
 
 export function canApproveAnnouncement(user: SessionUser): boolean {
-  return !!user;
-}
-
-export function canViewReimbursement(claim: ReimbursementItem, user: SessionUser): boolean {
   return !!user;
 }
 

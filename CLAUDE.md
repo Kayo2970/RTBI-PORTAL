@@ -23,7 +23,7 @@ The root Super User (id `m1`, created at setup) can never be demoted or deleted.
 
 ## Ported modules
 Mail (Email Management), Dashboard, Calendar, Events, Tasks, Approvals, Proposals, Ratings, Design Portal,
-Visiting Card, Reimbursements, Budget, Public Forums (`/dashboard/forms`), Announcements, Guest Directory,
+Visiting Card, Finance (`/dashboard/budget`), Invoices, Public Forums (`/dashboard/forms`), Announcements, Guest Directory,
 Group Policies, Settings, plus a new Users page (`/dashboard/users`).
 
 ## Git workflow

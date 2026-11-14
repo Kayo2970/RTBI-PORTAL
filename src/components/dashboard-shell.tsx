@@ -46,8 +46,8 @@ import {
   Lightbulb,
   Users,
 } from 'lucide-react';
-import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders } from '@/lib/local-data';
-import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
+import { getAnnouncements, getTasks, getDesigns, getMembers, getInvoices, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders } from '@/lib/local-data';
+import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyInvoicePayment, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
@@ -95,8 +95,8 @@ const navSections: NavSection[] = [
   {
     title: 'Administration',
     items: [
-      { name: 'Reimbursements', href: '/dashboard/reimbursements', icon: Receipt },
-      { name: 'Budget & Funds', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Finance', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Invoices', href: '/dashboard/invoices', icon: Receipt },
       { name: 'Public Forums', href: '/dashboard/forms', icon: FileText },
       { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
       { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
@@ -240,37 +240,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         link: `/dashboard/tasks?highlight=${t.id}`,
       }));
 
-    // Budget requests awaiting this user's stage-1 (Centre Head) or stage-2
-    // (Finance Head) action — mirrors the reimbursement notifications below.
-    const budgetNotifs = getBudgets()
-      .filter(b => b.status === 'Pending')
-      .filter(b => (!b.centreHeadVerified && canVerifyBudgetCentreHead(currentUser)) || (b.centreHeadVerified && canDecideBudget(currentUser, b)))
-      .map(b => ({
-        id: 'bud_' + b.id,
-        title: b.centreHeadVerified
-          ? `Budget awaiting your approval: ${b.eventName || b.month || b.financialYear || 'Request'}`
-          : `Budget awaiting your verification: ${b.eventName || b.month || b.financialYear || 'Request'}`,
-        time: `From ${b.submittedBy}`,
-        read: false,
-        actionNeeded: true,
-        link: `/dashboard/budget`,
-      }));
-
-    // Reimbursement claims awaiting this user's stage-1 or stage-2 action.
-    const reimbursementNotifs = getReimbursements()
-      .filter(r => {
-        if (r.status === 'Pending') return canVerifyReimbursementCentreHead(currentUser) || canApproveAsSectorHead(currentUser);
-        if (r.status === 'Verified by Centre Head' || r.status === 'Under Review') return canApproveAsFinanceHead(currentUser, r);
-        return false;
-      })
-      .map(r => ({
-        id: 'rem_' + r.id,
-        title: `Reimbursement awaiting your review: ${r.memberName} — ₹${Number(r.amount).toLocaleString()}`,
-        time: r.category,
-        read: false,
-        actionNeeded: true,
-        link: `/dashboard/reimbursements`,
-      }));
+    // Invoice payments recorded and waiting for this user (Super User / CEO) to verify.
+    const invoiceNotifs = canVerifyInvoicePayment(currentUser)
+      ? getInvoices()
+          .filter(i => i.status === 'Payment Recorded')
+          .map(i => ({
+            id: 'inv_' + i.id + '_' + (i.payment?.recordedAt || ''),
+            title: `Payment awaiting verification: ${i.invoiceNumber} — ₹${Number(i.payment?.amount ?? i.totalAmount).toLocaleString('en-IN')}`,
+            time: `${i.clientName} · recorded by ${i.payment?.recordedBy || 'a member'}`,
+            read: false,
+            actionNeeded: true,
+            link: `/dashboard/invoices?open=${i.id}`,
+          }))
+      : [];
 
     // Event create/edit requests routed to this user for approval.
     const eventApprovalNotifs = getEvents()
@@ -424,7 +406,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       });
 
     const dismissed = loadDismissedNotifIds();
-    return [...budgetNotifs, ...reimbursementNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...proofreadNotifs, ...recentAnnounce, ...recentTasks]
+    return [...invoiceNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...proofreadNotifs, ...recentAnnounce, ...recentTasks]
       .filter(n => !dismissed.has(n.id));
   };
 
@@ -651,10 +633,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           (liveRecord as any).program !== (currentUser as any).program ||
           (liveRecord as any).batch !== (currentUser as any).batch ||
           liveRecord.avatarUrl !== currentUser.avatarUrl ||
-          liveRecord.dateOfBirth !== (currentUser as any).dateOfBirth ||
-          liveRecord.bankName !== (currentUser as any).bankName ||
-          liveRecord.accountNumber !== (currentUser as any).accountNumber ||
-          liveRecord.ifscCode !== (currentUser as any).ifscCode;
+          liveRecord.dateOfBirth !== (currentUser as any).dateOfBirth;
 
         if (hasProfileChanges) {
           const userKey = liveRecord.email || liveRecord.id || liveRecord.name;
@@ -698,9 +677,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             batch: (liveRecord as any).batch,
             avatarUrl: liveRecord.avatarUrl,
             dateOfBirth: liveRecord.dateOfBirth,
-            bankName: liveRecord.bankName,
-            accountNumber: liveRecord.accountNumber,
-            ifscCode: liveRecord.ifscCode,
           };
           delete (updatedSessionUser as any).passwordHash;
           setUser(updatedSessionUser);
@@ -986,7 +962,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     router.push(notif.link);
   };
 
-  // Badge only counts items that need a decision (proofread/budget/reimbursement/
+  // Badge only counts items that need a decision (proofread/invoice-payment/
   // event approvals) — recent announcements and tasks stay in the list below for
   // visibility but never inflate this number. A dot at 1, a number from 2-99, and
   // a 99+ cap above that, so the badge's own shape never destabilizes the bell.

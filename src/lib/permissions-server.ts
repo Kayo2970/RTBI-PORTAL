@@ -209,24 +209,22 @@ export function canApproveAsSectorHead(user: ServerUser, settings: AccessLevelSe
   return !!user;
 }
 
-export function canVerifyReimbursementCentreHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+export function canManageAnnualBudget(user: ServerUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 2;
 }
 
-export function canApproveAsFinanceHead(user: ServerUser, settings: AccessLevelSettings, claim?: any): boolean {
-  return !!user;
+export function canDeleteExpense(user: ServerUser, expense: { submittedByEmail?: string }): boolean {
+  if (!user) return false;
+  if (typeof user.tier === 'number' && user.tier <= 2) return true;
+  return !!expense.submittedByEmail && !!user.email && String(expense.submittedByEmail).toLowerCase() === String(user.email).toLowerCase();
 }
 
-export function canVerifyBudgetCentreHead(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+export function canVerifyInvoicePayment(user: ServerUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 2;
 }
 
-export function canDecideBudget(user: ServerUser, settings: AccessLevelSettings, budget?: any): boolean {
-  return !!user;
-}
-
-export function canSubmitBudget(user: ServerUser, settings: AccessLevelSettings): boolean {
-  return !!user;
+export function canManageIncome(user: ServerUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 2;
 }
 
 export function canDecideProcurementRequest(user: ServerUser, settings: AccessLevelSettings): boolean {
