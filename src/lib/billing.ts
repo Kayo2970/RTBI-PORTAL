@@ -158,6 +158,86 @@ export interface InventoryItem {
   updatedAt: string;
 }
 
+export const INVENTORY_CATEGORIES = [
+  'Lab & Scientific Equipment',
+  'Electronics & Hardware',
+  'Prototyping & 3D Printing',
+  'IT & Networking Hardware',
+  'Tools & Machinery',
+  'Office Supplies & Stationery',
+  'Furniture & Fixtures',
+  'Audio / Visual & Events',
+  'Consumables & Raw Materials',
+  'Safety & First Aid',
+  'Software & Subscriptions',
+  'Other',
+] as const;
+
+export type InventoryCategory = typeof INVENTORY_CATEGORIES[number];
+
+export const INVENTORY_UNITS = [
+  { value: 'pcs', label: 'Pieces (pcs)' },
+  { value: 'nos', label: 'Numbers / Units (nos)' },
+  { value: 'box', label: 'Box (box)' },
+  { value: 'set', label: 'Set (set)' },
+  { value: 'pack', label: 'Pack (pack)' },
+  { value: 'kg', label: 'Kilograms (kg)' },
+  { value: 'g', label: 'Grams (g)' },
+  { value: 'ltr', label: 'Liters (ltr)' },
+  { value: 'ml', label: 'Milliliters (ml)' },
+  { value: 'm', label: 'Meters (m)' },
+  { value: 'roll', label: 'Rolls (roll)' },
+  { value: 'pair', label: 'Pairs (pair)' },
+  { value: 'bundle', label: 'Bundles (bundle)' },
+] as const;
+
+export const CATEGORY_PREFIXES: Record<string, string> = {
+  'Lab & Scientific Equipment': 'LAB',
+  'Electronics & Hardware': 'ELEC',
+  'Prototyping & 3D Printing': '3DP',
+  'IT & Networking Hardware': 'IT',
+  'Tools & Machinery': 'TOOL',
+  'Office Supplies & Stationery': 'OFF',
+  'Furniture & Fixtures': 'FURN',
+  'Audio / Visual & Events': 'AV',
+  'Consumables & Raw Materials': 'CONS',
+  'Safety & First Aid': 'SAFE',
+  'Software & Subscriptions': 'SFT',
+  'Other': 'GEN',
+};
+
+export function getCategoryPrefix(category?: string): string {
+  if (!category) return 'ITM';
+  const match = CATEGORY_PREFIXES[category];
+  if (match) return match;
+  const clean = category.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return clean.slice(0, 4) || 'ITM';
+}
+
+/** Next unique item code for a category, formatted as RTBI-<PREFIX>-<1001+>. */
+export function generateItemCode(category?: string, existing: { sku?: string }[] = []): string {
+  const prefix = getCategoryPrefix(category);
+  const codePrefix = `RTBI-${prefix}-`;
+  let max = 1000;
+  for (const it of existing) {
+    if (it.sku && it.sku.toUpperCase().startsWith(codePrefix)) {
+      const rest = it.sku.slice(codePrefix.length);
+      const num = parseInt(rest, 10);
+      if (Number.isFinite(num) && num > max) {
+        max = num;
+      }
+    }
+  }
+  let candidateNum = max + 1;
+  let code = `${codePrefix}${candidateNum}`;
+  const existingSet = new Set(existing.map(x => (x.sku || '').toUpperCase()));
+  while (existingSet.has(code)) {
+    candidateNum++;
+    code = `${codePrefix}${candidateNum}`;
+  }
+  return code;
+}
+
 export type MovementType = 'In' | 'Out' | 'Adjust';
 export interface InventoryMovement {
   id: string;

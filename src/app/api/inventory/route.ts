@@ -4,7 +4,7 @@ import { requireSession, requirePermission } from '@/lib/session';
 import { canManageInventory } from '@/lib/permissions-server';
 import { apiError } from '@/lib/api-error';
 import { bad, str, num } from '@/lib/billing-server';
-import type { InventoryItem, InventoryMovement } from '@/lib/billing';
+import { generateItemCode, type InventoryItem, type InventoryMovement } from '@/lib/billing';
 
 export async function GET(request: Request) {
   try {
@@ -30,16 +30,29 @@ export async function POST(request: Request) {
     const quantity = num(b.quantity);
     if (quantity < 0) bad('Opening quantity cannot be negative.');
     const now = new Date().toISOString();
-    const item: InventoryItem = {
-      id: 'inv_item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-      name, sku: str(b.sku, 60), category: str(b.category, 60),
-      unit: str(b.unit, 20) || 'pcs',
-      quantity, reorderLevel: Math.max(0, num(b.reorderLevel)), unitCost: Math.max(0, num(b.unitCost)),
-      location: str(b.location, 120), notes: str(b.notes, 300),
-      active: true, createdAt: now, updatedAt: now,
-    };
+    const category = str(b.category, 60);
+    const sku = str(b.sku, 60);
+    let item!: InventoryItem;
     await mutateCollection<InventoryItem>('inventoryItems', (cur) => {
-      if (item.sku && cur.some(i => i.sku && i.sku.toLowerCase() === item.sku!.toLowerCase())) bad(`SKU "${item.sku}" is already in use.`);
+      const assignedSku = sku || generateItemCode(category, cur);
+      if (cur.some(i => i.sku && i.sku.toLowerCase() === assignedSku.toLowerCase())) {
+        bad(`Item code "${assignedSku}" is already in use.`);
+      }
+      item = {
+        id: 'inv_item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name,
+        sku: assignedSku,
+        category,
+        unit: str(b.unit, 20) || 'pcs',
+        quantity,
+        reorderLevel: Math.max(0, num(b.reorderLevel)),
+        unitCost: Math.max(0, num(b.unitCost)),
+        location: str(b.location, 120),
+        notes: str(b.notes, 300),
+        active: true,
+        createdAt: now,
+        updatedAt: now,
+      };
       return [...cur, item];
     });
     if (quantity > 0) {

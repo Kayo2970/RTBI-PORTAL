@@ -21,7 +21,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const name = b.name !== undefined ? str(b.name, 120) : it.name;
       if (!name) bad('Item name is required.');
       const sku = b.sku !== undefined ? str(b.sku, 60) : it.sku;
-      if (sku && cur.some(o => o.id !== id && o.sku && o.sku.toLowerCase() === sku.toLowerCase())) bad(`SKU "${sku}" is already in use.`);
+      if (sku && cur.some(o => o.id !== id && o.sku && o.sku.toLowerCase() === sku.toLowerCase())) bad(`Item code "${sku}" is already in use.`);
       updated = {
         ...it, name, sku,
         category: b.category !== undefined ? str(b.category, 60) : it.category,
