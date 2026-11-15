@@ -7,7 +7,7 @@
  * collection, and unrelated collections never block each other's writes
  * (each has its own async mutex). The files stay "interconnected" the same
  * way real relational tables do: by referencing each other's ids (tasks
- * reference eventId/assigneeId, ratings reference targetId, reimbursements
+ * reference eventId/assigneeId, ratings reference targetId, expenses
  * reference eventId, etc.) — the connections are in the data, not in a
  * shared physical file.
  *
@@ -25,7 +25,6 @@ import {
   initialEvents,
   initialTasks,
   initialRatings,
-  initialReimbursements,
   initialAnnouncements,
   initialForms,
   initialFormTemplates,
@@ -35,13 +34,8 @@ import {
   initialAccessLevelSettings,
   initialSystemSettings,
   initialGuests,
-  initialBudgets,
   initialIncomeSources,
-  initialProcurementRequests,
   FEEDBACK_FORM_TEMPLATE_ID,
-  isFacultyMember,
-  isSocialMediaTeamMember,
-  isSocialMediaPostTask,
 } from './local-data';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -54,7 +48,6 @@ export interface DbSchema {
   events: any[];
   tasks: any[];
   ratings: any[];
-  reimbursements: any[];
   announcements: any[];
   proposals: any[];
   forms: any[];
@@ -67,19 +60,26 @@ export interface DbSchema {
   auditLogs: any[];
   emails: any[];
   passwordResets: any[];
+  // Per-device login lockout state — see src/lib/device-security.ts. Hashed device ids only.
+  deviceSecurity: any[];
+  // Super User switches for automatic emails (pause-all + per-type) — see lib/email-service.ts getEmailPolicy().
+  emailPolicy: any[];
+  // Super-User-chosen default approvers for automatic approval requests — see lib/approval-sync.ts.
+  approvalSettings: any[];
   emailChanges: any[];
   accountActivations: any[];
   emailSettings: any[];
   guests: any[];
-  budgets: any[];
+  annualBudgets: any[];
+  expenses: any[];
+  invoices: any[];
+  clients: any[];
   incomeSources: any[];
-  eventReports: any[];
   event_passes: any[];
   certificates: any[];
   certificateSchedules: any[];
   passEmailSchedules: any[];
   approvalRequests: any[];
-  procurementRequests: any[];
   // One row per (memberId, date) a birthday email was actually sent for —
   // see src/lib/birthday-scheduler.ts. Purely an idempotency guard so a
   // PM2 restart near midnight (or two scheduler ticks landing on the same
@@ -101,6 +101,13 @@ export interface DbSchema {
   // scorecard weights, thresholds, timers, KPI targets and fee schedules — each flagged proposed/approved.
   incubationSettings: any[];
   startups: any[];
+  // Bookings / billing / inventory modules — see src/lib/billing.ts for the row shapes.
+  rooms: any[];
+  bookings: any[];
+  payments: any[];
+  billingSettings: any[];
+  inventoryItems: any[];
+  inventoryMovements: any[];
   lastUpdated?: string;
 }
 
@@ -109,7 +116,6 @@ const EMPTY_DB: DbSchema = {
   events: [],
   tasks: [],
   ratings: [],
-  reimbursements: [],
   announcements: [],
   proposals: [],
   forms: [],
@@ -122,24 +128,34 @@ const EMPTY_DB: DbSchema = {
   auditLogs: [],
   emails: [],
   passwordResets: [],
+  deviceSecurity: [],
+  emailPolicy: [],
+  approvalSettings: [],
   emailChanges: [],
   accountActivations: [],
   emailSettings: [],
   guests: [],
-  budgets: [],
+  annualBudgets: [],
+  expenses: [],
+  invoices: [],
+  clients: [],
   incomeSources: [],
-  eventReports: [],
   event_passes: [],
   certificates: [],
   certificateSchedules: [],
   passEmailSchedules: [],
   approvalRequests: [],
-  procurementRequests: [],
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
   incubationSettings: [],
   startups: [],
+  rooms: [],
+  bookings: [],
+  payments: [],
+  billingSettings: [],
+  inventoryItems: [],
+  inventoryMovements: [],
 };
 
 const SEED_DB: DbSchema = {
@@ -153,7 +169,6 @@ const SEED_DB: DbSchema = {
   events: initialEvents,
   tasks: initialTasks,
   ratings: initialRatings,
-  reimbursements: initialReimbursements,
   announcements: initialAnnouncements,
   proposals: [],
   forms: initialForms,
@@ -166,6 +181,9 @@ const SEED_DB: DbSchema = {
   auditLogs: [],
   emails: [],
   passwordResets: [],
+  deviceSecurity: [],
+  emailPolicy: [],
+  approvalSettings: [],
   emailChanges: [],
   accountActivations: [],
   emailSettings: [
@@ -184,20 +202,27 @@ const SEED_DB: DbSchema = {
     }
   ],
   guests: initialGuests,
-  budgets: initialBudgets,
+  annualBudgets: [],
+  expenses: [],
+  invoices: [],
+  clients: [],
   incomeSources: initialIncomeSources,
-  eventReports: [],
   event_passes: [],
   certificates: [],
   certificateSchedules: [],
   passEmailSchedules: [],
   approvalRequests: [],
-  procurementRequests: initialProcurementRequests,
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
   incubationSettings: [defaultIncubationSettings()],
   startups: [],
+  rooms: [],
+  bookings: [],
+  payments: [],
+  billingSettings: [],
+  inventoryItems: [],
+  inventoryMovements: [],
 };
 
 const COLLECTION_KEYS = Object.keys(EMPTY_DB) as (keyof DbSchema)[];
@@ -294,8 +319,7 @@ function processDesignRetention(designs: any[]): any[] {
 
 /**
  * One-time, idempotent migration of any legacy inline-base64 file payloads
- * (designs.json's fileData, reimbursements.json's receiptFiles[].dataUrl /
- * receiptData) out to real files under data/uploads/, rewriting the JSON
+ * (designs.json's fileData) out to real files under data/uploads/, rewriting the JSON
  * records to reference them via storageKey/url instead. Safe to run on every
  * boot — a record that's already migrated has no dataUrl/fileData left to act
  * on, so it's skipped. Cached in module scope like ensureMigrated().
@@ -305,7 +329,6 @@ function ensureFilesMigrated(): Promise<void> {
   if (!fileMigrationPromise) {
     fileMigrationPromise = (async () => {
       await migrateDesignFilesToDisk();
-      await migrateReimbursementFilesToDisk();
     })();
   }
   return fileMigrationPromise;
@@ -392,47 +415,6 @@ async function migrateDesignFilesToDisk(): Promise<void> {
     }
   }
   if (changed) await writeCollectionFile('designs', designs);
-}
-
-async function migrateReimbursementFilesToDisk(): Promise<void> {
-  let items: any[];
-  try {
-    items = JSON.parse(await fs.readFile(collectionPath('reimbursements'), 'utf-8'));
-  } catch {
-    return;
-  }
-  if (!Array.isArray(items)) return;
-
-  let changed = false;
-  for (const item of items) {
-    const files = Array.isArray(item.receiptFiles) ? item.receiptFiles : [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (f && typeof f.dataUrl === 'string' && f.dataUrl.startsWith('data:')) {
-        try {
-          const stored = await saveBase64File('reimbursements', item.id, i, f.name || 'file', f.dataUrl);
-          f.url = stored.url;
-          f.storageKey = stored.storageKey;
-          delete f.dataUrl;
-          changed = true;
-        } catch (err) {
-          console.error('[server-db] Failed to migrate receipt file to disk for', item.id, i, err);
-        }
-      }
-    }
-    // Legacy single-file shape predating receiptFiles[] entirely.
-    if (files.length === 0 && typeof item.receiptData === 'string' && item.receiptData.startsWith('data:')) {
-      try {
-        const stored = await saveBase64File('reimbursements', item.id, 0, item.receiptUrl || 'receipt.pdf', item.receiptData);
-        item.receiptFiles = [{ name: item.receiptUrl || 'receipt.pdf', url: stored.url, storageKey: stored.storageKey }];
-        delete item.receiptData;
-        changed = true;
-      } catch (err) {
-        console.error('[server-db] Failed to migrate legacy receipt for', item.id, err);
-      }
-    }
-  }
-  if (changed) await writeCollectionFile('reimbursements', items);
 }
 
 async function readCollectionFile<T = any>(key: keyof DbSchema): Promise<T[]> {
@@ -565,8 +547,8 @@ export async function readCollection<T = any>(key: keyof DbSchema): Promise<T[]>
 // Stored on globalThis: Next.js bundles this module separately per route/instrumentation
 // chunk, and a module-level Map would give each copy its own lock — letting two writers hit
 // the same file at once and corrupt it.
-const globalForDb = globalThis as unknown as { __leadsWriteLocks?: Map<keyof DbSchema, Promise<void>> };
-const writeLocks: Map<keyof DbSchema, Promise<void>> = (globalForDb.__leadsWriteLocks ??= new Map());
+const globalForDb = globalThis as unknown as { __rtbiWriteLocks?: Map<keyof DbSchema, Promise<void>> };
+const writeLocks: Map<keyof DbSchema, Promise<void>> = (globalForDb.__rtbiWriteLocks ??= new Map());
 
 /**
  * Apply a mutation to a single collection and write only that collection's file.
@@ -621,4 +603,39 @@ export async function mutateCollection<T = any>(
   touchMeta(); // best-effort, not awaited — never blocks or fails a mutation
   if (mutationError) throw mutationError;
   return result;
+}
+
+/**
+ * Clean wipe of all database collections, uploads, and in-memory lock states.
+ */
+export async function wipeAllData(): Promise<void> {
+  writeLocks.clear();
+
+  try {
+    const entries = await fs.readdir(DATA_DIR);
+    for (const entry of entries) {
+      const fullPath = path.join(DATA_DIR, entry);
+      try {
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+          await fs.rm(fullPath, { recursive: true, force: true });
+        } else {
+          await fs.unlink(fullPath);
+        }
+      } catch (err: any) {
+        console.warn(`[server-db] Could not delete data/${entry}:`, err?.message);
+      }
+    }
+  } catch (err: any) {
+    if (err?.code !== 'ENOENT') {
+      console.warn('[server-db] Error reading DATA_DIR during wipe:', err?.message);
+    }
+  }
+
+  try {
+    await fs.rm(LEGACY_DB_PATH, { force: true });
+    await fs.rm(RETIRED_LEGACY_DB_PATH, { force: true });
+  } catch {}
+
+  await touchMeta();
 }

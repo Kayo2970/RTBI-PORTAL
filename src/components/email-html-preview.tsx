@@ -26,7 +26,7 @@ export function EmailHtmlPreview({
   badgeColor,
   background,
   className = 'w-full h-[420px] rounded-2xl border border-slate-200 dark:border-white/15 bg-slate-200',
-  frameColor = '#e2e8f0',
+  frameColor = '#E9E2F0',
   title = 'Email preview',
 }: {
   subject?: string;

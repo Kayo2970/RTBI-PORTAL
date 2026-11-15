@@ -11,7 +11,7 @@ import { apiError } from '@/lib/api-error';
  * notice on demand — separate from the normal auto-assignment flow (which
  * only fires once, debounced, at creation/reassignment time via
  * enqueueTaskEmailNotification). Sends immediately, right away, to
- * everyone currently allotted to the task (individual/group/committee —
+ * everyone currently allotted to the task (individual/group —
  * see resolveTaskEmailRecipients).
  *
  * Restricted to Centre Head, Advisor, and Super User — deliberately not
@@ -31,7 +31,7 @@ export async function POST(
     const settings = await getAccessLevelSettingsServer();
     requirePermission(
       isCentreHead(actor, settings) || isAdvisor(actor) || isSuperUser(actor),
-      'Only the Centre Head, Advisor, or Super User can manually send a task-allotment email.'
+      'Only the CEO or Super User can manually send a task-allotment email.'
     );
 
     const tasks = await readCollection<any>('tasks');
@@ -61,7 +61,7 @@ export async function POST(
         bodyText: template.bodyText,
         bodyHtml: template.bodyHtml,
         badgeText: 'Task Assignment',
-        badgeColor: '#0284c7',
+        badgeColor: '#CC3D19',
         category: 'TASK_ASSIGNMENT',
       });
       if (log.status === 'SENT' || log.status === 'BUFFERED') sent++; else failed.push(recipient.email);

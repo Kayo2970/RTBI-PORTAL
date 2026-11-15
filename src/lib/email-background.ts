@@ -102,7 +102,7 @@ async function renderBlurredJpeg(storageKey: string, radius: number): Promise<Bu
   const height = Math.min(OUT_MAX_HEIGHT, Math.max(1, Math.round(img.height * scale)));
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#f8fafc';
+  ctx.fillStyle = '#FEF7F6';
   ctx.fillRect(0, 0, width, height);
   // Draw slightly larger than the canvas so the blur doesn't fade to transparent at the edges.
   const bleed = radius * 2;
@@ -187,17 +187,17 @@ export async function resolveEmailBackgroundUrl(
   return path ? `${getAppBaseUrl()}${path}` : null;
 }
 
-const FALLBACK_COLOR = '#f8fafc';
+const FALLBACK_COLOR = '#FEF7F6';
 
 /**
  * Puts `url` behind the whole e-mail: the content is wrapped in a full-width table whose `background` attribute and
  * inline CSS carry the picture (the widest-supported way), with a solid-colour fallback. Idempotent.
  */
 export function applyEmailBackground(html: string, url: string): string {
-  if (!html || !url || html.includes('data-leads-bg')) return html;
+  if (!html || !url || html.includes('data-rtbi-bg')) return html;
   const safe = url.replace(/["'()<>\s\\]/g, (c) => encodeURIComponent(c));
   const open =
-    `<table role="presentation" data-leads-bg="1" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${FALLBACK_COLOR}" background="${safe}" ` +
+    `<table role="presentation" data-rtbi-bg="1" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${FALLBACK_COLOR}" background="${safe}" ` +
     `style="width:100%;background-color:${FALLBACK_COLOR};background-image:url('${safe}');background-size:cover;background-position:center;background-repeat:no-repeat;">` +
     `<tr><td align="center" style="padding:24px 12px;">`;
   const close = `</td></tr></table>`;

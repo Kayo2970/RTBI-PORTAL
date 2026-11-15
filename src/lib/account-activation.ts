@@ -15,11 +15,6 @@ import { getAppBaseUrl } from './app-url';
 
 const ACTIVATION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-// No APP_BASE_URL env var exists in this project yet (email CTAs elsewhere
-// hardcode the same production domain) — matching that existing convention
-// rather than introducing a new one for just this feature.
-const APP_BASE_URL = 'https://leadsnextgencentre.online';
-
 export interface ActivationToken {
   id: string;
   memberId: string;

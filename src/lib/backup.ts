@@ -129,7 +129,7 @@ export async function restoreEncryptedBackup(encrypted: Buffer, passphrase: stri
   const entries = zip.getEntries();
   const hasAnyJson = entries.some(e => !e.isDirectory && e.entryName.endsWith('.json'));
   if (!hasAnyJson) {
-    throw new Error('This backup does not look like a valid LEADS database backup — no collection files found.');
+    throw new Error('This backup does not look like a valid RTBI database backup — no collection files found.');
   }
 
   // Retire (never delete) the current live data/ directory before restoring.

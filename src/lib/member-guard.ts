@@ -21,7 +21,7 @@ export function countActiveSuperUsersServer(members: any[]): number {
 // of these on ANYONE (including yourself) requires directory-edit access.
 // passwordHash is never settable through the members routes at all
 // (dedicated set-password/activation/reset routes own that).
-export const PRIVILEGED_FIELDS = ['tier', 'role', 'status', 'division', 'department', 'approvalStatus', 'mustSetupPassword'];
+export const PRIVILEGED_FIELDS = ['tier', 'role', 'status', 'division', 'department', 'approvalStatus', 'mustSetupPassword', 'employeeId', 'policyIds'];
 
 /**
  * The Digital Visiting Card's designation: normally mirrors `role` (the
