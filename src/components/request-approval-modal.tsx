@@ -28,47 +28,48 @@ export function RequestApprovalModal({
   onRequested,
 }: RequestApprovalModalProps) {
   const [search, setSearch] = useState('');
-  const [targetId, setTargetId] = useState('');
+  const [targetIds, setTargetIds] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  // A manual approval request can only be addressed to a Faculty member or a
-  // Super User — never a fellow student/committee member, regardless of
-  // their tier or role. Faculty is a Member.division value; Super User is
-  // identified by tier 1.
+  // Anyone on the staff tiers (Super User, CEO, Employee) can be asked to approve; Startups cannot, and you can't ask
+  // yourself. You can pick several people — each gets their own request.
   const candidates = members
-    .filter(m => m.id !== currentUser.id && m.status !== 'Terminated')
-    .filter(m => m.tier <= 2)
+    .filter(m => m.id !== currentUser.id && m.status !== 'Terminated' && m.tier <= 3 && !!m.email)
     .filter(m => !search.trim() || m.name.toLowerCase().includes(search.toLowerCase()) || (m.role || '').toLowerCase().includes(search.toLowerCase()));
+
+  const toggle = (id: string) => setTargetIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const handleClose = () => {
     setSearch('');
-    setTargetId('');
+    setTargetIds([]);
     setMessage('');
     onClose();
   };
 
   const handleSubmit = () => {
-    const target = members.find(m => m.id === targetId);
-    if (!target) return;
+    const targets = members.filter(m => targetIds.includes(m.id));
+    if (targets.length === 0) return;
     setSubmitting(true);
-    const created = requestApproval({
-      entityType,
-      entityId,
-      entityTitle,
-      eventId,
-      requesterId: currentUser.id,
-      requesterName: currentUser.name,
-      requesterEmail: currentUser.email,
-      targetMemberId: target.id,
-      targetMemberName: target.name,
-      targetMemberEmail: target.email,
-      message: message.trim() || undefined,
-    });
+    for (const target of targets) {
+      const created = requestApproval({
+        entityType,
+        entityId,
+        entityTitle,
+        eventId,
+        requesterId: currentUser.id,
+        requesterName: currentUser.name,
+        requesterEmail: currentUser.email,
+        targetMemberId: target.id,
+        targetMemberName: target.name,
+        targetMemberEmail: target.email,
+        message: message.trim() || undefined,
+      });
+      onRequested?.(created);
+    }
     setSubmitting(false);
-    onRequested?.(created);
     handleClose();
   };
 
@@ -102,7 +103,7 @@ export function RequestApprovalModal({
 
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-theme-text-secondary mb-1.5 block">Ask for approval from</label>
+            <label className="text-xs font-semibold text-theme-text-secondary mb-1.5 block">Ask for approval from <span className="font-normal">(select one or more)</span></label>
             <div className="relative mb-2">
               <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-secondary" />
               <input
@@ -112,19 +113,19 @@ export function RequestApprovalModal({
                 className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-theme-border/40 bg-theme-background/30 text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
               />
             </div>
-            <p className="text-[10px] text-theme-text-secondary mb-2">Only Faculty members and the Super User can be asked for a manual approval.</p>
+            <p className="text-[10px] text-theme-text-secondary mb-2">Each person you pick gets their own request and an email.</p>
             <div className="max-h-44 overflow-y-auto rounded-xl border border-theme-border/30 divide-y divide-theme-border/20">
               {candidates.length === 0 && (
-                <p className="text-xs text-theme-text-secondary p-3 text-center">No Faculty member or Super User found.</p>
+                <p className="text-xs text-theme-text-secondary p-3 text-center">No matching staff members found.</p>
               )}
               {candidates.map(m => (
                 <button
                   key={m.id}
                   type="button"
-                  onClick={() => setTargetId(m.id)}
-                  className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors cursor-pointer ${targetId === m.id ? 'bg-accent/15 text-accent font-semibold' : 'text-theme-text-primary hover:bg-theme-border/20'}`}
+                  onClick={() => toggle(m.id)}
+                  className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors cursor-pointer ${targetIds.includes(m.id) ? 'bg-accent/15 text-accent font-semibold' : 'text-theme-text-primary hover:bg-theme-border/20'}`}
                 >
-                  <span>{m.name}</span>
+                  <span className="flex items-center gap-2"><input type="checkbox" readOnly checked={targetIds.includes(m.id)} className="accent-[var(--color-accent)] pointer-events-none" />{m.name}</span>
                   <span className="text-[10px] text-theme-text-secondary">{m.role}</span>
                 </button>
               ))}
@@ -153,10 +154,10 @@ export function RequestApprovalModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!targetId || submitting}
+            disabled={targetIds.length === 0 || submitting}
             className="px-4 py-2.5 text-xs font-semibold rounded-xl transition-all shadow-md cursor-pointer bg-accent hover:bg-primary-light text-white shadow-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Send Request
+            {targetIds.length > 1 ? `Send ${targetIds.length} Requests` : 'Send Request'}
           </button>
         </div>
       </div>

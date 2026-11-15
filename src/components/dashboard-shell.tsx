@@ -9,6 +9,9 @@ import {
   CheckSquare,
   Star,
   Receipt,
+  ReceiptText,
+  DoorOpen,
+  Boxes,
   FileText,
   BarChart3,
   Megaphone,
@@ -53,12 +56,13 @@ import {
   Users,
 } from 'lucide-react';
 import { fetchAlerts } from '@/lib/incubation/client';
-import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders } from '@/lib/local-data';
-import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
+import { getAnnouncements, getTasks, getMembers, getInvoices, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
+import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyInvoicePayment, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { NotFoundScreen } from '@/components/not-found-screen';
+import { ZeroTrustRestrictedScreen } from '@/components/zero-trust-screen';
 import { LoadingScreen } from '@/components/loading-screen';
 import dynamic from 'next/dynamic';
 import { BackgroundTaskTray } from '@/components/background-task-tray';
@@ -76,9 +80,9 @@ interface SidebarItem {
   href: string;
   icon: React.ComponentType<any>;
   superUserOnly?: boolean;
+  eventPassesOnly?: boolean;
+  staffOnly?: boolean; // tiers 1–3 (Super User, CEO, Employee)
   groupPoliciesOnly?: boolean;
-  /** Tier 1-3 only (hidden from Startup-tier accounts). */
-  staffOnly?: boolean;
 }
 
 interface NavSection {
@@ -93,12 +97,14 @@ const navSections: NavSection[] = [
       { name: 'Dashboard', href: '/dashboard/home', icon: LayoutDashboard },
       { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
       { name: 'Events', href: '/dashboard/events', icon: Calendar },
+      { name: 'Event Passes', href: '/dashboard/event-passes', icon: Ticket, eventPassesOnly: true },
       { name: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
       { name: 'Approvals', href: '/dashboard/approvals', icon: FileCheck2 },
       { name: 'Proposals', href: '/dashboard/proposals', icon: Lightbulb },
       { name: 'Ratings', href: '/dashboard/ratings', icon: Star },
       { name: 'Design Portal', href: '/dashboard/designs', icon: Palette },
       { name: 'Visiting Card', href: '/dashboard/visiting-card', icon: IdCard },
+      { name: 'Bookings', href: '/dashboard/bookings', icon: DoorOpen },
     ],
   },
   {
@@ -117,13 +123,15 @@ const navSections: NavSection[] = [
   {
     title: 'Administration',
     items: [
-      { name: 'Reimbursements', href: '/dashboard/reimbursements', icon: Receipt },
-      { name: 'Budget & Funds', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Finance', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Invoices', href: '/dashboard/invoices', icon: Receipt },
+      { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes, staffOnly: true },
       { name: 'Public Forums', href: '/dashboard/forms', icon: FileText },
       { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
       { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
       { name: 'Users', href: '/dashboard/users', icon: Users, superUserOnly: true },
       { name: 'Group Policies', href: '/dashboard/policies', icon: ShieldCheck, groupPoliciesOnly: true },
+      { name: 'Mail Broadcaster', href: '/dashboard/broadcaster', icon: Send, superUserOnly: true },
       { name: 'Email Management', href: '/dashboard/email', icon: Mail, superUserOnly: true },
       { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ],
@@ -134,7 +142,7 @@ const allSidebarItems = navSections.flatMap(s => s.items);
 
 const INACTIVITY_LOGOUT_MS = 30 * 60 * 1000; // 30 minutes
 
-const SEEN_ACTION_IDS_KEY = 'leads_notif_seen_action_ids';
+const SEEN_ACTION_IDS_KEY = 'rtbi_notif_seen_action_ids';
 
 function loadSeenActionIds(): Set<string> {
   if (typeof window === 'undefined') return new Set();
@@ -209,7 +217,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     tier: 1,
     division: 'Super User',
     department: undefined as string | undefined,
-    committee: undefined as string | undefined,
     avatarUrl: undefined as string | undefined,
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -217,28 +224,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [promotionData, setPromotionData] = useState<PromotionData | null>(null);
-  // Tracks the current user for the 'leads-data-sync' handler below, which is
+  // Tracks the current user for the 'rtbi-data-sync' handler below, which is
   // registered once on mount and would otherwise only ever see this initial
   // (pre-login) placeholder user via a stale closure.
   const userRef = useRef(user);
   useEffect(() => { userRef.current = user; }, [user]);
 
   const buildNotifications = (currentUser: any) => {
-    const proofreadNotifs = getDesigns()
-      .filter(d => d.proofreadRequested && (
-        d.assignedProofreaderEmail === currentUser.email ||
-        (Array.isArray(d.assignedProofreaderIds) && d.assignedProofreaderIds.includes(currentUser.id)) ||
-        (Array.isArray(d.assignedProofreaders) && d.assignedProofreaders.some((p: any) => p.email === currentUser.email || p.id === currentUser.id))
-      ) && d.review?.status === 'Pending Proofread')
-      .map(d => ({
-        id: 'pf_' + d.id,
-        title: `Proofreading Request: ${d.title}`,
-        time: `From ${d.designerName}`,
-        read: false,
-        actionNeeded: true,
-        link: `/dashboard/designs?highlight=${d.id}`,
-      }));
-
     // FYI-only — recency windows, not real unread tracking, so these never
     // contribute to the badge count (only genuine decisions do).
     const recentAnnounce = getAnnouncements()
@@ -265,37 +257,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         link: `/dashboard/tasks?highlight=${t.id}`,
       }));
 
-    // Budget requests awaiting this user's stage-1 (Centre Head) or stage-2
-    // (Finance Head) action — mirrors the reimbursement notifications below.
-    const budgetNotifs = getBudgets()
-      .filter(b => b.status === 'Pending')
-      .filter(b => (!b.centreHeadVerified && canVerifyBudgetCentreHead(currentUser)) || (b.centreHeadVerified && canDecideBudget(currentUser, b)))
-      .map(b => ({
-        id: 'bud_' + b.id,
-        title: b.centreHeadVerified
-          ? `Budget awaiting your approval: ${b.eventName || b.month || b.financialYear || 'Request'}`
-          : `Budget awaiting your verification: ${b.eventName || b.month || b.financialYear || 'Request'}`,
-        time: `From ${b.submittedBy}`,
-        read: false,
-        actionNeeded: true,
-        link: `/dashboard/budget`,
-      }));
-
-    // Reimbursement claims awaiting this user's stage-1 or stage-2 action.
-    const reimbursementNotifs = getReimbursements()
-      .filter(r => {
-        if (r.status === 'Pending') return canVerifyReimbursementCentreHead(currentUser) || canApproveAsSectorHead(currentUser);
-        if (r.status === 'Verified by Centre Head' || r.status === 'Under Review') return canApproveAsFinanceHead(currentUser, r);
-        return false;
-      })
-      .map(r => ({
-        id: 'rem_' + r.id,
-        title: `Reimbursement awaiting your review: ${r.memberName} — ₹${Number(r.amount).toLocaleString()}`,
-        time: r.category,
-        read: false,
-        actionNeeded: true,
-        link: `/dashboard/reimbursements`,
-      }));
+    // Invoice payments recorded and waiting for this user (Super User / CEO) to verify.
+    const invoiceNotifs = canVerifyInvoicePayment(currentUser)
+      ? getInvoices()
+          .filter(i => i.status === 'Payment Recorded')
+          .map(i => ({
+            id: 'inv_' + i.id + '_' + (i.payment?.recordedAt || ''),
+            title: `Payment awaiting verification: ${i.invoiceNumber} — ₹${Number(i.payment?.amount ?? i.totalAmount).toLocaleString('en-IN')}`,
+            time: `${i.clientName} · recorded by ${i.payment?.recordedBy || 'a member'}`,
+            read: false,
+            actionNeeded: true,
+            link: `/dashboard/invoices?open=${i.id}`,
+          }))
+      : [];
 
     // Event create/edit requests routed to this user for approval.
     const eventApprovalNotifs = getEvents()
@@ -358,7 +332,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         if (r.entityType === 'task') link = `/dashboard/tasks?highlight=${r.entityId}`;
         else if (r.entityType === 'event') link = `/dashboard/events`;
         else if (r.entityType === 'design') link = `/dashboard/designs?highlight=${r.entityId}`;
-        else if (r.entityType === 'event-report') link = `/dashboard/event-reports?highlight=${r.entityId}`;
 
         approvedByOthersNotifs.push({
           id: 'appr_decided_' + r.id,
@@ -419,43 +392,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         });
       });
 
-    // 4. From event reports approved directly
-    getEventReports()
-      .filter(er => er.status === 'approved' && (er.centreHeadApprovedBy || er.eventsHeadGgApprovedBy))
-      .filter(er => {
-        const d = er.centreHeadApprovedAt || er.eventsHeadGgApprovedAt;
-        return d ? new Date(d).getTime() >= recentCutoff : false;
-      })
-      .forEach(er => {
-        if (!canUserGiveApproval) return;
-        const approverName = er.centreHeadApprovedBy || er.eventsHeadGgApprovedBy || 'Approver';
-        if (
-          approverName.toLowerCase() === (currentUser.name || '').toLowerCase() ||
-          approverName.toLowerCase() === (currentUser.email || '').toLowerCase()
-        ) {
-          return;
-        }
-        if (approvedByOthersNotifs.some(n => n.id.includes(er.id))) return;
-
-        const at = er.centreHeadApprovedAt || er.eventsHeadGgApprovedAt;
-        approvedByOthersNotifs.push({
-          id: 'report_approved_' + er.id,
-          title: `Approved by ${approverName}: ${er.eventTitle}`,
-          time: at ? new Date(at).toLocaleDateString() : 'Recently',
-          read: false,
-          actionNeeded: false,
-          link: `/dashboard/event-reports?highlight=${er.id}`,
-        });
-      });
-
     const dismissed = loadDismissedNotifIds();
-    return [...budgetNotifs, ...reimbursementNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...proofreadNotifs, ...recentAnnounce, ...recentTasks]
+    return [...invoiceNotifs, ...eventApprovalNotifs, ...manualApprovalNotifs, ...approvedByOthersNotifs, ...recentAnnounce, ...recentTasks]
       .filter(n => !dismissed.has(n.id));
   };
 
   const loadDismissedNotifIds = (): Set<string> => {
     try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('leads_dismissed_notif_ids') : null;
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('rtbi_dismissed_notif_ids') : null;
       if (!raw) return new Set();
       const parsed = JSON.parse(raw);
       return new Set(Array.isArray(parsed) ? parsed : []);
@@ -466,7 +410,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   const saveDismissedNotifIds = (ids: Set<string>) => {
     try {
-      localStorage.setItem('leads_dismissed_notif_ids', JSON.stringify(Array.from(ids)));
+      localStorage.setItem('rtbi_dismissed_notif_ids', JSON.stringify(Array.from(ids)));
     } catch {}
   };
 
@@ -575,10 +519,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       // Auto-launch role-tailored Onboarding Tour ONLY on first-time initial account setup ever
       const isInitialSetup = parsedUser.isFirstLogin === true || (parsedUser as any).isNewAccount === true;
       const hasCompletedTour =
-        (parsedUser.id && localStorage.getItem(`leads_tour_completed_${parsedUser.id}`)) ||
-        (parsedUser.email && localStorage.getItem(`leads_tour_completed_${parsedUser.email}`)) ||
-        (parsedUser.name && localStorage.getItem(`leads_tour_completed_${parsedUser.name}`)) ||
-        (parsedUser.email && localStorage.getItem(`leads_has_logged_in_${parsedUser.email}`));
+        (parsedUser.id && localStorage.getItem(`rtbi_tour_completed_${parsedUser.id}`)) ||
+        (parsedUser.email && localStorage.getItem(`rtbi_tour_completed_${parsedUser.email}`)) ||
+        (parsedUser.name && localStorage.getItem(`rtbi_tour_completed_${parsedUser.name}`)) ||
+        (parsedUser.email && localStorage.getItem(`rtbi_has_logged_in_${parsedUser.email}`));
 
       const isImpersonatingSession = typeof window !== 'undefined' && sessionStorage.getItem('impersonator_original_user');
 
@@ -588,14 +532,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
       // Mark that account has logged in so tutorial is not auto-shown repeatedly
       if (parsedUser.email) {
-        localStorage.setItem(`leads_has_logged_in_${parsedUser.email}`, 'true');
-        if (parsedUser.id) localStorage.setItem(`leads_has_logged_in_${parsedUser.id}`, 'true');
+        localStorage.setItem(`rtbi_has_logged_in_${parsedUser.email}`, 'true');
+        if (parsedUser.id) localStorage.setItem(`rtbi_has_logged_in_${parsedUser.id}`, 'true');
       }
 
       // Detect Promotion / Role Elevation on session load
       const userKey = parsedUser.email || parsedUser.id || parsedUser.name;
-      const storedLastTier = localStorage.getItem(`leads_seen_tier_${userKey}`);
-      const storedLastRole = localStorage.getItem(`leads_seen_role_${userKey}`);
+      const storedLastTier = localStorage.getItem(`rtbi_seen_tier_${userKey}`);
+      const storedLastRole = localStorage.getItem(`rtbi_seen_role_${userKey}`);
 
       if (storedLastTier !== null && storedLastRole !== null) {
         // parseFloat, not parseInt — tiers can be fractional (2.5 = GG Campus
@@ -622,8 +566,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       }
 
       // Record baseline seen role & tier
-      localStorage.setItem(`leads_seen_tier_${userKey}`, String(parsedUser.tier));
-      localStorage.setItem(`leads_seen_role_${userKey}`, parsedUser.role || '');
+      localStorage.setItem(`rtbi_seen_tier_${userKey}`, String(parsedUser.tier));
+      localStorage.setItem(`rtbi_seen_role_${userKey}`, parsedUser.role || '');
 
       return () => {
         clearInterval(pollInterval);
@@ -647,8 +591,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       localStorage.setItem('logoutReason', 'session_expired');
       router.replace('/');
     };
-    window.addEventListener('leads-session-expired', onExpired);
-    return () => window.removeEventListener('leads-session-expired', onExpired);
+    window.addEventListener('rtbi-session-expired', onExpired);
+    return () => window.removeEventListener('rtbi-session-expired', onExpired);
   }, [router]);
 
   // Re-check the lockdown flag and rebuild notifications every time a server
@@ -691,15 +635,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           (liveRecord as any).program !== (currentUser as any).program ||
           (liveRecord as any).batch !== (currentUser as any).batch ||
           liveRecord.avatarUrl !== currentUser.avatarUrl ||
-          liveRecord.dateOfBirth !== (currentUser as any).dateOfBirth ||
-          liveRecord.bankName !== (currentUser as any).bankName ||
-          liveRecord.accountNumber !== (currentUser as any).accountNumber ||
-          liveRecord.ifscCode !== (currentUser as any).ifscCode;
+          liveRecord.dateOfBirth !== (currentUser as any).dateOfBirth;
 
         if (hasProfileChanges) {
           const userKey = liveRecord.email || liveRecord.id || liveRecord.name;
-          const storedLastTier = localStorage.getItem(`leads_seen_tier_${userKey}`);
-          const storedLastRole = localStorage.getItem(`leads_seen_role_${userKey}`);
+          const storedLastTier = localStorage.getItem(`rtbi_seen_tier_${userKey}`);
+          const storedLastRole = localStorage.getItem(`rtbi_seen_role_${userKey}`);
 
           if (storedLastTier !== null && storedLastRole !== null) {
             // parseFloat — see the matching fix/comment on the login-time
@@ -722,8 +663,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             }
           }
 
-          localStorage.setItem(`leads_seen_tier_${userKey}`, String(liveRecord.tier));
-          localStorage.setItem(`leads_seen_role_${userKey}`, liveRecord.role || '');
+          localStorage.setItem(`rtbi_seen_tier_${userKey}`, String(liveRecord.tier));
+          localStorage.setItem(`rtbi_seen_role_${userKey}`, liveRecord.role || '');
 
           const updatedSessionUser = {
             ...currentUser,
@@ -738,9 +679,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             batch: (liveRecord as any).batch,
             avatarUrl: liveRecord.avatarUrl,
             dateOfBirth: liveRecord.dateOfBirth,
-            bankName: liveRecord.bankName,
-            accountNumber: liveRecord.accountNumber,
-            ifscCode: liveRecord.ifscCode,
           };
           delete (updatedSessionUser as any).passwordHash;
           setUser(updatedSessionUser);
@@ -765,8 +703,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         return rebuilt.map(n => readIds.has(n.id) ? { ...n, read: true } : n);
       });
     };
-    window.addEventListener('leads-data-sync', handleSync);
-    return () => window.removeEventListener('leads-data-sync', handleSync);
+    window.addEventListener('rtbi-data-sync', handleSync);
+    return () => window.removeEventListener('rtbi-data-sync', handleSync);
   }, [router]);
 
   // Click outside to close dropdowns. The notification bell renders twice (desktop
@@ -902,6 +840,31 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     window.location.reload();
   };
 
+  const isLocalhost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '[::1]'
+  );
+
+  const handleWipeLocalhostData = async () => {
+    if (!window.confirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/wipe-data', {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      clearAllLocalMemory();
+      alert(data.message || 'Application data and memory wiped clean.');
+      window.location.href = '/setup';
+    } catch {
+      clearAllLocalMemory();
+      window.location.href = '/setup';
+    }
+  };
+
   const quickSwitchResults = allMembers.filter(m => {
     const q = quickSwitchSearch.toLowerCase();
     return !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || m.role.toLowerCase().includes(q);
@@ -1026,7 +989,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     router.push(notif.link);
   };
 
-  // Badge only counts items that need a decision (proofread/budget/reimbursement/
+  // Badge only counts items that need a decision (proofread/invoice-payment/
   // event approvals) — recent announcements and tasks stay in the list below for
   // visibility but never inflate this number. A dot at 1, a number from 2-99, and
   // a 99+ cap above that, so the badge's own shape never destabilizes the bell.
@@ -1323,12 +1286,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     );
   }
 
-  // Site-wide lockdown: everyone except the real Super User (tier 1) sees a
-  // plain 404 instead of the dashboard. Applies during impersonation too —
-  // if the Super User is viewing the app as someone else, they see what that
-  // person would see.
-  if (lockdownEnabled && user.tier !== 1) {
-    return <NotFoundScreen />;
+  // Zero-Trust, Zero-Access site-wide policy:
+  // Only the Super User (tier 1) has access to modules and controls right now.
+  // Not even the CEO or anyone else is granted access while the site is under construction.
+  if (user.tier !== 1) {
+    return <ZeroTrustRestrictedScreen user={user} onSignOut={handleLogout} />;
   }
 
   return (
@@ -1429,7 +1391,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   </h4>
                 )}
                 <div className="space-y-1">
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user)) && (!item.staffOnly || user.tier <= 3)).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -1510,6 +1472,16 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </Link>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          {isLocalhost && (
+            <button
+              onClick={handleWipeLocalhostData}
+              className="h-8 w-8 flex items-center justify-center text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
+              title="Wipe data (Localhost)"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+
           <button
             onClick={toggleTheme}
             className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
@@ -1545,7 +1517,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   <h4 className="px-2 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                     {section.title}
                   </h4>
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user)) && (!item.staffOnly || user.tier <= 3)).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -1626,6 +1598,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-3 justify-end shrink-0">
+            {/* Localhost Data Wipe button */}
+            {isLocalhost && (
+              <button
+                onClick={handleWipeLocalhostData}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                title="Wipe all data and reset memory (Localhost only)"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Wipe Data</span>
+              </button>
+            )}
+
             {/* Interactive Guided Tour button */}
             <button
               onClick={() => setIsTourOpen(true)}

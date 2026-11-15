@@ -19,7 +19,7 @@ export async function dispatchAnnouncementEmails(announcement: any): Promise<boo
       readCollection<EventItem>('events'),
     ]);
 
-    const authorName = announcement.authorName || 'LEADS Admin';
+    const authorName = announcement.authorName || 'RTBI Admin';
     const recipients = resolveAnnouncementRecipients(announcement.scope, members, events)
       .filter((m) => !!m.email);
 

@@ -5,7 +5,7 @@
  *   node scripts/decrypt-backup.js <encrypted-file.json> [passphrase]
  *
  * Example:
- *   node scripts/decrypt-backup.js data/members.json "LEADS_ERP_MASTER_SECRET_KEY_2026"
+ *   node scripts/decrypt-backup.js data/members.json "RTBI_PORTAL_MASTER_SECRET_KEY_2026"
  */
 
 const fs = require('fs');
@@ -13,7 +13,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const filePath = process.argv[2];
-const passphrase = process.argv[3] || process.env.DATA_ENCRYPTION_KEY || 'LEADS_ERP_MASTER_SECRET_KEY_2026';
+const passphrase = process.argv[3] || process.env.DATA_ENCRYPTION_KEY || 'RTBI_PORTAL_MASTER_SECRET_KEY_2026';
 
 if (!filePath) {
   console.log('Usage: node scripts/decrypt-backup.js <path-to-encrypted-file.json> [passphrase]');
@@ -37,7 +37,7 @@ try {
     process.exit(0);
   }
 
-  const salt = Buffer.from('LEADS_NEXT_GEN_CENTRE_MSRUAS_SALT_2026', 'utf-8');
+  const salt = Buffer.from('RTBI_PORTAL_MSRUAS_SALT_2026', 'utf-8');
   const key = crypto.pbkdf2Sync(passphrase, salt, 100000, 32, 'sha256');
   const iv = Buffer.from(payload.iv, 'hex');
   const authTag = Buffer.from(payload.authTag, 'hex');

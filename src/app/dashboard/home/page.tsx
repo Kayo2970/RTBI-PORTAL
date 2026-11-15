@@ -33,7 +33,6 @@ import {
   isTaskAssignee,
   hasAcknowledgedTask,
   acknowledgeTask,
-  isFestivalEvent,
   TaskItem,
   EventItem,
   AnnouncementItem
@@ -43,16 +42,19 @@ import { getRatingColor } from '@/lib/design-tokens';
 import { StudentProfileModal } from '@/components/student-profile-modal';
 import { GanttTimeline } from '@/components/gantt-timeline';
 import { TaskErrorToast } from '@/components/task-error-toast';
+import { QuickActionsWidget } from '@/components/quick-actions-widget';
+import type { Booking } from '@/lib/billing';
 
 export default function DashboardHome() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [membersCount, setMembersCount] = useState(0);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [user, setUser] = useState<any>(null);
   
-  // Announcements, Events, and Festivals Tab State
-  const [activeTab, setActiveTab] = useState<'events' | 'festivals' | 'announcements'>('events');
+  // Announcements and Events Tab State
+  const [activeTab, setActiveTab] = useState<'events' | 'announcements'>('events');
 
   // Leaderboard State
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -93,6 +95,18 @@ export default function DashboardHome() {
       }
 
       setLastUpdatedAt(new Date());
+
+      // Fetch confirmed room/facility bookings for the upcoming TBI schedule
+      fetch('/api/bookings')
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setBookings(data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load bookings for Gantt schedule:', err);
+        });
     };
     refreshData();
 
@@ -105,10 +119,10 @@ export default function DashboardHome() {
       }
     }
 
-    window.addEventListener('leads-data-sync', refreshData);
+    window.addEventListener('rtbi-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
-      window.removeEventListener('leads-data-sync', refreshData);
+      window.removeEventListener('rtbi-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, []);
@@ -181,18 +195,12 @@ export default function DashboardHome() {
   // own-vs-all Group Policy scope; pending/rejected submissions are only shown to
   // their submitter, their resolved approver, or the Super User.
   const visibleEvents = events
-    .filter(event => !isFestivalEvent(event))
     .filter(event => {
       if (event.approvalStatus === 'pending_create' || event.approvalStatus === 'rejected') {
         return user?.tier === 1 || event.submittedByEmail === user?.email || canApprovePendingEvent(event, user);
       }
       return canViewEvent(event, user);
     });
-
-  const visibleFestivals = events
-    .filter(isFestivalEvent)
-    .filter(event => event.startDate >= todayStr)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   const activeEventsCount = visibleEvents.filter(e => {
     const effective = getEffectiveEventStatus(e, tasks);
@@ -233,7 +241,7 @@ export default function DashboardHome() {
   // other people entirely, showing every leadership/Executive viewer the
   // same non-personal number regardless of what's actually theirs to act on.
   // Checking hasAcknowledgedTask instead of status === 'Assigned' matters
-  // for a group/committee task specifically: the shared status can already
+  // for a group task specifically: the shared status can already
   // read 'In Progress' purely because a DIFFERENT assignee acknowledged
   // first, but that never counts as THIS member's own acknowledgment, so
   // they'd otherwise silently drop off this banner despite never having
@@ -268,13 +276,13 @@ export default function DashboardHome() {
             <h1 className="text-xl font-bold text-theme-text-primary">Hello! Welcome back, {user.name}</h1>
             <p className="text-xs text-theme-text-secondary mt-1">
               Designation: <span className="font-semibold text-theme-text-primary">{user.role || 'Member'}</span>
-              {(user.committee || user.division) && (
-                <> &middot; {user.committee ? `Committee: ${user.committee}` : `Division: ${user.division}`}</>
+              {user.division && (
+                <> &middot; {`Tier: ${user.division}`}</>
               )}
             </p>
           </div>
           <span className="text-xs font-semibold text-accent px-3.5 py-1.5 bg-accent/15 rounded-xl border border-accent/20">
-            {user.role || user.division || 'LEADS Member'}
+            {user.role || user.division || 'RTBI Member'}
           </span>
         </div>
       )}
@@ -387,14 +395,17 @@ export default function DashboardHome() {
 
       </div>
 
+      {/* Customizable Quick Actions Dock (Permission-Guarded) */}
+      <QuickActionsWidget user={user} />
+
       {lastUpdatedAt && (
         <p className="text-[10px] text-theme-text-secondary font-medium -mt-2 text-right">
           Last updated {lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       )}
 
-      {/* Cross-Module Project Timeline (Gantt) */}
-      <GanttTimeline events={visibleEvents} tasks={displayedTasks} />
+      {/* Upcoming TBI Schedule (Gantt View) */}
+      <GanttTimeline events={visibleEvents} tasks={displayedTasks} bookings={bookings} />
 
       {/* Grid: Calendar & Leaderboard Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -402,7 +413,7 @@ export default function DashboardHome() {
         {/* Calendar Quick-Access Card */}
         <div className="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
           <div>
-            <h3 className="text-base font-bold text-theme-text-primary">LEADS Event Calendar</h3>
+            <h3 className="text-base font-bold text-theme-text-primary">RTBI Event Calendar</h3>
             <p className="text-xs text-theme-text-secondary">Explore scheduled symposiums, workshops, and milestones</p>
           </div>
 
@@ -582,7 +593,7 @@ export default function DashboardHome() {
                               (am I literally the one this was allotted to?), not
                               just this row being visible to a broad viewer like
                               leadership, and checked against hasAcknowledgedTask
-                              rather than status alone so a group/committee task
+                              rather than status alone so a group task
                               already In Progress from a DIFFERENT member's
                               acknowledgment still prompts this viewer for their
                               own if they haven't given it yet. */}
@@ -642,7 +653,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Dynamic Tabbed Events, Festivals & Announcements Panel */}
+        {/* Tabbed Events & Announcements Panel */}
         <div className="glass-panel rounded-2xl p-6 flex flex-col space-y-4">
           <div className="flex border-b border-theme-border/30 pb-2.5 gap-2 flex-wrap">
             <button
@@ -655,18 +666,6 @@ export default function DashboardHome() {
             >
               <Calendar className="h-3.5 w-3.5" />
               Upcoming Events ({visibleEvents.filter(ev => getEffectiveEventStatus(ev, tasks) !== 'completed' && getEffectiveEventStatus(ev, tasks) !== 'archived').length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab('festivals')}
-              className={`pb-1 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                activeTab === 'festivals'
-                  ? 'text-accent border-b-2 border-accent'
-                  : 'text-theme-text-secondary hover:text-theme-text-primary'
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Festivals ({visibleFestivals.length})
             </button>
 
             <button
@@ -703,30 +702,6 @@ export default function DashboardHome() {
                     {formatEventPlanningNote(ev) && (
                       <p className="text-[10px] font-medium text-accent/90">{formatEventPlanningNote(ev)}</p>
                     )}
-                  </div>
-                ));
-              })()
-            ) : activeTab === 'festivals' ? (
-              (() => {
-                if (visibleFestivals.length === 0) {
-                  return <div className="text-center py-8 text-theme-text-secondary text-xs">No upcoming festivals in the next 30 days.</div>;
-                }
-                return visibleFestivals.slice(0, 8).map(fest => (
-                  <div key={fest.id} className="p-3 bg-white/40 dark:bg-white/5 border border-theme-border/20 rounded-xl space-y-1 hover:bg-white/60 dark:hover:bg-white/10 transition-all flex items-start justify-between gap-3">
-                    <div className="space-y-0.5 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-theme-text-primary text-xs truncate">{fest.title}</h4>
-                        <span className="text-[10px] px-1.5 py-0.2 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold rounded shrink-0">Festival</span>
-                      </div>
-                      <p className="text-[10px] text-theme-text-secondary line-clamp-1">{fest.description}</p>
-                      <p className="text-[10px] font-medium text-theme-text-secondary">{fest.startDate}</p>
-                    </div>
-                    <Link
-                      href="/dashboard/festivals"
-                      className="text-[10px] text-accent hover:underline font-semibold shrink-0"
-                    >
-                      Details &rarr;
-                    </Link>
                   </div>
                 ));
               })()

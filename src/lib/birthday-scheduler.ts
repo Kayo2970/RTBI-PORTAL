@@ -1,5 +1,5 @@
 import { readCollection, mutateCollection } from './server-db';
-import { dispatchEmail, generateBirthdayEmailTemplate } from './email-service';
+import { isEmailCategoryEnabled, dispatchEmail, generateBirthdayEmailTemplate } from './email-service';
 import type { Member } from './local-data';
 
 interface BirthdayEmailLogEntry {
@@ -32,6 +32,7 @@ function monthDay(dateStr: string): string {
  * from the daily timer without ever double-sending the same member.
  */
 export async function runBirthdayCheck(): Promise<{ checked: number; sent: number }> {
+  if (!(await isEmailCategoryEnabled('BIRTHDAY'))) return { checked: 0, sent: 0 }; // switched off in Email Management → Settings
   const today = todayDateString();
   const todayMonthDay = monthDay(today);
 

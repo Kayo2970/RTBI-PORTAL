@@ -26,7 +26,7 @@ function generateGroupPolicyGrantEmailTemplate(memberName, policy, allottedByNam
     ? `Valid until ${new Date(policy.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
     : 'Permanent (Until manually revoked)';
 
-  const subject = `[LEADS ERP] Special Access Granted: ${policy.name}`;
+  const subject = `[RTBI ERP] Special Access Granted: ${policy.name}`;
   const bodyText = `Hello ${memberName}, special access has been allotted to you by ${allottedByName}. Policy: ${policy.name} (${expiresText}).`;
   return { subject, bodyText };
 }
