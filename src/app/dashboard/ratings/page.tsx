@@ -48,6 +48,7 @@ import {
   averageScore,
   projectLegacyRatingFields,
 } from '@/lib/rating-criteria';
+import { ScorecardsPanel } from '@/components/incubation/scorecards-panel';
 
 const CRITERIA_SET_LABEL: Record<RatingCriteriaSet, string> = {
   general: 'General Task',
@@ -135,6 +136,8 @@ export default function RatingsPage() {
   // vanishing, so there's still a quick way to see what's been evaluated
   // without it cluttering the main pending queue.
   const [queueTab, setQueueTab] = useState<'pending' | 'evaluated'>('pending');
+  // Task ratings (LEADS rubric) vs. startup scorecards (incubation SOPs).
+  const [ratingsView, setRatingsView] = useState<'task' | 'startup'>('task');
 
   // Evaluation Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -652,6 +655,23 @@ export default function RatingsPage() {
 
   const availableRatingMonths = extractAvailableMonths(ratings.map(r => r.createdAt));
 
+  if (ratingsView === 'startup') {
+    return (
+      <div className="p-6 md:p-8 space-y-6">
+        <div>
+          <h1 className="text-xl font-bold text-theme-text-primary">Ratings</h1>
+          <p className="text-xs text-theme-text-secondary">Startup selection scorecards, quarterly RAG and graduation scoring (incubation SOPs)</p>
+        </div>
+        <div className="flex gap-1 border-b border-theme-border/30">
+          {([['task', 'Task ratings'], ['startup', 'Startup scorecards']] as const).map(([k, label]) => (
+            <button key={k} onClick={() => setRatingsView(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${ratingsView === k ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
+          ))}
+        </div>
+        <ScorecardsPanel user={user} />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-6">
       
@@ -668,13 +688,10 @@ export default function RatingsPage() {
         <h1 className="text-xl font-bold text-theme-text-primary">Task-Based Performance Ratings</h1>
         <p className="text-xs text-theme-text-secondary">Evaluate student members against the General, Design, or Report Writing rubric — whichever matches the task</p>
       </div>
-      <div className="rounded-2xl border border-accent/30 bg-accent/10 p-4 text-xs flex flex-wrap items-center justify-between gap-2">
-        <span><b>Startup scorecards</b> — selection scorecards (weighted 1-5 criteria), TRL and quarterly RAG reviews, and graduation scoring now live in the Incubation section.</span>
-        <span className="flex gap-3 font-semibold">
-          <a className="text-accent hover:underline" href="/dashboard/incubation/applications">Selection scorecards</a>
-          <a className="text-accent hover:underline" href="/dashboard/incubation/records/review">Quarterly RAG</a>
-          <a className="text-accent hover:underline" href="/dashboard/incubation/records/graduation">Graduation</a>
-        </span>
+      <div className="flex gap-1 border-b border-theme-border/30">
+        {([['task', 'Task ratings'], ['startup', 'Startup scorecards']] as const).map(([k, label]) => (
+          <button key={k} onClick={() => setRatingsView(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${ratingsView === k ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
+        ))}
       </div>
 
 

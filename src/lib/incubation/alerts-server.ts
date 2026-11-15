@@ -1,5 +1,5 @@
 import { readCollection } from '../server-db';
-import { isStaffTier } from '../permissions-server';
+import { isInternalStaff } from '../permissions-server';
 import { visibleStartupsFor } from './startups-server';
 import { loadSettings } from './records-server';
 import { addWorkingDays, lastQuarterEnd } from './rules';
@@ -14,7 +14,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 /** Service timers + deadlines the actor should act on. Startup-tier users only see their own startup's items. */
 export async function computeAlerts(actor: any, now = new Date()): Promise<IncubationAlert[]> {
   const settings = await loadSettings();
-  const staff = isStaffTier(actor);
+  const staff = isInternalStaff(actor);
   const [startupsAll, recs, apps] = await Promise.all([visibleStartupsFor(actor), readCollection<any>('incubationRecords'), staff ? readCollection<Application>('applications') : Promise.resolve([] as Application[])]);
   const alerts: IncubationAlert[] = [];
   const t = settings.timers;
@@ -27,6 +27,16 @@ export async function computeAlerts(actor: any, now = new Date()): Promise<Incub
       if (['Received', 'Clarification required'].includes(a.status) && !a.screening && new Date(new Date(a.receivedAt).getTime() + t.screeningDays * DAY) < now) alerts.push({ id: `scr_${a.id}`, title: `Screen ${a.id}`, detail: `${name}: screening target (${t.screeningDays} days) has passed.`, severity: 'overdue', link });
       for (const [i, m] of (a.missingDocs || []).entries()) {
         if (!m.resolvedAt && new Date(m.dueBy) < now) alerts.push({ id: `mis_${a.id}_${i}`, title: `Missing item overdue — ${a.id}`, detail: `${name}: "${m.item}" was due ${m.dueBy.slice(0, 10)}.`, severity: 'overdue', link });
+      }
+      if (a.decision?.finalisedAt && a.startupId && ['Selected', 'Selected subject to conditions'].includes(a.decision.option)) {
+        // Admission letter due within N working days of the final decision (done = the onboarding "admission" item is complete).
+        const ob = recs.find(r => r.kind === 'onboarding' && r.startupId === a.startupId);
+        if (!ob?.items?.admission?.done) {
+          const due = addWorkingDays(new Date(a.decision.finalisedAt), t.admissionCommunicationWorkingDays);
+          const adm = `/dashboard/incubation/onboarding?startup=${a.startupId}`;
+          if (due < now) alerts.push({ id: `adm_${a.id}`, title: `Admission communication overdue — ${a.startupId}`, detail: `${name}: due ${iso(due)} (${t.admissionCommunicationWorkingDays} working days after the final decision).`, severity: 'overdue', link: adm });
+          else if (due.getTime() - now.getTime() <= 2 * DAY) alerts.push({ id: `adm_${a.id}`, title: `Admission communication due ${iso(due)} — ${a.startupId}`, detail: `${name}: send the admission letter.`, severity: 'soon', link: adm });
+        }
       }
       if (a.status === 'Decision recorded' && a.decision && new Date(a.decision.recordedAt) < new Date(now.getTime() - 3 * DAY)) alerts.push({ id: `fin_${a.id}`, title: `Decision awaiting final approval — ${a.id}`, detail: `${name}: ${a.decision.option}${a.decision.provisional ? ' (provisional — settings still Proposed)' : ''}.`, severity: 'soon', link });
     }
@@ -73,8 +83,8 @@ export async function computeCalendar(actor: any, now = new Date()): Promise<Cal
   const settings = await loadSettings();
   const startups = await visibleStartupsFor(actor);
   const ids = new Set(startups.map(s => s.id));
-  const recs = (await readCollection<any>('incubationRecords')).filter(r => !r.startupId || ids.has(r.startupId) || isStaffTier(actor));
-  const staff = isStaffTier(actor);
+  const recs = (await readCollection<any>('incubationRecords')).filter(r => !r.startupId || ids.has(r.startupId) || isInternalStaff(actor));
+  const staff = isInternalStaff(actor);
   const items: CalendarItem[] = [];
   for (const r of recs) {
     if (r.kind === 'milestone' && r.dueDate) items.push({ id: r.id, date: r.dueDate, title: `Milestone: ${r.title} (${r.startupId})`, type: 'milestone', link: '/dashboard/incubation/records/milestone' });

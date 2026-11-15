@@ -81,6 +81,8 @@ export interface Member {
   role: string;
   tier: number;
   division: MemberDivision;
+  /** Tier-3 account limited to scoring applications assigned to them (incubation). Set only by directory editors. */
+  externalReviewer?: boolean;
   department?: string;
   program?: string; // e.g. "B.Tech Computer Science Engineering", "MBA"
   batch?: string; // e.g. "Class of 2025" for Alumni

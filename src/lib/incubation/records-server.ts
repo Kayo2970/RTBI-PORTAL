@@ -1,6 +1,6 @@
 import { readCollection, mutateCollection } from '../server-db';
 import { saveBase64File } from '../file-storage';
-import { canManageStartupsServer, isStaffTier } from '../permissions-server';
+import { canManageStartupsServer, isInternalStaff } from '../permissions-server';
 import { defaultIncubationSettings } from './defaults';
 import { visibleStartupsFor } from './startups-server';
 import { KINDS, kindFields, type KindDef, type FieldDef } from './kinds';
@@ -17,7 +17,7 @@ export async function loadSettings(): Promise<IncubationSettings> {
 export async function canReadRecord(def: KindDef, rec: any, actor: any, ownStartupIds: Set<string>, isManager: boolean): Promise<boolean> {
   if (def.restricted) return isManager || rec.createdBy === actor.id;
   if (rec.kind === 'evidence' && rec.restricted && !isManager) return false;
-  if (isStaffTier(actor)) return true;
+  if (isInternalStaff(actor)) return true;
   if (!def.startupCanRead) return false;
   if (def.startupScoped) return !!rec.startupId && ownStartupIds.has(rec.startupId);
   return true; // e.g. cohorts
@@ -34,13 +34,13 @@ export async function readableRecords(kind: string, actor: any): Promise<any[]> 
 }
 
 export async function canWriteKind(def: KindDef, actor: any): Promise<boolean> {
-  return def.write === 'managers' ? canManageStartupsServer(actor) : isStaffTier(actor);
+  return def.write === 'managers' ? canManageStartupsServer(actor) : isInternalStaff(actor);
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Coerces and checks one submitted field; returns [value, error]. */
-async function coerce(f: FieldDef, raw: any, ctx: { startupIds: Set<string>; memberIds: Set<string> }): Promise<[any, string | null]> {
+async function coerce(f: FieldDef, raw: any, ctx: { startupIds: Set<string>; memberIds: Set<string>; recordKeys: Set<string> }): Promise<[any, string | null]> {
   const empty = raw === undefined || raw === null || raw === '' || (f.type === 'checkbox' && raw === false && !f.required);
   if (f.type === 'checkbox') return [!!raw, f.required && !raw ? `"${f.label}" is required.` : null];
   if (empty) return [undefined, f.required ? `"${f.label}" is required.` : null];
@@ -55,6 +55,7 @@ async function coerce(f: FieldDef, raw: any, ctx: { startupIds: Set<string>; mem
     case 'date': return ISO_DATE.test(String(raw)) ? [String(raw), null] : [undefined, `"${f.label}" must be a date.`];
     case 'startup': return ctx.startupIds.has(String(raw)) ? [String(raw), null] : [undefined, `"${f.label}": unknown startup.`];
     case 'member': return ctx.memberIds.has(String(raw)) ? [String(raw), null] : [undefined, `"${f.label}": unknown member.`];
+    case 'record': return ctx.recordKeys.has(`${f.refKind}:${String(raw)}`) ? [String(raw), null] : [undefined, `"${f.label}": unknown ${f.refKind} record.`];
     case 'file': return [raw, null]; // handled by the caller
   }
 }
@@ -66,7 +67,7 @@ export async function buildRecord({ def, body, existing, actor, isManager }: Sav
   const settings = await loadSettings();
   const fields = kindFields(def, settings);
   const [startups, members, all] = await Promise.all([readCollection<Startup>('startups'), readCollection<any>('members'), readCollection<any>('incubationRecords')]);
-  const ctxIds = { startupIds: new Set(startups.map(s => s.id)), memberIds: new Set(members.filter(m => m.status !== 'Terminated').map(m => m.id)) };
+  const ctxIds = { startupIds: new Set(startups.map(s => s.id)), memberIds: new Set(members.filter(m => m.status !== 'Terminated').map(m => m.id)), recordKeys: new Set(all.map(r => `${r.kind}:${r.id}`)) };
 
   const next: any = existing ? { ...existing } : { kind: def.kind };
   const changes: { field: string; from: unknown; to: unknown }[] = [];

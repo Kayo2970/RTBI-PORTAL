@@ -49,9 +49,9 @@ export function Modal({ title, onClose, children, wide }: { title: string; onClo
 }
 
 /** Renders one registry field. `startups` / `members` feed the two reference selects. */
-export function FieldInput({ f, value, onChange, startups, members, disabled }: {
+export function FieldInput({ f, value, onChange, startups, members, records, disabled }: {
   f: FieldDef; value: any; onChange: (v: any) => void;
-  startups: { id: string; name: string }[]; members: { id: string; name: string }[]; disabled?: boolean;
+  startups: { id: string; name: string }[]; members: { id: string; name: string }[]; records?: Record<string, { id: string; label: string }[]>; disabled?: boolean;
 }) {
   const label = <span className="block mb-1">{f.label}{f.required ? ' *' : ''}</span>;
   const hint = f.hint ? <span className="block text-[11px] text-theme-text-secondary mt-0.5">{f.hint}</span> : null;
@@ -64,6 +64,7 @@ export function FieldInput({ f, value, onChange, startups, members, disabled }: 
     case 'checkbox': return <label className="text-xs flex items-center gap-2 md:col-span-2"><input type="checkbox" disabled={disabled} checked={!!value} onChange={e => onChange(e.target.checked)} /> {f.label}{f.managerOnly ? ' (manager)' : ''}</label>;
     case 'startup': return <label className="text-xs block">{label}<select {...common} value={value ?? ''} onChange={e => onChange(e.target.value || undefined)}><option value="">—</option>{startups.map(s => <option key={s.id} value={s.id}>{s.id} — {s.name}</option>)}</select></label>;
     case 'member': return <label className="text-xs block">{label}<select {...common} value={value ?? ''} onChange={e => onChange(e.target.value || undefined)}><option value="">—</option>{members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>;
+    case 'record': return <label className="text-xs block">{label}<select {...common} value={value ?? ''} onChange={e => onChange(e.target.value || undefined)}><option value="">—</option>{(records?.[f.refKind || ''] || []).map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select>{hint}</label>;
     case 'file': return (
       <label className="text-xs block md:col-span-2">{label}
         {value?.name && !value?.dataUrl && <span className="block text-theme-text-secondary mb-1">Current: {value.name}</span>}

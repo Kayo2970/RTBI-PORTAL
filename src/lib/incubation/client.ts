@@ -55,6 +55,8 @@ export const saveOnboarding = (startupId: string, body: unknown) => call<GateRes
 export const activateStartup = (startupId: string) => call<{ ok: boolean; basis: string }>(`/api/incubation/onboarding/${encodeURIComponent(startupId)}/activate`, { method: 'POST' });
 
 // ---- Alerts / calendar / KPI
+export interface EvidenceExportRow { id: string; kpi: string; title: string; docRef: string; date: string; startup: string; responsible: string; verifier: string; fundingStage: string; amount: number | string; documentLink: string }
+export const fetchEvidenceExport = () => call<{ rows: EvidenceExportRow[]; generatedAt: string }>('/api/incubation/evidence-export');
 export const fetchAlerts = () => call<IncubationAlert[]>('/api/incubation/alerts');
 export const fetchIncubationCalendar = () => call<CalendarItem[]>('/api/incubation/calendar');
 export const fetchKpis = (fy?: string) => call<KpiReport>(`/api/incubation/kpi${fy ? `?fy=${encodeURIComponent(fy)}` : ''}`);

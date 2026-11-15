@@ -7,7 +7,7 @@ import type { IncubationSettings, Startup } from './types';
  * single record live in `validate` / `derive` here so they can never be bypassed by a page.
  */
 
-export type FieldType = 'text' | 'textarea' | 'select' | 'number' | 'date' | 'checkbox' | 'startup' | 'member' | 'file';
+export type FieldType = 'text' | 'textarea' | 'select' | 'number' | 'date' | 'checkbox' | 'startup' | 'member' | 'file' | 'record';
 
 export interface FieldDef {
   key: string;
@@ -20,6 +20,9 @@ export interface FieldDef {
   max?: number;
   /** Only managers (CEO / Super User / granted) can set this field. */
   managerOnly?: boolean;
+  /** type 'record': the register kind it points at, and which of its fields to show as the label. */
+  refKind?: string;
+  refLabel?: string;
 }
 
 export interface KindCtx {
@@ -297,7 +300,7 @@ export const KINDS: Record<string, KindDef> = {
     kind: 'mentorSession', label: 'Mentor Session', plural: 'Mentor Sessions', startupScoped: true, startupCanRead: true, write: 'staff',
     description: 'Session log: record within the standard timer. Mentoring sessions are support delivered — never a commercial outcome.',
     fields: [
-      startup(), { key: 'mentorId', label: 'Mentor (record id)', type: 'text', required: true, hint: 'Paste the mentor register id.' },
+      startup(), { key: 'mentorId', label: 'Mentor', type: 'record', refKind: 'mentor', refLabel: 'name', required: true, hint: 'Pick from the mentor register.' },
       date('sessionDate', 'Session date', { required: true }), date('loggedOn', 'Logged on', { required: true }), area('summary', 'Summary / actions'),
       num('feedbackScore', 'Feedback score (1-5)', { min: 1, max: 5 }), area('feedbackNotes', 'Feedback notes'),
     ],
