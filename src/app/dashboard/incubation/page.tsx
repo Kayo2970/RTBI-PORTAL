@@ -4,10 +4,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Rocket, Plus, X, Search, Settings2, Loader2 } from 'lucide-react';
 import { Chip } from '@/components/ui';
+import { Badge, Panel, ragClass } from '@/components/incubation/ui';
 import {
-  fetchStartups, createStartup, updateStartup, fetchFounderCandidates, type FounderCandidate,
+  fetchStartups, createStartup, updateStartup, fetchFounderCandidates, fetchRecords, fetchAlerts, type FounderCandidate,
 } from '@/lib/incubation/client';
 import { STARTUP_PATHWAYS, STARTUP_MODES, type Startup } from '@/lib/incubation/types';
+import type { IncubationAlert } from '@/lib/incubation/alerts-server';
 
 const statusColor: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'primary'> = {
   Applicant: 'default', Selected: 'primary', Waitlisted: 'warning', Onboarding: 'warning', Active: 'success', Graduated: 'primary', Exited: 'danger',
@@ -75,6 +77,8 @@ export default function IncubationPage() {
         </div>
       </div>
 
+      {isStartupUser && startups.map(st => <MyStartup key={st.id} startup={st} />)}
+
       {!isStartupUser && (
         <div className="relative max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-secondary" />
@@ -107,7 +111,7 @@ export default function IncubationPage() {
                   <td className="p-3">{s.pathway}</td>
                   <td className="p-3">{s.cohort || '—'}</td>
                   <td className="p-3">{founderNames(s)}</td>
-                  {canManage && <td className="p-3 text-right"><button onClick={() => setEditing(s)} className="text-accent font-semibold">Edit</button></td>}
+                  {canManage && <td className="p-3 text-right whitespace-nowrap"><Link href={`/dashboard/incubation/onboarding?startup=${s.id}`} className="text-accent font-semibold mr-3">Onboarding</Link><button onClick={() => setEditing(s)} className="text-accent font-semibold">Edit</button></td>}
                 </tr>
               ))}
             </tbody>
@@ -211,6 +215,50 @@ function StartupEditor({ startup, candidates, onClose, onSaved }: {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** "My Startup" — a founder's read-only view of their own record: status, latest RAG, confirmed TRL, milestones, deadlines. */
+function MyStartup({ startup }: { startup: Startup }) {
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [trls, setTrls] = useState<any[]>([]);
+  const [milestones, setMilestones] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<IncubationAlert[]>([]);
+  useEffect(() => {
+    Promise.all([fetchRecords('review'), fetchRecords('trl'), fetchRecords('milestone'), fetchAlerts()]).then(([r, t, m, a]) => {
+      setReviews(r.filter(x => x.startupId === startup.id)); setTrls(t.filter(x => x.startupId === startup.id));
+      setMilestones(m.filter(x => x.startupId === startup.id)); setAlerts(a.filter(x => x.id.includes(startup.id)));
+    }).catch(() => {});
+  }, [startup.id]);
+  const latestReview = [...reviews].sort((a, b) => String(b.periodEnd || '').localeCompare(String(a.periodEnd || '')))[0];
+  const confirmed = trls.filter(t => t.status === 'Confirmed').sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  const upcoming = milestones.filter(m => m.status !== 'Done').sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+  return (
+    <div className="space-y-4">
+      <Panel title={`${startup.name} · ${startup.id}`}>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Badge tone={startup.status === 'Active' ? 'green' : 'amber'}>{startup.status}</Badge>
+          <Badge>{startup.pathway}</Badge>
+          {startup.cohort && <Badge>{startup.cohort}</Badge>}
+        </div>
+      </Panel>
+      <div className="grid md:grid-cols-3 gap-4">
+        <Panel title="Latest quarterly status">
+          {latestReview ? <div className="space-y-1 text-xs"><span className={`inline-block px-2 py-0.5 rounded-full border font-semibold ${ragClass[latestReview.rag] || ''}`}>{latestReview.rag}</span>
+            <div className="text-theme-text-secondary">{latestReview.quarter}</div><div>{latestReview.ragRationale}</div></div> : <p className="text-xs text-theme-text-secondary">No review recorded yet.</p>}
+        </Panel>
+        <Panel title="Technology readiness">
+          {confirmed ? <div className="text-xs space-y-1"><div className="text-2xl font-bold">TRL {confirmed.assessedTrl}</div><div className="text-theme-text-secondary">{confirmed.technology} · confidence {confirmed.confidence}</div><div className="font-mono text-[11px]">{confirmed.assessmentId}</div></div>
+            : <p className="text-xs text-theme-text-secondary">No confirmed assessment yet.</p>}
+        </Panel>
+        <Panel title="Deadlines & actions">
+          {alerts.length ? <ul className="text-xs space-y-1">{alerts.map(a => <li key={a.id}><b>{a.title}</b><div className="text-theme-text-secondary">{a.detail}</div></li>)}</ul> : <p className="text-xs text-theme-text-secondary">Nothing due.</p>}
+        </Panel>
+      </div>
+      <Panel title="Milestones">
+        {upcoming.length ? <ul className="text-xs space-y-1">{upcoming.map(m => <li key={m.id} className="flex justify-between"><span>{m.title}</span><span className="text-theme-text-secondary">{m.dueDate} · {m.status}</span></li>)}</ul> : <p className="text-xs text-theme-text-secondary">No open milestones.</p>}
+      </Panel>
     </div>
   );
 }

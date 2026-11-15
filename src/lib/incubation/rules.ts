@@ -87,3 +87,13 @@ export function validateSettings(s: IncubationSettings): string | null {
   }
   return null;
 }
+
+/** The most recent fiscal quarter that has fully ended on or before `now` (quarters start at `startMonth` and repeat every 3 months). */
+export function lastQuarterEnd(now: Date, startMonth = 4): { end: Date; label: string } {
+  const m = now.getMonth() + 1;
+  const offset = (m - startMonth + 12) % 12;
+  const qStartMonthIndex = now.getMonth() - (offset % 3); // first month of the current quarter (0-based, may be negative)
+  const end = new Date(now.getFullYear(), qStartMonthIndex, 0); // day before the current quarter starts
+  const q = fiscalQuarter(end, startMonth);
+  return { end, label: `${financialYearLabel(end, startMonth)} Q${q}` };
+}

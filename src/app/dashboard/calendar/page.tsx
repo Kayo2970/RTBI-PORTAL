@@ -25,6 +25,8 @@ import {
   TaskItem,
 } from '@/lib/local-data';
 import { canViewEvent, canApprovePendingEvent } from '@/lib/permissions';
+import { fetchIncubationCalendar } from '@/lib/incubation/client';
+import type { CalendarItem } from '@/lib/incubation/alerts-server';
 import { Booking } from '@/lib/billing';
 
 function formatTime12(iso: string): string {
@@ -88,6 +90,8 @@ export default function CalendarPage() {
       return next;
     });
   };
+  const [incubationItems, setIncubationItems] = useState<CalendarItem[]>([]);
+  useEffect(() => { fetchIncubationCalendar().then(setIncubationItems).catch(() => setIncubationItems([])); }, []);
 
   useEffect(() => {
     const refreshData = async () => {
@@ -482,6 +486,23 @@ export default function CalendarPage() {
           </div>
         )}
       </div>
+
+      {(() => {
+        const monthKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+        const mine = incubationItems.filter(i => i.date.startsWith(monthKey)).sort((a, b) => a.date.localeCompare(b.date));
+        if (mine.length === 0) return null;
+        return (
+          <div className="glass-panel rounded-2xl p-5 space-y-2">
+            <h3 className="text-sm font-bold text-theme-text-primary">Incubation dates this month</h3>
+            <ul className="text-xs space-y-1">
+              {mine.map(i => (
+                <li key={i.id} className="flex gap-2"><span className="font-mono text-theme-text-secondary">{i.date.slice(5)}</span>
+                  <Link href={i.link} className="text-accent hover:underline">{i.title}</Link></li>
+              ))}
+            </ul>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Interactive Event & Booking Calendar */}

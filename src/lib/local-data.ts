@@ -688,7 +688,7 @@ export interface TaskDelegationEvent {
  */
 export interface ApprovalRequest {
   id: string;
-  entityType: 'task' | 'event' | 'member' | 'design' | 'announcement' | 'form' | 'event-pass' | 'proposal';
+  entityType: 'task' | 'event' | 'member' | 'design' | 'announcement' | 'form' | 'event-pass' | 'proposal' | 'incubation';
   entityId: string;
   entityTitle: string;
   /** For 'event-pass' requests: what the requester wants to do (issue / edit / delete / dispatch) and the data needed to carry it out once approved. */

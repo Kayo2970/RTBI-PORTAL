@@ -23,6 +23,9 @@ export async function register() {
 
 
 
+    const { startIncubationScheduler } = await import('./lib/incubation/scheduler');
+    startIncubationScheduler();
+
     const { startPassRetentionScheduler } = await import('./lib/pass-retention-scheduler');
     startPassRetentionScheduler();
 

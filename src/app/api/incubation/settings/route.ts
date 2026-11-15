@@ -57,9 +57,10 @@ export async function PUT(request: Request) {
     if (err) return NextResponse.json({ error: err }, { status: 400 });
 
     await mutateCollection<any>('incubationSettings', (cur) => {
-      const history = cur.filter(r => r.id !== 'default').slice(-49);
+      const history = cur.filter(r => r.id !== 'default' && r.id !== 'digest').slice(-49);
+      const digest = cur.find(r => r.id === 'digest');
       const prevRow = cur.find(r => r.id === 'default');
-      return [merged, ...history, ...(prevRow ? [{ ...prevRow, id: `v${prevRow.version}` }] : [])];
+      return [merged, ...history, ...(prevRow ? [{ ...prevRow, id: `v${prevRow.version}` }] : []), ...(digest ? [digest] : [])];
     });
     await incubationAudit(actor, 'INCUBATION_SETTINGS_UPDATED', 'incubationSettings', `Settings saved as version ${merged.version}.`);
     return NextResponse.json(merged);

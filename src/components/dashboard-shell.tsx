@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -48,8 +48,14 @@ import {
   Package,
   Lightbulb,
   Rocket,
+  ClipboardCheck,
+  Gauge,
+  FlaskConical,
+  GraduationCap,
+  Library,
   Users,
 } from 'lucide-react';
+import { fetchAlerts } from '@/lib/incubation/client';
 import { getAnnouncements, getTasks, getMembers, getInvoices, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyInvoicePayment, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
@@ -105,6 +111,13 @@ const navSections: NavSection[] = [
     title: 'Incubation',
     items: [
       { name: 'Startup Registry', href: '/dashboard/incubation', icon: Rocket },
+      { name: 'Applications', href: '/dashboard/incubation/applications', icon: FileText, staffOnly: true },
+      { name: 'Onboarding', href: '/dashboard/incubation/onboarding', icon: ClipboardCheck, staffOnly: true },
+      { name: 'Quarterly Reviews', href: '/dashboard/incubation/records/review', icon: Gauge },
+      { name: 'TRL Assessments', href: '/dashboard/incubation/records/trl', icon: FlaskConical },
+      { name: 'Renewal & Graduation', href: '/dashboard/incubation/records/graduation', icon: GraduationCap },
+      { name: 'Registers & Evidence', href: '/dashboard/incubation/records/evidence', icon: Library, staffOnly: true },
+      { name: 'KPI Dashboard', href: '/dashboard/incubation/kpi', icon: BarChart3, staffOnly: true },
     ],
   },
   {
@@ -152,7 +165,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<{ id: string; title: string; time: string; read: boolean; link: string; actionNeeded: boolean }[]>([]);
+  type NotifItem = { id: string; title: string; time: string; read: boolean; link: string; actionNeeded: boolean };
+  const [baseNotifications, setNotifications] = useState<NotifItem[]>([]);
+  // Incubation deadlines/alerts (service timers, overdue reviews, expiring agreements) from /api/incubation/alerts.
+  const [incubationNotifs, setIncubationNotifs] = useState<NotifItem[]>([]);
   // Ids of action-needed notifications the user has already had the dropdown
   // open for — distinct from the per-row `read` flag above. The badge count
   // is driven by this, not by `read`, specifically so it can never flash back
@@ -399,6 +415,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   };
 
   const [dismissedNotifIds, setDismissedNotifIds] = useState<Set<string>>(new Set());
+  const notifications = useMemo(
+    () => [...incubationNotifs.filter(n => !dismissedNotifIds.has(n.id)), ...baseNotifications],
+    [incubationNotifs, baseNotifications, dismissedNotifIds],
+  );
+  useEffect(() => {
+    if (!user.email) return;
+    let cancelled = false;
+    const pull = () => fetchAlerts().then(list => {
+      if (cancelled) return;
+      setIncubationNotifs(list.filter(a => a.severity !== 'info').map(a => ({ id: 'inc_' + a.id, title: a.title, time: a.detail, read: false, actionNeeded: a.severity === 'overdue', link: a.link })));
+    }).catch(() => { /* not signed in yet, or module unavailable — ignore */ });
+    pull();
+    const t = setInterval(pull, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [user.email]);
 
   // Initialize theme, user session, notifications, and server sync
   useEffect(() => {

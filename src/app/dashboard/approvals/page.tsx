@@ -80,6 +80,7 @@ const entityLink = (req: ApprovalRequest) => {
   if (req.entityType === 'design') return '/dashboard/designs';
   if (req.entityType === 'announcement') return '/dashboard/announcements';
   if (req.entityType === 'proposal') return `/dashboard/proposals?highlight=${req.entityId}`;
+  if (req.entityType === 'incubation') return `/dashboard/incubation/applications?open=${req.entityId}`;
   if (req.entityType === 'form') return '/dashboard/forms';
   if (req.entityType === 'event-pass') return '/dashboard/event-passes';
   return req.eventId ? `/dashboard/events/${req.eventId}` : '/dashboard/events';

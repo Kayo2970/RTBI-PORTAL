@@ -481,3 +481,11 @@ export function isStaffTier(user: ServerUser): boolean {
 export const canManageBilling = isStaffTier;
 export const canManageRooms = isStaffTier;
 export const canManageInventory = isStaffTier;
+
+/** Final approvers for a decision type: the configured member ids, else every active member at or above the configured tier. */
+export function isRouteApprover(user: ServerUser, route: { approverMemberIds: string[]; approverMaxTier: number } | undefined): boolean {
+  if (!user) return false;
+  const r = route ?? { approverMemberIds: [], approverMaxTier: 2 };
+  if (r.approverMemberIds?.length) return !!user.id && r.approverMemberIds.includes(user.id);
+  return typeof user.tier === 'number' && user.tier <= r.approverMaxTier;
+}
