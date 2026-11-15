@@ -20,7 +20,7 @@ const ConfirmNewEmailSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    const actor = await requireSession(request);
+    const actor = await requireSession(request, { allowNonSuperUser: true });
     const { memberId, otp } = await parseJsonBody(request, ConfirmNewEmailSchema);
     if (actor.id !== memberId) {
       return NextResponse.json({ error: 'You can only confirm an email change for your own account.' }, { status: 403 });

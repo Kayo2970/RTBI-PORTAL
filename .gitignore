@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+*.lnk
+
 
 # debug
 npm-debug.log*
@@ -49,7 +51,7 @@ next-env.d.ts
 /data/
 /data.old/
 
-# uploaded document storage (design assets, reimbursement receipts) — real
+# uploaded document storage (design assets, expense bills, invoice payment proofs) — real
 # files on disk, referenced by storageKey from the JSON records above. Back
 # up the whole data/ directory together so records and the files they
 # reference are always restored as a matching pair.
@@ -65,4 +67,4 @@ next-env.d.ts
 
 # downloaded/uploaded encrypted database backups — never source, and never
 # something that should end up committed to the repo by accident.
-*.leadsbackup
+*.rtbibackup

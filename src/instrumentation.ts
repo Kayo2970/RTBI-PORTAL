@@ -1,11 +1,10 @@
 // Runs once when this Next.js server instance starts up — see
 // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation.md.
 // Used here to start the in-process daily birthday-email scheduler
-// (src/lib/birthday-scheduler.ts), the weekly Indian-holiday sync +
-// social-media approval-task scheduler (src/lib/holiday-scheduler.ts), the
-// daily event-lapse social-media/event-report task scheduler
+// (src/lib/birthday-scheduler.ts), the daily event-lapse social-media/event-report task scheduler
 // (src/lib/event-social-scheduler.ts), and the daily task-deadline-reminder
-// scheduler (src/lib/task-deadline-scheduler.ts) rather than requiring an
+// scheduler (src/lib/task-deadline-scheduler.ts), plus the event-pass retention,
+// certificate and pass-email schedulers, rather than requiring an
 // external VPS crontab entry, since this app runs continuously under PM2.
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
@@ -24,10 +23,19 @@ export async function register() {
 
 
 
+    const { startIncubationScheduler } = await import('./lib/incubation/scheduler');
+    startIncubationScheduler();
+
+    const { startPassRetentionScheduler } = await import('./lib/pass-retention-scheduler');
+    startPassRetentionScheduler();
+
+    const { startCertificateScheduler } = await import('./lib/certificate-scheduler');
+    startCertificateScheduler();
+
+    const { startPassEmailScheduler } = await import('./lib/pass-email-scheduler');
+    startPassEmailScheduler();
+
     const { startEmailBackgroundScheduler } = await import('./lib/email-background-retention');
     startEmailBackgroundScheduler();
-
-    const { startCommitteeReviewScheduler } = await import('./lib/committee-review-scheduler');
-    startCommitteeReviewScheduler();
   }
 }

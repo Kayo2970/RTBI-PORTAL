@@ -5,7 +5,6 @@ import { GET as membersGET } from '../members/route';
 import { GET as eventsGET } from '../events/route';
 import { GET as tasksGET } from '../tasks/route';
 import { GET as ratingsGET } from '../ratings/route';
-import { GET as reimbursementsGET } from '../reimbursements/route';
 import { GET as announcementsGET } from '../announcements/route';
 import { GET as formsGET } from '../forms/route';
 import { GET as formTemplatesGET } from '../form-templates/route';
@@ -15,7 +14,9 @@ import { GET as groupPoliciesGET } from '../group-policies/route';
 import { GET as accessLevelSettingsGET } from '../access-level-settings/route';
 import { GET as systemSettingsGET } from '../system-settings/route';
 import { GET as guestsGET } from '../guests/route';
-import { GET as budgetsGET } from '../budgets/route';
+import { GET as annualBudgetsGET } from '../annual-budgets/route';
+import { GET as expensesGET } from '../expenses/route';
+import { GET as invoicesGET } from '../invoices/route';
 import { GET as incomeSourcesGET } from '../income-sources/route';
 import { GET as auditLogsGET } from '../auditlogs/route';
 import { GET as approvalRequestsGET } from '../approval-requests/route';
@@ -37,7 +38,6 @@ const SOURCES: Record<string, (request: Request) => Promise<Response>> = {
   events: eventsGET,
   tasks: tasksGET,
   ratings: ratingsGET,
-  reimbursements: reimbursementsGET,
   announcements: announcementsGET,
   forms: formsGET,
   formTemplates: formTemplatesGET,
@@ -47,7 +47,9 @@ const SOURCES: Record<string, (request: Request) => Promise<Response>> = {
   accessLevelSettings: accessLevelSettingsGET,
   systemSettings: systemSettingsGET,
   guests: guestsGET,
-  budgets: budgetsGET,
+  annualBudgets: annualBudgetsGET,
+  expenses: expensesGET,
+  invoices: invoicesGET,
   incomeSources: incomeSourcesGET,
   auditLogs: auditLogsGET,
   approvalRequests: approvalRequestsGET,
