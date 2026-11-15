@@ -207,6 +207,9 @@ export const CAPABILITY_CATALOG: { key: string; label: string; description: stri
   { key: 'CERTIFICATES_DELETE', label: 'Delete Issued Certificates', description: 'Permanently delete issued certificates.', module: 'Certificates' },
   { key: 'MANAGE_BACKUP', label: 'Access Backup & Restore', description: 'Download system backups and restore.', module: 'Administration' },
   { key: 'MANAGE_EMAIL_SETTINGS', label: 'Access Email Management', description: 'View logs and manage email settings.', module: 'Administration' },
+  { key: 'INCUBATION_MANAGE_SETTINGS', label: 'Manage Incubation Settings', description: 'Edit scorecard weights, thresholds, timers, KPI targets, fee schedules and approval routes, and mark them approved. CEO and Super User always have this.', module: 'Incubation' },
+  { key: 'INCUBATION_MANAGE_STARTUPS', label: 'Manage Startup Registry', description: 'Create and edit startup records and link founder accounts. CEO and Super User always have this.', module: 'Incubation' },
+  { key: 'INCUBATION_VIEW_ALL', label: 'View All Startups', description: 'See every startup record (names, not only masked IDs). Startup-tier users only ever see their own linked startup.', module: 'Incubation' },
   { key: 'MANAGE_GROUP_POLICIES', label: 'Manage Group Policies', description: 'Create and configure group policies.', module: 'Administration' },
 ];
 

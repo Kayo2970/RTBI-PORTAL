@@ -47,6 +47,7 @@ import {
   Ticket,
   Package,
   Lightbulb,
+  Rocket,
   Users,
 } from 'lucide-react';
 import { getAnnouncements, getTasks, getMembers, getInvoices, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
@@ -98,6 +99,12 @@ const navSections: NavSection[] = [
       { name: 'Design Portal', href: '/dashboard/designs', icon: Palette },
       { name: 'Visiting Card', href: '/dashboard/visiting-card', icon: IdCard },
       { name: 'Bookings', href: '/dashboard/bookings', icon: DoorOpen },
+    ],
+  },
+  {
+    title: 'Incubation',
+    items: [
+      { name: 'Startup Registry', href: '/dashboard/incubation', icon: Rocket },
     ],
   },
   {

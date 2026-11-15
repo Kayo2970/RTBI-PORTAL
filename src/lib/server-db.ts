@@ -16,6 +16,7 @@
  * upgrading, and retires (never deletes) the old file to data/database.json.migrated
  * as a safety net.
  */
+import { defaultIncubationSettings } from './incubation/defaults';
 import fs from 'fs/promises';
 import path from 'path';
 import { deleteStoredFile, saveBase64File } from './file-storage';
@@ -96,6 +97,10 @@ export interface DbSchema {
   // emailSettings' SMTP password) rather than only in env vars so a Super
   // User can paste them in from Settings without a redeploy.
   walletSettings: any[];
+  // Incubation module (RTBI SOPs). incubationSettings is a single versioned row (id 'default') holding
+  // scorecard weights, thresholds, timers, KPI targets and fee schedules — each flagged proposed/approved.
+  incubationSettings: any[];
+  startups: any[];
   // Bookings / billing / inventory modules — see src/lib/billing.ts for the row shapes.
   rooms: any[];
   bookings: any[];
@@ -143,6 +148,8 @@ const EMPTY_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  incubationSettings: [],
+  startups: [],
   rooms: [],
   bookings: [],
   payments: [],
@@ -208,6 +215,8 @@ const SEED_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  incubationSettings: [defaultIncubationSettings()],
+  startups: [],
   rooms: [],
   bookings: [],
   payments: [],
