@@ -39,7 +39,6 @@ export interface OnboardingTourUser {
   role?: string;
   division?: string;
   department?: string;
-  committee?: string;
   avatarUrl?: string;
 }
 
@@ -83,10 +82,10 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/home',
         icon: Sparkles,
         color: 'accent',
-        summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'LEADS Committee'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
+        summary: `You are signed in as a ${user.role || 'Member'} (${user.division || 'RTBI Team'}) with Tier ${user.tier} clearance. This quick interactive tour will introduce you to all accessible workspaces tailored to your role.`,
         whatYouCanDo: [
           'Navigate through your assigned workspaces from the sidebar',
-          'Track live committee tasks, events, and performance metrics',
+          'Track live tasks, events, and performance metrics',
           'Access data and approval pipelines aligned with your authorization level',
         ],
         keyInformation: [
@@ -123,20 +122,20 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/events',
         icon: CalendarDays,
         color: 'accent',
-        summary: 'Coordinates event lifecycles across campuses from initial proposal and budget approval to venue logistics and post-event reporting.',
+        summary: 'Coordinates event lifecycles from initial proposal and budget approval to venue logistics and post-event reporting.',
         whatYouCanDo: isSuper || isHead
           ? [
               'Approve, reject, or archive event proposals',
-              'Assign organizing committees and set financial budgets',
-              'Monitor cross-campus venue allocations and schedules',
+              'Assign event tasks and set financial budgets',
+              'Monitor venue allocations and schedules',
             ]
           : [
               'Submit new event proposals for leadership review',
-              'View event logistics, schedules, and committee assignments',
+              'View event logistics, schedules, and task assignments',
               'Track registration counts and post-event feedback',
             ],
         keyInformation: [
-          'Inter-campus event cards with status badges (Ongoing, Planned, Archived)',
+          'Event cards with status badges (Ongoing, Planned, Archived)',
           'Speaker, coordinator, and venue details',
           'Associated budget requirements and clearance status',
         ],
@@ -169,20 +168,20 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/directory',
         icon: Users,
         color: 'primary',
-        summary: 'The comprehensive member registry for RTBI Portal faculty leadership, core committee leads, and training associates.',
+        summary: 'The comprehensive member registry for RTBI Portal faculty leadership, core department heads, and incubation associates.',
         whatYouCanDo: isSuper
           ? [
               'Add, edit, or modify member roles, tiers, and permissions',
               'View full student dossiers, performance history, and audit trails',
-              'Execute Quick-Switch impersonation to verify committee views',
+              'Execute Quick-Switch impersonation to verify what each member sees',
             ]
           : [
-              'Browse member contacts and committee divisions',
+              'Browse member contacts and tiers',
               'View peer student leadership profiles and assigned portfolios',
               'Filter directory by division (Core Committee, Associates, Faculty)',
             ],
         keyInformation: [
-          'Official contact emails, roles, and campus affiliations',
+          'Official contact emails and roles',
           'Tier badges (Tier 1 through Tier 7)',
           'Performance ratings and portfolio assignments',
         ],
@@ -190,15 +189,15 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       },
       {
         id: 'calendar',
-        title: 'Inter-Campus Event Calendar',
+        title: 'Event Calendar',
         moduleName: 'Calendar Desk',
         href: '/dashboard/calendar',
         icon: Calendar,
         color: 'accent',
-        summary: 'Interactive 7x5 month grid mapping all university deadlines, committee meetings, workshops, and flagship festivals.',
+        summary: 'Interactive 7x5 month grid mapping all deadlines, meetings, workshops, and events.',
         whatYouCanDo: [
           'Browse upcoming milestones month-by-month',
-          'Filter by campus location (Main Campus, South Campus, Virtual)',
+          'Filter by event status and date',
           'Click any calendar date to inspect scheduled events and timings',
         ],
         keyInformation: [
@@ -206,60 +205,36 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           'Meeting links, room numbers, and speaker agendas',
           'Real-time sync with newly approved event proposals',
         ],
-        accessBadge: 'All Campuses View',
+        accessBadge: 'Full Calendar View',
       },
     ];
 
-    // Conditionally append Budgeting desk for Finance / Centre Heads / Super Users
-    if (isSuper || isHead || isFinance) {
-      steps.push({
-        id: 'budget',
-        title: 'Financial Portfolios & Budgets',
-        moduleName: 'Finance & Budgets',
-        href: '/dashboard/budget',
-        icon: DollarSign,
-        color: 'warning',
-        summary: 'Executive ledger managing capital allocations, departmental operating funds, event sponsorships, and expenditure audits.',
-        whatYouCanDo: [
-          'Review financial allocation caps by committee department',
-          'Verify budget requests before disbursement',
-          'Export audited financial spreadsheets for university accounting',
-        ],
-        keyInformation: [
-          'Total Allocation, Utilized Funds, and Remaining Capital KPIs',
-          'Department-wise progress bars and transaction ledgers',
-          'Cleared vs. Pending expenditure reconciliations',
-        ],
-        accessBadge: 'Executive Financial Clearance',
-      });
-    }
-
-    // Reimbursements desk
+    // Finance desk — every member books expenses; Super User / CEO set the budget and verify invoice payments
     steps.push({
-      id: 'reimbursements',
-      title: 'Expense Claims & Reimbursements',
-      moduleName: 'Reimbursements Pipeline',
-      href: '/dashboard/reimbursements',
-      icon: Receipt,
-      color: 'success',
-      summary: 'Dual-Stage verification workflow for member out-of-pocket expenses, travel claims, and purchase bills.',
+      id: 'budget',
+      title: 'Finance, Expenses & Invoices',
+      moduleName: 'Finance',
+      href: '/dashboard/budget',
+      icon: DollarSign,
+      color: 'warning',
+      summary: 'The annual budget split across eight overhead heads, bill-backed expenses, and income — including invoice payments once verified.',
       whatYouCanDo: isSuper || isHead || isFinance
         ? [
-            'Audit attached receipt bills and invoice documents',
-            'Grant Stage 1 (Verification) and Stage 2 (Disbursement) approvals',
-            'Issue settlement receipts and track payment status',
+            'Set the annual budget and its head-wise breakup',
+            'Verify payments recorded against invoices — they become income automatically',
+            'Review every expense with its attached bill',
           ]
         : [
-            'Submit new reimbursement claims with receipt photo uploads',
-            'Track live status through the verification pipeline',
-            'Receive disbursement confirmations upon financial settlement',
+            'Add an expense with its bill, a description and the head it falls under',
+            'Generate invoices and record payments received',
+            'Track how much of each head is left',
           ],
       keyInformation: [
-        'Claim ID, requester details, expense category, and amount',
-        'Verification status pills (Pending, Verified, Approved, Settled)',
-        'Attached digital bills, GST invoices, and payment receipts',
+        'Heads: Manpower, Travel, Utilities & Maintenance, Marketing, Networking & Training, Admin, Startup Support, Miscellaneous',
+        'Income by head, with the invoice each payment came from',
+        'Over-budget heads are flagged in red',
       ],
-      accessBadge: isSuper || isHead || isFinance ? 'Approval Authority' : 'Submitter',
+      accessBadge: isSuper || isHead || isFinance ? 'Budget & Verification Authority' : 'Expense Submitter',
     });
 
     // Designs & Media Desk
@@ -270,21 +245,21 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       href: '/dashboard/designs',
       icon: Palette,
       color: 'accent',
-      summary: 'Brand compliance management system enforcing Gate 1 (Brand Style Compliance) and Gate 2 (Text Proofreading) prior to public release.',
+      summary: 'Design submission and review workflow: upload artwork and have it approved by a reviewer before public release.',
       whatYouCanDo: isSuper || user.department?.toLowerCase().includes('design')
         ? [
             'Upload new poster artwork, social banners, and badges',
-            'Grant Dual-Gate clearances (Style Compliance & Proofread)',
+            'Approve or reject submitted designs',
             'Manage master high-res print assets and public download links',
           ]
         : [
             'Browse approved marketing materials and banners',
-            'Download official promotional creatives for campus drives',
+            'Download official promotional creatives for events',
             'Verify release status before sharing content externally',
           ],
       keyInformation: [
         'Visual asset thumbnail previews with dimension tags',
-        'Gate 1 Style & Gate 2 Proofread status pills',
+        'Review status pills (pending, approved, rejected)',
         'Lead designer credits and download repositories',
       ],
       accessBadge: 'Brand Portal',
@@ -302,7 +277,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       whatYouCanDo: [
         'Inspect your 5-point competency radar chart and historical growth',
         'Review feedback notes and peer recognitions',
-        isSuper ? 'Record semester ratings and feedback for committee members' : 'View personal performance scorecards',
+        isSuper ? 'Record ratings and feedback for team members' : 'View personal performance scorecards',
       ],
       keyInformation: [
         '5-Axis Radar Diagram (Initiative, Quality, Teamwork, Timeliness, Leadership)',
@@ -352,7 +327,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         keyInformation: [
           'Cryptographic status and database integrity verification',
           'Comprehensive audit trails recording every user login and mutation',
-          'Global campus configuration and maintenance switches',
+          'Global configuration and maintenance switches',
         ],
         accessBadge: 'Super User Exclusive (Tier 1)',
       });
@@ -383,7 +358,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
 
   const handleComplete = () => {
     try {
-      localStorage.setItem(`leads_tour_completed_${user.email || user.name}`, 'true');
+      localStorage.setItem(`rtbi_tour_completed_${user.email || user.name}`, 'true');
     } catch {}
     onClose();
   };

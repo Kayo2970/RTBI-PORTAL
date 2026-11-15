@@ -3,13 +3,13 @@ import { mutateCollection, readCollection } from '@/lib/server-db';
 import { gateFormAction, formEditKeys, holdEditForApproval, classifyApprovalUpdate, canDecidePending } from '@/lib/approval-gate';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { getAccessLevelSettingsServer, canCreateForms, canDeleteForms, seesOnlyOwnForms, isOwnForm, isEventsHeadGgCampus } from '@/lib/permissions-server';
-import { fanOutAutoApproval, cascadeCloseAutoApprovals, deleteLinkedApprovalRequests, resolveCustomApprovalPanel, resolveTraineeFormPanel } from '@/lib/approval-sync';
+import { fanOutAutoApproval, cascadeCloseAutoApprovals, deleteLinkedApprovalRequests, resolveCustomApprovalPanel } from '@/lib/approval-sync';
 import { apiError } from '@/lib/api-error';
 
 const PENDING_APPROVAL_MESSAGE: Record<string, string> = {
-  pending_create: 'This form needs sign-off from the Centre Head or designated approver before its public link goes live.',
-  pending_edit: 'An edit to this form needs sign-off from the Centre Head or designated approver.',
-  pending_delete: 'A request to delete this form needs sign-off from the Centre Head or designated approver.',
+  pending_create: 'This form needs sign-off from the CEO or designated approver before its public link goes live.',
+  pending_edit: 'An edit to this form needs sign-off from the CEO or designated approver.',
+  pending_delete: 'A request to delete this form needs sign-off from the CEO or designated approver.',
 };
 const PENDING_STATES = new Set(['pending_create', 'pending_edit', 'pending_delete']);
 
@@ -68,7 +68,7 @@ export async function PATCH(
         try {
           const customPanel = result.approverType && result.approverType !== 'CENTER_HEAD'
             ? await resolveCustomApprovalPanel(result.approverType, result.approverMemberId, result.approverPolicyTagId)
-            : result.createdByDivision === 'Training Associate' ? await resolveTraineeFormPanel() : undefined;
+            : undefined;
           await fanOutAutoApproval({
             entityType: 'form',
             entityId: result.id,

@@ -482,7 +482,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8 relative z-0 overflow-hidden">
-      {/* Background Animated GhostFibers WebGL Canvas with LEADS Theme.
+      {/* Background Animated GhostFibers WebGL Canvas with RTBI Theme.
           -z-10 on the canvas keeps it behind all page content, same as
           dashboard-shell.tsx. The outer wrapper's `z-0` (added alongside
           `relative`) is the actual fix for this canvas being invisible: without

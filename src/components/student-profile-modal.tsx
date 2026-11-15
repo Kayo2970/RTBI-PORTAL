@@ -11,7 +11,7 @@ import {
   ExternalLink,
   TrendingUp
 } from 'lucide-react';
-import { getStudentProfile, formatEventDateRange, StudentProfileData, Member, isFacultyMember } from '@/lib/local-data';
+import { getStudentProfile, formatEventDateRange, StudentProfileData, Member } from '@/lib/local-data';
 import Link from 'next/link';
 
 interface StudentProfileModalProps {
@@ -28,7 +28,6 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
   if (!targetId || !profile) return null;
 
   const { member, stats, tasks, assignedEvents, ratings } = profile;
-  const isFaculty = false; // ERP faculty distinction does not apply to the RTBI tiers
 
   return (
     <div
@@ -105,12 +104,12 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
             <div className="mt-2">
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-black text-theme-text-primary">
-                  {ratings.length > 0 ? stats.averageRating.toFixed(1) : isFaculty ? 'Oversight' : '5.0'}
+                  {ratings.length > 0 ? stats.averageRating.toFixed(1) : '5.0'}
                 </span>
                 {ratings.length > 0 && <span className="text-[10px] text-theme-text-secondary">/ 5.0</span>}
               </div>
               <span className="text-[9px] text-theme-text-secondary">
-                {ratings.length > 0 ? `${ratings.length} task reviews` : isFaculty ? 'Faculty / Advisory' : 'Baseline score'}
+                {ratings.length > 0 ? `${ratings.length} task reviews` : 'Baseline score'}
               </span>
             </div>
           </div>
@@ -134,14 +133,14 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
           <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex flex-col justify-between">
             <span className="text-[10px] uppercase font-bold text-theme-text-secondary flex items-center gap-1">
               <Layers className="h-3 w-3 text-success" />
-              Committees
+              Events
             </span>
             <div className="mt-2">
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-black text-theme-text-primary">{assignedEvents.length}</span>
-                <span className="text-[10px] text-theme-text-secondary">active roles</span>
+                <span className="text-[10px] text-theme-text-secondary">events</span>
               </div>
-              <span className="text-[9px] text-theme-text-secondary">across events</span>
+              <span className="text-[9px] text-theme-text-secondary">with assigned tasks</span>
             </div>
           </div>
 
@@ -207,7 +206,7 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
             }`}
           >
             <Calendar className="h-3.5 w-3.5" />
-            Event Sub-Committees ({assignedEvents.length})
+            Events ({assignedEvents.length})
           </button>
 
           <button
@@ -247,7 +246,6 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
                       </div>
                       <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary">
                         {task.event && <span>Event: <strong className="text-theme-text-primary">{task.event}</strong></span>}
-                        {task.eventCommitteeName && <span>&middot; Committee: {task.eventCommitteeName}</span>}
                         {task.dueDate && <span>&middot; Due: {task.dueDate}</span>}
                       </div>
                     </div>
@@ -266,22 +264,18 @@ export function StudentProfileModal({ memberIdOrName, member: propMember, onClos
             </div>
           )}
 
-          {/* Events & Sub-Committees Tab */}
+          {/* Events Tab */}
           {activeTab === 'events' && (
             <div className="space-y-2.5">
               {assignedEvents.length === 0 ? (
                 <div className="text-center py-8 text-theme-text-secondary text-xs bg-theme-border/5 rounded-2xl border border-theme-border/20">
-                  Not currently registered in any event sub-committees.
+                  Not assigned to any event tasks yet.
                 </div>
               ) : (
-                assignedEvents.map(({ event, committee }) => (
-                  <div key={`${event.id}_${committee.id}`} className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex items-center justify-between gap-3 hover:bg-theme-border/15 transition-all text-xs">
+                assignedEvents.map(({ event }) => (
+                  <div key={event.id} className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex items-center justify-between gap-3 hover:bg-theme-border/15 transition-all text-xs">
                     <div className="space-y-1">
                       <h4 className="font-bold text-theme-text-primary text-xs">{event.title}</h4>
-                      <p className="text-[11px] text-accent font-semibold flex items-center gap-1">
-                        <Layers className="h-3 w-3" />
-                        {committee.name}
-                      </p>
                       <span className="text-[10px] text-theme-text-secondary">{formatEventDateRange(event)}</span>
                     </div>
 

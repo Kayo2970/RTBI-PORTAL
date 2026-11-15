@@ -11,7 +11,7 @@ export async function PATCH(
   try {
     const actor = await requireSession(request);
     const settings = await getAccessLevelSettingsServer();
-    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only Centre Head, Events Head (GG Campus), or Super User can update Group Policies.');
+    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only CEO or Super User can update Group Policies.');
 
     const { id } = await params;
     const updates = await request.json();
@@ -39,7 +39,7 @@ export async function PATCH(
             bodyHtml: template.bodyHtml,
             category: 'GROUP_POLICY_GRANT',
             badgeText: 'Special Access Granted',
-            badgeColor: saved.expiresAt ? '#d97706' : '#6366f1',
+            badgeColor: saved.expiresAt ? '#d97706' : '#EA7153',
           });
         }
       } catch (emailErr) {
@@ -60,7 +60,7 @@ export async function DELETE(
   try {
     const actor = await requireSession(request);
     const settings = await getAccessLevelSettingsServer();
-    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only Centre Head, Events Head (GG Campus), or Super User can delete Group Policies.');
+    requirePermission(canAccessGroupPoliciesServer(actor, settings), 'Only CEO or Super User can delete Group Policies.');
 
     const { id } = await params;
     let found = false;

@@ -57,7 +57,7 @@ export interface ProfileCardProps {
 export function ProfileCard({
   name,
   title = 'Executive Member',
-  handle = 'leads.msruas',
+  handle = 'rtbi.msruas',
   status = 'Verified Member',
   contactText = 'Save Contact',
   avatarUrl,
@@ -358,7 +358,7 @@ export function ProfileCard({
                     return;
                   }
                   const contact = {
-                    name: name || 'LEADS Member',
+                    name: name || 'RTBI Member',
                     phone: phone || undefined,
                     email: email || undefined,
                     company: 'RTBI Portal',
@@ -370,7 +370,7 @@ export function ProfileCard({
                     const vcardLines = [
                       'BEGIN:VCARD',
                       'VERSION:3.0',
-                      `FN:${name || 'LEADS Member'}`,
+                      `FN:${name || 'RTBI Member'}`,
                       title ? `TITLE:${title}` : '',
                       phone ? `TEL;TYPE=CELL:${phone}` : '',
                       email ? `EMAIL:${email}` : '',

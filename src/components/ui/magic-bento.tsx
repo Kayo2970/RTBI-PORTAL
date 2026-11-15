@@ -43,7 +43,7 @@ const createParticleElement = (x: number, y: number, color = RTBI_GLOW_COLOR) =>
 /**
  * MagicBento Particle Card
  * Adds 3D tilt, subtle magnetism, cursor-following border glow, and floating glowing particles
- * in the signature LEADS electric blue palette.
+ * in the signature RTBI electric blue palette.
  */
 export function ParticleCard({
   children,

@@ -20,7 +20,7 @@ const ChangePasswordSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    const actor = await requireSession(request);
+    const actor = await requireSession(request, { allowNonSuperUser: true });
     const { email, currentPassword, newPassword } = await parseJsonBody(request, ChangePasswordSchema);
     const trimmedEmail = email.trim().toLowerCase();
     // Only ever act on the signed-in caller's own record — a request body
