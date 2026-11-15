@@ -10,7 +10,7 @@
 
 export type SyncEntry = {
   id: string;
-  /** Short noun phrase, e.g. "reimbursement claim" — never includes a verb. */
+  /** Short noun phrase, e.g. "expense" — never includes a verb. */
   label: string;
   verb: 'Saving' | 'Updating' | 'Removing';
   status: 'pending' | 'error';

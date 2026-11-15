@@ -9,24 +9,20 @@ export interface TaskEmailRecipient {
 
 /**
  * Resolves who should actually be emailed for a task, across every
- * assigneeType — not just 'individual'. Before this, the tasks API only ever
- * looked at task.assigneeEmail / task.assigneeId / a name match against
- * task.assignee, none of which are ever set on a 'committee' or 'group'
- * task (those carry eventCommitteeId or assigneeIds instead), so assigning a
- * task to a committee or a group of students silently never emailed anyone.
+ * assigneeType — not just 'individual'. A 'group' task carries assigneeIds
+ * instead of a single assignee, so every member of the group is emailed.
  */
 export function resolveTaskEmailRecipients(
   task: {
-    assigneeType?: 'individual' | 'committee' | 'group';
+    assigneeType?: 'individual' | 'group';
     assignee?: string;
     assigneeId?: string;
     assigneeEmail?: string;
     assigneeIds?: string[];
     eventId?: string;
-    eventCommitteeId?: string;
   },
   members: Array<{ id: string; name: string; email?: string; status?: string }>,
-  events: Array<{ id: string; committees?: Array<{ id: string; memberIds: string[] }> }>
+  _events?: Array<{ id: string }>
 ): TaskEmailRecipient[] {
   const activeMembers = members.filter(m => m.status !== 'Terminated' && m.email);
   const byId = new Map(activeMembers.map(m => [m.id, m]));
@@ -38,14 +34,6 @@ export function resolveTaskEmailRecipients(
       .map(m => ({ email: m.email!, name: m.name }));
   }
 
-  if (task.assigneeType === 'committee' && task.eventId && task.eventCommitteeId) {
-    const event = events.find(e => e.id === task.eventId);
-    const committee = event?.committees?.find(c => c.id === task.eventCommitteeId);
-    return (committee?.memberIds || [])
-      .map(id => byId.get(id))
-      .filter((m): m is typeof activeMembers[number] => Boolean(m))
-      .map(m => ({ email: m.email!, name: m.name }));
-  }
 
   // Individual, and the fallback for any legacy/unknown shape.
   let email = task.assigneeEmail;
@@ -105,9 +93,9 @@ export async function enqueueTaskEmailNotification(task: {
   const item: PendingTaskItem = {
     id: task.id,
     title: task.title,
-    event: task.event || task.eventName || 'LEADS Operations',
+    event: task.event || task.eventName || 'RTBI Operations',
     dueDate: task.dueDate || 'Flexible',
-    creatorName: task.creatorName || 'Committee Lead',
+    creatorName: task.creatorName || 'RTBI Portal',
     assigneeName: task.assigneeName || 'Member',
     assignedAt: new Date().toISOString(),
   };
@@ -165,7 +153,7 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
 
   const subject = taskCount === 1
     ? `Task Assignment: ${firstItem?.title || 'New Task'}`
-    : `Committee Assignment Digest: ${taskCount} New Tasks Assigned`;
+    : `Task Assignment Digest: ${taskCount} New Tasks Assigned`;
 
   // Build HTML list of tasks
   const taskListHtml = itemsToSend
@@ -173,33 +161,33 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
       (item, idx) => `
       <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong style="color: #6366f1; font-size: 15px;">#${idx + 1} ${escapeHtml(item.title)}</strong>
-          <span style="font-size: 11px; background: rgba(99, 102, 241, 0.15); color: #818cf8; padding: 3px 8px; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.3);">
+          <strong style="color: #EA7153; font-size: 15px;">#${idx + 1} ${escapeHtml(item.title)}</strong>
+          <span style="font-size: 11px; background: rgba(234, 113, 83, 0.15); color: #EA7153; padding: 3px 8px; border-radius: 99px; border: 1px solid rgba(234, 113, 83, 0.3);">
             Due: ${escapeHtml(item.dueDate || 'Flexible')}
           </span>
         </div>
         <div style="font-size: 12px; color: #a1a1aa; line-height: 1.5;">
-          <span>📌 <strong>Context:</strong> ${escapeHtml(item.event || 'LEADS Operations')}</span><br/>
-          <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'Committee Lead')}</span>
+          <span>📌 <strong>Context:</strong> ${escapeHtml(item.event || 'RTBI Operations')}</span><br/>
+          <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'RTBI Portal')}</span>
         </div>
       </div>
     `
     )
     .join('');
 
-  const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) / committee role(s) in RTBI Portal:\n\n` +
+  const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) in RTBI Portal:\n\n` +
     itemsToSend.map(i => `- ${i.title} (Context: ${i.event}, Due: ${i.dueDate})`).join('\n') +
-    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nLEADS Committee Management`;
+    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRTBI Portal Management`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     badgeText: `ASSIGNMENT DIGEST (${taskCount} TASK${taskCount === 1 ? '' : 'S'})`,
-    badgeColor: '#6366f1',
-    headerTitle: `Task & Committee Assignments`,
+    badgeColor: '#EA7153',
+    headerTitle: `Task Assignments`,
     bodyContentHtml: `
-    <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+    <p style="margin: 0 0 20px; font-size: 14px; color: #574769; line-height: 1.6;">
       Dear <strong>${escapeHtml(assigneeName)}</strong>,<br/>
-      You are assigned to the following ${taskCount} task(s) / committee responsibility(ies) in RTBI Portal:
+      You are assigned to the following ${taskCount} task(s) in RTBI Portal:
     </p>
 
     <div style="margin-bottom: 24px;">
@@ -207,12 +195,12 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
     </div>
 
     <div style="text-align: center; margin: 28px 0 16px;">
-      <a href="${ackUrl}" target="_blank" style="display: inline-block; background: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);">
+      <a href="${ackUrl}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 14px rgba(234, 113, 83, 0.35);">
         ✔ View & Acknowledge Tasks
       </a>
     </div>
 
-    <p style="margin: 16px 0 0; font-size: 11px; color: #64748b; text-align: center;">
+    <p style="margin: 16px 0 0; font-size: 11px; color: #76648B; text-align: center;">
       Opening the link above automatically records your acknowledgment that you have reviewed your tasks.
     </p>
     `,
@@ -253,7 +241,7 @@ function escapeHtml(str: string): string {
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
-      "'": '&#039;',
+      "'": '&#CC3D19;',
     };
     return map[match] || match;
   });

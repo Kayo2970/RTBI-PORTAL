@@ -2,11 +2,10 @@
  * proposals.ts — shared (server + client safe, no window/localStorage) types
  * and visibility rules for the Proposals module.
  *
- * Flow: any member submits a proposal addressed to groups and/or individual
- * members -> it sits at 'Pending Approval' where only the author and the
- * authorised approvers (Centre Head, Advisors, department Heads) can see it ->
- * once approved it is delivered (visible + emailed) to the recipients, who can
- * respond Under Review / Accepted / Declined.
+ * Flow: any member submits a proposal addressed to groups and/or individual members -> it is delivered
+ * to them straight away (visible + emailed, status 'Approved' = delivered) -> each recipient can reply
+ * Under Review / Accepted / Declined, and the author is emailed the reply. (Proposals that predate this and
+ * are still 'Pending Approval' can be decided by a Super User.)
  *
  * The API (src/app/api/proposals) does all filtering server-side and attaches a
  * `viewer` block to each item, so the page never re-implements these rules.
