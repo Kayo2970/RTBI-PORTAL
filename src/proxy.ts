@@ -26,6 +26,7 @@ const AUTH_PATH_PREFIXES = [
 // rather than the loose "authenticated member" tier.
 const PUBLIC_PATH_PREFIXES = [
   '/api/setup',
+  '/api/public', // public startup application intake (no login)
   '/api/submissions',
   '/api/forms', // public form definitions are read here too (GET), not just submitted
   '/api/centre-socials', // read-only social URLs for the thank-you page

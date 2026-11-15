@@ -92,7 +92,7 @@ export default function IncubationSettingsPage() {
         <Weights rows={s.scorecard.criteria} onChange={criteria => patch({ scorecard: { ...s.scorecard, criteria } })} />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
           <label className="space-y-1">Pass threshold<input type="number" className={inputCls} value={s.scorecard.passThreshold ?? ''} onChange={e => patch({ scorecard: { ...s.scorecard, passThreshold: e.target.value === '' ? undefined : num(e.target.value) } })} /></label>
-          <label className="space-y-1">Min. technical score<input type="number" className={inputCls} value={s.scorecard.minTechnicalScore ?? ''} onChange={e => patch({ scorecard: { ...s.scorecard, minTechnicalScore: e.target.value === '' ? undefined : num(e.target.value) } })} /></label>
+          <label className="space-y-1">Min. technical score (1-5 avg on Technical viability)<input type="number" className={inputCls} value={s.scorecard.minTechnicalScore ?? ''} onChange={e => patch({ scorecard: { ...s.scorecard, minTechnicalScore: e.target.value === '' ? undefined : num(e.target.value) } })} /></label>
           <label className="space-y-1">Tie-break rule<input className={inputCls} value={s.scorecard.tieBreakRule || ''} onChange={e => patch({ scorecard: { ...s.scorecard, tieBreakRule: e.target.value || undefined } })} /></label>
         </div>
       </Section>

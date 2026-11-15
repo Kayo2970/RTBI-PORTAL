@@ -29,3 +29,12 @@ Group Policies, Settings, plus a new Users page (`/dashboard/users`).
 ## Git workflow
 Develop on the feature branch, open a draft PR, and merge to `main` only when asked. Run `npx tsc --noEmit`
 and `npm run build` before pushing.
+
+## Incubation module (RTBI SOPs)
+Server-first (not the localStorage pattern). Pure rules/types in `src/lib/incubation/` (`types.ts`, `rules.ts`, `kinds.ts`, `onboarding.ts`),
+server helpers `*-server.ts`, routes `src/app/api/incubation/*` (+ public intake `src/app/api/public/applications`, page `/apply`), pages `src/app/dashboard/incubation/*`.
+- Settings (`incubationSettings`): scorecard/graduation weights, thresholds, timers, KPI targets, fee schedules — all seeded **proposed**; approving needs an approval reference. Decisions can't be finalised while the selection scorecard is Proposed.
+- Collections: `startups`, `applications`, and one generic store `incubationRecords` keyed by `kind` (agreement, review, trl, renewal, graduation, exit, evidence, mentor, mentorSession, cohort, milestone, programEvent, partnership, meeting, incident, onboarding). Add a register by adding a `KINDS` entry in `kinds.ts` — API and page are generic.
+- Guardrails live in `kinds.ts` `validate`/`derive` and the routes: Red RAG never changes status; TRL needs evidence and Low confidence stays Provisional; `Active` is set only by the onboarding activation gate; evaluators pass a COI hard gate and can't see peer scores before submitting; adverse action needs legal review, notice, response period and approval.
+- Daily digest scheduler: `src/lib/incubation/scheduler.ts` (registered in `instrumentation.ts`); bell + Calendar read `/api/incubation/alerts` and `/api/incubation/calendar`.
+- Never hard-code approvers or fees; use settings. Label forms by name + SOP code, not annexure letter. Committee name is "Project Management Committee".

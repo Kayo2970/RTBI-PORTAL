@@ -737,6 +737,14 @@ export default function RatingsPage() {
         <h1 className="text-xl font-bold text-theme-text-primary">Task-Based Performance Ratings</h1>
         <p className="text-xs text-theme-text-secondary">Evaluate student members against the General, Design, or Report Writing rubric — whichever matches the task</p>
       </div>
+      <div className="rounded-2xl border border-accent/30 bg-accent/10 p-4 text-xs flex flex-wrap items-center justify-between gap-2">
+        <span><b>Startup scorecards</b> — selection scorecards (weighted 1-5 criteria), TRL and quarterly RAG reviews, and graduation scoring now live in the Incubation section.</span>
+        <span className="flex gap-3 font-semibold">
+          <a className="text-accent hover:underline" href="/dashboard/incubation/applications">Selection scorecards</a>
+          <a className="text-accent hover:underline" href="/dashboard/incubation/records/review">Quarterly RAG</a>
+          <a className="text-accent hover:underline" href="/dashboard/incubation/records/graduation">Graduation</a>
+        </span>
+      </div>
 
       {/* Score event reports on the Report Writing rubric (same data as the Event Reports page) */}
       {canScoreReports && eventReports.length > 0 && (

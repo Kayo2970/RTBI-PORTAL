@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, CalendarDays, PartyPopper, ClipboardCheck } from 'lucide-react';
 import { getEvents, getTasks, getEffectiveEventStatus, formatEventDateRange, hasEventPlanningPhase, getEventSortTime, EventItem, TaskItem } from '@/lib/local-data';
 import { canViewEvent, canApprovePendingEvent } from '@/lib/permissions';
+import { fetchIncubationCalendar } from '@/lib/incubation/client';
+import type { CalendarItem } from '@/lib/incubation/alerts-server';
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -12,6 +14,8 @@ export default function CalendarPage() {
   const [user, setUser] = useState<any>(null);
   const [calendarDate, setCalendarDate] = useState(new Date(2026, 7, 1)); // Default August 2026
   const [selectedDay, setSelectedDay] = useState<number | null>(10); // Default to 10th
+  const [incubationItems, setIncubationItems] = useState<CalendarItem[]>([]);
+  useEffect(() => { fetchIncubationCalendar().then(setIncubationItems).catch(() => setIncubationItems([])); }, []);
 
   useEffect(() => {
     const refreshData = () => {
@@ -131,6 +135,23 @@ export default function CalendarPage() {
         </h1>
         <p className="text-xs text-theme-text-secondary">Explore scheduled symposiums, workshops, and milestones across the organization</p>
       </div>
+
+      {(() => {
+        const monthKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+        const mine = incubationItems.filter(i => i.date.startsWith(monthKey)).sort((a, b) => a.date.localeCompare(b.date));
+        if (mine.length === 0) return null;
+        return (
+          <div className="glass-panel rounded-2xl p-5 space-y-2">
+            <h3 className="text-sm font-bold text-theme-text-primary">Incubation dates this month</h3>
+            <ul className="text-xs space-y-1">
+              {mine.map(i => (
+                <li key={i.id} className="flex gap-2"><span className="font-mono text-theme-text-secondary">{i.date.slice(5)}</span>
+                  <Link href={i.link} className="text-accent hover:underline">{i.title}</Link></li>
+              ))}
+            </ul>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Interactive Event Calendar */}

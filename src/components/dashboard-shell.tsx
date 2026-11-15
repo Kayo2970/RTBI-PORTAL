@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -45,8 +45,14 @@ import {
   Package,
   Lightbulb,
   Rocket,
+  ClipboardCheck,
+  Gauge,
+  FlaskConical,
+  GraduationCap,
+  Library,
   Users,
 } from 'lucide-react';
+import { fetchAlerts } from '@/lib/incubation/client';
 import { getAnnouncements, getTasks, getDesigns, getMembers, getBudgets, getReimbursements, getEvents, getEventReports, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyBudgetCentreHead, canDecideBudget, canVerifyReimbursementCentreHead, canApproveAsSectorHead, canApproveAsFinanceHead, canSubmitEventReport, canReviewEventReports, canViewEventReports, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 import { TermsModal } from '@/components/terms-modal';
@@ -71,6 +77,8 @@ interface SidebarItem {
   icon: React.ComponentType<any>;
   superUserOnly?: boolean;
   groupPoliciesOnly?: boolean;
+  /** Tier 1-3 only (hidden from Startup-tier accounts). */
+  staffOnly?: boolean;
 }
 
 interface NavSection {
@@ -97,6 +105,13 @@ const navSections: NavSection[] = [
     title: 'Incubation',
     items: [
       { name: 'Startup Registry', href: '/dashboard/incubation', icon: Rocket },
+      { name: 'Applications', href: '/dashboard/incubation/applications', icon: FileText, staffOnly: true },
+      { name: 'Onboarding', href: '/dashboard/incubation/onboarding', icon: ClipboardCheck, staffOnly: true },
+      { name: 'Quarterly Reviews', href: '/dashboard/incubation/records/review', icon: Gauge },
+      { name: 'TRL Assessments', href: '/dashboard/incubation/records/trl', icon: FlaskConical },
+      { name: 'Renewal & Graduation', href: '/dashboard/incubation/records/graduation', icon: GraduationCap },
+      { name: 'Registers & Evidence', href: '/dashboard/incubation/records/evidence', icon: Library, staffOnly: true },
+      { name: 'KPI Dashboard', href: '/dashboard/incubation/kpi', icon: BarChart3, staffOnly: true },
     ],
   },
   {
@@ -142,7 +157,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<{ id: string; title: string; time: string; read: boolean; link: string; actionNeeded: boolean }[]>([]);
+  type NotifItem = { id: string; title: string; time: string; read: boolean; link: string; actionNeeded: boolean };
+  const [baseNotifications, setNotifications] = useState<NotifItem[]>([]);
+  // Incubation deadlines/alerts (service timers, overdue reviews, expiring agreements) from /api/incubation/alerts.
+  const [incubationNotifs, setIncubationNotifs] = useState<NotifItem[]>([]);
   // Ids of action-needed notifications the user has already had the dropdown
   // open for — distinct from the per-row `read` flag above. The badge count
   // is driven by this, not by `read`, specifically so it can never flash back
@@ -453,6 +471,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   };
 
   const [dismissedNotifIds, setDismissedNotifIds] = useState<Set<string>>(new Set());
+  const notifications = useMemo(
+    () => [...incubationNotifs.filter(n => !dismissedNotifIds.has(n.id)), ...baseNotifications],
+    [incubationNotifs, baseNotifications, dismissedNotifIds],
+  );
+  useEffect(() => {
+    if (!user.email) return;
+    let cancelled = false;
+    const pull = () => fetchAlerts().then(list => {
+      if (cancelled) return;
+      setIncubationNotifs(list.filter(a => a.severity !== 'info').map(a => ({ id: 'inc_' + a.id, title: a.title, time: a.detail, read: false, actionNeeded: a.severity === 'overdue', link: a.link })));
+    }).catch(() => { /* not signed in yet, or module unavailable — ignore */ });
+    pull();
+    const t = setInterval(pull, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [user.email]);
 
   // Initialize theme, user session, notifications, and server sync
   useEffect(() => {
@@ -1396,7 +1429,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   </h4>
                 )}
                 <div className="space-y-1">
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user)) && (!item.staffOnly || user.tier <= 3)).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -1512,7 +1545,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   <h4 className="px-2 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                     {section.title}
                   </h4>
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
+                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user)) && (!item.staffOnly || user.tier <= 3)).map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (

@@ -101,6 +101,9 @@ export interface DbSchema {
   // scorecard weights, thresholds, timers, KPI targets and fee schedules — each flagged proposed/approved.
   incubationSettings: any[];
   startups: any[];
+  applications: any[];
+  // Generic register store for every other incubation record kind — see src/lib/incubation/kinds.ts.
+  incubationRecords: any[];
   lastUpdated?: string;
 }
 
@@ -140,6 +143,8 @@ const EMPTY_DB: DbSchema = {
   walletSettings: [],
   incubationSettings: [],
   startups: [],
+  applications: [],
+  incubationRecords: [],
 };
 
 const SEED_DB: DbSchema = {
@@ -198,6 +203,8 @@ const SEED_DB: DbSchema = {
   walletSettings: [],
   incubationSettings: [defaultIncubationSettings()],
   startups: [],
+  applications: [],
+  incubationRecords: [],
 };
 
 const COLLECTION_KEYS = Object.keys(EMPTY_DB) as (keyof DbSchema)[];

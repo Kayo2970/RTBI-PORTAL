@@ -559,3 +559,16 @@ export async function canViewAllStartupsServer(user: ServerUser): Promise<boolea
   if (typeof user.tier === 'number' && user.tier <= 3) return true;
   return hasCapabilityServer(user, 'INCUBATION_VIEW_ALL');
 }
+
+/** Tier 1-3 staff. Used for records any team member may log (sessions, TRL, reviews, evidence). */
+export function isStaffTier(user: ServerUser): boolean {
+  return !!user && typeof user.tier === 'number' && user.tier <= 3;
+}
+
+/** Final approvers for a decision type: the configured member ids, else every active member at or above the configured tier. */
+export function isRouteApprover(user: ServerUser, route: { approverMemberIds: string[]; approverMaxTier: number } | undefined): boolean {
+  if (!user) return false;
+  const r = route ?? { approverMemberIds: [], approverMaxTier: 2 };
+  if (r.approverMemberIds?.length) return !!user.id && r.approverMemberIds.includes(user.id);
+  return typeof user.tier === 'number' && user.tier <= r.approverMaxTier;
+}

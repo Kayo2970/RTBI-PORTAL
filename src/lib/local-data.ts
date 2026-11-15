@@ -674,7 +674,7 @@ export interface EventReportItem {
  */
 export interface ApprovalRequest {
   id: string;
-  entityType: 'task' | 'committee' | 'event' | 'member' | 'design' | 'event-report' | 'announcement' | 'procurement' | 'form' | 'event-pass' | 'proposal';
+  entityType: 'task' | 'committee' | 'event' | 'member' | 'design' | 'event-report' | 'announcement' | 'procurement' | 'form' | 'event-pass' | 'proposal' | 'incubation';
   entityId: string;
   entityTitle: string;
   /** For 'event-pass' requests: what the requester wants to do (issue / edit / delete / dispatch) and the data needed to carry it out once approved. */

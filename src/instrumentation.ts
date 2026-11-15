@@ -24,6 +24,9 @@ export async function register() {
 
 
 
+    const { startIncubationScheduler } = await import('./lib/incubation/scheduler');
+    startIncubationScheduler();
+
     const { startEmailBackgroundScheduler } = await import('./lib/email-background-retention');
     startEmailBackgroundScheduler();
 
