@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
  *   acknowledge | screen | resolveMissing | assign        — managers
  *   coi | score                                           — the assigned evaluator (COI is a hard gate before scoring)
  *   decide                                                — managers (records a recommendation)
- *   finalise                                              — the configured selection approver (blocked while settings are only 'proposed')
+ *   finalise | rejectDecision                             — the configured selection approver (finalise is blocked while settings are only 'proposed')
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -189,6 +189,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               requesterId: actor.id, requesterName: actor.name, requesterEmail: actor.email, message: 'A selection decision needs final approval before it is communicated.', customPanel: panel });
           }
         };
+        break;
+      }
+
+      case 'rejectDecision': {
+        // The configured selection approver declines a recorded decision: it is cleared and the application goes back to evaluation.
+        if (!isRouteApprover(actor, settings.approvalRoutes.selection)) throw new ForbiddenError('You are not a configured selection approver.');
+        if (!app.decision) return fail('There is no recorded decision to reject.');
+        if (app.decision.finalisedAt) return fail('This decision is already final.');
+        const reason = str(body.reason, 1000);
+        if (!reason) return fail('Give the reason for rejecting the decision.');
+        const { decision: _drop, ...rest } = app;
+        next = { ...rest, status: 'Evaluation', log: [...app.log, logEntry(`Decision rejected by approver (${app.decision.option})`, reason)] } as Application;
+        afterCommit = async () => { await cascadeCloseAutoApprovals('incubation', app.id, 'rejected', actor.name).catch(() => {}); };
         break;
       }
 
