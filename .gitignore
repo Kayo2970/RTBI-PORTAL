@@ -44,22 +44,24 @@ next-env.d.ts
 # runtime server database — one JSON file per collection, plus a shared
 # freshness marker and the retired pre-migration snapshot. Not source, lives
 # only on the server; the data/ directory itself is created at runtime.
-data/
-data.old/
+# Anchored to the repo root: an unanchored `data/` also matched src/app/api/data/,
+# which silently kept the /api/data sync route out of git.
+/data/
+/data.old/
 
 # uploaded document storage (design assets, reimbursement receipts) — real
 # files on disk, referenced by storageKey from the JSON records above. Back
 # up the whole data/ directory together so records and the files they
 # reference are always restored as a matching pair.
-data/uploads/
+/data/uploads/
 
 # cached OCR language data (tesseract.js), fetched once and reused —
 # not source, safe to delete and re-fetch at any time.
-data/ocr-cache/
+/data/ocr-cache/
 
 # retired live data, automatically renamed (never deleted) before a database
 # restore overwrites data/ — a safety net for undoing a bad restore by hand.
-data.pre-restore-*/
+/data.pre-restore-*/
 
 # downloaded/uploaded encrypted database backups — never source, and never
 # something that should end up committed to the repo by accident.

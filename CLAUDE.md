@@ -13,6 +13,11 @@ npm run setup      # one-time Super User + DATA_ENCRYPTION_KEY bootstrap (or use
 ```
 No test suite: type-check + build passing is the acceptance bar.
 
+## Client sync (`/api/data`)
+localStorage-backed pages hydrate from `GET /api/data` (polled by `syncWithServer` in `src/lib/local-data.ts`). That route adds no permission logic of its own: it
+calls each collection's own GET handler, so per-viewer rules are identical to the per-collection routes, and a refused collection is simply omitted. Add a collection
+there only if it has its own permission-checked GET route. `.gitignore` anchors the runtime DB as `/data/` — an unanchored `data/` once swallowed `src/app/api/data/`.
+
 ## Four-tier model (lower number = more access)
 1 Super User · 2 CEO · 3 Employee · 4 Startup. `Member.division` mirrors the tier name.
 All checks live in `src/lib/permissions.ts` (client) and `src/lib/permissions-server.ts` (API routes).
