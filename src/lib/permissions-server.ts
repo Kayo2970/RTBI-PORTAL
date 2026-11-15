@@ -538,3 +538,24 @@ export const canViewGuestRecord = canEditGuestRecord;
 export function canApproveProposal(user: ServerUser, settings: AccessLevelSettings): boolean {
   return !!user;
 }
+
+
+/** Incubation: CEO / Super User always; anyone else only via an explicit Group Policy capability. */
+export async function canManageIncubationSettingsServer(user: ServerUser): Promise<boolean> {
+  if (!user) return false;
+  if (typeof user.tier === 'number' && user.tier <= 2) return true;
+  return hasCapabilityServer(user, 'INCUBATION_MANAGE_SETTINGS');
+}
+
+export async function canManageStartupsServer(user: ServerUser): Promise<boolean> {
+  if (!user) return false;
+  if (typeof user.tier === 'number' && user.tier <= 2) return true;
+  return hasCapabilityServer(user, 'INCUBATION_MANAGE_STARTUPS');
+}
+
+/** Staff (tier 1-3) or an explicit grant may see every startup; tier-4 users only their own linked startup. */
+export async function canViewAllStartupsServer(user: ServerUser): Promise<boolean> {
+  if (!user) return false;
+  if (typeof user.tier === 'number' && user.tier <= 3) return true;
+  return hasCapabilityServer(user, 'INCUBATION_VIEW_ALL');
+}
