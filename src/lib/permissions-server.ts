@@ -556,13 +556,24 @@ export async function canManageStartupsServer(user: ServerUser): Promise<boolean
 /** Staff (tier 1-3) or an explicit grant may see every startup; tier-4 users only their own linked startup. */
 export async function canViewAllStartupsServer(user: ServerUser): Promise<boolean> {
   if (!user) return false;
+  if (isExternalReviewer(user)) return false;
   if (typeof user.tier === 'number' && user.tier <= 3) return true;
   return hasCapabilityServer(user, 'INCUBATION_VIEW_ALL');
 }
 
-/** Tier 1-3 staff. Used for records any team member may log (sessions, TRL, reviews, evidence). */
+/** Tier 1-3 staff (includes external reviewers — use isInternalStaff for everything except assigned-application scoring). */
 export function isStaffTier(user: ServerUser): boolean {
   return !!user && typeof user.tier === 'number' && user.tier <= 3;
+}
+
+/** A tier-3 account flagged as an external specialist reviewer: may only score applications assigned to them. */
+export function isExternalReviewer(user: ServerUser): boolean {
+  return !!user && user.tier === 3 && (user as any).externalReviewer === true;
+}
+
+/** Tier 1-3 staff who are not external reviewers. Used for records any team member may log (sessions, TRL, reviews, evidence). */
+export function isInternalStaff(user: ServerUser): boolean {
+  return isStaffTier(user) && !isExternalReviewer(user);
 }
 
 /** Final approvers for a decision type: the configured member ids, else every active member at or above the configured tier. */

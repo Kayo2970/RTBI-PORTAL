@@ -3,7 +3,7 @@ import { mutateCollection } from '@/lib/server-db';
 import { purgeMemberArtifacts } from '@/lib/cascade-delete';
 import { createActivationTokenAndSendEmail } from '@/lib/account-activation';
 import { requireSession, invalidateAllSessionsForMember } from '@/lib/session';
-import { getAccessLevelSettingsServer, canAddMember, canEditDirectory, canTerminateMember } from '@/lib/permissions-server';
+import { getAccessLevelSettingsServer, canAddMember, canEditDirectory, canTerminateMember, isExternalReviewer } from '@/lib/permissions-server';
 import { isRootSuperUser, countActiveSuperUsersServer, PRIVILEGED_FIELDS } from '@/lib/member-guard';
 import { apiError } from '@/lib/api-error';
 
@@ -102,9 +102,18 @@ export async function PATCH(request: Request) {
     }
     delete updates.passwordHash; // never settable through this route
 
+    // The external-reviewer scope is a security boundary: only the CEO / Super User may change it (never the member themselves),
+    // regardless of the Phase-1 blanket directory access.
+    if ('externalReviewer' in updates && !(typeof actor.tier === 'number' && actor.tier <= 2)) {
+      return NextResponse.json({ error: 'Only the CEO or Super User can change the external-reviewer setting.' }, { status: 403 });
+    }
+
     const settings = await getAccessLevelSettingsServer();
     const hasDirectoryEdit = canEditDirectory(actor, settings);
     const touchesPrivilegedField = PRIVILEGED_FIELDS.some(f => f in updates);
+    if (touchesPrivilegedField && isExternalReviewer(actor)) {
+      return NextResponse.json({ error: 'External reviewers cannot change tier, role, status or other privileged member fields.' }, { status: 403 });
+    }
     if (touchesPrivilegedField && !hasDirectoryEdit) {
       return NextResponse.json({ error: "You don't have permission to change a member's tier, role, status, or department." }, { status: 403 });
     }

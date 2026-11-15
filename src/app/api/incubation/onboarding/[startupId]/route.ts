@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { mutateCollection, readCollection } from '@/lib/server-db';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
-import { canManageStartupsServer, isStaffTier } from '@/lib/permissions-server';
+import { canManageStartupsServer, isInternalStaff } from '@/lib/permissions-server';
 import { incubationAudit } from '@/lib/incubation/audit-server';
 import { loadSettings } from '@/lib/incubation/records-server';
 import { canSeeStartup } from '@/lib/incubation/startups-server';
@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ star
 export async function PUT(request: Request, { params }: { params: Promise<{ startupId: string }> }) {
   try {
     const actor = await requireSession(request);
-    if (!isStaffTier(actor)) throw new ForbiddenError();
+    if (!isInternalStaff(actor)) throw new ForbiddenError();
     const isManager = await canManageStartupsServer(actor);
     const { startupId } = await params;
     const body = await request.json();

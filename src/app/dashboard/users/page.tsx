@@ -110,10 +110,20 @@ export default function UsersPage() {
     }
   };
 
+  const toggleExternal = (m: Member) => {
+    try {
+      updateMember(m.id, { externalReviewer: !m.externalReviewer }, actorName);
+      refresh();
+      setNotice({ kind: 'ok', text: `${m.name} ${!m.externalReviewer ? 'is now an external reviewer: they can only score applications assigned to them.' : 'is no longer an external reviewer.'}` });
+    } catch (err: any) {
+      setNotice({ kind: 'error', text: err?.message || 'Could not change the reviewer setting.' });
+    }
+  };
+
   const changeTier = (m: Member, next: 1 | 2 | 3 | 4) => {
     if (m.tier === next) return;
     try {
-      updateMember(m.id, { tier: next, division: TIER_LABELS[next], ...(m.role === tierLabel(m.tier) ? { role: TIER_LABELS[next] } : {}) }, actorName);
+      updateMember(m.id, { tier: next, division: TIER_LABELS[next], ...(next !== 3 && m.externalReviewer ? { externalReviewer: false } : {}), ...(m.role === tierLabel(m.tier) ? { role: TIER_LABELS[next] } : {}) }, actorName);
       refresh();
       setNotice({ kind: 'ok', text: `${m.name} is now ${TIER_LABELS[next]}.` });
     } catch (err: any) {
@@ -257,6 +267,11 @@ export default function UsersPage() {
                       >
                         {TIERS.map(t => <option key={t.tier} value={t.tier}>{t.tier} · {t.label}</option>)}
                       </select>
+                    )}
+                    {m.tier === 3 && !root && (
+                      <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-theme-text-secondary cursor-pointer" title="External specialist reviewer: sees only the applications assigned to them, nothing else in the portal.">
+                        <input type="checkbox" checked={!!m.externalReviewer} disabled={terminated} onChange={() => toggleExternal(m)} /> External reviewer
+                      </label>
                     )}
                   </td>
                   <td className="px-4 py-3">

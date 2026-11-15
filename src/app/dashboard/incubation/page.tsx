@@ -54,7 +54,8 @@ export default function IncubationPage() {
     return startups.filter(s => !q || [s.id, s.name, s.sector, s.cohort, s.status].some(v => (v || '').toLowerCase().includes(q)));
   }, [startups, query]);
 
-  const founderNames = (s: Startup) => s.founderMemberIds.map(id => candidates.find(c => c.id === id)?.name || id).join(', ') || '—';
+  // Only managers can load the Startup-tier member list; everyone else sees a count rather than raw member ids.
+  const founderNames = (s: Startup) => (candidates.length ? (s.founderMemberIds.map(id => candidates.find(c => c.id === id)?.name || id).join(', ') || '—') : s.founderMemberIds.length ? `${s.founderMemberIds.length} founder account${s.founderMemberIds.length === 1 ? '' : 's'}` : '—');
 
   return (
     <div className="p-6 md:p-8 space-y-6">

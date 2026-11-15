@@ -213,6 +213,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     avatarUrl: undefined as string | undefined,
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // External specialist reviewers (tier 3 + flag) only get the Applications screen (and Settings): they score applications assigned to them.
+  const isExternalReviewerUser = user.tier === 3 && (user as any).externalReviewer === true;
+  const externalAllowed = (href: string) => href.startsWith('/dashboard/incubation/applications') || href.startsWith('/dashboard/settings') || href.startsWith('/dashboard/approvals');
+  const visibleNav = navSections
+    .map(section => ({ ...section, items: section.items.filter(item => !isExternalReviewerUser || externalAllowed(item.href)) }))
+    .filter(section => section.items.length > 0);
+  useEffect(() => {
+    if (isExternalReviewerUser && isAuthenticated && !externalAllowed(pathname)) router.replace('/dashboard/incubation/applications');
+  }, [isExternalReviewerUser, isAuthenticated, pathname, router]);
   const [lockdownEnabled, setLockdownEnabled] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
@@ -733,6 +742,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             role: liveRecord.role,
             tier: liveRecord.tier,
             division: liveRecord.division,
+            externalReviewer: (liveRecord as any).externalReviewer,
             department: liveRecord.department,
             program: (liveRecord as any).program,
             batch: (liveRecord as any).batch,
@@ -1421,7 +1431,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
           {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-6">
-            {navSections.map((section) => (
+            {visibleNav.map((section) => (
               <div key={section.title} className="space-y-1">
                 {showSidebarLabels && (
                   <h4 className="px-3 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-2">
@@ -1540,7 +1550,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             onClick={(e) => e.stopPropagation()}
           >
             <nav className="flex flex-col gap-4">
-              {navSections.map((section) => (
+              {visibleNav.map((section) => (
                 <div key={section.title} className="space-y-1">
                   <h4 className="px-2 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                     {section.title}

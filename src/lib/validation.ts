@@ -58,6 +58,7 @@ export const MemberWriteSchema = z.object({
   avatarFileName: z.string().trim().max(300).optional(),
   avatarUrl: z.string().trim().max(2000).optional(),
   mustSetupPassword: z.boolean().optional(),
+  externalReviewer: z.boolean().optional(),
   cardEnabled: z.boolean().optional(),
   // Super-User-only free-text designation override — enforced server-side
   // in members/[id]/route.ts, not here (this schema doesn't know who the

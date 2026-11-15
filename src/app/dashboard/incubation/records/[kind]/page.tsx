@@ -3,9 +3,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Plus, Loader2, FileDown } from 'lucide-react';
+import { Plus, Loader2, FileDown, Download } from 'lucide-react';
+import { downloadCsv, toCsvRow } from '@/lib/csv';
 import { KINDS, KIND_ORDER, kindFields, type KindDef } from '@/lib/incubation/kinds';
-import { createRecord, fetchIncubationSettings, fetchMembersLite, fetchRecords, fetchStartups, updateRecord } from '@/lib/incubation/client';
+import { createRecord, fetchEvidenceExport, fetchIncubationSettings, fetchMembersLite, fetchRecords, fetchStartups, updateRecord } from '@/lib/incubation/client';
 import { downloadPdf } from '@/lib/incubation/pdf';
 import type { IncubationSettings, Startup } from '@/lib/incubation/types';
 import { Badge, FieldInput, Modal, PageHeader, btnGhost, btnPrimary, inputCls, isManagerUi, isStaffUi, ragClass, useCurrentUser } from '@/components/incubation/ui';
@@ -24,6 +25,7 @@ export default function RecordsPage() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState<any | 'new' | null>(null);
   const [filter, setFilter] = useState('');
+  const [refRecords, setRefRecords] = useState<Record<string, { id: string; label: string }[]>>({});
 
   const manager = isManagerUi(user);
   const canWrite = !!def && (def.write === 'managers' ? manager : isStaffUi(user));
@@ -39,6 +41,12 @@ export default function RecordsPage() {
   }, [def, kind]);
 
   useEffect(() => { load(); }, [load]);
+  // Reference pickers (e.g. mentor on a mentor session) — load the referenced register once the field list is known.
+  useEffect(() => {
+    if (!def || !settings) return;
+    const refs = kindFields(def, settings).filter(f => f.type === 'record' && f.refKind);
+    refs.forEach(f => fetchRecords(f.refKind!).then(list => setRefRecords(p => ({ ...p, [f.refKind!]: list.map(r => ({ id: r.id, label: String(r[f.refLabel || 'name'] ?? r.id) })) }))).catch(() => {}));
+  }, [def, settings]);
   useEffect(() => { if (isStaffUi(user)) fetchMembersLite().then(setMembers).catch(() => setMembers([])); }, [user]);
 
   const name = useCallback((id?: string) => members.find(m => m.id === id)?.name || id || '—', [members]);
@@ -47,11 +55,20 @@ export default function RecordsPage() {
 
   if (!def) return <div className="p-8 text-xs">Unknown register.</div>;
 
+  const exportEvidence = async () => {
+    try {
+      const { rows: out } = await fetchEvidenceExport();
+      const head = ['Evidence ID', 'KPI', 'Title', 'Document ref', 'Date', 'Startup', 'Responsible officer', 'Verified by', 'Funding stage', 'Amount (INR)', 'Document link'];
+      downloadCsv(`rtbi-evidence-${new Date().toISOString().slice(0, 10)}.csv`, [toCsvRow(head), ...out.map(r => toCsvRow([r.id, r.kpi, r.title, r.docRef, r.date, r.startup, r.responsible, r.verifier, r.fundingStage, r.amount, r.documentLink]))].join('\n'));
+    } catch (e: any) { setError(e.message); }
+  };
+
   const cell = (r: any, col: string) => {
     const v = r[col];
     const f = fields.find(x => x.key === col);
     if (col === 'rag' && v) return <span className={`inline-block px-2 py-0.5 rounded-full border text-[11px] font-semibold ${ragClass[v] || ''}`}>{v}</span>;
     if (typeof v === 'boolean') return v ? '✓' : '—';
+    if (f?.type === 'record') return refRecords[f.refKind || '']?.find(r => r.id === v)?.label || v || '—';
     if (f?.type === 'member' || col.endsWith('Id') && col !== 'startupId' && col !== 'assessmentId') return name(v);
     if (['state', 'status', 'band', 'timeliness'].includes(col) && v) return <Badge tone={/final|executed|confirmed|eligible|on time|closed|done/i.test(v) ? 'green' : /pending|provisional|late|conditional|draft|open/i.test(v) ? 'amber' : 'default'}>{v}</Badge>;
     return v === undefined || v === '' ? '—' : String(v);
@@ -72,7 +89,10 @@ export default function RecordsPage() {
   return (
     <div className="p-6 md:p-8 space-y-6">
       <PageHeader title={def.plural} subtitle={def.description}
-        actions={canWrite ? <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={14} /> Add</button> : null} />
+        actions={<>
+          {def.kind === 'evidence' && isStaffUi(user) && <button className={btnGhost} onClick={exportEvidence} title="Consent-gated: startups are named and documents linked only where consent is recorded."><Download size={14} /> Export for KITS (CSV)</button>}
+          {canWrite && <button className={btnPrimary} onClick={() => setEditing('new')}><Plus size={14} /> Add</button>}
+        </>} />
       <div className="flex flex-wrap gap-1.5">
         {KIND_ORDER.filter(k => !KINDS[k].restricted || manager).map(k => (
           <Link key={k} href={`/dashboard/incubation/records/${k}`} className={`px-2.5 py-1 rounded-full border text-[11px] ${k === kind ? 'bg-accent text-white border-accent' : 'border-theme-border/40 hover:bg-theme-background/40'}`}>{KINDS[k].plural}</Link>
@@ -105,15 +125,15 @@ export default function RecordsPage() {
         </div>
       )}
       {editing && settings && (
-        <RecordEditor def={def} fields={fields} record={editing === 'new' ? null : editing} startups={startups} members={members} canWrite={canWrite} manager={manager}
+        <RecordEditor def={def} fields={fields} record={editing === 'new' ? null : editing} startups={startups} members={members} records={refRecords} canWrite={canWrite} manager={manager}
           onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />
       )}
     </div>
   );
 }
 
-function RecordEditor({ def, fields, record, startups, members, canWrite, manager, onClose, onSaved }: {
-  def: KindDef; fields: ReturnType<typeof kindFields>; record: any | null; startups: Startup[]; members: { id: string; name: string }[];
+function RecordEditor({ def, fields, record, startups, members, records, canWrite, manager, onClose, onSaved }: {
+  def: KindDef; fields: ReturnType<typeof kindFields>; record: any | null; startups: Startup[]; members: { id: string; name: string }[]; records: Record<string, { id: string; label: string }[]>;
   canWrite: boolean; manager: boolean; onClose: () => void; onSaved: () => void;
 }) {
   const [v, setV] = useState<Record<string, any>>(() => ({ ...(record || {}) }));
@@ -137,7 +157,7 @@ function RecordEditor({ def, fields, record, startups, members, canWrite, manage
       {derived.length > 0 && <div className="flex flex-wrap gap-2 text-[11px]">{derived.map(([k, x]) => <Badge key={k} tone={k === 'settingsStatus' && x === 'proposed' ? 'amber' : 'blue'}>{k === 'settingsStatus' ? `weights ${x}` : `${k}: ${String(x)}`}</Badge>)}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {fields.map(f => (
-          <FieldInput key={f.key} f={f} value={v[f.key]} onChange={x => setV(p => ({ ...p, [f.key]: x }))} startups={startups} members={members}
+          <FieldInput key={f.key} f={f} value={v[f.key]} onChange={x => setV(p => ({ ...p, [f.key]: x }))} startups={startups} members={members} records={records}
             disabled={!canWrite || (f.managerOnly && !manager) || (!!record && f.key === 'startupId')} />
         ))}
       </div>
