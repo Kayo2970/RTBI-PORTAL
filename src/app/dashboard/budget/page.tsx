@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Wallet, Plus, X, CheckCircle2, TrendingDown, TrendingUp, PiggyBank, Landmark, Calendar as CalendarIcon,
-  Paperclip, Trash2, Edit2, FileText, Download, AlertCircle, Receipt, ExternalLink,
+  Paperclip, Trash2, Edit2, FileText, Download, AlertCircle, Receipt, ReceiptText, ExternalLink,
 } from 'lucide-react';
 import {
   getAnnualBudget, saveAnnualBudget, getExpenses, addExpense, deleteExpense,
@@ -266,6 +266,9 @@ export default function FinancePage() {
               {FINANCIAL_YEARS.map(y => <option key={y} value={y} className="bg-theme-card text-theme-text-primary">Financial Year {y}</option>)}
             </select>
           </div>
+          <Link href="/dashboard/expenses" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5 transition-all">
+            <Receipt className="h-4 w-4 text-accent" /> Expenses Module
+          </Link>
           <Link href="/dashboard/invoices" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5 transition-all">
             <FileText className="h-4 w-4 text-accent" /> Invoices
           </Link>
@@ -358,9 +361,14 @@ export default function FinancePage() {
               <option value="all">All heads</option>
               {EXPENSE_HEADS.map(h => <option key={h.key} value={h.key}>{h.label}</option>)}
             </select>
-            <button onClick={exportExpensesCsv} disabled={!expenses.length} className="px-3 py-2 border border-theme-card-border rounded-xl text-xs font-semibold text-theme-text-primary flex items-center gap-1.5 hover:border-accent disabled:opacity-40 cursor-pointer">
-              <Download className="h-3.5 w-3.5" /> Export CSV
-            </button>
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard/expenses" className="px-3 py-2 border border-theme-card-border hover:border-accent rounded-xl text-xs font-semibold text-theme-text-primary flex items-center gap-1.5 transition-all">
+                <ReceiptText className="h-3.5 w-3.5 text-accent" /> Open Expenses Module
+              </Link>
+              <button onClick={exportExpensesCsv} disabled={!expenses.length} className="px-3 py-2 border border-theme-card-border rounded-xl text-xs font-semibold text-theme-text-primary flex items-center gap-1.5 hover:border-accent disabled:opacity-40 cursor-pointer">
+                <Download className="h-3.5 w-3.5" /> Export CSV
+              </button>
+            </div>
           </div>
           {visibleExpenses.length === 0 ? (
             <EmptyState icon={Receipt} title="No expenses recorded" description="Add an expense with its bill, a description and the head it belongs to." />

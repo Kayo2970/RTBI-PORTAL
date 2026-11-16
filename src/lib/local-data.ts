@@ -4350,6 +4350,7 @@ export async function addExpense(
   if (!created) throw new Error('The expense failed to reach the server. Please check your connection and try again.');
   writeLocalArray('rtbi_expenses', [created, ...getExpenses().filter(e => e.id !== created.id)]);
   logAuditEvent('EXPENSE_ADDED', item.submittedBy, `Added a ₹${item.amount.toLocaleString()} expense under ${getExpenseHeadLabel(item.head)}: ${item.description}`, item.submittedByEmail);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('leads-data-sync'));
   return created;
 }
 
@@ -4359,6 +4360,7 @@ export function deleteExpense(id: string, actorName: string): boolean {
   writeLocalArray('rtbi_expenses', getExpenses().filter(e => e.id !== id));
   serverDelete('/api/expenses', id);
   logAuditEvent('EXPENSE_DELETED', actorName, `Deleted a ₹${target.amount.toLocaleString()} ${getExpenseHeadLabel(target.head)} expense: ${target.description}`);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('leads-data-sync'));
   return true;
 }
 

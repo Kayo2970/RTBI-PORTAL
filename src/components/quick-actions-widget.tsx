@@ -50,6 +50,7 @@ import {
   canAccessGuestDirectory,
   canBuildForms,
   canManageEmailSettings,
+  canAddExpense,
 } from '@/lib/permissions';
 
 export interface QuickActionDef {
@@ -266,6 +267,19 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     borderColor: 'border-blue-500/30',
     isAllowed: (u) => !!u,
     defaultPinned: false,
+  },
+  {
+    id: 'expenses',
+    title: 'Expense Tracker',
+    shortDesc: 'Record expenses under overhead heads',
+    category: 'Operations',
+    href: '/dashboard/expenses',
+    icon: ReceiptText,
+    accentColor: 'text-amber-400',
+    bgColor: 'bg-amber-500/15',
+    borderColor: 'border-amber-500/30',
+    isAllowed: (u) => canAddExpense(u),
+    defaultPinned: true,
   },
   {
     id: 'invoices',

@@ -124,6 +124,7 @@ const navSections: NavSection[] = [
     title: 'Administration',
     items: [
       { name: 'Finance', href: '/dashboard/budget', icon: Wallet },
+      { name: 'Expenses', href: '/dashboard/expenses', icon: ReceiptText, staffOnly: true },
       { name: 'Invoices', href: '/dashboard/invoices', icon: Receipt },
       { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes, staffOnly: true },
       { name: 'Public Forums', href: '/dashboard/forms', icon: FileText },

@@ -181,6 +181,7 @@ export const CAPABILITY_CATALOG: { key: string; label: string; description: stri
   { key: 'DESIGN_STYLE_APPROVE', label: 'Style Approve/Reject Designs', description: 'Approve or reject a design submission on the Style Review step.', module: 'Design Portal' },
   { key: 'DESIGN_DELETE', label: 'Delete Design Submissions', description: 'Delete any design submission, not just their own.', module: 'Design Portal' },
   { key: 'MANAGE_FINANCE', label: 'Manage Finance', description: 'Set the annual budget and verify invoice payments.', module: 'Finance' },
+  { key: 'MANAGE_EXPENSES', label: 'Manage Expenses', description: 'Record and manage expense vouchers and claims across overhead heads.', module: 'Expenses' },
   { key: 'BUILD_FORMS', label: 'Build Public Forms', description: 'Create and edit public-facing forms.', module: 'Public Forms' },
   { key: 'FORMS_VIEW_RESPONSES', label: 'View Form Responses', description: 'View and export submissions for public forms.', module: 'Public Forms' },
   { key: 'FORMS_DELETE', label: 'Delete Public Forms', description: 'Delete public forms and their configurations.', module: 'Public Forms' },
