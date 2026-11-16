@@ -48,7 +48,7 @@ export function signOutClient(): void {
   if (typeof window === 'undefined') return;
   const token = getSessionToken();
   if (token) {
-    fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).catch(() => {});
+    fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).catch(() => { });
   }
   setSessionToken(null);
   localStorage.removeItem('user');
@@ -62,7 +62,7 @@ export function clearAllLocalMemory(): void {
   try {
     localStorage.clear();
     sessionStorage.clear();
-  } catch {}
+  } catch { }
 }
 
 export function authHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -2593,7 +2593,7 @@ export function addEventPass(
   const id = `pass-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const serialNumber = `RTBI-EVT-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   const issuedAt = new Date().toISOString();
-  
+
   // Cryptographic/verification token payload
   const qrPayload = JSON.stringify({
     passId: id,
@@ -2697,8 +2697,7 @@ export function updateEventPassStatus(
   logAuditEvent(
     'EVENT_PASS_STATUS_CHANGED' as any,
     actorName,
-    `Marked pass "${passes[idx].serialNumber}" (${passes[idx].attendeeName}) as ${status}${
-      attendanceRecords ? ` for ${Array.isArray(attendanceRecords) ? attendanceRecords.map((a) => a.day).join(', ') : attendanceRecords.day}` : ''
+    `Marked pass "${passes[idx].serialNumber}" (${passes[idx].attendeeName}) as ${status}${attendanceRecords ? ` for ${Array.isArray(attendanceRecords) ? attendanceRecords.map((a) => a.day).join(', ') : attendanceRecords.day}` : ''
     }`
   );
 
@@ -3033,7 +3032,7 @@ export async function dispatchPassEmail(
     // Record 'Email Sent' state
     const now = new Date().toISOString();
     const newStatus: PassEmailStatus = pass.emailStatus === 'Pass Viewed' ? 'Pass Viewed' : 'Email Sent';
-    
+
     // Update local cache
     const passes = getEventPasses();
     const idx = passes.findIndex(p => p.id === pass.id);
@@ -3545,12 +3544,12 @@ export function submitTaskEdit(
   // (e.g. a due-date change) isn't a delegation.
   const trail = (changes.assignee || changes.assigneeId)
     ? [...(target.delegationTrail || []), {
-        action: 'delegated' as const,
-        actorName: submittedBy,
-        actorEmail: submittedByEmail,
-        targetName: changes.assignee,
-        at: new Date().toISOString(),
-      }]
+      action: 'delegated' as const,
+      actorName: submittedBy,
+      actorEmail: submittedByEmail,
+      targetName: changes.assignee,
+      at: new Date().toISOString(),
+    }]
     : target.delegationTrail;
 
   const result = updateTask(id, {
@@ -3627,7 +3626,7 @@ export function rejectTask(id: string, actorName: string, reason?: string): Task
 }
 
 export function canViewTask(
-  task: TaskItem, 
+  task: TaskItem,
   user: { id?: string; name: string; email: string; tier: number; division?: string; role?: string } | null
 ): boolean {
   if (!user) return false;
@@ -5389,11 +5388,11 @@ function syncDesignTask(item: DesignSubmissionItem, reviewerName: string): Desig
     const existingTask = updatedItem.linkedTaskId
       ? allTasks.find(t => t.id === updatedItem.linkedTaskId)
       : (updatedItem.eventId
-          ? allTasks.find(t =>
-              t.eventId === updatedItem.eventId &&
-              (t.taskCategory === 'design' || t.isDesignDeliverable)
-            )
-          : null);
+        ? allTasks.find(t =>
+          t.eventId === updatedItem.eventId &&
+          (t.taskCategory === 'design' || t.isDesignDeliverable)
+        )
+        : null);
 
     if (existingTask) {
       updatedItem.linkedTaskId = existingTask.id;
@@ -5790,7 +5789,7 @@ export async function submitPasswordReset(email: string, otp: string, newPasswor
     if (!res.ok) {
       return { success: false, error: data.error || 'Failed to reset password.' };
     }
-    
+
     // Pull the freshly-hashed passwordHash back from the server rather than mirroring
     // the plaintext newPassword into the local cache ourselves.
     await syncWithServer();
