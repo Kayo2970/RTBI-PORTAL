@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { api, readStoredUser } from '@/lib/billing-client';
 import { canManageRooms } from '@/lib/permissions';
-import { getBookings, saveBookings, saveRooms } from '@/lib/local-data';
+import { getBookings, saveBookings, saveRooms, getRooms, writeLocalArray } from '@/lib/local-data';
 import { Room, Booking, rangesOverlap, formatINR, DEFAULT_ROOMS } from '@/lib/billing';
 import {
   Field,
@@ -151,27 +151,36 @@ export default function BookingsPage() {
 
   const staff = canManageRooms(user);
 
+  const syncFromCache = useCallback(() => {
+    const cachedRooms = getRooms();
+    const cachedBookings = getBookings();
+    setRooms(cachedRooms.length > 0 ? cachedRooms : DEFAULT_ROOMS);
+    setBookings(cachedBookings);
+  }, []);
+
   const load = useCallback(async () => {
     try {
       const [r, b] = await Promise.all([api<Room[]>('/api/rooms'), api<Booking[]>('/api/bookings')]);
       const activeRooms = r && r.length > 0 ? r : DEFAULT_ROOMS;
       setRooms(activeRooms);
-      saveRooms(activeRooms);
+      writeLocalArray('rtbi_rooms', activeRooms);
       const freshBookings = b || [];
       setBookings(freshBookings);
-      saveBookings(freshBookings);
+      writeLocalArray('rtbi_bookings', freshBookings);
     } catch (e: any) {
-      setMsg({ kind: 'error', text: e.message });
+      syncFromCache();
+      console.warn('Failed to refresh rooms/bookings:', e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [syncFromCache]);
 
   useEffect(() => {
     setUser(readStoredUser());
+    syncFromCache();
     load();
 
-    const handleSync = () => load();
+    const handleSync = () => syncFromCache();
     window.addEventListener('rtbi-data-sync', handleSync);
     window.addEventListener('leads-data-sync', handleSync);
     window.addEventListener('storage', handleSync);
@@ -180,7 +189,7 @@ export default function BookingsPage() {
       window.removeEventListener('leads-data-sync', handleSync);
       window.removeEventListener('storage', handleSync);
     };
-  }, [load]);
+  }, [load, syncFromCache]);
 
   const now = Date.now();
   const shown = useMemo(() => {
@@ -205,9 +214,6 @@ export default function BookingsPage() {
       setMsg({ kind: 'ok', text: 'Booking cancelled.' + (r.invoiceNote ? ' ' + r.invoiceNote : '') });
       const current = getBookings();
       saveBookings(current.map(x => (x.id === b.id ? { ...x, status: 'Cancelled' as const } : x)));
-      window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
-      window.dispatchEvent(new CustomEvent('leads-data-sync'));
-      await load();
     } catch (e: any) {
       setMsg({ kind: 'error', text: e.message });
     } finally {

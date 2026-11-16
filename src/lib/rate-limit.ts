@@ -38,7 +38,12 @@ const PUBLIC_MAX = () => envInt('RATE_LIMIT_PUBLIC_MAX', 60);
 const PUBLIC_WINDOW_MS = () => envInt('RATE_LIMIT_PUBLIC_WINDOW_MS', 60 * 1000);
 // Everything else under /api/* — ordinary signed-in member actions: looser,
 // since a real user's own polling/typical usage should never come close.
-const AUTHENTICATED_MAX = () => envInt('RATE_LIMIT_AUTHENTICATED_MAX', 300);
+const AUTHENTICATED_MAX = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return envInt('RATE_LIMIT_AUTHENTICATED_MAX', 1200);
+  }
+  return envInt('RATE_LIMIT_AUTHENTICATED_MAX', 300);
+};
 const AUTHENTICATED_WINDOW_MS = () => envInt('RATE_LIMIT_AUTHENTICATED_WINDOW_MS', 60 * 1000);
 
 // --- Per-account exponential backoff, auth routes only ---
@@ -146,4 +151,10 @@ export function extractIp(request: Request): string {
   const realIp = request.headers.get('x-real-ip');
   if (realIp) return realIp;
   return 'unknown';
+}
+
+/** Reset in-memory rate-limit buckets (useful for tests or administrator reset). */
+export function resetRateLimits(): void {
+  ipWindows.clear();
+  accountBackoff.clear();
 }

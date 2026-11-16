@@ -58,7 +58,20 @@ export default async function proxy(request: NextRequest) {
   const category = categoryFor(pathname);
   const ip = extractIp(request);
 
-  const ipResult = checkIpRateLimit(category, ip);
+  // For authenticated endpoints, scope the rate limit key by bearer token if present,
+  // so distinct users behind the same office/NAT/localhost IP don't lock each other out.
+  let rateLimitKey = ip;
+  if (category === 'authenticated') {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7).trim();
+      if (token) {
+        rateLimitKey = `token:${token.slice(-16)}`;
+      }
+    }
+  }
+
+  const ipResult = checkIpRateLimit(category, rateLimitKey);
   if (!ipResult.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please slow down and try again shortly.' },

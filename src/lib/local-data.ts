@@ -4245,7 +4245,7 @@ function readLocalArray<T>(key: string): T[] {
   }
 }
 
-function writeLocalArray(key: string, items: unknown[]): void {
+export function writeLocalArray(key: string, items: unknown[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(key, JSON.stringify(items));
   markLocalWrite(key);
@@ -4504,20 +4504,36 @@ export function saveRooms(rooms: Room[]): void {
   }
 }
 
-export async function refreshBookingsFromServer(): Promise<Booking[]> {
-  if (typeof window === 'undefined') return [];
-  try {
-    const res = await fetch('/api/bookings', { cache: 'no-store', headers: authHeaders() });
-    if (!res.ok) return getBookings();
-    const data = await res.json();
-    if (Array.isArray(data)) {
-      writeLocalArray('rtbi_bookings', data);
-      return data;
-    }
-  } catch (err) {
-    console.warn('[bookings] Failed to refresh bookings:', err);
+let lastBookingsRefresh = 0;
+let refreshBookingsInFlight: Promise<Booking[]> | null = null;
+
+export function refreshBookingsFromServer(force = false): Promise<Booking[]> {
+  if (typeof window === 'undefined') return Promise.resolve([]);
+  const now = Date.now();
+  if (!force && now - lastBookingsRefresh < 5000) {
+    return Promise.resolve(getBookings());
   }
-  return getBookings();
+  if (refreshBookingsInFlight) return refreshBookingsInFlight;
+
+  refreshBookingsInFlight = (async () => {
+    try {
+      const res = await fetch('/api/bookings', { cache: 'no-store', headers: authHeaders() });
+      if (!res.ok) return getBookings();
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        lastBookingsRefresh = Date.now();
+        writeLocalArray('rtbi_bookings', data);
+        return data;
+      }
+    } catch (err) {
+      console.warn('[bookings] Failed to refresh bookings:', err);
+    } finally {
+      refreshBookingsInFlight = null;
+    }
+    return getBookings();
+  })();
+
+  return refreshBookingsInFlight;
 }
 
 export function getInvoices(): InvoiceItem[] {
