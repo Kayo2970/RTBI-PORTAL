@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   UserPlus,
   Search,
@@ -16,6 +17,13 @@ import {
   Key,
   Sparkles,
   Info,
+  Rocket,
+  Users,
+  RefreshCw,
+  ExternalLink,
+  Building2,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import {
   getMembers,
@@ -35,6 +43,7 @@ import {
   type GroupPolicy,
 } from '@/lib/local-data';
 import { TIER_LABELS, tierLabel, isSuperUser, CAPABILITY_CATALOG } from '@/lib/permissions';
+import { fetchStartups, createStartup, type Startup } from '@/lib/incubation/client';
 import { LockedDevicesPanel } from '@/components/locked-devices-panel';
 
 const TIERS: { tier: 1 | 2 | 3 | 4; label: MemberDivision; blurb: string }[] = [
@@ -54,11 +63,14 @@ const tierBadge: Record<number, string> = {
 export default function UsersPage() {
   const [user, setUser] = useState<any>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [startups, setStartups] = useState<Startup[]>([]);
   const [policies, setPolicies] = useState<GroupPolicy[]>([]);
   const [query, setQuery] = useState('');
   const [tierFilter, setTierFilter] = useState<number | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<'employees' | 'startup_credentials'>('employees');
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string; link?: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -69,6 +81,9 @@ export default function UsersPage() {
   const [tier, setTier] = useState<1 | 2 | 3 | 4>(3);
   const [role, setRole] = useState('');
   const [selectedPolicyIds, setSelectedPolicyIds] = useState<string[]>([]);
+  const [selectedStartupId, setSelectedStartupId] = useState('');
+  const [newStartupName, setNewStartupName] = useState('');
+  const [startupLinkMode, setStartupLinkMode] = useState<'existing' | 'new'>('existing');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -81,6 +96,7 @@ export default function UsersPage() {
   const refresh = useCallback(() => {
     setMembers(getMembers());
     setPolicies(getGroupPolicies());
+    fetchStartups().then(setStartups).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -95,9 +111,11 @@ export default function UsersPage() {
   const actorName = user?.name || 'Super User';
   const allowed = isSuperUser(user);
 
-  const visible = useMemo(() => {
+  // Filter ONLY employees and staff (tiers 1, 2, 3) — startups are excluded from the employee directory
+  const visibleEmployees = useMemo(() => {
     const q = query.trim().toLowerCase();
     return members
+      .filter(m => m.tier !== 4)
       .filter(m => tierFilter === 'all' || m.tier === tierFilter)
       .filter(m =>
         !q ||
@@ -109,6 +127,24 @@ export default function UsersPage() {
       .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name));
   }, [members, query, tierFilter]);
 
+  // Filter ONLY startup credentials (tier 4) — company profile data lives in Startup Registry
+  const visibleStartupCredentials = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return members
+      .filter(m => m.tier === 4)
+      .filter(m => {
+        if (!q) return true;
+        const linked = startups.find(s => s.id === m.startupId || s.founderMemberIds?.includes(m.id));
+        return (
+          m.name.toLowerCase().includes(q) ||
+          m.email.toLowerCase().includes(q) ||
+          (linked?.name || '').toLowerCase().includes(q) ||
+          (linked?.id || '').toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [members, startups, query]);
+
   const counts = useMemo(() => {
     const c: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
     members.forEach(m => { if (m.status !== 'Terminated' && c[m.tier] !== undefined) c[m.tier]++; });
@@ -119,15 +155,43 @@ export default function UsersPage() {
     setName('');
     setEmail('');
     setEmployeeId(generateNextEmployeeId(members));
-    setTier(3);
-    setRole('');
+    setTier(activeTab === 'startup_credentials' ? 4 : 3);
+    setRole(activeTab === 'startup_credentials' ? 'Startup' : '');
     setSelectedPolicyIds([]);
+    setSelectedStartupId('');
+    setNewStartupName('');
+    setStartupLinkMode('existing');
     setFormError('');
   };
 
-  const handleOpenAddForm = () => {
+  const handleOpenAddForm = (defaultTier?: 1 | 2 | 3 | 4) => {
     resetForm();
+    if (defaultTier) {
+      setTier(defaultTier);
+      if (defaultTier === 4) setRole('Startup');
+    }
     setShowForm(true);
+  };
+
+  const handleSyncRegistry = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/incubation/sync', {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to sync with Startup Registry.');
+      setNotice({
+        kind: 'ok',
+        text: `Startup Registry synchronization complete! ${data.linkedMembers || 0} credential(s) linked, ${data.createdStartups || 0} registry record(s) reconciled.`,
+      });
+      refresh();
+    } catch (err: any) {
+      setNotice({ kind: 'error', text: err?.message || 'Synchronization failed.' });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -140,12 +204,28 @@ export default function UsersPage() {
     setSubmitting(true);
     try {
       const label = TIER_LABELS[tier];
-      const finalEmpId = employeeId.trim() || generateNextEmployeeId(members);
+      let finalStartupId = selectedStartupId;
+
+      // If creating startup credentials (tier 4), link or pre-register with Startup Registry
+      if (tier === 4 && startupLinkMode === 'new' && newStartupName.trim()) {
+        try {
+          const createdStartup = await createStartup({
+            name: newStartupName.trim(),
+            status: 'Applicant',
+          });
+          finalStartupId = createdStartup.id;
+        } catch (stErr: any) {
+          console.error('Failed to pre-register startup in registry:', stErr);
+        }
+      }
+
+      const finalEmpId = tier === 4 ? undefined : (employeeId.trim() || generateNextEmployeeId(members));
       const created = await addMember({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         employeeId: finalEmpId,
-        policyIds: selectedPolicyIds,
+        startupId: tier === 4 ? (finalStartupId || undefined) : undefined,
+        policyIds: tier === 4 ? [] : selectedPolicyIds,
         tier,
         division: label,
         role: role.trim() || label,
@@ -154,9 +234,14 @@ export default function UsersPage() {
         createdAt: new Date().toISOString(),
       });
 
-      // Synchronize policies with targetMemberIds in group policies
-      if (created?.id && selectedPolicyIds.length > 0) {
+      // Synchronize policies with targetMemberIds in group policies for employees
+      if (created?.id && tier !== 4 && selectedPolicyIds.length > 0) {
         syncMemberPolicies(created.id, selectedPolicyIds, actorName);
+      }
+
+      // If tier 4, trigger registry sync to ensure bidirectional link
+      if (tier === 4) {
+        fetch('/api/incubation/sync', { method: 'POST', headers: authHeaders() }).catch(() => {});
       }
 
       refresh();
@@ -164,8 +249,15 @@ export default function UsersPage() {
       resetForm();
       setNotice(
         created.activationEmailSent
-          ? { kind: 'ok', text: `${created.name} (${finalEmpId}) was added as ${label} with ${selectedPolicyIds.length} policy tag(s). A set-up email has been sent to ${created.email}.` }
-          : { kind: 'error', text: `${created.name} (${finalEmpId}) was added as ${label}, but the set-up email could not be delivered${created.activationEmailError ? ` (${created.activationEmailError})` : ''}. Share this link with them directly:`, link: created.activationLink }
+          ? {
+              kind: 'ok',
+              text: `${created.name} was added as ${label}${finalEmpId ? ` (${finalEmpId})` : ''}. A set-up email has been sent to ${created.email}.`,
+            }
+          : {
+              kind: 'error',
+              text: `${created.name} was added as ${label}, but the set-up email could not be delivered${created.activationEmailError ? ` (${created.activationEmailError})` : ''}. Share this link with them directly:`,
+              link: created.activationLink,
+            }
       );
     } catch (err: any) {
       setFormError(err?.message || 'Could not add the user.');
@@ -287,40 +379,131 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-theme-text-primary">Users & Access Management</h1>
+          <h1 className="text-xl font-bold text-theme-text-primary">Users &amp; Access Management</h1>
           <p className="text-xs text-theme-text-secondary">
-            Assign Employee IDs, set portal tiers, and grant fine-grained group policy permissions at creation time.
+            Provision Employee IDs for staff and maintain authentication credentials synchronized with the Startup Registry.
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          {activeTab === 'startup_credentials' && (
+            <button
+              onClick={handleSyncRegistry}
+              disabled={isSyncing}
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-purple-500/30 hover:bg-purple-500/15 text-purple-300 text-xs font-semibold cursor-pointer disabled:opacity-50 transition-all"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing…' : 'Sync Registry'}
+            </button>
+          )}
+          <button
+            onClick={() => handleOpenAddForm(activeTab === 'startup_credentials' ? 4 : 3)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-accent/15 cursor-pointer"
+          >
+            <UserPlus className="h-4 w-4" />
+            {activeTab === 'startup_credentials' ? 'Add Startup Credentials' : 'Add Employee / Staff'}
+          </button>
+        </div>
+      </div>
+
+      {/* Tier summary cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {TIERS.map(t => {
+          const isSelected =
+            t.tier === 4
+              ? activeTab === 'startup_credentials'
+              : activeTab === 'employees' && tierFilter === t.tier;
+
+          return (
+            <button
+              key={t.tier}
+              onClick={() => {
+                if (t.tier === 4) {
+                  setActiveTab('startup_credentials');
+                  setTierFilter(4);
+                } else {
+                  setActiveTab('employees');
+                  setTierFilter(tierFilter === t.tier ? 'all' : t.tier);
+                }
+              }}
+              className={`glass-panel rounded-2xl p-4 text-left border transition-all cursor-pointer ${
+                isSelected ? 'border-accent/60 bg-accent/5' : 'border-white/10 hover:border-white/25'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[t.tier]}`}>
+                  Tier {t.tier}
+                </span>
+                <span className="text-xl font-bold text-theme-text-primary">{counts[t.tier]}</span>
+              </div>
+              <div className="mt-2 text-sm font-bold text-theme-text-primary">{t.label}</div>
+              <div className="text-[11px] text-theme-text-secondary">{t.blurb}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Primary Directory Views Switcher */}
+      <div className="flex border-b border-theme-border/20 gap-2 pb-2">
         <button
-          onClick={handleOpenAddForm}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-accent/15 cursor-pointer"
+          onClick={() => {
+            setActiveTab('employees');
+            if (tierFilter === 4) setTierFilter('all');
+          }}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            activeTab === 'employees'
+              ? 'bg-accent/15 text-accent border border-accent/30 shadow-sm'
+              : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-white/5'
+          }`}
         >
-          <UserPlus className="h-4 w-4" /> Add User / Employee
+          <Users className="h-4 w-4" />
+          Employees &amp; Staff Directory
+          <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-white/10 font-mono">
+            {counts[1] + counts[2] + counts[3]}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('startup_credentials');
+            setTierFilter(4);
+          }}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            activeTab === 'startup_credentials'
+              ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30 shadow-sm'
+              : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-white/5'
+          }`}
+        >
+          <Rocket className="h-4 w-4" />
+          Startup Auth Credentials
+          <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono">
+            {counts[4]}
+          </span>
         </button>
       </div>
 
-      {/* Tier summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {TIERS.map(t => (
-          <button
-            key={t.tier}
-            onClick={() => setTierFilter(tierFilter === t.tier ? 'all' : t.tier)}
-            className={`glass-panel rounded-2xl p-4 text-left border transition-all cursor-pointer ${
-              tierFilter === t.tier ? 'border-accent/60' : 'border-white/10 hover:border-white/25'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[t.tier]}`}>
-                Tier {t.tier}
-              </span>
-              <span className="text-xl font-bold text-theme-text-primary">{counts[t.tier]}</span>
+      {/* Startup Credentials Banner */}
+      {activeTab === 'startup_credentials' && (
+        <div className="glass-panel rounded-2xl p-4 border border-purple-500/20 bg-purple-500/5 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1 max-w-xl">
+            <div className="flex items-center gap-2 font-bold text-xs text-purple-300">
+              <Rocket className="h-4 w-4 text-purple-400" />
+              Startup Credentials Directory
             </div>
-            <div className="mt-2 text-sm font-bold text-theme-text-primary">{t.label}</div>
-            <div className="text-[11px] text-theme-text-secondary">{t.blurb}</div>
-          </button>
-        ))}
-      </div>
+            <p className="text-[11px] text-theme-text-secondary">
+              This directory contains <b>user authentication credentials only</b> for startup founders.
+              Comprehensive company profiles, sectors, DPIIT registrations, TRL evaluations, and milestones reside in the <b>Startup Registry</b>.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/incubation"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-600/20 transition-all cursor-pointer"
+            >
+              Open Startup Registry <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {notice && (
         <div
@@ -353,143 +536,287 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Search */}
+      {/* Search Input */}
       <div className="relative max-w-sm">
         <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-secondary" />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search by name, Employee ID, email or role"
+          placeholder={
+            activeTab === 'startup_credentials'
+              ? 'Search startup credentials by founder, email, or startup name'
+              : 'Search employees by name, Employee ID, email or role'
+          }
           className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-theme-sidebar/50 border border-theme-border/30 text-xs text-theme-text-primary outline-none focus:border-accent"
         />
       </div>
 
-      {/* Table */}
-      <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
-              <th className="px-4 py-3">User &amp; Email</th>
-              <th className="px-4 py-3">Employee ID</th>
-              <th className="px-4 py-3">Tier &amp; Role</th>
-              <th className="px-4 py-3">Active Policies &amp; Grants</th>
-              <th className="px-4 py-3">Account Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-theme-text-secondary">
-                  No users match the search criteria.
-                </td>
+      {/* Employees Directory Table */}
+      {activeTab === 'employees' && (
+        <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+                <th className="px-4 py-3">Employee &amp; Email</th>
+                <th className="px-4 py-3">Employee ID</th>
+                <th className="px-4 py-3">Tier &amp; Role</th>
+                <th className="px-4 py-3">Active Policies &amp; Grants</th>
+                <th className="px-4 py-3">Account Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
-            )}
-            {visible.map(m => {
-              const root = isRootSuperUser(m);
-              const terminated = m.status === 'Terminated';
-              const pending = !terminated && !m.hasPassword;
-              const effectivePolicies = getEffectiveMemberPolicies(m, policies);
+            </thead>
+            <tbody>
+              {visibleEmployees.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-theme-text-secondary">
+                    No employees match the search criteria.
+                  </td>
+                </tr>
+              )}
+              {visibleEmployees.map(m => {
+                const root = isRootSuperUser(m);
+                const terminated = m.status === 'Terminated';
+                const pending = !terminated && !m.hasPassword;
+                const effectivePolicies = getEffectiveMemberPolicies(m, policies);
 
-              return (
-                <tr key={m.id} className={`border-b border-theme-border/10 ${terminated ? 'opacity-50' : ''}`}>
-                  <td className="px-4 py-3">
-                    <div className="font-semibold text-theme-text-primary flex items-center gap-1.5">
-                      {m.name}
-                      {root && <span className="text-[10px] text-amber-400 font-semibold">(root)</span>}
-                    </div>
-                    <div className="text-theme-text-secondary text-[11px]">{m.email}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {m.employeeId ? (
-                      <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/25">
-                        {m.employeeId}
-                      </span>
-                    ) : (
-                      <span className="text-theme-text-secondary text-[11px] italic">Not assigned</span>
-                    )}
-                    {m.tier === 3 && !root && (
-                      <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-theme-text-secondary cursor-pointer" title="External specialist reviewer: sees only the applications assigned to them, nothing else in the portal.">
-                        <input type="checkbox" checked={!!m.externalReviewer} disabled={terminated} onChange={() => toggleExternal(m)} /> External reviewer
-                      </label>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="space-y-1">
-                      {root ? (
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[1]}`}>
-                          Super User
+                return (
+                  <tr key={m.id} className={`border-b border-theme-border/10 ${terminated ? 'opacity-50' : ''}`}>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-theme-text-primary flex items-center gap-1.5">
+                        {m.name}
+                        {root && <span className="text-[10px] text-amber-400 font-semibold">(root)</span>}
+                      </div>
+                      <div className="text-theme-text-secondary text-[11px]">{m.email}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {m.employeeId ? (
+                        <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/25">
+                          {m.employeeId}
                         </span>
                       ) : (
-                        <select
-                          value={m.tier}
-                          onChange={e => changeTier(m, Number(e.target.value) as 1 | 2 | 3 | 4)}
-                          disabled={terminated}
-                          className="px-2 py-1 rounded-lg bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary outline-none focus:border-accent cursor-pointer"
-                        >
-                          {TIERS.map(t => (
-                            <option key={t.tier} value={t.tier}>
-                              {t.tier} · {t.label}
-                            </option>
-                          ))}
-                        </select>
+                        <span className="text-theme-text-secondary text-[11px] italic">Not assigned</span>
                       )}
-                      <div className="text-[10px] text-theme-text-secondary">{m.role || tierLabel(m.tier)}</div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 max-w-xs">
-                    {effectivePolicies.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {effectivePolicies.map(p => (
-                          <span
-                            key={p.id}
-                            title={`${p.name} (${p.capabilities?.length || 0} capabilities)`}
-                            className="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
-                          >
-                            {p.tag}
+                      {m.tier === 3 && !root && (
+                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-theme-text-secondary cursor-pointer" title="External specialist reviewer: sees only the applications assigned to them, nothing else in the portal.">
+                          <input type="checkbox" checked={!!m.externalReviewer} disabled={terminated} onChange={() => toggleExternal(m)} /> External reviewer
+                        </label>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="space-y-1">
+                        {root ? (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[1]}`}>
+                            Super User
                           </span>
-                        ))}
+                        ) : (
+                          <select
+                            value={m.tier}
+                            onChange={e => changeTier(m, Number(e.target.value) as 1 | 2 | 3 | 4)}
+                            disabled={terminated}
+                            className="px-2 py-1 rounded-lg bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary outline-none focus:border-accent cursor-pointer"
+                          >
+                            {TIERS.filter(t => t.tier < 4).map(t => (
+                              <option key={t.tier} value={t.tier}>
+                                {t.tier} · {t.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <div className="text-[10px] text-theme-text-secondary">{m.role || tierLabel(m.tier)}</div>
                       </div>
-                    ) : (
-                      <span className="text-[11px] text-theme-text-secondary">Default Tier Access</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {terminated ? (
-                      <span className="text-danger font-semibold">Terminated</span>
-                    ) : pending ? (
-                      <span className="text-amber-400 font-semibold">Awaiting set-up</span>
-                    ) : (
-                      <span className="text-emerald-400 font-semibold">Active</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => openManageAccess(m)}
-                        title="Manage Employee ID & Access Policies"
-                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer"
-                      >
-                        <Shield className="h-3.5 w-3.5" />
-                        <span className="text-[11px]">Access</span>
-                      </button>
-
-                      {pending && (
-                        <button
-                          onClick={() => resend(m)}
-                          disabled={busyId === m.id}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
-                        >
-                          {busyId === m.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Mail className="h-3.5 w-3.5" />
-                          )}
-                          Resend
-                        </button>
+                    </td>
+                    <td className="px-4 py-3 max-w-xs">
+                      {effectivePolicies.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {effectivePolicies.map(p => (
+                            <span
+                              key={p.id}
+                              title={`${p.name} (${p.capabilities?.length || 0} capabilities)`}
+                              className="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
+                            >
+                              {p.tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-theme-text-secondary">Default Tier Access</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {terminated ? (
+                        <span className="text-danger font-semibold">Terminated</span>
+                      ) : pending ? (
+                        <span className="text-amber-400 font-semibold">Awaiting set-up</span>
+                      ) : (
+                        <span className="text-emerald-400 font-semibold">Active</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => openManageAccess(m)}
+                          title="Manage Employee ID & Access Policies"
+                          className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer"
+                        >
+                          <Shield className="h-3.5 w-3.5" />
+                          <span className="text-[11px]">Access</span>
+                        </button>
 
-                      {!root && (
+                        {pending && (
+                          <button
+                            onClick={() => resend(m)}
+                            disabled={busyId === m.id}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
+                          >
+                            {busyId === m.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Mail className="h-3.5 w-3.5" />
+                            )}
+                            Resend
+                          </button>
+                        )}
+
+                        {!root && (
+                          <button
+                            onClick={() => toggleStatus(m)}
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-semibold cursor-pointer ${
+                              terminated
+                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                                : 'bg-danger/15 text-danger hover:bg-danger/25'
+                            }`}
+                          >
+                            {terminated ? (
+                              <>
+                                <RotateCcw className="h-3.5 w-3.5" /> Reactivate
+                              </>
+                            ) : (
+                              <>
+                                <Ban className="h-3.5 w-3.5" /> Terminate
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Startup Credentials Table */}
+      {activeTab === 'startup_credentials' && (
+        <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+                <th className="px-4 py-3">Founder &amp; Auth Email</th>
+                <th className="px-4 py-3">Linked Startup in Registry</th>
+                <th className="px-4 py-3">Registry Sync Status</th>
+                <th className="px-4 py-3">Credential Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleStartupCredentials.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-theme-text-secondary">
+                    No startup credentials match your search.
+                  </td>
+                </tr>
+              )}
+              {visibleStartupCredentials.map(m => {
+                const terminated = m.status === 'Terminated';
+                const pending = !terminated && !m.hasPassword;
+                const linkedStartup = startups.find(s => s.id === m.startupId || s.founderMemberIds?.includes(m.id));
+
+                return (
+                  <tr key={m.id} className={`border-b border-theme-border/10 ${terminated ? 'opacity-50' : ''}`}>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-theme-text-primary flex items-center gap-1.5">
+                        {m.name}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[4]}`}>
+                          Founder
+                        </span>
+                      </div>
+                      <div className="text-theme-text-secondary text-[11px] font-mono">{m.email}</div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {linkedStartup ? (
+                        <div className="space-y-0.5">
+                          <Link
+                            href="/dashboard/incubation"
+                            className="font-bold text-theme-text-primary hover:text-accent flex items-center gap-1"
+                          >
+                            <Building2 className="h-3.5 w-3.5 text-accent" />
+                            {linkedStartup.name}
+                            <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+                          </Link>
+                          <div className="flex items-center gap-1.5 text-[10px] text-theme-text-secondary font-mono">
+                            <span className="px-1.5 py-0.2 rounded bg-white/10">{linkedStartup.id}</span>
+                            {linkedStartup.sector && <span>· {linkedStartup.sector}</span>}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-amber-400 text-[11px] flex items-center gap-1">
+                          <AlertCircle className="h-3.5 w-3.5" />
+                          <span>Not linked to registry</span>
+                        </div>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {linkedStartup ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Synced with Registry
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400">
+                          <AlertCircle className="h-3.5 w-3.5" /> Unlinked
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {terminated ? (
+                        <span className="text-danger font-semibold">Terminated</span>
+                      ) : pending ? (
+                        <span className="text-amber-400 font-semibold">Awaiting set-up</span>
+                      ) : (
+                        <span className="text-emerald-400 font-semibold">Active</span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href="/dashboard/incubation"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer"
+                          title="View all details in the Startup Registry"
+                        >
+                          <Building2 className="h-3.5 w-3.5" />
+                          <span className="text-[11px]">View in Registry</span>
+                        </Link>
+
+                        {pending && (
+                          <button
+                            onClick={() => resend(m)}
+                            disabled={busyId === m.id}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
+                          >
+                            {busyId === m.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Mail className="h-3.5 w-3.5" />
+                            )}
+                            Resend
+                          </button>
+                        )}
+
                         <button
                           onClick={() => toggleStatus(m)}
                           className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-semibold cursor-pointer ${
@@ -508,17 +835,17 @@ export default function UsersPage() {
                             </>
                           )}
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* Add user modal */}
+      {/* Add User / Startup Credentials Modal */}
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
@@ -531,9 +858,13 @@ export default function UsersPage() {
           >
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
               <div>
-                <h2 className="text-base font-bold text-theme-text-primary">Add User / Employee</h2>
+                <h2 className="text-base font-bold text-theme-text-primary">
+                  {tier === 4 ? 'Provision Startup Founder Credentials' : 'Add User / Employee'}
+                </h2>
                 <p className="text-[11px] text-theme-text-secondary">
-                  Provision an Employee ID and define their exact access boundaries.
+                  {tier === 4
+                    ? 'Provisions login credentials for the startup founder. Company profile data is managed in the Startup Registry.'
+                    : 'Provision an Employee ID and define their exact access boundaries.'}
                 </p>
               </div>
               <button
@@ -548,53 +879,129 @@ export default function UsersPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block space-y-1">
-                <span className="text-[11px] font-semibold text-theme-text-secondary">Full Name *</span>
+                <span className="text-[11px] font-semibold text-theme-text-secondary">
+                  {tier === 4 ? 'Founder Full Name *' : 'Full Name *'}
+                </span>
                 <input
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="e.g. Priya Sharma"
+                  placeholder={tier === 4 ? 'e.g. Rahul Sharma' : 'e.g. Priya Sharma'}
                   className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary outline-none focus:border-accent"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[11px] font-semibold text-theme-text-secondary">Email Address *</span>
+                <span className="text-[11px] font-semibold text-theme-text-secondary">
+                  {tier === 4 ? 'Founder Login Email *' : 'Email Address *'}
+                </span>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="priya@rtbi.in"
+                  placeholder={tier === 4 ? 'founder@startup.com' : 'priya@rtbi.in'}
                   className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary outline-none focus:border-accent"
                 />
               </label>
             </div>
 
-            {/* Employee ID input */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-theme-text-secondary">
-                  Employee ID / Identity Code
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setEmployeeId(generateNextEmployeeId(members))}
-                  className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline cursor-pointer"
-                >
-                  <Sparkles className="h-3 w-3" /> Auto-generate Next
-                </button>
+            {/* Employee ID input — hidden for startups because startups are not employees */}
+            {tier !== 4 && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-theme-text-secondary">
+                    Employee ID / Identity Code
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEmployeeId(generateNextEmployeeId(members))}
+                    className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline cursor-pointer"
+                  >
+                    <Sparkles className="h-3 w-3" /> Auto-generate Next
+                  </button>
+                </div>
+                <input
+                  value={employeeId}
+                  onChange={e => setEmployeeId(e.target.value)}
+                  placeholder="RTBI-EMP-001"
+                  className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary font-mono focus:border-accent outline-none"
+                />
+                <p className="text-[10px] text-theme-text-secondary">
+                  Used for cross-referencing group policies, physical badges, attendance, and audit logs.
+                </p>
               </div>
-              <input
-                value={employeeId}
-                onChange={e => setEmployeeId(e.target.value)}
-                placeholder="RTBI-EMP-001"
-                className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary font-mono focus:border-accent outline-none"
-              />
-              <p className="text-[10px] text-theme-text-secondary">
-                Used for cross-referencing group policies, physical badges, attendance, and audit logs.
-              </p>
-            </div>
+            )}
+
+            {/* Startup Registry Linkage for Tier 4 */}
+            {tier === 4 && (
+              <div className="space-y-3 p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                    <Rocket className="h-3.5 w-3.5" /> Startup Registry Link
+                  </span>
+                  <div className="flex gap-2 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setStartupLinkMode('existing')}
+                      className={`px-2 py-0.5 rounded-md font-semibold cursor-pointer ${
+                        startupLinkMode === 'existing'
+                          ? 'bg-purple-600 text-white'
+                          : 'text-purple-300 hover:bg-purple-500/20'
+                      }`}
+                    >
+                      Existing Startup
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStartupLinkMode('new')}
+                      className={`px-2 py-0.5 rounded-md font-semibold cursor-pointer ${
+                        startupLinkMode === 'new'
+                          ? 'bg-purple-600 text-white'
+                          : 'text-purple-300 hover:bg-purple-500/20'
+                      }`}
+                    >
+                      New Startup
+                    </button>
+                  </div>
+                </div>
+
+                {startupLinkMode === 'existing' ? (
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-theme-text-secondary block">
+                      Select Startup from Registry:
+                    </label>
+                    <select
+                      value={selectedStartupId}
+                      onChange={e => setSelectedStartupId(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/80 border border-theme-border/40 text-xs text-theme-text-primary outline-none focus:border-accent cursor-pointer"
+                    >
+                      <option value="">— Link later / Self-register on activation —</option>
+                      {startups.map(s => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.id}) · {s.status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-theme-text-secondary block">
+                      New Startup Name:
+                    </label>
+                    <input
+                      value={newStartupName}
+                      onChange={e => setNewStartupName(e.target.value)}
+                      placeholder="e.g. SolarGrid Technologies"
+                      className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/80 border border-theme-border/40 text-xs text-theme-text-primary outline-none focus:border-accent"
+                    />
+                    <p className="text-[10px] text-theme-text-secondary">
+                      This will initialize a new record in the Startup Registry with ID RTBI-S-XXXX-XXX.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Tier selection */}
             <div className="space-y-1">
@@ -604,7 +1011,10 @@ export default function UsersPage() {
                   <button
                     key={t.tier}
                     type="button"
-                    onClick={() => setTier(t.tier)}
+                    onClick={() => {
+                      setTier(t.tier);
+                      if (t.tier === 4) setRole('Startup');
+                    }}
                     className={`px-3 py-2 rounded-xl border text-left text-xs cursor-pointer transition-all ${
                       tier === t.tier
                         ? 'border-accent bg-accent/15 text-theme-text-primary'
@@ -621,7 +1031,9 @@ export default function UsersPage() {
             </div>
 
             <label className="block space-y-1">
-              <span className="text-[11px] font-semibold text-theme-text-secondary">Designation / Role Title</span>
+              <span className="text-[11px] font-semibold text-theme-text-secondary">
+                {tier === 4 ? 'Credential Role' : 'Designation / Role Title'}
+              </span>
               <input
                 value={role}
                 onChange={e => setRole(e.target.value)}
@@ -630,66 +1042,68 @@ export default function UsersPage() {
               />
             </label>
 
-            {/* Initial Access & Group Policies Section */}
-            <div className="space-y-2 pt-2 border-t border-theme-border/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-bold text-theme-text-primary flex items-center gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5 text-accent" /> Group Policies &amp; Access Grants
+            {/* Initial Access & Group Policies Section (Employees Only) */}
+            {tier !== 4 && (
+              <div className="space-y-2 pt-2 border-t border-theme-border/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold text-theme-text-primary flex items-center gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5 text-accent" /> Group Policies &amp; Access Grants
+                    </span>
+                    <p className="text-[10px] text-theme-text-secondary">
+                      Select exactly what this person can access from day one.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-semibold text-accent">
+                    {selectedPolicyIds.length} selected
                   </span>
-                  <p className="text-[10px] text-theme-text-secondary">
-                    Select exactly what this person can access from day one.
-                  </p>
                 </div>
-                <span className="text-[10px] font-semibold text-accent">
-                  {selectedPolicyIds.length} selected
-                </span>
-              </div>
 
-              {policies.length === 0 ? (
-                <div className="p-3 rounded-xl bg-theme-border/10 text-center text-[11px] text-theme-text-secondary">
-                  No custom group policies exist yet. The employee will receive standard Tier {tier} defaults.
-                </div>
-              ) : (
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {policies.map(p => {
-                    const isSelected = selectedPolicyIds.includes(p.id);
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => togglePolicySelection(p.id, true)}
-                        className={`flex items-start gap-2.5 p-2 rounded-xl border text-left cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-accent/15 border-accent/40 text-theme-text-primary'
-                            : 'bg-theme-sidebar/40 border-theme-border/30 hover:border-theme-border/50 text-theme-text-secondary'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => {}} // handled by parent onClick
-                          className="accent-accent mt-0.5 pointer-events-none"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
-                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
-                              {p.tag}
-                            </span>
-                          </div>
-                          {p.description && (
-                            <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
-                          )}
-                          <div className="text-[9px] text-theme-text-secondary/80 mt-0.5">
-                            {p.capabilities?.length || 0} capabilities granted
+                {policies.length === 0 ? (
+                  <div className="p-3 rounded-xl bg-theme-border/10 text-center text-[11px] text-theme-text-secondary">
+                    No custom group policies exist yet. The employee will receive standard Tier {tier} defaults.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {policies.map(p => {
+                      const isSelected = selectedPolicyIds.includes(p.id);
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => togglePolicySelection(p.id, true)}
+                          className={`flex items-start gap-2.5 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-accent/15 border-accent/40 text-theme-text-primary'
+                              : 'bg-theme-sidebar/40 border-theme-border/30 hover:border-theme-border/50 text-theme-text-secondary'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="accent-accent mt-0.5 pointer-events-none"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
+                              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
+                                {p.tag}
+                              </span>
+                            </div>
+                            {p.description && (
+                              <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
+                            )}
+                            <div className="text-[9px] text-theme-text-secondary/80 mt-0.5">
+                              {p.capabilities?.length || 0} capabilities granted
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {formError && <p className="text-xs text-danger">{formError}</p>}
 
@@ -710,7 +1124,8 @@ export default function UsersPage() {
                   disabled={submitting}
                   className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl cursor-pointer disabled:opacity-60 shadow-md shadow-accent/20"
                 >
-                  {submitting && <Loader2 className="h-4 w-4 animate-spin" />} Create &amp; Grant Access
+                  {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {tier === 4 ? 'Create Credentials' : 'Create & Grant Access'}
                 </button>
               </div>
             </div>
@@ -763,99 +1178,103 @@ export default function UsersPage() {
             </div>
 
             {/* Employee ID Field */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-theme-text-secondary">
-                  Employee ID / Identity Code
-                </label>
-                {!editEmployeeId && (
-                  <button
-                    type="button"
-                    onClick={() => setEditEmployeeId(generateNextEmployeeId(members))}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline cursor-pointer"
-                  >
-                    <Sparkles className="h-3 w-3" /> Generate ID
-                  </button>
-                )}
+            {managingMember.tier !== 4 && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-theme-text-secondary">
+                    Employee ID / Identity Code
+                  </label>
+                  {!editEmployeeId && (
+                    <button
+                      type="button"
+                      onClick={() => setEditEmployeeId(generateNextEmployeeId(members))}
+                      className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline cursor-pointer"
+                    >
+                      <Sparkles className="h-3 w-3" /> Generate ID
+                    </button>
+                  )}
+                </div>
+                <input
+                  value={editEmployeeId}
+                  onChange={e => setEditEmployeeId(e.target.value)}
+                  placeholder="RTBI-EMP-001"
+                  className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary font-mono focus:border-accent outline-none"
+                />
               </div>
-              <input
-                value={editEmployeeId}
-                onChange={e => setEditEmployeeId(e.target.value)}
-                placeholder="RTBI-EMP-001"
-                className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary font-mono focus:border-accent outline-none"
-              />
-            </div>
+            )}
 
             {/* Group Policies Selection */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-theme-text-secondary">
-                  Assigned Group Policies ({editPolicyIds.length})
-                </span>
-                <span className="text-[10px] text-theme-text-secondary">
-                  Changes take effect immediately on next request
-                </span>
-              </div>
-
-              {policies.length === 0 ? (
-                <div className="p-4 rounded-xl bg-theme-sidebar/40 text-center text-xs text-theme-text-secondary">
-                  No group policies configured.
+            {managingMember.tier !== 4 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-theme-text-secondary">
+                    Assigned Group Policies ({editPolicyIds.length})
+                  </span>
+                  <span className="text-[10px] text-theme-text-secondary">
+                    Changes take effect immediately on next request
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                  {policies.map(p => {
-                    const isChecked = editPolicyIds.includes(p.id);
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => togglePolicySelection(p.id, false)}
-                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
-                          isChecked
-                            ? 'bg-accent/15 border-accent/40 text-theme-text-primary'
-                            : 'bg-theme-sidebar/40 border-theme-border/30 hover:border-theme-border/50 text-theme-text-secondary'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          className="accent-accent mt-0.5 pointer-events-none"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
-                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
-                              {p.tag}
-                            </span>
-                          </div>
-                          {p.description && (
-                            <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
-                          )}
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {p.capabilities?.slice(0, 3).map(cap => {
-                              const match = CAPABILITY_CATALOG.find(c => c.key === cap);
-                              return (
-                                <span
-                                  key={cap}
-                                  className="text-[8px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary-light"
-                                >
-                                  {match?.label || cap}
-                                </span>
-                              );
-                            })}
-                            {(p.capabilities?.length || 0) > 3 && (
-                              <span className="text-[8px] text-theme-text-secondary">
-                                +{(p.capabilities?.length || 0) - 3} more
+
+                {policies.length === 0 ? (
+                  <div className="p-4 rounded-xl bg-theme-sidebar/40 text-center text-xs text-theme-text-secondary">
+                    No group policies configured.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                    {policies.map(p => {
+                      const isChecked = editPolicyIds.includes(p.id);
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => togglePolicySelection(p.id, false)}
+                          className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                            isChecked
+                              ? 'bg-accent/15 border-accent/40 text-theme-text-primary'
+                              : 'bg-theme-sidebar/40 border-theme-border/30 hover:border-theme-border/50 text-theme-text-secondary'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className="accent-accent mt-0.5 pointer-events-none"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
+                              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
+                                {p.tag}
                               </span>
+                            </div>
+                            {p.description && (
+                              <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
                             )}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {p.capabilities?.slice(0, 3).map(cap => {
+                                const match = CAPABILITY_CATALOG.find(c => c.key === cap);
+                                return (
+                                  <span
+                                    key={cap}
+                                    className="text-[8px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary-light"
+                                  >
+                                    {match?.label || cap}
+                                  </span>
+                                );
+                              })}
+                              {(p.capabilities?.length || 0) > 3 && (
+                                <span className="text-[8px] text-theme-text-secondary">
+                                  +{(p.capabilities?.length || 0) - 3} more
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-theme-border/20">
               <button

@@ -76,6 +76,7 @@ export type MemberDivision = 'Super User' | 'CEO' | 'Employee' | 'Startup';
 export interface Member {
   id: string;
   employeeId?: string; // e.g. "RTBI-EMP-001" assigned on user creation
+  startupId?: string; // Foreign key linking this credential account to its master record in the Startup Registry
   policyIds?: string[]; // IDs of assigned GroupPolicy records granting access
   name: string;
   email: string;

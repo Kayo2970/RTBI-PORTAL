@@ -125,6 +125,19 @@ export interface Startup {
   updatedAt: string;
   /** Append-only: no silent edits to startup data. */
   changeLog: StartupChange[];
+
+  // Startup profile fields filled by the startup itself
+  tagline?: string;
+  logoUrl?: string;
+  logoStorageKey?: string;
+  aboutUs?: string;
+  problem?: string;
+  solution?: string;
+  foundedYear?: string;
+  teamSize?: string;
+  location?: string;
+  socials?: { linkedin?: string; twitter?: string; instagram?: string };
+  profileCompletedAt?: string;
 }
 
 // ---------------------------------------------------------------- Applications (Phase 2)

@@ -56,6 +56,19 @@ export async function POST(request: Request) {
       };
       return [created, ...cur];
     });
+
+    // Synchronize linked founder member accounts with the new startup
+    if (founderMemberIds.length > 0) {
+      await mutateCollection('members', (cur) =>
+        (cur || []).map((m: any) => {
+          if (founderMemberIds.includes(m.id)) {
+            return { ...m, startupId: created.id, tier: 4, role: 'Startup', division: 'Startup' };
+          }
+          return m;
+        })
+      );
+    }
+
     await incubationAudit(actor, 'STARTUP_CREATED', created.id, `Startup "${created.name}" created.`);
     return NextResponse.json(created, { status: 201 });
   } catch (err) {

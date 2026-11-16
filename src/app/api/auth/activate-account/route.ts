@@ -6,6 +6,7 @@ import { parseJsonBody } from '@/lib/validation';
 import { apiError } from '@/lib/api-error';
 import { saveBase64File, parseDataUrl } from '@/lib/file-storage';
 import { MAX_STARTUP_LOGO_BYTES, STARTUP_LOGO_MIME_TYPES, type StartupProfile } from '@/lib/startup-profile';
+import { syncStartupProfileToRegistry } from '@/lib/incubation/startup-registry-sync';
 
 const optionalUrl = z.union([z.literal(''), z.string().trim().max(300).url('Enter a full link starting with https://')]).optional();
 
@@ -127,7 +128,6 @@ export async function POST(request: Request) {
             cardPhone: m.cardPhone || phone,
             cardSlug: slug,
             cardEnabled: true,
-            ...(startupProfile ? { startupProfile } : {}),
           };
           return activatedMember;
         }
@@ -139,6 +139,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'The account this link belongs to no longer exists.' }, { status: 404 });
     }
 
+    // Synchronize startup profile into Startup Registry (Phase 1 Incubator master record)
+    let linkedStartup: any = null;
+    if (targetMember?.tier === 4 && startupProfile) {
+      try {
+        const syncResult = await syncStartupProfileToRegistry({
+          memberId: targetMember.id,
+          profile: startupProfile,
+          phone,
+          actorId: targetMember.id,
+        });
+        linkedStartup = syncResult.startup;
+        activatedMember = syncResult.member || activatedMember;
+      } catch (syncErr) {
+        console.error('[activate-account] Error syncing startup to registry:', syncErr);
+      }
+    }
+
     await mutateCollection('accountActivations', (current) => (current || []).filter((a: any) => a.memberId !== matched.memberId));
 
     await mutateCollection('auditLogs', (current) => [
@@ -146,7 +163,7 @@ export async function POST(request: Request) {
         id: `audit-${Date.now()}`,
         action: 'ACCOUNT_ACTIVATED',
         user: memberName,
-        details: `${memberName} activated their account and set a password.`,
+        details: `${memberName} activated their account and set a password.${linkedStartup ? ` Linked to startup registry ${linkedStartup.id} ("${linkedStartup.name}").` : ''}`,
         timestamp: new Date().toISOString(),
       },
       ...(current || []),
@@ -163,7 +180,9 @@ export async function POST(request: Request) {
         phone: activatedMember?.phone,
         cardSlug: activatedMember?.cardSlug,
         tier: activatedMember?.tier,
-        startupProfile: activatedMember?.startupProfile,
+        startupId: linkedStartup?.id || activatedMember?.startupId,
+        startup: linkedStartup,
+        startupProfile,
       },
     });
   } catch (err: any) {

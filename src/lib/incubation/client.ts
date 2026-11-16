@@ -1,6 +1,8 @@
 import { authHeaders } from '../local-data';
 import type { IncubationSettings, Startup } from './types';
 
+export type { Startup };
+
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { cache: 'no-store', ...init, headers: authHeaders({ 'Content-Type': 'application/json' }) });
   const data = await res.json().catch(() => null);

@@ -6,6 +6,7 @@ import { recordAuthFailure, recordAuthSuccess, checkAccountBackoff } from '@/lib
 import { resolveDevice, deviceJson, checkDeviceGuard, recordDeviceFailure, recordDeviceSuccess, lockMessage } from '@/lib/device-security';
 import { parseJsonBody } from '@/lib/validation';
 import { apiError } from '@/lib/api-error';
+import { getStartupForMemberServer, mapStartupToProfile } from '@/lib/incubation/startup-registry-sync';
 
 // Same message for "no account" and "wrong password" — a distinct message
 // for each lets anyone probe which emails have accounts on this system
@@ -102,6 +103,21 @@ export async function POST(request: Request) {
     await recordDeviceSuccess(device, trimmedEmail, { trust: true });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stripped from the response on purpose
     const { passwordHash, ...safeUser } = matchedUser;
+
+    // For startup accounts (tier 4), load all startup company data directly from the Startup Registry
+    if (matchedUser.tier === 4 || matchedUser.startupId || matchedUser.role?.toLowerCase().includes('startup')) {
+      try {
+        const startup = await getStartupForMemberServer(matchedUser);
+        if (startup) {
+          safeUser.startup = startup;
+          safeUser.startupId = startup.id;
+          safeUser.startupProfile = mapStartupToProfile(startup);
+        }
+      } catch (startupErr) {
+        console.error('[login-api] Could not load startup registry info for user:', startupErr);
+      }
+    }
+
     const token = await createSession(matchedUser.id);
     return reply({ user: safeUser, token });
   } catch (err: any) {
