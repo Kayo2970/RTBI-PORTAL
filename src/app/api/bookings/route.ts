@@ -17,7 +17,7 @@ function fmtRange(start: string, end: string): string {
 
 export async function GET(request: Request) {
   try {
-    const actor = await requireSession(request);
+    const actor = await requireSession(request, { allowNonSuperUser: true });
     const all = await readCollection<Booking>('bookings');
     if (isStaffTier(actor)) return NextResponse.json(all);
     // Everyone sees which room is booked, when, by which startup, and the purpose
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const actor = await requireSession(request);
+    const actor = await requireSession(request, { allowNonSuperUser: true });
     const b = await request.json();
     const rooms = await readCollection<Room>('rooms');
     const room = rooms.find(r => r.id === b.roomId);

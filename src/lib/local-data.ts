@@ -17,6 +17,7 @@ import {
   getExpenseHeadLabel,
   getFinancialYearForDate,
 } from './finance';
+import { Booking, Room, DEFAULT_ROOMS } from './billing';
 
 // -------------------------------------------------------------
 // Session token — attached to every authenticated API call so the server
@@ -1443,6 +1444,8 @@ async function doSyncWithServer(): Promise<boolean> {
         hydrateIfStale('rtbi_approval_requests', data.approvalRequests, requestStartedAt),
         hydrateIfStale('rtbi_event_passes', data.event_passes || data.eventPasses, requestStartedAt),
         hydrateIfStale('rtbi_event_reports', data.eventReports, requestStartedAt),
+        hydrateIfStale('rtbi_bookings', data.bookings, requestStartedAt),
+        hydrateIfStale('rtbi_rooms', data.rooms, requestStartedAt),
       ];
       const changed = hydrated.some(Boolean);
       // Notify every open page in this tab to re-read localStorage and re-render.
@@ -4471,6 +4474,47 @@ export function getClientRegister(): ClientRecord[] {
     if (b.lastBilledAt) return 1;
     return a.name.localeCompare(b.name);
   });
+}
+
+export function getBookings(): Booking[] {
+  return readLocalArray<Booking>('rtbi_bookings');
+}
+
+export function saveBookings(bookings: Booking[]): void {
+  writeLocalArray('rtbi_bookings', bookings);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
+    window.dispatchEvent(new CustomEvent('leads-data-sync'));
+  }
+}
+
+export function getRooms(): Room[] {
+  const rooms = readLocalArray<Room>('rtbi_rooms');
+  return rooms.length > 0 ? rooms : DEFAULT_ROOMS;
+}
+
+export function saveRooms(rooms: Room[]): void {
+  writeLocalArray('rtbi_rooms', rooms);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
+    window.dispatchEvent(new CustomEvent('leads-data-sync'));
+  }
+}
+
+export async function refreshBookingsFromServer(): Promise<Booking[]> {
+  if (typeof window === 'undefined') return [];
+  try {
+    const res = await fetch('/api/bookings', { cache: 'no-store', headers: authHeaders() });
+    if (!res.ok) return getBookings();
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      writeLocalArray('rtbi_bookings', data);
+      return data;
+    }
+  } catch (err) {
+    console.warn('[bookings] Failed to refresh bookings:', err);
+  }
+  return getBookings();
 }
 
 export function getInvoices(): InvoiceItem[] {

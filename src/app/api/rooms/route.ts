@@ -8,7 +8,7 @@ import { Room, DEFAULT_ROOMS } from '@/lib/billing';
 
 export async function GET(request: Request) {
   try {
-    await requireSession(request);
+    await requireSession(request, { allowNonSuperUser: true });
     let rooms = await readCollection<Room>('rooms');
     if (!rooms || rooms.length === 0) {
       await mutateCollection<Room>('rooms', () => DEFAULT_ROOMS);

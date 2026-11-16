@@ -17,6 +17,8 @@ import {
 import {
   getEvents,
   getTasks,
+  getBookings,
+  refreshBookingsFromServer,
   getEffectiveEventStatus,
   formatEventDateRange,
   hasEventPlanningPhase,
@@ -42,6 +44,18 @@ function formatTimeRange(start: string, end: string): string {
   return `${formatTime12(start)} – ${formatTime12(end)}`;
 }
 
+function getBookingLocalDateStr(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  } catch {
+    return iso ? iso.slice(0, 10) : '';
+  }
+}
+
 export interface CalendarFilterState {
   bookings: boolean;
   events: boolean;
@@ -51,9 +65,9 @@ export interface CalendarFilterState {
 }
 
 export default function CalendarPage() {
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [events, setEvents] = useState<EventItem[]>(() => getEvents());
+  const [tasks, setTasks] = useState<TaskItem[]>(() => getTasks());
+  const [bookings, setBookings] = useState<Booking[]>(() => getBookings());
   const [user, setUser] = useState<any>(null);
 
   // Multi-select tick list filter state
@@ -94,17 +108,19 @@ export default function CalendarPage() {
   useEffect(() => { fetchIncubationCalendar().then(setIncubationItems).catch(() => setIncubationItems([])); }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     const refreshData = async () => {
       setEvents(getEvents());
       setTasks(getTasks());
+      setBookings(getBookings());
       try {
-        const res = await fetch('/api/bookings');
-        if (res.ok) {
-          const data = await res.json();
-          setBookings(Array.isArray(data) ? data : []);
+        const fresh = await refreshBookingsFromServer();
+        if (mounted && Array.isArray(fresh)) {
+          setBookings(fresh);
         }
       } catch (e) {
-        console.error(e);
+        console.error('Failed to refresh bookings for calendar:', e);
       }
     };
     refreshData();
@@ -119,9 +135,12 @@ export default function CalendarPage() {
     }
 
     window.addEventListener('rtbi-data-sync', refreshData);
+    window.addEventListener('leads-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
+      mounted = false;
       window.removeEventListener('rtbi-data-sync', refreshData);
+      window.removeEventListener('leads-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, []);
@@ -191,12 +210,14 @@ export default function CalendarPage() {
     const checkStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return bookings.filter((b) => {
       if (b.status !== 'Confirmed') return false;
-      if (b.start.slice(0, 10) !== checkStr) return false;
+      const localDateStr = getBookingLocalDateStr(b.start);
+      const utcDateStr = b.start ? b.start.slice(0, 10) : '';
+      if (localDateStr !== checkStr && utcDateStr !== checkStr) return false;
       if (filters.roomFilter === 'boardroom') {
-        return b.roomName.toLowerCase().includes('board');
+        return b.roomName?.toLowerCase().includes('board') ?? false;
       }
       if (filters.roomFilter === 'meeting') {
-        return b.roomName.toLowerCase().includes('meeting');
+        return b.roomName?.toLowerCase().includes('meeting') ?? false;
       }
       return true;
     });
@@ -224,10 +245,10 @@ export default function CalendarPage() {
         if (b.status !== 'Confirmed') return false;
         if (new Date(b.end).getTime() <= nowMs) return false;
         if (filters.roomFilter === 'boardroom') {
-          return b.roomName.toLowerCase().includes('board');
+          return b.roomName?.toLowerCase().includes('board') ?? false;
         }
         if (filters.roomFilter === 'meeting') {
-          return b.roomName.toLowerCase().includes('meeting');
+          return b.roomName?.toLowerCase().includes('meeting') ?? false;
         }
         return true;
       })

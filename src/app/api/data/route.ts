@@ -20,6 +20,8 @@ import { GET as invoicesGET } from '../invoices/route';
 import { GET as incomeSourcesGET } from '../income-sources/route';
 import { GET as auditLogsGET } from '../auditlogs/route';
 import { GET as approvalRequestsGET } from '../approval-requests/route';
+import { GET as bookingsGET } from '../bookings/route';
+import { GET as roomsGET } from '../rooms/route';
 
 /**
  * GET /api/data — the aggregate the client polls (syncWithServer in src/lib/local-data.ts) to hydrate its localStorage collections.
@@ -53,6 +55,8 @@ const SOURCES: Record<string, (request: Request) => Promise<Response>> = {
   incomeSources: incomeSourcesGET,
   auditLogs: auditLogsGET,
   approvalRequests: approvalRequestsGET,
+  bookings: bookingsGET,
+  rooms: roomsGET,
 };
 
 export async function GET(request: Request) {

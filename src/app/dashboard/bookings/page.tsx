@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { api, readStoredUser } from '@/lib/billing-client';
 import { canManageRooms } from '@/lib/permissions';
+import { getBookings, saveBookings, saveRooms } from '@/lib/local-data';
 import { Room, Booking, rangesOverlap, formatINR, DEFAULT_ROOMS } from '@/lib/billing';
 import {
   Field,
@@ -153,8 +154,12 @@ export default function BookingsPage() {
   const load = useCallback(async () => {
     try {
       const [r, b] = await Promise.all([api<Room[]>('/api/rooms'), api<Booking[]>('/api/bookings')]);
-      setRooms(r && r.length > 0 ? r : DEFAULT_ROOMS);
-      setBookings(b || []);
+      const activeRooms = r && r.length > 0 ? r : DEFAULT_ROOMS;
+      setRooms(activeRooms);
+      saveRooms(activeRooms);
+      const freshBookings = b || [];
+      setBookings(freshBookings);
+      saveBookings(freshBookings);
     } catch (e: any) {
       setMsg({ kind: 'error', text: e.message });
     } finally {
@@ -168,9 +173,11 @@ export default function BookingsPage() {
 
     const handleSync = () => load();
     window.addEventListener('rtbi-data-sync', handleSync);
+    window.addEventListener('leads-data-sync', handleSync);
     window.addEventListener('storage', handleSync);
     return () => {
       window.removeEventListener('rtbi-data-sync', handleSync);
+      window.removeEventListener('leads-data-sync', handleSync);
       window.removeEventListener('storage', handleSync);
     };
   }, [load]);
@@ -196,7 +203,10 @@ export default function BookingsPage() {
     try {
       const r = await api<{ invoiceNote?: string }>(`/api/bookings/${b.id}`, 'PATCH', { action: 'cancel' });
       setMsg({ kind: 'ok', text: 'Booking cancelled.' + (r.invoiceNote ? ' ' + r.invoiceNote : '') });
+      const current = getBookings();
+      saveBookings(current.map(x => (x.id === b.id ? { ...x, status: 'Cancelled' as const } : x)));
       window.dispatchEvent(new CustomEvent('rtbi-data-sync'));
+      window.dispatchEvent(new CustomEvent('leads-data-sync'));
       await load();
     } catch (e: any) {
       setMsg({ kind: 'error', text: e.message });
@@ -947,7 +957,7 @@ function BookingModal({
 
     setBusy(true);
     try {
-      await api<Booking>('/api/bookings', 'POST', {
+      const created = await api<Booking>('/api/bookings', 'POST', {
         roomId: selectedRoom.id,
         start: startIso,
         end: endIso,
@@ -956,6 +966,11 @@ function BookingModal({
         attendees: attendees ? Number(attendees) : undefined,
         organisation: startupName,
       });
+
+      if (created) {
+        const current = getBookings();
+        saveBookings([created, ...current.filter(x => x.id !== created.id)]);
+      }
 
       onDone(
         `${selectedRoom.name} booked successfully for ${formatDateHuman(date)} from ${formatTime12(

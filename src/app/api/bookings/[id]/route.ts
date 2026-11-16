@@ -9,7 +9,7 @@ import type { Booking, Invoice, Payment } from '@/lib/billing';
 /** PATCH { action: 'cancel' } — the booker (before it starts) or any staff member. */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const actor = await requireSession(request);
+    const actor = await requireSession(request, { allowNonSuperUser: true });
     const { id } = await params;
     const body = await request.json();
     if (body.action !== 'cancel') bad('Unsupported action.');

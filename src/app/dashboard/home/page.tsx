@@ -23,6 +23,8 @@ import {
   getMembers,
   getRatings,
   getAnnouncements,
+  getBookings,
+  refreshBookingsFromServer,
   updateTaskStatus,
   updateTaskStatusAsync,
   getStudentLeaderboard,
@@ -97,8 +99,8 @@ export default function DashboardHome() {
       setLastUpdatedAt(new Date());
 
       // Fetch confirmed room/facility bookings for the upcoming TBI schedule
-      fetch('/api/bookings')
-        .then((res) => (res.ok ? res.json() : []))
+      setBookings(getBookings());
+      refreshBookingsFromServer()
         .then((data) => {
           if (Array.isArray(data)) {
             setBookings(data);
@@ -120,9 +122,11 @@ export default function DashboardHome() {
     }
 
     window.addEventListener('rtbi-data-sync', refreshData);
+    window.addEventListener('leads-data-sync', refreshData);
     window.addEventListener('storage', refreshData);
     return () => {
       window.removeEventListener('rtbi-data-sync', refreshData);
+      window.removeEventListener('leads-data-sync', refreshData);
       window.removeEventListener('storage', refreshData);
     };
   }, []);
