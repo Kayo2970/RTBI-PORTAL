@@ -1328,9 +1328,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <div className="fixed inset-0 pointer-events-none -z-10 opacity-60 dark:opacity-90 transition-opacity duration-500 overflow-hidden">
         <AcidSquaresBackground
           isDark={isDarkTheme}
-          color="#120f17"
-          accentColor="#ff4fb8"
-          secondaryColor="#3b6bff"
           tileSize={1}
           gap={0.12}
           roundness={0.25}
@@ -1339,7 +1336,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           pulse={1}
           lighting="split"
           tilt={0.7}
-          grain={0.12}
+          grain={0.08}
           intro={true}
           mouseInteraction={true}
         />

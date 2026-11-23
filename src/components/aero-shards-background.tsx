@@ -18,14 +18,14 @@ export interface AeroShardsBackgroundProps extends AcidSquaresBackgroundProps {
 
 /**
  * AeroShardsBackground wrapper
- * Updated to render AcidSquares from React Bits as the system background.
+ * Updated to render AcidSquares from React Bits matching the RTBI Portal interface colors.
  */
 export function AeroShardsBackground({
   isDark = true,
   className = '',
-  color = '#120f17',
-  accentColor = '#ff4fb8',
-  secondaryColor = '#3b6bff',
+  color,
+  accentColor,
+  secondaryColor,
   tileSize = 1,
   gap = 0.12,
   roundness = 0.25,
@@ -34,7 +34,7 @@ export function AeroShardsBackground({
   pulse = 1,
   lighting = 'split',
   tilt = 0.7,
-  grain = 0.12,
+  grain = 0.08,
   intro = true,
   mouseInteraction = true,
   pulseOnClick = true,

@@ -167,9 +167,6 @@ function ActivateAccountForm() {
     <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8 relative z-0 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
         <AcidSquaresBackground
-          color="#120f17"
-          accentColor="#ff4fb8"
-          secondaryColor="#3b6bff"
           tileSize={1}
           gap={0.12}
           roundness={0.25}
@@ -178,7 +175,7 @@ function ActivateAccountForm() {
           pulse={1}
           lighting="split"
           tilt={0.7}
-          grain={0.12}
+          grain={0.08}
           intro={true}
           mouseInteraction={true}
         />

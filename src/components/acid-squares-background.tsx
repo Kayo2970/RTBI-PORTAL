@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { AcidSquaresProps } from '@/components/AcidSquares';
 
@@ -13,14 +13,15 @@ export interface AcidSquaresBackgroundProps extends Partial<AcidSquaresProps> {
 
 /**
  * AcidSquares Background Component from React Bits
- * Features 3D WebGL2 responsive grid with wave swells, interactive ripple pulses, and dynamic split lighting.
+ * Configured to match the official Ramaiah Technology Business Incubator (RTBI) Portal theme:
+ * Deep Royal Plum (#160B2C), Vibrant Vermilion Accent (#E34A21), and Royal Purple Highlights (#6B2D8C).
  */
 export function AcidSquaresBackground({
-  isDark = true,
+  isDark: isDarkProp,
   className = '',
-  color = '#120f17',
-  accentColor = '#ff4fb8',
-  secondaryColor = '#3b6bff',
+  color,
+  accentColor,
+  secondaryColor,
   tileSize = 1,
   gap = 0.12,
   roundness = 0.25,
@@ -29,21 +30,50 @@ export function AcidSquaresBackground({
   pulse = 1,
   lighting = 'split',
   tilt = 0.7,
-  grain = 0.12,
+  grain = 0.08,
   intro = true,
   mouseInteraction = true,
   pulseOnClick = true,
   ...rest
 }: AcidSquaresBackgroundProps) {
-  const effectiveColor = !isDark ? '#e8e5ef' : color;
-  const effectiveLightMode = !isDark;
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof isDarkProp === 'boolean') return isDarkProp;
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (typeof isDarkProp === 'boolean') {
+      setIsDarkMode(isDarkProp);
+      return;
+    }
+    const updateTheme = () => {
+      if (typeof document !== 'undefined') {
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
+      }
+    };
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [isDarkProp]);
+
+  // Exact matching colors from globals.css:
+  // Dark: --background is #160B2C, --accent is #E34A21, --color-primary is #361C6A (with #6B2D8C for specular light)
+  // Light: --background is #FAF6EF, --accent is #E34A21, --color-primary is #361C6A
+  const effectiveColor = color ?? (isDarkMode ? '#160B2C' : '#FAF6EF');
+  const effectiveAccent = accentColor ?? '#E34A21';
+  const effectiveSecondary = secondaryColor ?? (isDarkMode ? '#6B2D8C' : '#361C6A');
+  const effectiveLightMode = !isDarkMode;
 
   return (
     <div className={`w-full h-full relative overflow-hidden ${className}`}>
       <AcidSquares
         color={effectiveColor}
-        accentColor={accentColor}
-        secondaryColor={secondaryColor}
+        accentColor={effectiveAccent}
+        secondaryColor={effectiveSecondary}
         tileSize={tileSize}
         gap={gap}
         roundness={roundness}

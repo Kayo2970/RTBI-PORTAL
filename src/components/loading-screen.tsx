@@ -31,9 +31,6 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
       {/* Background Animated AcidSquares WebGL2 Canvas */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-80 dark:opacity-95">
         <AcidSquaresBackground
-          color="#120f17"
-          accentColor="#ff4fb8"
-          secondaryColor="#3b6bff"
           tileSize={1}
           gap={0.12}
           roundness={0.25}
@@ -42,7 +39,7 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
           pulse={1}
           lighting="split"
           tilt={0.7}
-          grain={0.12}
+          grain={0.08}
           intro={true}
           mouseInteraction={true}
         />

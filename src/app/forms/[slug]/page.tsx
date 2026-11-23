@@ -205,9 +205,6 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="absolute -bottom-24 left-1/4 h-96 w-96 rounded-full bg-amber-400/50 blur-3xl" />
       <div className="absolute bottom-1/4 -left-16 h-72 w-72 rounded-full bg-emerald-400/40 blur-3xl" />
       <AcidSquaresBackground
-        color="#120f17"
-        accentColor="#ff4fb8"
-        secondaryColor="#3b6bff"
         tileSize={1}
         gap={0.12}
         roundness={0.25}
@@ -216,7 +213,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
         pulse={1}
         lighting="split"
         tilt={0.7}
-        grain={0.12}
+        grain={0.08}
         intro={true}
         mouseInteraction={true}
       />
