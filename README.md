@@ -1,4 +1,4 @@
-# RTBI Portal
+# Ramaiah Technology Business Incubator Portal
 
 The official enterprise portal for the **Ramaiah Technology Business Incubator (RTBI)**. Built with Next.js 16 (App Router), React 19, TypeScript, and Tailwind CSS, backed by an AES-256-GCM encrypted file datastore.
 

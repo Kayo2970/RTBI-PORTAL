@@ -200,7 +200,7 @@ const SEED_DB: DbSchema = {
       secure: false,
       authUser: 'portal@example.com',
       authPass: '',
-      fromName: 'RTBI Portal',
+      fromName: 'Ramaiah Technology Business Incubator Portal',
       fromEmail: 'portal@example.com',
       replyTo: 'portal@example.com',
       updatedAt: new Date().toISOString()

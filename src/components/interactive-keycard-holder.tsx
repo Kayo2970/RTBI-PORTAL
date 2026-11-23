@@ -76,7 +76,7 @@ export function InteractiveKeycardHolder({
   serialNumber,
   accessLevel = 'Executive & Alumni Fellow (Tier 1)',
   validityPeriod,
-  issuingAuthority = 'RTBI Portal',
+  issuingAuthority = 'Ramaiah Technology Business Incubator Portal',
   cardUrl,
   qrUrl = '/card/rtbi-qr-code.png',
   fontScale = 1,
@@ -540,7 +540,7 @@ export function InteractiveKeycardHolder({
                         <div className={styles.eventBrandWrap}>
                           <img src={cardLogo} alt="RTBI Logo" className={styles.eventBrandLogo} />
                           <div className={styles.eventBrandText}>
-                            <span className={styles.eventBrandTitle}>{brandHeader || 'RTBI Portal'}</span>
+                            <span className={styles.eventBrandTitle}>{brandHeader || 'Ramaiah Technology Business Incubator Portal'}</span>
                             <span className={styles.eventBrandSubtitle}>RUAS Executive Credential</span>
                           </div>
                         </div>
@@ -611,7 +611,7 @@ export function InteractiveKeycardHolder({
                         <span>Tap to Flip for Pass Terms & Security Protocol</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '8px', color: '#B8AEC8' }}>
-                        <span>💳 {issuingAuthority || 'RTBI Portal • RUAS'}</span>
+                        <span>💳 {issuingAuthority || 'Ramaiah Technology Business Incubator Portal • RUAS'}</span>
                         <span>SECURE CREDENTIAL</span>
                       </div>
                     </div>
@@ -752,7 +752,7 @@ export function InteractiveKeycardHolder({
             {/* Front Side: True Physical Blind Debossed Leather Logo */}
             <div className={styles.coverFront}>
               <div className={styles.coverStitch} />
-              <div className={styles.debossedLeatherMark} aria-label="RTBI Portal">
+              <div className={styles.debossedLeatherMark} aria-label="Ramaiah Technology Business Incubator Portal">
                 <div className={styles.debossCavity} />
                 <div className={styles.debossShadowBevel} />
                 <div className={styles.debossHighlightBevel} />

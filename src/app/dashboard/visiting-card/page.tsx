@@ -630,7 +630,7 @@ export default function VisitingCardPage() {
                 photoUrl={cardPhotoPreviewUrl || cardPhotoUrl || user?.avatarUrl}
                 serialNumber={cardSlug ? `RTBI-DIR-${cardSlug.toUpperCase()}` : 'RTBI-DIR-2026-99'}
                 accessLevel={user?.division === 'Faculty' ? 'Faculty & Academic Leadership' : user?.tier === 1 ? 'Executive Super User (Tier 1)' : 'Core Committee & Executive Fellow'}
-                issuingAuthority="RTBI Portal • RUAS"
+                issuingAuthority="Ramaiah Technology Business Incubator Portal • RUAS"
                 joinDate={user?.createdAt}
                 tier={user?.tier}
                 cardUrl={cardPublicUrl}

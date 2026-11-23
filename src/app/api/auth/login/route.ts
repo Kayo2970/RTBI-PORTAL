@@ -72,8 +72,8 @@ export async function POST(request: Request) {
       return reply(
         {
           error: terminatedDate
-            ? `You have been terminated from RTBI Portal effective ${terminatedDate}. You have lost access to the portal. Contact your Administrator if you believe this is a mistake.`
-            : 'You have been terminated from RTBI Portal and have lost access to the portal. Contact your Administrator if you believe this is a mistake.',
+            ? `You have been terminated from Ramaiah Technology Business Incubator Portal effective ${terminatedDate}. You have lost access to the portal. Contact your Administrator if you believe this is a mistake.`
+            : 'You have been terminated from Ramaiah Technology Business Incubator Portal and have lost access to the portal. Contact your Administrator if you believe this is a mistake.',
         },
         403
       );

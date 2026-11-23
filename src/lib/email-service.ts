@@ -193,7 +193,7 @@ export const DEFAULT_EMAIL_SETTINGS: EmailSettings = {
   secure: false,
   authUser: process.env.ANNOUNCEMENT_FROM_EMAIL || 'portal@example.com',
   authPass: process.env.SMTP_PASS || '',
-  fromName: process.env.ANNOUNCEMENT_FROM_NAME || 'RTBI Portal',
+  fromName: process.env.ANNOUNCEMENT_FROM_NAME || 'Ramaiah Technology Business Incubator Portal',
   fromEmail: process.env.ANNOUNCEMENT_FROM_EMAIL || 'portal@example.com',
   replyTo: process.env.ANNOUNCEMENT_FROM_EMAIL || 'portal@example.com',
   updatedAt: new Date().toISOString(),
@@ -396,7 +396,7 @@ export function wrapInMasterEmailTemplate(options: {
 
         <!-- Standardized Institutional Footer -->
         <div style="background-color: #FEF7F6; border-top: 1px solid #E9E2F0; padding: 20px 28px; text-align: center; font-size: 11px; color: #76648B; line-height: 1.6;">
-          <p style="margin: 0 0 6px 0; color: #574769; font-weight: 600;">© 2026 RTBI Portal &middot; MSRUAS Internal Operations Portal</p>
+          <p style="margin: 0 0 6px 0; color: #574769; font-weight: 600;">© 2026 Ramaiah Technology Business Incubator Portal &middot; MSRUAS Internal Operations Portal</p>
           <p style="margin: 0 0 6px 0; color: #A594B8;">This is an automated operational notice. Authorised recipient access only.</p>
           <div style="border-top: 1px solid #E9E2F0; padding-top: 8px; margin-top: 8px; color: #76648B; font-size: 10px;">
             All Intellectual Property, Copyrights & Licensing belong exclusively to <strong style="color: #CC3D19;">Kayomarz Pavri</strong>.
@@ -468,7 +468,7 @@ export async function testEmailConnection(testRecipient: string, draftSettings?:
     const { transporter: t, settings, effectiveHost, effectivePort } = await buildTransporter(effectiveSettings);
     await t.verify();
 
-    const from = `${settings.fromName || 'RTBI Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
+    const from = `${settings.fromName || 'Ramaiah Technology Business Incubator Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
 
     const bodyHtml = wrapInMasterEmailTemplate({
       pageTitle: `[RTBI Test Email] SMTP Client Verification`,
@@ -477,7 +477,7 @@ export async function testEmailConnection(testRecipient: string, draftSettings?:
       badgeText: `SMTP Operational`,
       badgeColor: `#15803d`,
       bodyContentHtml: `
-        <p style="margin-top: 0; color: #1C0F2A; font-weight: 600;">Your RTBI Portal email client and SMTP server settings are operational.</p>
+        <p style="margin-top: 0; color: #1C0F2A; font-weight: 600;">Your Ramaiah Technology Business Incubator Portal email client and SMTP server settings are operational.</p>
         <div style="background: #ffffff; border: 1px solid #E9E2F0; padding: 14px 18px; border-radius: 10px; margin: 16px 0; font-size: 12px;">
           <p style="margin: 0 0 6px 0; color: #76648B;"><strong>Service Provider:</strong> <span style="color: #CC3D19; font-weight: 700;">${settings.provider.toUpperCase()}</span></p>
           <p style="margin: 0 0 6px 0; color: #76648B;"><strong>SMTP Host & Port:</strong> <span style="color: #1C0F2A; font-family: monospace;">${effectiveHost}:${effectivePort}</span></p>
@@ -491,7 +491,7 @@ export async function testEmailConnection(testRecipient: string, draftSettings?:
       from,
       to: testRecipient,
       subject: `[RTBI Test Email] SMTP Client Verification`,
-      text: `Hello,\n\nThis is a test notification verifying that your RTBI Portal email client and SMTP server (${settings.provider.toUpperCase()} @ ${effectiveHost}) are properly configured and operational.\n\nSent at: ${new Date().toLocaleString()}`,
+      text: `Hello,\n\nThis is a test notification verifying that your Ramaiah Technology Business Incubator Portal email client and SMTP server (${settings.provider.toUpperCase()} @ ${effectiveHost}) are properly configured and operational.\n\nSent at: ${new Date().toLocaleString()}`,
       html: bodyHtml,
       xMailer: false,
     });
@@ -632,7 +632,7 @@ async function executeSmtpSend(payload: SendEmailPayload): Promise<{
   try {
     const { transporter: t, settings } = await buildTransporter();
     transporter = t;
-    const from = `${settings.fromName || 'RTBI Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
+    const from = `${settings.fromName || 'Ramaiah Technology Business Incubator Portal'} <${settings.fromEmail || 'portal@example.com'}>`;
     const domain = (settings.fromEmail || 'portal.example.com').split('@')[1] || 'portal.example.com';
     const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2, 9)}@${domain}>`;
 
@@ -974,7 +974,7 @@ export async function getBufferedEmails(): Promise<Array<{
 /**
  * Universal Outgoing Email Dispatcher
  *
- * ALL outgoing emails across the RTBI Portal (announcements, passes, invitations,
+ * ALL outgoing emails across the Ramaiah Technology Business Incubator Portal (announcements, passes, invitations,
  * group policy grants, approvals, direct broadcasts, reports, etc.) enter the
  * 10-minute quiet buffer before being dispatched to recipients.
  *
@@ -1138,7 +1138,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     : '';
 
   const bodyText = `Dear ${memberName},\n\n` +
-    `You have been allotted special access privileges in the RTBI Portal ERP under Group Policy: "${policy.name}" (${policy.tag}).\n\n` +
+    `You have been allotted special access privileges in the Ramaiah Technology Business Incubator Portal ERP under Group Policy: "${policy.name}" (${policy.tag}).\n\n` +
     `AUTHORITY & GRANT DETAILS:\n` +
     `- Allotted By: ${allottedByName}\n` +
     `- Access Duration: ${validityText}\n` +
@@ -1173,7 +1173,7 @@ export function generateGroupPolicyGrantEmailTemplate(
       Dear ${escapeHtml(memberName)},
     </p>
     <p style="color: #422C5C; font-size: 13px; line-height: 1.6;">
-      You have been granted special access permissions in the RTBI Portal ERP under Group Policy: <strong>${escapeHtml(policy.name)}</strong> (<code style="background: #FDF0EC; padding: 2px 5px; border-radius: 4px; color: #EA7153;">${escapeHtml(policy.tag)}</code>).
+      You have been granted special access permissions in the Ramaiah Technology Business Incubator Portal ERP under Group Policy: <strong>${escapeHtml(policy.name)}</strong> (<code style="background: #FDF0EC; padding: 2px 5px; border-radius: 4px; color: #EA7153;">${escapeHtml(policy.tag)}</code>).
     </p>
 
     <!-- Authority & Validity Notice Card -->
@@ -1218,7 +1218,7 @@ export function generateGroupPolicyGrantEmailTemplate(
     <!-- Call to action button -->
     <div style="text-align: center; margin: 28px 0 16px;">
       <a href="${dashboardUrl}" target="_blank" style="display: inline-block; background: #EA7153; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 10px; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px rgba(234, 113, 83, 0.25);">
-        Open RTBI Portal &rarr;
+        Open Ramaiah Technology Business Incubator Portal &rarr;
       </a>
     </div>
 
@@ -1255,12 +1255,12 @@ export function resolvePolicyRecipients(policy: any, members: any[]): Array<{ id
 }
 
 export function generateOtpEmailTemplate(name: string, otp: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `RTBI Portal Security Code: ${otp}`;
+  const subject = `Ramaiah Technology Business Incubator Portal Security Code: ${otp}`;
   const bodyText = `Hello ${name},\n\n` +
-    `You requested a password reset for your RTBI Portal account.\n\n` +
+    `You requested a password reset for your Ramaiah Technology Business Incubator Portal account.\n\n` +
     `Verification Code: ${otp}\n\n` +
     `This code is valid for 5 minutes. If you did not request this code, please ignore this email.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
@@ -1270,7 +1270,7 @@ export function generateOtpEmailTemplate(name: string, otp: string): { subject: 
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You requested a password reset for your RTBI Portal account. Use the verification code below to complete your password update:</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You requested a password reset for your Ramaiah Technology Business Incubator Portal account. Use the verification code below to complete your password update:</p>
 
       <div style="text-align: center; margin: 28px 0;">
         <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1C0F2A; background: #FEF7F6; border: 1px solid #D5CBE1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
@@ -1296,11 +1296,11 @@ export function generateOtpEmailTemplate(name: string, otp: string): { subject: 
  * clicked from an inbox rather than typed in.
  */
 export function generateWelcomeActivationEmailTemplate(name: string, activationLink: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `RTBI Portal Account Activation: ${name}`;
+  const subject = `Ramaiah Technology Business Incubator Portal Account Activation: ${name}`;
   const bodyText = `Hello ${name},\n\n` +
-    `An account has been created for you on the RTBI Portal Operations Dashboard.\n\n` +
+    `An account has been created for you on the Ramaiah Technology Business Incubator Portal Operations Dashboard.\n\n` +
     `Set your password and activate your account:\n${activationLink}\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
@@ -1310,7 +1310,7 @@ export function generateWelcomeActivationEmailTemplate(name: string, activationL
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have been added to the RTBI Portal roster. Select the link below to set your account password:</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have been added to the Ramaiah Technology Business Incubator Portal roster. Select the link below to set your account password:</p>
 
       <div style="text-align: center; margin: 28px 0;">
         <a href="${activationLink}" style="display: inline-block; background: #CC3D19; color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none;">
@@ -1340,26 +1340,26 @@ export function generateNewMemberWelcomeTemplate(member: {
   const departmentStr = member.department ? ` (${member.department})` : '';
   const baseUrl = getAppBaseUrl();
 
-  const subject = `RTBI Portal Account Created: ${member.name}`;
+  const subject = `Ramaiah Technology Business Incubator Portal Account Created: ${member.name}`;
   const bodyText = `Hello ${member.name},\n\n` +
-    `Welcome to RTBI Portal. You have officially been registered as a member on the RTBI Operations Dashboard.\n\n` +
+    `Welcome to Ramaiah Technology Business Incubator Portal. You have officially been registered as a member on the RTBI Operations Dashboard.\n\n` +
     `Account Summary:\n` +
     `• Designation / Role: ${roleStr}\n` +
     `• Division: ${divisionStr}${departmentStr}\n` +
     `• Registered Email: ${member.email}\n\n` +
     `Password Setup:\n` +
     `When you log in for the first time at ${baseUrl} using your email (${member.email}), you will be prompted directly to set your password.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
-    headerTitle: `Welcome to RTBI Portal`,
+    headerTitle: `Welcome to Ramaiah Technology Business Incubator Portal`,
     headerSubtitle: `Member Registration Notice`,
     badgeText: `Official Notice`,
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${member.name}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have officially been registered as a member of <strong>RTBI Portal</strong>. Here are your onboarding details:</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">You have officially been registered as a member of <strong>Ramaiah Technology Business Incubator Portal</strong>. Here are your onboarding details:</p>
 
       <div style="background: #FEF7F6; border: 1px solid #E9E2F0; border-left: 4px solid #CC3D19; padding: 18px 22px; border-radius: 10px; margin: 20px 0; font-size: 13px;">
         <p style="margin: 0 0 8px 0; color: #76648B;"><strong>Designation / Role:</strong> <span style="color: #1C0F2A; font-weight: 700; font-size: 14px;">${roleStr}</span></p>
@@ -1389,12 +1389,12 @@ export function generateNewMemberWelcomeTemplate(member: {
  * Template Generator: Email Change Confirmation OTP.
  */
 export function generateEmailChangeOtpTemplate(name: string, otp: string, newEmail: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `RTBI Portal Email Verification Code: ${otp}`;
+  const subject = `Ramaiah Technology Business Incubator Portal Email Verification Code: ${otp}`;
   const bodyText = `Hello ${name},\n\n` +
     `A request was made to update your login email to: ${newEmail}\n\n` +
     `Verification Code: ${otp}\n\n` +
     `Valid for 5 minutes. If you did not request this, please ignore this email.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
@@ -1428,12 +1428,12 @@ export function generateEmailChangeOtpTemplate(name: string, otp: string, newEma
  * with this account before.
  */
 export function generateNewEmailConfirmationOtpTemplate(name: string, otp: string, oldEmail: string): { subject: string; bodyText: string; bodyHtml: string } {
-  const subject = `RTBI Portal — Confirm This Is Your New Email: ${otp}`;
+  const subject = `Ramaiah Technology Business Incubator Portal — Confirm This Is Your New Email: ${otp}`;
   const bodyText = `Hello ${name},\n\n` +
-    `This is the second and final step of moving your RTBI Portal login email away from ${oldEmail} to this address.\n\n` +
+    `This is the second and final step of moving your Ramaiah Technology Business Incubator Portal login email away from ${oldEmail} to this address.\n\n` +
     `Verification Code: ${otp}\n\n` +
     `Valid for 5 minutes. If you did not request this, please ignore this email — no change will be made without this code.\n\n` +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
@@ -1443,7 +1443,7 @@ export function generateNewEmailConfirmationOtpTemplate(name: string, otp: strin
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Hello <strong>${name}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">This is the second and final step of moving your RTBI Portal login email away from <strong style="color: #1C0F2A;">${oldEmail}</strong> to this address. Use the code below to confirm you can receive mail here:</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">This is the second and final step of moving your Ramaiah Technology Business Incubator Portal login email away from <strong style="color: #1C0F2A;">${oldEmail}</strong> to this address. Use the code below to confirm you can receive mail here:</p>
 
       <div style="text-align: center; margin: 28px 0;">
         <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1C0F2A; background: #FEF7F6; border: 1px solid #D5CBE1; padding: 14px 28px; border-radius: 10px; display: inline-block;">
@@ -1465,10 +1465,10 @@ export function generateNewEmailConfirmationOtpTemplate(name: string, otp: strin
 export function generateAnnouncementEmailTemplate(memberName: string, title: string, content: string, author: string): { subject: string; bodyText: string; bodyHtml: string } {
   const subject = `RTBI Notice: ${title}`;
   const baseUrl = getAppBaseUrl();
-  const bodyText = `Hello ${memberName},\n\nA new announcement has been published on the RTBI Portal by ${author}:\n\n` +
+  const bodyText = `Hello ${memberName},\n\nA new announcement has been published on the Ramaiah Technology Business Incubator Portal by ${author}:\n\n` +
     `Title: ${title}\n\n` +
     `Details: ${content}\n\n` +
-    `Regards,\nRTBI Portal`;
+    `Regards,\nRamaiah Technology Business Incubator Portal`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
@@ -1494,22 +1494,22 @@ export function generateAnnouncementEmailTemplate(memberName: string, title: str
 export function generateTaskEmailTemplate(memberName: string, taskTitle: string, eventName: string, dueDate: string, creatorName: string): { subject: string; bodyText: string; bodyHtml: string } {
   const subject = `RTBI Task Assignment: ${taskTitle}`;
   const baseUrl = getAppBaseUrl();
-  const bodyText = `Hello ${memberName},\n\nYou have been assigned a new task on RTBI Portal.\n\n` +
+  const bodyText = `Hello ${memberName},\n\nYou have been assigned a new task on Ramaiah Technology Business Incubator Portal.\n\n` +
     `Task: ${taskTitle}\n` +
     `Context: ${eventName || 'RTBI Operations'}\n` +
     `Due Date: ${dueDate}\n` +
-    `Assigned By: ${creatorName || 'RTBI Portal'}\n\n` +
+    `Assigned By: ${creatorName || 'Ramaiah Technology Business Incubator Portal'}\n\n` +
     `Please log in to your dashboard to view details and update progress.`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     headerTitle: taskTitle,
-    headerSubtitle: `Assigned by ${creatorName || 'RTBI Portal'}`,
+    headerSubtitle: `Assigned by ${creatorName || 'Ramaiah Technology Business Incubator Portal'}`,
     badgeText: `Task Assignment`,
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #422C5C;">Hello <strong>${memberName}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px;">You have been assigned a deliverable on the RTBI Portal:</p>
+      <p style="color: #422C5C; font-size: 14px;">You have been assigned a deliverable on the Ramaiah Technology Business Incubator Portal:</p>
       
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #422C5C; margin: 16px 0;">
         <tr>
@@ -1577,18 +1577,18 @@ export function generateBirthdayEmailTemplate(memberName: string): { subject: st
   const firstName = memberName.split(' ')[0] || memberName;
   const subject = `Happy Birthday, ${firstName}!`;
   const bodyText = `Hello ${memberName},\n\n` +
-    `Wishing you a very Happy Birthday from all of us at RTBI Portal!\n\n` +
-    `Warm regards,\nRTBI Portal, MSRUAS`;
+    `Wishing you a very Happy Birthday from all of us at Ramaiah Technology Business Incubator Portal!\n\n` +
+    `Warm regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
     headerTitle: `Happy Birthday, ${firstName}!`,
-    headerSubtitle: `From everyone at RTBI Portal`,
+    headerSubtitle: `From everyone at Ramaiah Technology Business Incubator Portal`,
     badgeText: `Greetings`,
     badgeColor: `#CC3D19`,
     bodyContentHtml: `
       <p style="margin-top: 0; color: #1C0F2A; font-size: 14px;">Dear <strong>${memberName}</strong>,</p>
-      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">On behalf of the entire RTBI Portal family, we wish you a wonderful birthday! Thank you for your energy and dedication.</p>
+      <p style="color: #422C5C; font-size: 14px; line-height: 1.6;">On behalf of the entire Ramaiah Technology Business Incubator Portal family, we wish you a wonderful birthday! Thank you for your energy and dedication.</p>
       <p style="color: #76648B; font-size: 13px; line-height: 1.6; margin-bottom: 0;">Have a fantastic year ahead!</p>
     `
   });
@@ -1616,7 +1616,7 @@ export function generateDesignDecisionEmailTemplate(
     (approved
       ? `No further action is needed from you.\n\n`
       : `Please review the feedback above and resubmit or update your design accordingly.\n\n`) +
-    `Regards,\nRTBI Portal`;
+    `Regards,\nRamaiah Technology Business Incubator Portal`;
 
   const badgeColor = approved ? '#15803d' : '#be123c';
 
@@ -1665,7 +1665,7 @@ export function generateApprovalDecisionEmailTemplate(
     (approved
       ? `Your request has been approved. No further action is required.\n\n`
       : `Please review the comments above and make any necessary adjustments.\n\n`) +
-    `Regards,\nRTBI Portal, MSRUAS`;
+    `Regards,\nRamaiah Technology Business Incubator Portal, MSRUAS`;
 
   const badgeColor = approved ? '#15803d' : '#be123c';
 

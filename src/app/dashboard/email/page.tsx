@@ -117,7 +117,7 @@ export default function EmailManagementPage() {
     secure: false,
     authUser: 'portal@example.com',
     authPass: '',
-    fromName: 'RTBI Portal',
+    fromName: 'Ramaiah Technology Business Incubator Portal',
     fromEmail: 'portal@example.com',
     replyTo: 'portal@example.com',
   });
@@ -1556,7 +1556,7 @@ export default function EmailManagementPage() {
                     required
                     value={settings.fromName}
                     onChange={e => setSettings(prev => ({ ...prev, fromName: e.target.value }))}
-                    placeholder="RTBI Portal"
+                    placeholder="Ramaiah Technology Business Incubator Portal"
                     className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                   />
                 </div>

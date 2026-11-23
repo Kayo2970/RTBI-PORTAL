@@ -102,7 +102,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/home',
         icon: LayoutDashboard,
         color: 'primary',
-        summary: 'The central hub of RTBI Portal. Displays real-time organizational KPIs, quick actions, performance charts, and campus-wide announcements.',
+        summary: 'The central hub of Ramaiah Technology Business Incubator Portal. Displays real-time organizational KPIs, quick actions, performance charts, and campus-wide announcements.',
         whatYouCanDo: [
           'View active member counts, ongoing events, and task metrics',
           'Read urgent announcements published for your division',
@@ -168,7 +168,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         href: '/dashboard/directory',
         icon: Users,
         color: 'primary',
-        summary: 'The comprehensive member registry for RTBI Portal faculty leadership, core department heads, and incubation associates.',
+        summary: 'The comprehensive member registry for Ramaiah Technology Business Incubator Portal faculty leadership, core department heads, and incubation associates.',
         whatYouCanDo: isSuper
           ? [
               'Add, edit, or modify member roles, tiers, and permissions',

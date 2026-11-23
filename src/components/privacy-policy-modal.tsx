@@ -21,7 +21,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
             </div>
             <div>
               <h2 className="text-lg font-bold text-theme-text-primary">Privacy Policy</h2>
-              <p className="text-xs text-theme-text-secondary mt-0.5">RTBI Portal & Operational Systems</p>
+              <p className="text-xs text-theme-text-secondary mt-0.5">Ramaiah Technology Business Incubator Portal & Operational Systems</p>
             </div>
           </div>
           <button
@@ -40,7 +40,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
               1. What Data We Collect
             </h3>
             <p className="text-theme-text-secondary">
-              This portal collects only what's needed to run RTBI Portal's internal operations:
+              This portal collects only what's needed to run Ramaiah Technology Business Incubator Portal's internal operations:
             </p>
             <ul className="list-disc pl-5 text-theme-text-secondary space-y-1">
               <li><strong>Member records:</strong> name, email, phone number, role, tier, division/department, and (optionally) date of birth and a profile photo.</li>
@@ -110,7 +110,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-theme-border/20 shrink-0">
           <span className="text-[11px] text-theme-text-secondary">
-            &copy; 2026 RTBI Portal. All rights reserved.
+            &copy; 2026 Ramaiah Technology Business Incubator Portal. All rights reserved.
           </span>
           <button
             onClick={onClose}

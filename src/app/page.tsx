@@ -583,8 +583,8 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <h1 className="text-xl font-extrabold tracking-wider uppercase text-theme-text-primary">
-                  RTBI PORTAL
+                <h1 className="text-lg md:text-xl font-extrabold tracking-wide uppercase text-theme-text-primary max-w-sm mx-auto leading-tight">
+                  Ramaiah Technology Business Incubator Portal
                 </h1>
                 <p className="text-xs text-theme-text-secondary mt-1 font-medium">
                   Sign in with your MSRUAS email to access the operational portal
@@ -993,7 +993,7 @@ export default function LoginPage() {
         <p className="text-[10px]">
           All Intellectual Property, Copyrights & Development Licensing belong exclusively to <strong>Kayomarz Pavri</strong>.
         </p>
-        <p className="text-[10px] opacity-75">&copy; 2026 RTBI Portal &middot; MSRUAS Internal Operations Portal</p>
+        <p className="text-[10px] opacity-75">&copy; 2026 Ramaiah Technology Business Incubator Portal &middot; MSRUAS Internal Operations Portal</p>
       </footer>
 
       {/* Terms & Conditions Modal */}

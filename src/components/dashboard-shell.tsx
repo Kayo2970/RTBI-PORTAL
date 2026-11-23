@@ -1368,7 +1368,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {/* Brand Logo Link to Dashboard Home */}
           <Link
             href="/dashboard/home"
-            title="RTBI Portal"
+            title="Ramaiah Technology Business Incubator Portal"
             className={`flex items-center gap-3 p-4 border-b border-theme-border/40 hover:bg-theme-border/10 transition-colors cursor-pointer select-none ${
               showSidebarLabels ? 'px-4' : 'justify-center px-0'
             }`}
@@ -1381,12 +1381,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               />
             </div>
             {showSidebarLabels && (
-              <div className="flex flex-col">
-                <span className="font-extrabold text-xs tracking-wider uppercase text-theme-text-primary">
-                  RTBI PORTAL
+              <div className="flex flex-col min-w-0">
+                <span className="font-extrabold text-[10px] leading-tight tracking-wider uppercase text-theme-text-primary">
+                  Ramaiah Technology Business Incubator Portal
                 </span>
                 <span className="text-[10px] text-theme-text-secondary font-medium">
-                  Ramaiah Incubator
+                  RTBI · MSRUAS
                 </span>
               </div>
             )}
@@ -1479,7 +1479,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               className="h-full w-full object-contain"
             />
           </div>
-          <span className="font-bold text-xs tracking-wider uppercase text-theme-text-primary truncate">RTBI PORTAL</span>
+          <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase text-theme-text-primary truncate">Ramaiah Technology Business Incubator Portal</span>
         </Link>
 
         <div className="flex items-center gap-1.5 shrink-0">
@@ -1737,7 +1737,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <span className="text-[11px]">All Intellectual Property, Copyrights & Development Licensing belong exclusively to <strong>Kayomarz Pavri</strong>.</span>
           </div>
           <div className="text-[11px] font-medium text-theme-text-secondary">
-            &copy; 2026 RTBI Portal. All rights reserved.
+            &copy; 2026 Ramaiah Technology Business Incubator Portal. All rights reserved.
           </div>
         </footer>
 

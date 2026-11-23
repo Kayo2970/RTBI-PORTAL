@@ -95,7 +95,7 @@ export async function enqueueTaskEmailNotification(task: {
     title: task.title,
     event: task.event || task.eventName || 'RTBI Operations',
     dueDate: task.dueDate || 'Flexible',
-    creatorName: task.creatorName || 'RTBI Portal',
+    creatorName: task.creatorName || 'Ramaiah Technology Business Incubator Portal',
     assigneeName: task.assigneeName || 'Member',
     assignedAt: new Date().toISOString(),
   };
@@ -168,16 +168,16 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
         </div>
         <div style="font-size: 12px; color: #a1a1aa; line-height: 1.5;">
           <span>📌 <strong>Context:</strong> ${escapeHtml(item.event || 'RTBI Operations')}</span><br/>
-          <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'RTBI Portal')}</span>
+          <span>👤 <strong>Assigned By:</strong> ${escapeHtml(item.creatorName || 'Ramaiah Technology Business Incubator Portal')}</span>
         </div>
       </div>
     `
     )
     .join('');
 
-  const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) in RTBI Portal:\n\n` +
+  const bodyText = `Dear ${assigneeName},\n\nYou have been assigned ${taskCount} task(s) in Ramaiah Technology Business Incubator Portal:\n\n` +
     itemsToSend.map(i => `- ${i.title} (Context: ${i.event}, Due: ${i.dueDate})`).join('\n') +
-    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRTBI Portal Management`;
+    `\n\nPlease view and acknowledge your tasks using this link:\n${ackUrl}\n\nRegards,\nRamaiah Technology Business Incubator Portal Management`;
 
   const bodyHtml = wrapInMasterEmailTemplate({
     pageTitle: subject,
@@ -187,7 +187,7 @@ export async function flushTaskEmailDigest(recipientEmail: string) {
     bodyContentHtml: `
     <p style="margin: 0 0 20px; font-size: 14px; color: #574769; line-height: 1.6;">
       Dear <strong>${escapeHtml(assigneeName)}</strong>,<br/>
-      You are assigned to the following ${taskCount} task(s) in RTBI Portal:
+      You are assigned to the following ${taskCount} task(s) in Ramaiah Technology Business Incubator Portal:
     </p>
 
     <div style="margin-bottom: 24px;">

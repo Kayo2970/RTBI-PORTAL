@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 // four overlapping, conflicting icon <link> tags at once — which browsers can
 // resolve inconsistently, showing a blank/default tab icon.
 export const metadata: Metadata = {
-  title: "RTBI Portal - Ramaiah Technology Business Incubator",
+  title: "Ramaiah Technology Business Incubator Portal",
   description: "Private internal operations and management system for Ramaiah Technology Business Incubator (RTBI) at MSRUAS, Bengaluru.",
   // Lets iOS Safari's "Add to Home Screen" open this as a standalone app
   // (own icon, no browser chrome/URL bar) instead of just a bookmark that
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "RTBI Portal",
+    title: "Ramaiah Technology Business Incubator Portal",
   },
 };
 

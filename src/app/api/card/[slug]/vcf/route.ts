@@ -55,7 +55,7 @@ export async function GET(
     'VERSION:3.0',
     `N:${escapeVCardText(lastName)};${escapeVCardText(firstName)};;;`,
     `FN:${escapeVCardText(member.name || '')}`,
-    'ORG:RTBI Portal',
+    'ORG:Ramaiah Technology Business Incubator Portal',
   ];
   const designation = effectiveCardDesignation(member);
   if (designation) {

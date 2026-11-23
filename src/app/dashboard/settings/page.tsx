@@ -901,7 +901,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="text-[11px] text-theme-text-secondary space-y-1">
-              <p>RTBI Portal</p>
+              <p>Ramaiah Technology Business Incubator Portal</p>
               <p>Build version: v2026.8.19-email-sync</p>
             </div>
           </div>

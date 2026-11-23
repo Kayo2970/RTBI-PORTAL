@@ -282,7 +282,7 @@ export function ProfileCard({
 
               <div className={styles.orgBadge}>
                 <ShieldCheck className="h-3 w-3 text-sky-400" />
-                <span>RTBI Portal</span>
+                <span>Ramaiah Technology Business Incubator Portal</span>
               </div>
             </>
           )}
@@ -361,7 +361,7 @@ export function ProfileCard({
                     name: name || 'RTBI Member',
                     phone: phone || undefined,
                     email: email || undefined,
-                    company: 'RTBI Portal',
+                    company: 'Ramaiah Technology Business Incubator Portal',
                     title: title || undefined,
                     notes: [linkedin, ...(customLinks || []).map((l) => `${l.label}: ${l.url}`)].filter(Boolean).join('\n') || undefined,
                   };
@@ -376,7 +376,7 @@ export function ProfileCard({
                       email ? `EMAIL:${email}` : '',
                       linkedin ? `URL;TYPE=LinkedIn:${linkedin}` : '',
                       ...(customLinks || []).map(link => `URL;TYPE=${link.label}:${link.url}`),
-                      'ORG:RTBI Portal',
+                      'ORG:Ramaiah Technology Business Incubator Portal',
                       'END:VCARD',
                     ].filter(Boolean).join('\r\n') + '\r\n';
                     const blob = new Blob([vcardLines], { type: 'text/vcard;charset=utf-8;' });

@@ -3,10 +3,10 @@
 <head>
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <meta charset="utf-8">
-<title>RTBI Portal Launcher</title>
+<title>Ramaiah Technology Business Incubator Portal Launcher</title>
 <HTA:APPLICATION 
     ID="rtbiPortalLauncher"
-    APPLICATIONNAME="RTBI Portal Launcher"
+    APPLICATIONNAME="Ramaiah Technology Business Incubator Portal Launcher"
     BORDER="dialog"
     BORDERSTYLE="normal"
     CAPTION="yes"
@@ -211,8 +211,8 @@
             <img src="public/images/rtbi-icon.png" alt="RTBI Logo">
         </div>
         <div class="title-area">
-            <h1>RTBI Portal Launcher</h1>
-            <p>Rural Technology & Business Incubator &bull; Local Environment</p>
+            <h1>Ramaiah Technology Business Incubator Portal Launcher</h1>
+            <p>Ramaiah Technology Business Incubator &bull; Local Environment</p>
         </div>
     </div>
 
@@ -385,7 +385,7 @@
                 }
             } else {
                 var dots = new Array((pollAttempts % 4) + 1).join(".");
-                updateStatus("starting", "Starting RTBI Portal on port 3030" + dots + " (" + pollAttempts + "s)");
+                updateStatus("starting", "Starting Ramaiah Technology Business Incubator Portal on port 3030" + dots + " (" + pollAttempts + "s)");
                 if (pollAttempts >= maxPollAttempts) {
                     clearInterval(pollTimer);
                     updateStatus("stopped", "Server startup took longer than expected. Click 'Start Server' to try again.");
@@ -395,7 +395,7 @@
     }
 
     function onServerReady() {
-        updateStatus("running", "RTBI Portal is running and ready at http://localhost:3030");
+        updateStatus("running", "Ramaiah Technology Business Incubator Portal is running and ready at http://localhost:3030");
     }
 
     function openBrowser() {

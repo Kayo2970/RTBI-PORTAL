@@ -53,7 +53,7 @@ export async function POST(
         task.title,
         task.event || '',
         task.dueDate,
-        task.creatorName || actor.name || 'RTBI Portal'
+        task.creatorName || actor.name || 'Ramaiah Technology Business Incubator Portal'
       );
       const log = await dispatchEmail({
         to: recipient.email,

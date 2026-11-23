@@ -1,9 +1,9 @@
 @echo off
-title RTBI Portal - Wipe Data & Memory
+title Ramaiah Technology Business Incubator Portal - Wipe Data & Memory
 cls
-echo ===================================================
-echo     RTBI PORTAL - WIPE ALL DATA ^& MEMORY
-echo ===================================================
+echo ========================================================================
+echo     RAMAIAH TECHNOLOGY BUSINESS INCUBATOR PORTAL - WIPE ALL DATA
+echo ========================================================================
 echo.
 echo WARNING: This will permanently delete all database
 echo collections, members, events, tasks, uploads, and

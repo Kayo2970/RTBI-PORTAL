@@ -177,7 +177,7 @@ export function SetupWizard({
         <div>
           <h2 className="text-xl font-bold text-theme-text-primary">System Initialized Successfully!</h2>
           <p className="text-xs text-theme-text-secondary mt-1">
-            Super User account and AES-256 database encryption configured. Launching RTBI Portal...
+            Super User account and AES-256 database encryption configured. Launching Ramaiah Technology Business Incubator Portal...
           </p>
         </div>
         <div className="w-48 h-1.5 bg-theme-background/60 rounded-full overflow-hidden">

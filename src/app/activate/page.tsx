@@ -119,7 +119,7 @@ function ActivateAccountForm() {
             Welcome to the Centre, {name.split(' ')[0]}!
           </h1>
           <p className="text-xs md:text-sm text-theme-text-secondary max-w-md mx-auto">
-            These are your official executive credentials and digital access pass for the RTBI Portal.
+            These are your official executive credentials and digital access pass for the Ramaiah Technology Business Incubator Portal.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ function ActivateAccountForm() {
             email={email}
             cardUrl={cardSlug && typeof window !== 'undefined' ? `${window.location.origin}/card/${cardSlug}` : undefined}
             qrUrl={dynamicQr}
-            issuingAuthority="RTBI Portal"
+            issuingAuthority="Ramaiah Technology Business Incubator Portal"
             autoOpen={true}
             showActions={false}
           />
@@ -187,7 +187,7 @@ function ActivateAccountForm() {
         <Link
           href="/"
           className="flex flex-col items-center text-center space-y-2 md:space-y-3 hover:opacity-90 transition-all cursor-pointer select-none"
-          title="RTBI Portal Home"
+          title="Ramaiah Technology Business Incubator Portal Home"
         >
           <div className="h-12 w-12 md:h-16 md:w-16 flex items-center justify-center">
             <img
@@ -197,8 +197,8 @@ function ActivateAccountForm() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold tracking-wider uppercase text-theme-text-primary">
-              RTBI PORTAL
+            <h1 className="text-lg md:text-xl font-extrabold tracking-wide uppercase text-theme-text-primary max-w-sm mx-auto leading-tight">
+              Ramaiah Technology Business Incubator Portal
             </h1>
             <p className="text-xs text-theme-text-secondary mt-1 font-medium">
               {isStartup ? 'Build your startup profile to get started' : 'Set up your account to access the operational portal'}

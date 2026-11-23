@@ -11,7 +11,7 @@ export default function MailBroadcasterPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [ready, setReady] = useState(false);
-  const [senderName, setSenderName] = useState('RTBI Portal');
+  const [senderName, setSenderName] = useState('Ramaiah Technology Business Incubator Portal');
   const [senderEmail, setSenderEmail] = useState('portal@ruas-incubator.com');
 
   useEffect(() => {

@@ -257,7 +257,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
       // Footer notice
       ctx.fillStyle = '#94a3b8';
       ctx.font = '11px system-ui, -apple-system, sans-serif';
-      ctx.fillText('Powered by RTBI Portal', width / 2, height - 35);
+      ctx.fillText('Powered by Ramaiah Technology Business Incubator Portal', width / 2, height - 35);
 
       // Trigger Download — iOS Safari doesn't reliably honor <a download>;
       // tapping it just opens/navigates to the image instead of saving a

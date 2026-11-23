@@ -1409,7 +1409,7 @@ export default function FormsBuilderPage() {
                   type="text"
                   value={headerText}
                   onChange={(e) => setHeaderText(e.target.value)}
-                  placeholder="Banner shown at the very top of the public form, e.g. RTBI Portal · Annual Summit 2026"
+                  placeholder="Banner shown at the very top of the public form, e.g. Ramaiah Technology Business Incubator Portal · Annual Summit 2026"
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                 />
               </div>

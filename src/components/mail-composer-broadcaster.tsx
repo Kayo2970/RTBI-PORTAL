@@ -69,7 +69,7 @@ export function MailComposerBroadcaster({
   onNavigateToSettings,
   title = 'Mail Composer & Broadcaster',
   subtitle = 'Compose and broadcast personalised mail-merge emails to incubator members, startups, or custom recipient lists.',
-  senderName = 'RTBI Portal',
+  senderName = 'Ramaiah Technology Business Incubator Portal',
   senderEmail = 'portal@ruas-incubator.com',
   initialSubject,
   initialBodyText,
