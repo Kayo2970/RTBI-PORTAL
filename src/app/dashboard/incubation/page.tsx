@@ -485,6 +485,26 @@ function FounderProfileModal({ startup, onClose, onSaved }: { startup: Startup; 
       setErr('Startup name is required.');
       return;
     }
+    if (!f.problem.trim() || f.problem.trim().length < 10) {
+      setErr('Problem Statement is mandatory (at least 10 characters).');
+      return;
+    }
+    if (!f.solution.trim() || f.solution.trim().length < 10) {
+      setErr('Solution Description is mandatory (at least 10 characters).');
+      return;
+    }
+    if (!f.website.trim()) {
+      setErr('Website URL is mandatory.');
+      return;
+    }
+    if (!/^https?:\/\/\S+\.\S+/.test(f.website.trim())) {
+      setErr('Website must be a valid URL starting with https:// or http://');
+      return;
+    }
+    if (!f.linkedin.trim() && !f.twitter.trim() && !f.instagram.trim()) {
+      setErr('At least one Social Media link (e.g. LinkedIn) is mandatory.');
+      return;
+    }
     setSaving(true);
     setErr('');
     try {
@@ -556,8 +576,8 @@ function FounderProfileModal({ startup, onClose, onSaved }: { startup: Startup; 
           </label>
 
           <label className="space-y-1">
-            <span className="font-semibold text-theme-text-secondary">Website</span>
-            <input className={inputCls} placeholder="https://example.com" value={f.website} onChange={set('website')} />
+            <span className="font-semibold text-theme-text-secondary">Website <span className="text-accent">* (Mandatory)</span></span>
+            <input required className={inputCls} placeholder="https://example.com" value={f.website} onChange={set('website')} />
           </label>
 
           <label className="space-y-1">
@@ -581,22 +601,22 @@ function FounderProfileModal({ startup, onClose, onSaved }: { startup: Startup; 
           </label>
 
           <label className="space-y-1 md:col-span-2">
-            <span className="font-semibold text-theme-text-secondary">Problem Statement</span>
-            <textarea rows={2} className={inputCls} placeholder="What problem are you solving?" value={f.problem} onChange={set('problem')} />
+            <span className="font-semibold text-theme-text-secondary">Problem Statement <span className="text-accent">* (Mandatory)</span></span>
+            <textarea required rows={2} className={inputCls} placeholder="What problem are you solving? (Mandatory)" value={f.problem} onChange={set('problem')} />
           </label>
 
           <label className="space-y-1 md:col-span-2">
-            <span className="font-semibold text-theme-text-secondary">Solution Description</span>
-            <textarea rows={2} className={inputCls} placeholder="How does your technology/solution address this problem?" value={f.solution} onChange={set('solution')} />
+            <span className="font-semibold text-theme-text-secondary">Solution Description <span className="text-accent">* (Mandatory)</span></span>
+            <textarea required rows={2} className={inputCls} placeholder="How does your technology/solution address this problem? (Mandatory)" value={f.solution} onChange={set('solution')} />
           </label>
 
           <label className="space-y-1">
-            <span className="font-semibold text-theme-text-secondary">LinkedIn Profile</span>
+            <span className="font-semibold text-theme-text-secondary">LinkedIn Profile <span className="text-accent">* (Mandatory Social Link)</span></span>
             <input className={inputCls} placeholder="https://linkedin.com/company/..." value={f.linkedin} onChange={set('linkedin')} />
           </label>
 
           <label className="space-y-1">
-            <span className="font-semibold text-theme-text-secondary">Twitter / X</span>
+            <span className="font-semibold text-theme-text-secondary">Twitter / X (Optional)</span>
             <input className={inputCls} placeholder="https://x.com/..." value={f.twitter} onChange={set('twitter')} />
           </label>
         </div>

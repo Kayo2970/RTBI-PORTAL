@@ -146,7 +146,7 @@ export const APPLICATION_SECTIONS: { key: string; label: string; fields: { key: 
   { key: 'A', label: 'Application details', fields: [
     { key: 'call', label: 'Call / cohort' }, { key: 'mode', label: 'Preferred mode (physical, virtual, other)' } ] },
   { key: 'B', label: 'Startup and entity profile', fields: [
-    { key: 'startupName', label: 'Startup name', required: true }, { key: 'website', label: 'Website' }, { key: 'address', label: 'Address' },
+    { key: 'startupName', label: 'Startup name', required: true }, { key: 'website', label: 'Website & Social Media Links', required: true }, { key: 'address', label: 'Address' },
     { key: 'formationDate', label: 'Date of formation' }, { key: 'legalStatus', label: 'Legal status (write “Not incorporated” if so)', required: true },
     { key: 'registration', label: 'Registration details' }, { key: 'sector', label: 'Sector', required: true }, { key: 'stage', label: 'Stage', required: true } ] },
   { key: 'C', label: 'Founder / team profile', fields: [

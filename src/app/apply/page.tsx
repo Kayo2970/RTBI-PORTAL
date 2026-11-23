@@ -5,7 +5,18 @@ import { submitPublicApplication, readFileAsDataUrl } from '@/lib/incubation/cli
 import { APPLICATION_SECTIONS } from '@/lib/incubation/types';
 
 const inputCls = 'w-full bg-theme-background/40 border border-theme-border/40 rounded-xl px-3 py-2 text-sm';
-const FILE_SUGGESTIONS = ['Founder declaration (signed)', 'Project plan / business model', 'Identity / authorisation documents (as lawfully required)', 'Certificate of incorporation / registration', 'Technology evidence (technical note, prototype, demo)', 'Problem and customer evidence', 'IP or assignment details'];
+const FILE_SUGGESTIONS = [
+  '1. Startup Logo (High-resolution PNG/JPG)',
+  '2. Startup Registration Document (Certificate of Incorporation / Registration)',
+  '3. Startup Agreement Deed with RTBI (Executed agreement copy)',
+  '4. Startup Portfolio Material (Pitch Decks, Product Demo Videos, Reference Docs)',
+  '5. Patents (Patent application / grant certificates - or note N/A)',
+  '6. Rental Agreement with RTBI (If physically incubated - or note N/A)',
+  'Founder declaration (signed)',
+  'Technology evidence (technical note, prototype, demo)',
+  'Problem and customer evidence',
+  'IP or assignment details'
+];
 
 export default function ApplyPage() {
   const [name, setName] = useState('');

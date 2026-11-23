@@ -103,11 +103,18 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
       if (phone.trim().length < 7) return 'Enter a valid mobile number.';
     }
     if (s === 1 && !startupName.trim()) return 'Enter your startup name.';
-    if (s === 2 && aboutUs.trim().length < 20) return 'Tell us a bit more in "About us" (at least 20 characters).';
+    if (s === 2) {
+      if (aboutUs.trim().length < 20) return 'Tell us a bit more in "About us" (at least 20 characters).';
+      if (!problem.trim() || problem.trim().length < 10) return 'The Problem statement is mandatory (at least 10 characters).';
+      if (!solution.trim() || solution.trim().length < 10) return 'The Solution description is mandatory (at least 10 characters).';
+    }
     if (s === 3) {
       if (!sector) return 'Pick your sector.';
       if (!stage) return 'Pick your current stage.';
       if (foundedYear && !/^(19|20)\d{2}$/.test(foundedYear)) return 'Enter a valid founding year.';
+      if (!website.trim()) return 'Website URL is mandatory.';
+      if (!/^https?:\/\/\S+\.\S+/.test(website.trim())) return 'Website must be a valid URL starting with https:// or http://';
+      if (!linkedin.trim() && !twitter.trim() && !instagram.trim()) return 'At least one Social Media profile link (e.g. LinkedIn) is mandatory.';
       for (const [label, v] of [['Website', website], ['LinkedIn', linkedin], ['X / Twitter', twitter], ['Instagram', instagram]]) {
         if (v.trim() && !/^https?:\/\/\S+\.\S+/.test(v.trim())) return `${label} must be a full link starting with https://`;
       }
@@ -293,20 +300,20 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
       {step === 2 && (
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className={labelCls}>About Us</label>
-            <textarea value={aboutUs} onChange={(e) => setAboutUs(e.target.value)} rows={5} maxLength={2000}
+            <label className={labelCls}>About Us <span className="text-accent normal-case font-bold">*</span></label>
+            <textarea value={aboutUs} onChange={(e) => setAboutUs(e.target.value)} rows={4} maxLength={2000}
               placeholder="Who you are, what you're building and why it matters." className={`${inputCls} px-4 resize-none`} />
             <p className={`${hintCls} text-right`}>{aboutUs.length}/2000</p>
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>The Problem<Optional /></label>
+            <label className={labelCls}>The Problem <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
             <textarea value={problem} onChange={(e) => setProblem(e.target.value)} rows={3} maxLength={1000}
-              placeholder="What pain are you solving, and for whom?" className={`${inputCls} px-4 resize-none`} />
+              placeholder="What specific problem and customer pain are you solving? (Mandatory)" className={`${inputCls} px-4 resize-none`} />
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>Your Solution<Optional /></label>
+            <label className={labelCls}>Your Solution <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
             <textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={3} maxLength={1000}
-              placeholder="How does your product or service solve it?" className={`${inputCls} px-4 resize-none`} />
+              placeholder="How does your innovative technology or product solve it? (Mandatory)" className={`${inputCls} px-4 resize-none`} />
           </div>
         </div>
       )}
@@ -316,14 +323,14 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className={labelCls}>Sector</label>
+              <label className={labelCls}>Sector <span className="text-accent normal-case font-bold">*</span></label>
               <select value={sector} onChange={(e) => setSector(e.target.value)} className={`${inputCls} px-3`}>
                 <option value="">Select sector…</option>
                 {STARTUP_SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className={labelCls}>Stage</label>
+              <label className={labelCls}>Stage <span className="text-accent normal-case font-bold">*</span></label>
               <select value={stage} onChange={(e) => setStage(e.target.value)} className={`${inputCls} px-3`}>
                 <option value="">Select stage…</option>
                 {STARTUP_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -350,19 +357,21 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>Website<Optional /></label>
+            <label className={labelCls}>Website <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
             <div className="relative">
               <Globe className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />
               <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://yourstartup.com" className={`${inputCls} pl-10 pr-4`} />
             </div>
+            <p className={hintCls}>Official company or product website (Mandatory).</p>
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>Social Links<Optional /></label>
+            <label className={labelCls}>Social Media Links <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
+            <p className={hintCls}>Provide your LinkedIn company page or active social profile (Mandatory).</p>
             <div className="space-y-2">
               {([
-                [Link2, linkedin, setLinkedin, 'https://linkedin.com/company/…'],
-                [AtSign, twitter, setTwitter, 'https://x.com/…'],
-                [Camera, instagram, setInstagram, 'https://instagram.com/…'],
+                [Link2, linkedin, setLinkedin, 'https://linkedin.com/company/yourstartup * (Primary)'],
+                [AtSign, twitter, setTwitter, 'https://x.com/yourstartup (Optional)'],
+                [Camera, instagram, setInstagram, 'https://instagram.com/yourstartup (Optional)'],
               ] as const).map(([Icon, value, setter, ph], i) => (
                 <div key={i} className="relative">
                   <Icon className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />

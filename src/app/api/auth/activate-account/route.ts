@@ -9,6 +9,7 @@ import { MAX_STARTUP_LOGO_BYTES, STARTUP_LOGO_MIME_TYPES, type StartupProfile } 
 import { syncStartupProfileToRegistry } from '@/lib/incubation/startup-registry-sync';
 
 const optionalUrl = z.union([z.literal(''), z.string().trim().max(300).url('Enter a full link starting with https://')]).optional();
+const requiredUrl = z.string().trim().min(1, 'Website URL is mandatory.').url('Enter a full link starting with https:// or http://').max(300);
 
 const StartupProfileSchema = z.object({
   startupName: z.string().trim().min(1, 'Startup name is required.').max(120),
@@ -18,11 +19,17 @@ const StartupProfileSchema = z.object({
   foundedYear: z.union([z.literal(''), z.string().regex(/^(19|20)\d{2}$/, 'Enter a valid founding year.')]).optional(),
   teamSize: z.string().trim().max(20).optional(),
   location: z.string().trim().max(120).optional(),
-  website: optionalUrl,
+  website: requiredUrl,
   aboutUs: z.string().trim().min(20, 'Tell us a bit more in "About us" (at least 20 characters).').max(2000),
-  problem: z.string().trim().max(1000).optional(),
-  solution: z.string().trim().max(1000).optional(),
-  socials: z.object({ linkedin: optionalUrl, twitter: optionalUrl, instagram: optionalUrl }).optional(),
+  problem: z.string().trim().min(10, 'Problem statement is mandatory (at least 10 characters).').max(1000),
+  solution: z.string().trim().min(10, 'Solution description is mandatory (at least 10 characters).').max(1000),
+  socials: z.object({
+    linkedin: optionalUrl,
+    twitter: optionalUrl,
+    instagram: optionalUrl,
+  }).refine(s => !!(s?.linkedin?.trim() || s?.twitter?.trim() || s?.instagram?.trim()), {
+    message: 'At least one social media link (e.g. LinkedIn) is mandatory.',
+  }),
   logoData: z.string().max(3_000_000).optional(),
   logoFileName: z.string().trim().max(300).optional(),
 }).strict();
