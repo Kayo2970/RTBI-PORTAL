@@ -8,8 +8,8 @@ import { StartupActivationWizard, type StartupActivationPayload } from '@/compon
 import { InteractiveKeycardHolder } from '@/components/interactive-keycard-holder';
 import dynamic from 'next/dynamic';
 
-const AeroShardsBackground = dynamic(
-  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+const AcidSquaresBackground = dynamic(
+  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
   { ssr: false }
 );
 
@@ -166,20 +166,21 @@ function ActivateAccountForm() {
   return (
     <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8 relative z-0 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
-        <AeroShardsBackground
-          shardColor="#361C6A"
-          accentColor="#E34A21"
-          placement="full"
-          material="glass"
-          markers="plus"
-          count={1250}
-          depthOfField={0.75}
-          vignette={0.3}
-          mouseInteraction
-          pulseOnClick
-          holdToGather
-          spread={2}
-          speed={2.56}
+        <AcidSquaresBackground
+          color="#120f17"
+          accentColor="#ff4fb8"
+          secondaryColor="#3b6bff"
+          tileSize={1}
+          gap={0.12}
+          roundness={0.25}
+          rotation={35}
+          waves={1}
+          pulse={1}
+          lighting="split"
+          tilt={0.7}
+          grain={0.12}
+          intro={true}
+          mouseInteraction={true}
         />
       </div>
       <div className={`w-full ${isStartup && status === 'ready' ? 'max-w-xl' : 'max-w-md'} glass-panel rounded-3xl p-6 md:p-8 flex flex-col space-y-6 relative z-10 border border-white/15 shadow-2xl`}>

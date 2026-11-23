@@ -12,8 +12,8 @@ import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { LoadingScreen } from '@/components/loading-screen';
 import { SetupWizard } from '@/components/setup-wizard';
 import dynamic from 'next/dynamic';
-const AeroShardsBackground = dynamic(
-  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+const AcidSquaresBackground = dynamic(
+  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
   { ssr: false }
 );
 
@@ -498,20 +498,21 @@ export default function LoginPage() {
           was treating a symptom; this is the real fix, so vignette is
           restored to the originally requested 0.8.) */}
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
-        <AeroShardsBackground
-          shardColor="#361C6A"
-          accentColor="#E34A21"
-          placement="full"
-          material="glass"
-          markers="plus"
-          count={1250}
-          depthOfField={0.75}
-          vignette={0.3}
-          mouseInteraction
-          pulseOnClick
-          holdToGather
-          spread={2}
-          speed={2.56}
+        <AcidSquaresBackground
+          color="#120f17"
+          accentColor="#ff4fb8"
+          secondaryColor="#3b6bff"
+          tileSize={1}
+          gap={0.12}
+          roundness={0.25}
+          rotation={35}
+          waves={1}
+          pulse={1}
+          lighting="split"
+          tilt={0.7}
+          grain={0.12}
+          intro={true}
+          mouseInteraction={true}
         />
       </div>
 

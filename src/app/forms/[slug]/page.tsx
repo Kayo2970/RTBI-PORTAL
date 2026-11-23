@@ -8,8 +8,8 @@ import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import dynamic from 'next/dynamic';
 
-const AeroShardsBackground = dynamic(
-  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+const AcidSquaresBackground = dynamic(
+  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
   { ssr: false }
 );
 import { DEFAULT_HEADER_FRAMING, headerImageStyle } from '@/components/form-header-framing';
@@ -204,20 +204,21 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="absolute top-1/3 -right-24 h-[28rem] w-[28rem] rounded-full bg-cyan-400/50 blur-3xl" />
       <div className="absolute -bottom-24 left-1/4 h-96 w-96 rounded-full bg-amber-400/50 blur-3xl" />
       <div className="absolute bottom-1/4 -left-16 h-72 w-72 rounded-full bg-emerald-400/40 blur-3xl" />
-      <AeroShardsBackground
-        shardColor="#361C6A"
-        accentColor="#E34A21"
-        placement="full"
-        material="glass"
-        markers="plus"
-        count={1250}
-        depthOfField={0.75}
-        vignette={0.3}
-        mouseInteraction
-        pulseOnClick
-        holdToGather
-        spread={2}
-        speed={2.56}
+      <AcidSquaresBackground
+        color="#120f17"
+        accentColor="#ff4fb8"
+        secondaryColor="#3b6bff"
+        tileSize={1}
+        gap={0.12}
+        roundness={0.25}
+        rotation={35}
+        waves={1}
+        pulse={1}
+        lighting="split"
+        tilt={0.7}
+        grain={0.12}
+        intro={true}
+        mouseInteraction={true}
       />
     </div>
   );

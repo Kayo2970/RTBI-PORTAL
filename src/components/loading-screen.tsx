@@ -3,8 +3,8 @@
 import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-const AeroShardsBackground = dynamic(
-  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+const AcidSquaresBackground = dynamic(
+  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
   { ssr: false }
 );
 
@@ -28,22 +28,23 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-space-theme overflow-hidden select-none">
-      {/* Background Animated AeroShards / GhostFibers Canvas with RTBI Palette */}
+      {/* Background Animated AcidSquares WebGL2 Canvas */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-80 dark:opacity-95">
-        <AeroShardsBackground
-          shardColor="#361C6A"
-          accentColor="#E34A21"
-          placement="full"
-          material="glass"
-          markers="plus"
-          count={1250}
-          depthOfField={0.75}
-          vignette={0.3}
-          mouseInteraction
-          pulseOnClick
-          holdToGather
-          spread={2}
-          speed={2.56}
+        <AcidSquaresBackground
+          color="#120f17"
+          accentColor="#ff4fb8"
+          secondaryColor="#3b6bff"
+          tileSize={1}
+          gap={0.12}
+          roundness={0.25}
+          rotation={35}
+          waves={1}
+          pulse={1}
+          lighting="split"
+          tilt={0.7}
+          grain={0.12}
+          intro={true}
+          mouseInteraction={true}
         />
       </div>
 

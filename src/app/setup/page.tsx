@@ -7,8 +7,8 @@ import { SetupWizard } from '@/components/setup-wizard';
 import { LoadingScreen } from '@/components/loading-screen';
 import dynamic from 'next/dynamic';
 
-const AeroShardsBackground = dynamic(
-  () => import('@/components/aero-shards-background').then((m) => m.AeroShardsBackground),
+const AcidSquaresBackground = dynamic(
+  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
   { ssr: false }
 );
 
@@ -55,20 +55,21 @@ export default function SetupPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-space-theme text-theme-text-primary relative z-0 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
-        <AeroShardsBackground
-          shardColor="#361C6A"
-          accentColor="#E34A21"
-          placement="full"
-          material="glass"
-          markers="plus"
-          count={1250}
-          depthOfField={0.75}
-          vignette={0.3}
-          mouseInteraction
-          pulseOnClick
-          holdToGather
-          spread={2}
-          speed={2.56}
+        <AcidSquaresBackground
+          color="#120f17"
+          accentColor="#ff4fb8"
+          secondaryColor="#3b6bff"
+          tileSize={1}
+          gap={0.12}
+          roundness={0.25}
+          rotation={35}
+          waves={1}
+          pulse={1}
+          lighting="split"
+          tilt={0.7}
+          grain={0.12}
+          intro={true}
+          mouseInteraction={true}
         />
       </div>
       <div className="w-full max-w-lg space-y-4 relative z-10">
