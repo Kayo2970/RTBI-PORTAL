@@ -37,15 +37,15 @@ function ApplicationsPageInner() {
     <div className="p-6 md:p-8 space-y-6">
       <PageHeader icon={<FileText size={20} />} title="Applications & Selection"
         subtitle="Public applications (/apply) are screened, scored independently by assigned evaluators behind a conflict-of-interest gate, then decided and finally approved by the configured authority." />
-      {manager && <p className="text-xs">Public application link: <span className="font-mono">/apply</span></p>}
-      {settings?.scorecard.status !== 'approved' && <div className="text-xs rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 p-3">Scorecard weights are still <b>Proposed</b>. Decisions can be recorded but not finalised until they are approved in Incubation Settings.</div>}
-      {error && <div className="text-xs text-red-400">{error}</div>}
-      {loading ? <div className="text-xs flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : apps.length === 0 ? (
-        <div className="glass-panel rounded-2xl p-8 text-center text-xs text-theme-text-secondary">No applications {manager ? 'yet' : 'assigned to you'}.</div>
+      {manager && <p className="text-sm">Public application link: <span className="font-mono">/apply</span></p>}
+      {settings?.scorecard.status !== 'approved' && <div className="text-sm rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300 p-3">Scorecard weights are still <b>Proposed</b>. Decisions can be recorded but not finalised until they are approved in Incubation Settings.</div>}
+      {error && <div className="text-sm text-rose-700 dark:text-rose-300">{error}</div>}
+      {loading ? <div className="text-sm flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : apps.length === 0 ? (
+        <div className="glass-panel rounded-2xl p-8 text-center text-sm text-theme-text-secondary">No applications {manager ? 'yet' : 'assigned to you'}.</div>
       ) : (
         <div className="glass-panel rounded-2xl overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead><tr className="text-left text-theme-text-secondary border-b border-theme-border/30"><th className="p-3">ID</th><th className="p-3">Startup</th><th className="p-3">Received</th><th className="p-3">Status</th><th className="p-3">Scorecards</th><th /></tr></thead>
+          <table className="w-full text-sm">
+            <thead><tr className="text-left text-theme-text-secondary border-b border-theme-border"><th className="p-3">ID</th><th className="p-3">Startup</th><th className="p-3">Received</th><th className="p-3">Status</th><th className="p-3">Scorecards</th><th /></tr></thead>
             <tbody>{apps.map(a => (
               <tr key={a.id} className="border-b border-theme-border/20">
                 <td className="p-3 font-mono">{a.id}</td>
@@ -129,14 +129,14 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
           <button className={btnGhost} disabled={busy} onClick={() => filePdf('dossier')}><Archive size={12} /> File dossier</button>
           {app.decision && <button className={btnGhost} disabled={busy} onClick={() => filePdf('decision')}><Archive size={12} /> File decision note</button>}</>}
       </div>
-      {err && <div className="text-xs text-red-400">{err}</div>}
+      {err && <div className="text-sm text-rose-700 dark:text-rose-300">{err}</div>}
 
       {app.gated && (
         <Panel title="Conflict-of-interest declaration (required before you can see this application)">
-          <label className="text-xs flex items-center gap-2"><input type="checkbox" checked={conflict} onChange={e => setConflict(e.target.checked)} /> I have a conflict of interest</label>
+          <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={conflict} onChange={e => setConflict(e.target.checked)} /> I have a conflict of interest</label>
           {conflict && <textarea className={inputCls} rows={2} placeholder="Describe the conflict and safeguards" value={mitigation} onChange={e => setMitigation(e.target.value)} />}
           <select className={inputCls + ' max-w-xs'} value={coiAction} onChange={e => setCoiAction(e.target.value)}><option value="participate">Participate</option><option value="recuse">Recuse</option></select>
-          {myCoi?.action === 'recuse' ? <p className="text-xs">You recused yourself from this application.</p> : <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'coi', conflict, mitigation, coiAction })}>Submit declaration</button>}
+          {myCoi?.action === 'recuse' ? <p className="text-sm">You recused yourself from this application.</p> : <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'coi', conflict, mitigation, coiAction })}>Submit declaration</button>}
         </Panel>
       )}
 
@@ -144,24 +144,24 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
         <>
           <Panel title="Application">
             {APPLICATION_SECTIONS.map(s => { const fs = s.fields.filter(f => app.sections?.[f.key]); return fs.length ? (
-              <div key={s.key} className="text-xs"><div className="font-semibold">{s.key}. {s.label}</div>{fs.map(f => <div key={f.key} className="text-theme-text-secondary"><b>{f.label}:</b> {app.sections![f.key]}</div>)}</div>) : null; })}
-            <div className="text-xs"><b>Applicant:</b> {app.applicantName} ({app.applicantEmail}) · declaration signed by {app.declaration?.signedName} on {app.declaration?.signedDate}</div>
-            {(app.files?.length ?? 0) > 0 && <ul className="text-xs list-disc pl-4">{app.files!.map((f, i) => <li key={i}><a className="text-accent" href={f.url} target="_blank">{f.label ? `${f.label}: ` : ''}{f.name}</a></li>)}</ul>}
+              <div key={s.key} className="text-sm"><div className="font-semibold">{s.key}. {s.label}</div>{fs.map(f => <div key={f.key} className="text-theme-text-secondary"><b>{f.label}:</b> {app.sections![f.key]}</div>)}</div>) : null; })}
+            <div className="text-sm"><b>Applicant:</b> {app.applicantName} ({app.applicantEmail}) · declaration signed by {app.declaration?.signedName} on {app.declaration?.signedDate}</div>
+            {(app.files?.length ?? 0) > 0 && <ul className="text-sm list-disc pl-4">{app.files!.map((f, i) => <li key={i}><a className="text-accent" href={f.url} target="_blank">{f.label ? `${f.label}: ` : ''}{f.name}</a></li>)}</ul>}
           </Panel>
 
           {manager && (
             <Panel title="Screening (administrative — does not replace merit evaluation)">
               {!app.acknowledgedAt && <button className={btnGhost} disabled={busy} onClick={() => run({ action: 'acknowledge' })}>Mark acknowledged</button>}
-              {app.screening && <p className="text-xs">Last screened {app.screening.at.slice(0, 10)}: <b>{app.screening.outcome}</b>{app.screening.criterion ? ` — ${app.screening.criterion}` : ''}</p>}
-              {(app.missingDocs?.length ?? 0) > 0 && <ul className="text-xs space-y-1">{app.missingDocs!.map((m, i) => <li key={i} className="flex justify-between"><span>{m.item} — due {m.dueBy.slice(0, 10)} {m.resolvedAt ? '(received)' : ''}</span>{!m.resolvedAt && <button className="text-accent" onClick={() => run({ action: 'resolveMissing', index: i })}>mark received</button>}</li>)}</ul>}
+              {app.screening && <p className="text-sm">Last screened {app.screening.at.slice(0, 10)}: <b>{app.screening.outcome}</b>{app.screening.criterion ? ` — ${app.screening.criterion}` : ''}</p>}
+              {(app.missingDocs?.length ?? 0) > 0 && <ul className="text-sm space-y-1">{app.missingDocs!.map((m, i) => <li key={i} className="flex justify-between"><span>{m.item} — due {m.dueBy.slice(0, 10)} {m.resolvedAt ? '(received)' : ''}</span>{!m.resolvedAt && <button className="text-accent" onClick={() => run({ action: 'resolveMissing', index: i })}>mark received</button>}</li>)}</ul>}
               {!['Decision recorded', 'Decision final', 'Evaluation'].includes(app.status!) && (<>
                 <div className="grid md:grid-cols-2 gap-2">{SCREENING_AREAS.map(a => (
-                  <div key={a} className="text-xs space-y-1"><div>{a}</div><div className="flex gap-1"><select className={inputCls + ' !w-20'} value={checks[a].result} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], result: e.target.value } }))}><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select>
+                  <div key={a} className="text-sm space-y-1"><div>{a}</div><div className="flex gap-1"><select className={inputCls + ' !w-20'} value={checks[a].result} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], result: e.target.value } }))}><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select>
                     <input className={inputCls} placeholder="Evidence / reason" value={checks[a].evidence} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], evidence: e.target.value } }))} /></div></div>))}</div>
                 <select className={inputCls + ' max-w-xs'} value={outcome} onChange={e => setOutcome(e.target.value)}><option value="eligible">Eligible</option><option value="clarification">Clarification required</option><option value="ineligible">Ineligible</option></select>
                 {outcome === 'ineligible' && <input className={inputCls} placeholder="Published criterion not met" value={criterion} onChange={e => setCriterion(e.target.value)} />}
                 {outcome === 'clarification' && <><textarea className={inputCls} rows={3} placeholder="One missing item per line" value={items} onChange={e => setItems(e.target.value)} />
-                  <label className="text-xs">Response deadline (working days {settings.timers.clarificationWorkingDays.min}-{settings.timers.clarificationWorkingDays.max})<input type="number" className={inputCls + ' !w-24'} value={days} onChange={e => setDays(Number(e.target.value))} /></label></>}
+                  <label className="text-sm">Response deadline (working days {settings.timers.clarificationWorkingDays.min}-{settings.timers.clarificationWorkingDays.max})<input type="number" className={inputCls + ' !w-24'} value={days} onChange={e => setDays(Number(e.target.value))} /></label></>}
                 <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'screen', checks, outcome, criterion, items: items.split('\n'), deadlineWorkingDays: days })}>Record screening</button></>)}
             </Panel>
           )}
@@ -169,7 +169,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
           {manager && ['Eligible', 'Evaluation'].includes(app.status!) && (
             <Panel title="Evaluators" hint="Tier 1-3 members. Tick “specialist” for deep-tech / healthcare / biotech reviewers.">
               <div className="max-h-40 overflow-y-auto space-y-1">{members.map(m => (
-                <label key={m.id} className="text-xs flex items-center gap-2"><input type="checkbox" checked={!!picked[m.id]?.on} onChange={e => setPicked(p => ({ ...p, [m.id]: { on: e.target.checked, specialist: p[m.id]?.specialist || false } }))} /> {m.name}
+                <label key={m.id} className="text-sm flex items-center gap-2"><input type="checkbox" checked={!!picked[m.id]?.on} onChange={e => setPicked(p => ({ ...p, [m.id]: { on: e.target.checked, specialist: p[m.id]?.specialist || false } }))} /> {m.name}
                   <label className="ml-2 flex items-center gap-1 text-theme-text-secondary"><input type="checkbox" checked={!!picked[m.id]?.specialist} onChange={e => setPicked(p => ({ ...p, [m.id]: { on: p[m.id]?.on || false, specialist: e.target.checked } }))} /> specialist</label></label>))}</div>
               <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'assign', evaluators: Object.entries(picked).filter(([, v]) => v.on).map(([memberId, v]) => ({ memberId, specialist: v.specialist })) })}>Save assignment</button>
             </Panel>
@@ -177,11 +177,11 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
 
           {app.viewer.assigned && app.status === 'Evaluation' && (
             <Panel title="Your scorecard" hint="Score each criterion 1-5 (1 = very weak or no evidence, 5 = excellent). Weighted = score ÷ 5 × weight. Submitted scorecards cannot be changed.">
-              {!myCoi ? <p className="text-xs">File your conflict-of-interest declaration first (use the gate shown when you open an application you have not declared on).</p>
-                : myCard ? <p className="text-xs">Submitted: <b>{myCard.weighted}/100</b>.</p>
-                : !weightsValid(criteria) ? <p className="text-xs text-red-400">Scorecard weights do not total 100 — fix in Settings.</p>
+              {!myCoi ? <p className="text-sm">File your conflict-of-interest declaration first (use the gate shown when you open an application you have not declared on).</p>
+                : myCard ? <p className="text-sm">Submitted: <b>{myCard.weighted}/100</b>.</p>
+                : !weightsValid(criteria) ? <p className="text-sm text-rose-700 dark:text-rose-300">Scorecard weights do not total 100 — fix in Settings.</p>
                 : (<>{criteria.map(c => (
-                  <div key={c.key} className="text-xs flex items-center gap-2"><span className="flex-1">{c.label} <span className="text-theme-text-secondary">(weight {c.weight})</span></span>
+                  <div key={c.key} className="text-sm flex items-center gap-2"><span className="flex-1">{c.label} <span className="text-theme-text-secondary">(weight {c.weight})</span></span>
                     <select className={inputCls + ' !w-20'} value={scores[c.key] || ''} onChange={e => setScores(p => ({ ...p, [c.key]: Number(e.target.value) }))}><option value="">—</option>{[1, 2, 3, 4, 5].map(n => <option key={n}>{n}</option>)}</select></div>))}
                   <input className={inputCls} placeholder="Recommendation" value={recommendation} onChange={e => setRecommendation(e.target.value)} />
                   <textarea className={inputCls} rows={2} placeholder="Comments" value={comments} onChange={e => setComments(e.target.value)} />
@@ -191,7 +191,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
 
           {(app.scorecards?.length ?? 0) > 0 && (
             <Panel title="Scorecards" hint={manager ? 'Visible to managers once submitted.' : 'Peer scorecards are shown only after you submit your own.'}>
-              <table className="w-full text-xs"><thead><tr className="text-left text-theme-text-secondary"><th>Evaluator</th><th>Weighted /100</th><th>Recommendation</th></tr></thead>
+              <table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary"><th>Evaluator</th><th>Weighted /100</th><th>Recommendation</th></tr></thead>
                 <tbody>{app.scorecards!.map(s => <tr key={s.memberId}><td>{s.memberName}{s.specialist ? ' (specialist)' : ''}</td><td>{s.weighted}</td><td>{s.recommendation || '—'}</td></tr>)}</tbody></table>
             </Panel>
           )}
@@ -218,8 +218,8 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
               <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'finalise', approvalRef })}>Finalise decision</button>
             </Panel>
           )}
-          {app.startupId && <p className="text-xs">Startup record: <b className="font-mono">{app.startupId}</b> — continue under Onboarding.</p>}
-          {manager && (app.log?.length ?? 0) > 0 && <details className="text-[11px]"><summary className="cursor-pointer font-semibold">Activity log</summary><ul className="mt-1 text-theme-text-secondary">{app.log!.slice().reverse().map((l, i) => <li key={i}>{l.at.slice(0, 16).replace('T', ' ')} — {l.action}{l.detail ? `: ${l.detail}` : ''}</li>)}</ul></details>}
+          {app.startupId && <p className="text-sm">Startup record: <b className="font-mono">{app.startupId}</b> — continue under Onboarding.</p>}
+          {manager && (app.log?.length ?? 0) > 0 && <details className="text-xs"><summary className="cursor-pointer font-semibold">Activity log</summary><ul className="mt-1 text-theme-text-secondary">{app.log!.slice().reverse().map((l, i) => <li key={i}>{l.at.slice(0, 16).replace('T', ' ')} — {l.action}{l.detail ? `: ${l.detail}` : ''}</li>)}</ul></details>}
         </>
       )}
     </Modal>

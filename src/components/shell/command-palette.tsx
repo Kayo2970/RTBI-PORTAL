@@ -80,7 +80,7 @@ export function CommandPalette({ open, onClose, user }: { open: boolean; onClose
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search pages, startups, people…"
-            className="flex-1 h-14 bg-transparent text-base text-theme-text-primary placeholder:text-theme-text-secondary outline-none"
+            className="flex-1 h-14 bg-transparent text-base text-theme-text-primary placeholder:text-theme-text-secondary outline-none focus-visible:outline-none"
           />
           <kbd className="hidden sm:inline text-xs text-theme-text-secondary border border-theme-border rounded px-1.5 py-0.5">Esc</kbd>
         </div>

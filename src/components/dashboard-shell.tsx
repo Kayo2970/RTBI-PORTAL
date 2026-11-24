@@ -162,7 +162,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const isExternalReviewerUser = user.tier === 3 && (user as any).externalReviewer === true;
   const externalAllowed = (href: string) => href.startsWith('/dashboard/incubation/applications') || href.startsWith('/dashboard/settings') || href.startsWith('/dashboard/approvals');
   const visibleNav = navSections
-    .map(section => ({ ...section, items: section.items.filter(item => !isExternalReviewerUser || externalAllowed(item.href)) }))
+    .map(section => ({ ...section, items: section.items
+      .filter(item => !isExternalReviewerUser || externalAllowed(item.href) || !!item.externalHref)
+      .map(item => (isExternalReviewerUser && item.externalHref ? { ...item, href: item.externalHref } : item)) }))
     .filter(section => section.items.length > 0);
   useEffect(() => {
     if (isExternalReviewerUser && isAuthenticated && !externalAllowed(pathname)) router.replace('/dashboard/incubation/applications');
@@ -862,7 +864,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {visibleNav.map((section) => {
         const items = section.items.filter(item => isNavItemVisible(item, user));
         if (items.length === 0) return null;
-        const hasActive = items.some(i => i.href === activeItem.href);
+        const hasActive = items.some(i => i.name === activeItem.name);
         const expanded = !section.collapsible || isMoreOpen || hasActive;
         const headingId = `nav-${section.id}`;
         return (
@@ -887,7 +889,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <ul id={headingId} className="space-y-1">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = item.href === activeItem.href;
+                  const isActive = item.name === activeItem.name;
                   return (
                     <li key={item.href}>
                       <Link

@@ -189,10 +189,11 @@ body {
 }
 
 /* Accessibility baseline ------------------------------------------------- */
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
-  border-radius: 0.5rem;
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 .skip-link {
@@ -258,12 +259,12 @@ body {
 .skeleton {
   position: relative;
   overflow: hidden;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(54, 28, 106, 0.10);
   border-radius: 0.75rem;
 }
 
 .dark .skeleton {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.10);
 }
 
 .skeleton--shimmer {

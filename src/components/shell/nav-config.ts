@@ -1,8 +1,8 @@
 import type React from 'react';
 import {
   LayoutDashboard, Calendar, CheckSquare, Star, Receipt, ReceiptText, DoorOpen, Boxes, FileText, BarChart3,
-  Megaphone, Settings, FileCheck2, IdCard, Ticket, Lightbulb, Rocket, ClipboardCheck, Palette, Send, Mail,
-  Contact, Wallet, ShieldCheck, Users, Library, Sparkles,
+  Megaphone, Settings, FileCheck2, IdCard, Ticket, Lightbulb, Rocket, Palette, Send, Mail,
+  Contact, Wallet, ShieldCheck, Users, Sparkles,
 } from 'lucide-react';
 import { canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 
@@ -18,6 +18,8 @@ export interface NavItem {
   groupPoliciesOnly?: boolean;
   /** Extra words the command palette matches on. */
   keywords?: string;
+  /** Where external reviewers (who can reach only part of the area) are sent instead of `href`. */
+  externalHref?: string;
 }
 
 export interface NavGroup {
@@ -48,11 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'incubation',
     title: 'Incubation',
     items: [
-      { name: 'Startups', href: '/dashboard/incubation', icon: Rocket, keywords: 'registry portfolio' },
-      { name: 'Applications', href: '/dashboard/incubation/applications', icon: FileText, staffOnly: true, keywords: 'intake screening scorecard' },
-      { name: 'Onboarding', href: '/dashboard/incubation/onboarding', icon: ClipboardCheck, staffOnly: true, keywords: 'activation checklist' },
-      { name: 'Registers', href: '/dashboard/incubation/records/review', icon: Library, matchPrefixes: ['/dashboard/incubation/records'], keywords: 'reviews trl graduation evidence mentors cohorts agreements incidents' },
-      { name: 'KPI Dashboard', href: '/dashboard/incubation/kpi', icon: BarChart3, staffOnly: true, keywords: 'annexure targets' },
+      { name: 'Incubation', href: '/dashboard/incubation/overview', icon: Rocket, matchPrefixes: ['/dashboard/incubation'], externalHref: '/dashboard/incubation/applications', keywords: 'startups applications onboarding registers kpi reviews cohorts mentors graduation' },
     ],
   },
   {
