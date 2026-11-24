@@ -10,7 +10,7 @@ import { APPLICATION_SECTIONS, DECISION_OPTIONS, SCREENING_AREAS, type Incubatio
 import { Badge, Modal, PageHeader, Panel, btnGhost, btnPrimary, inputCls, isManagerUi, isStaffUi, useCurrentUser } from '@/components/incubation/ui';
 import { toast } from '@/components/ui/toast';
 
-const statusTone = (s?: string) => (s === 'Decision final' ? 'green' : s === 'Ineligible' ? 'red' : s === 'Clarification required' || s === 'Decision recorded' ? 'amber' : 'blue') as 'green' | 'red' | 'amber' | 'blue';
+const statusTone = (s?: string) => (s === 'Decision final' ? 'green' : s === 'Ineligible' || s === 'Withdrawn' ? 'red' : s === 'Clarification required' || s === 'Decision recorded' ? 'amber' : 'blue') as 'green' | 'red' | 'amber' | 'blue';
 
 function ApplicationsPageInner() {
   const user = useCurrentUser();
@@ -155,7 +155,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
               {!app.acknowledgedAt && <button className={btnGhost} disabled={busy} onClick={() => run({ action: 'acknowledge' })}>Mark acknowledged</button>}
               {app.screening && <p className="text-sm">Last screened {app.screening.at.slice(0, 10)}: <b>{app.screening.outcome}</b>{app.screening.criterion ? ` — ${app.screening.criterion}` : ''}</p>}
               {(app.missingDocs?.length ?? 0) > 0 && <ul className="text-sm space-y-1">{app.missingDocs!.map((m, i) => <li key={i} className="flex justify-between"><span>{m.item} — due {m.dueBy.slice(0, 10)} {m.resolvedAt ? '(received)' : ''}</span>{!m.resolvedAt && <button className="text-accent-strong dark:text-accent-soft" onClick={() => run({ action: 'resolveMissing', index: i })}>mark received</button>}</li>)}</ul>}
-              {!['Decision recorded', 'Decision final', 'Evaluation'].includes(app.status!) && (<>
+              {!['Decision recorded', 'Decision final', 'Evaluation', 'Withdrawn'].includes(app.status!) && (<>
                 <div className="grid md:grid-cols-2 gap-2">{SCREENING_AREAS.map(a => (
                   <div key={a} className="text-sm space-y-1"><div>{a}</div><div className="flex gap-1"><select className={inputCls + ' !w-20'} value={checks[a].result} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], result: e.target.value } }))}><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select>
                     <input className={inputCls} placeholder="Evidence / reason" value={checks[a].evidence} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], evidence: e.target.value } }))} /></div></div>))}</div>
@@ -216,9 +216,13 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
           {app.decision && !app.decision.finalisedAt && isApprover && (
             <Panel title="Final approval" hint="Only a configured selection approver can finalise. This notifies the applicant and, for a selection, creates the Startup record.">
               <input className={inputCls} placeholder="Approval reference (minutes / order no.) *" value={approvalRef} onChange={e => setApprovalRef(e.target.value)} />
-              <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'finalise', approvalRef })}>Finalise decision</button>
+              <div className="flex flex-wrap gap-2">
+                <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'finalise', approvalRef })}>Finalise decision</button>
+                <button className={btnGhost} disabled={busy} onClick={async () => { const reason = window.prompt('Why is this decision being rejected? The application returns to evaluation.'); if (reason && reason.trim()) await run({ action: 'rejectDecision', reason }); }}>Reject decision</button>
+              </div>
             </Panel>
           )}
+          {manager && !['Decision final', 'Withdrawn'].includes(app.status!) && <button className={btnGhost} disabled={busy} onClick={async () => { const reason = window.prompt('Why is this application being withdrawn? (for example, the applicant asked in writing)'); if (reason && reason.trim()) await run({ action: 'withdraw', reason }); }}>Withdraw application</button>}
           {app.startupId && <p className="text-sm">Startup record: <b className="font-mono">{app.startupId}</b> — continue under Onboarding.</p>}
           {manager && (app.log?.length ?? 0) > 0 && <details className="text-xs"><summary className="cursor-pointer font-semibold">Activity log</summary><ul className="mt-1 text-theme-text-secondary">{app.log!.slice().reverse().map((l, i) => <li key={i}>{l.at.slice(0, 16).replace('T', ' ')} — {l.action}{l.detail ? `: ${l.detail}` : ''}</li>)}</ul></details>}
         </>

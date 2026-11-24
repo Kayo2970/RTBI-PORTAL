@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { readCollection, mutateCollection } from '@/lib/server-db';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
-import { canManageIncubationSettingsServer } from '@/lib/permissions-server';
+import { canManageIncubationSettingsServer, isInternalStaff } from '@/lib/permissions-server';
 import { defaultIncubationSettings } from '@/lib/incubation/defaults';
 import { validateSettings } from '@/lib/incubation/rules';
 import { incubationAudit } from '@/lib/incubation/audit-server';
@@ -15,7 +15,9 @@ async function loadCurrent(): Promise<IncubationSettings> {
 
 export async function GET(request: Request) {
   try {
-    await requireSession(request);
+    const actor = await requireSession(request);
+    // Fee schedules, KPI targets and approver IDs are internal: startups and external reviewers get nothing.
+    if (!isInternalStaff(actor) || (actor.tier === 3 && actor.externalReviewer === true)) throw new ForbiddenError('Incubation settings are for RTBI staff.');
     return NextResponse.json(await loadCurrent());
   } catch (err) {
     return apiError(err, 'incubation-settings-get', 500);

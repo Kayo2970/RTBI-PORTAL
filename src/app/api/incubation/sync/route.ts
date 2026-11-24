@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireSession, ForbiddenError } from '@/lib/session';
+import { isInternalStaff } from '@/lib/permissions-server';
 import { apiError } from '@/lib/api-error';
 import { syncAllStartupsAndCredentials } from '@/lib/incubation/startup-registry-sync';
 import { readCollection } from '@/lib/server-db';
@@ -11,6 +12,7 @@ import type { Startup } from '@/lib/incubation/types';
 export async function GET(request: Request) {
   try {
     const actor = await requireSession(request);
+    if (!isInternalStaff(actor)) throw new ForbiddenError('Only RTBI staff can view synchronisation status.');
     const [startups, members] = await Promise.all([
       readCollection<Startup>('startups'),
       readCollection<any>('members'),

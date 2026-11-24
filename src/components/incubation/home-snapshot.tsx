@@ -23,7 +23,7 @@ export function IncubationSnapshot({ user }: { user: { tier: number; externalRev
       setD({
         active: st.filter(x => x.status === 'Active').length, total: st.length,
         overdue: al.filter(x => x.severity === 'overdue').length,
-        apps: ap.filter(x => !['Ineligible', 'Decision final'].includes(x.status as string)).length,
+        apps: ap.filter(x => !['Ineligible', 'Decision final', 'Withdrawn'].includes(x.status as string)).length,
         top: al.filter(x => x.severity === 'overdue').slice(0, 3).map(x => ({ id: x.id, title: x.title, link: x.link })),
       });
     });
