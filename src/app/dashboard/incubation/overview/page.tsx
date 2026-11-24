@@ -68,7 +68,7 @@ export default function IncubationOverviewPage() {
   }
 
   const active = data.startups.filter((s) => s.status === 'Active');
-  const inPipeline = data.applications.filter((a) => !['Ineligible', 'Decision final'].includes(a.status) && !a.decision?.finalisedAt).length;
+  const inPipeline = data.applications.filter((a) => !['Ineligible', 'Decision final', 'Withdrawn'].includes(a.status) && !a.decision?.finalisedAt).length;
   const overdue = data.alerts.filter((a) => a.severity === 'overdue');
   const kpiMet = data.kpi ? data.kpi.rows.filter((k) => k.status === 'Met').length : 0;
   const attention = [...data.alerts].sort((a, b) => Number(b.severity === 'overdue') - Number(a.severity === 'overdue')).slice(0, 7);

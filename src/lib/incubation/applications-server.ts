@@ -39,7 +39,9 @@ export function viewApplication(app: Application, actor: any, isManager: boolean
   }
   const scorecards = (app.scorecards || []).filter(s => s.memberId === actor.id || viewer.ownScoreSubmitted);
   const { decision: _d, ...rest } = app;
-  return { ...rest, scorecards, viewer, ...(app.decision?.finalisedAt ? { decision: app.decision } : {}) };
+  // Until the decision is final, evaluators must not learn it from the activity log either.
+  const log = app.decision?.finalisedAt ? app.log : (app.log || []).filter(l => !/^Decision (recorded|rejected|finalised)/i.test(l.action) && !/^Further information required \(approved\)/.test(l.action));
+  return { ...rest, log, scorecards, viewer, ...(app.decision?.finalisedAt ? { decision: app.decision } : {}) };
 }
 
 export async function loadApplications(): Promise<Application[]> {

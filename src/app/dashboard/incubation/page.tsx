@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/toast';
 import { Rocket, Plus, X, Search, Settings2, Loader2, Edit3, Globe, MapPin, Users, Calendar, Building2, ExternalLink, Sparkles } from 'lucide-react';
 import { Chip } from '@/components/ui';
 import { Badge, Panel, ragClass } from '@/components/incubation/ui';
@@ -112,7 +113,7 @@ export default function IncubationPage() {
                   <td className="p-3">{s.pathway}</td>
                   <td className="p-3">{s.cohort || '—'}</td>
                   <td className="p-3">{founderNames(s)}</td>
-                  {canManage && <td className="p-3 text-right whitespace-nowrap"><Link href={`/dashboard/incubation/onboarding?startup=${s.id}`} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Onboarding</Link><button onClick={() => setEditing(s)} className="text-accent-strong dark:text-accent-soft font-semibold">Edit</button></td>}
+                  {canManage && <td className="p-3 text-right whitespace-nowrap"><Link href={`/dashboard/incubation/workspace?startup=${s.id}`} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Workspace</Link><Link href={`/dashboard/incubation/onboarding?startup=${s.id}`} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Onboarding</Link>{s.status === 'Waitlisted' && <button onClick={async () => { const ref = window.prompt('Approval reference (minutes / order no.) to promote this waitlisted startup to Selected:'); if (ref && ref.trim()) { try { await updateStartup(s.id, { status: 'Selected', approvalRef: ref } as any); toast.success('Startup promoted from the waitlist'); load(); } catch (e: any) { toast.error('Could not promote', { description: e.message }); } } }} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Promote</button>}<button onClick={() => setEditing(s)} className="text-accent-strong dark:text-accent-soft font-semibold">Edit</button></td>}
                 </tr>
               ))}
             </tbody>

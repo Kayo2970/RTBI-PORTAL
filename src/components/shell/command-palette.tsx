@@ -3,7 +3,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Rocket, User, CornerDownLeft } from 'lucide-react';
-import { ALL_NAV_ITEMS, isNavItemVisible } from './nav-config';
+import { ALL_NAV_ITEMS, DEEP_LINKS, isDeepLinkVisible, isNavItemVisible } from './nav-config';
 import { getMembers } from '@/lib/local-data';
 import { fetchStartups } from '@/lib/incubation/client';
 
@@ -36,19 +36,24 @@ export function CommandPalette({ open, onClose, user }: { open: boolean; onClose
     const pages: Entry[] = ALL_NAV_ITEMS.filter((i) => isNavItemVisible(i, user)).map((i) => ({
       key: 'p:' + i.href, label: i.name, sub: 'Page', href: i.href, kind: 'Page', haystack: `${i.name} ${i.keywords ?? ''}`.toLowerCase(),
     }));
+    const deep: Entry[] = DEEP_LINKS.filter((l) => isDeepLinkVisible(l, user) && !pages.some((p) => p.href === l.href)).map((l) => ({
+      key: 'd:' + l.href, label: l.name, sub: l.parent, href: l.href, kind: 'Page', haystack: `${l.name} ${l.parent} ${l.keywords ?? ''}`.toLowerCase(),
+    }));
     const su: Entry[] = startups.map((s) => ({
       key: 's:' + s.id, label: s.name, sub: `${s.id}${s.sector ? ' · ' + s.sector : ''}`, href: `/dashboard/incubation?startup=${encodeURIComponent(s.id)}`, kind: 'Startup', haystack: `${s.name} ${s.id} ${s.sector ?? ''}`.toLowerCase(),
     }));
     const mem: Entry[] = user.tier === 1
       ? getMembers().map((m) => ({ key: 'm:' + m.id, label: m.name, sub: `${m.role} · ${m.email}`, href: '/dashboard/users', kind: 'Member', haystack: `${m.name} ${m.email} ${m.role}`.toLowerCase() }))
       : [];
-    return [...pages, ...su, ...mem];
+    return [...pages, ...deep, ...su, ...mem];
   }, [open, user, startups]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = q ? entries.filter((e) => q.split(/\s+/).every((w) => e.haystack.includes(w))) : entries.filter((e) => e.kind === 'Page');
-    return list.slice(0, 9); // Miller's Law: never more than ~9 rows
+    // Name matches first (starts-with, then contains), keyword-only matches last.
+    const rank = (e: Entry) => { const l = e.label.toLowerCase(); return !q ? 0 : l.startsWith(q) ? 0 : l.includes(q) ? 1 : 2; };
+    return [...list].sort((a, b) => rank(a) - rank(b)).slice(0, 9); // Miller's Law: never more than ~9 rows
   }, [entries, query]);
 
   useEffect(() => setActive(0), [query]);
