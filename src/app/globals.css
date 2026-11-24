@@ -4,41 +4,43 @@
 :root {
   --background: #FAF6EF;
   --foreground: #1D1825;
-  --card: rgba(255, 255, 255, 0.94);
+  --card: #FFFFFF;
   --card-foreground: #1D1825;
-  --card-bg: rgba(255, 255, 255, 0.92);
-  --card-border: rgba(54, 28, 106, 0.12);
+  --card-bg: #FFFFFF;
+  --card-border: rgba(54, 28, 106, 0.18);
   --text-primary: #1D1825;
   --text-secondary: #5B4D70;
   --muted: rgba(54, 28, 106, 0.06);
   --muted-foreground: #5B4D70;
-  --border: rgba(54, 28, 106, 0.12);
-  --border-color: rgba(54, 28, 106, 0.12);
-  --sidebar-bg: rgba(255, 255, 255, 0.96);
-  --sidebar-border: rgba(54, 28, 106, 0.12);
-  --page-gradient: linear-gradient(135deg, #FAF6EF 0%, #F5EFF8 40%, #EFE9F5 100%);
-  --accent: #E34A21;
+  --border: rgba(54, 28, 106, 0.22);
+  --border-color: rgba(54, 28, 106, 0.22);
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: rgba(54, 28, 106, 0.16);
+  /* Solid page surface (no gradient) so text contrast is predictable. */
+  --page-gradient: var(--background);
+  --focus-ring: #361C6A;
+  --accent: #C23B14;
   --accent-foreground: #FFFFFF;
 }
 
 .dark {
   --background: #160B2C;
   --foreground: #FFFFFF;
-  --card: rgba(36, 17, 63, 0.85);
+  --card: #22123F;
   --card-foreground: #FAF8FC;
-  --card-bg: rgba(36, 17, 63, 0.85);
-  --card-border: rgba(255, 255, 255, 0.12);
+  --card-bg: #22123F;
+  --card-border: rgba(255, 255, 255, 0.16);
   --text-primary: #FFFFFF;
-  --text-secondary: #B8AEC8;
+  --text-secondary: #C9C0D8;
   --muted: rgba(255, 255, 255, 0.08);
-  --muted-foreground: #B8AEC8;
-  --border: rgba(255, 255, 255, 0.12);
-  --border-color: rgba(255, 255, 255, 0.12);
-  --sidebar-bg: rgba(22, 11, 44, 0.92);
-  --sidebar-border: rgba(255, 255, 255, 0.10);
-  /* Dark mode gradient with deep royal plum and purple tones */
-  --page-gradient: linear-gradient(135deg, #0F0623 0%, #160B2C 30%, #1D0F3A 70%, #2A1556 100%);
-  --accent: #E34A21;
+  --muted-foreground: #C9C0D8;
+  --border: rgba(255, 255, 255, 0.24);
+  --border-color: rgba(255, 255, 255, 0.24);
+  --sidebar-bg: #1B0E35;
+  --sidebar-border: rgba(255, 255, 255, 0.14);
+  --page-gradient: var(--background);
+  --focus-ring: #FFB59E;
+  --accent: #C23B14;
   --accent-foreground: #FFFFFF;
 }
 
@@ -48,7 +50,9 @@
 
   --color-primary: #361C6A;
   --color-primary-light: #4A2545;
-  --color-accent: #E34A21;
+  /* AA-safe orange: 5.4:1 with white text, 5.1:1 on white. (Was #E34A21, ~4:1.) */
+  --color-accent: #C23B14;
+  --color-accent-soft: #FF9A7B; /* accent text on dark surfaces */
   --color-secondary: #932961;
   --color-success: #15803D;
   --color-warning: #B45309;
@@ -92,9 +96,7 @@
 }
 
 body {
-  background: var(--page-gradient);
-  background-attachment: fixed;
-  background-size: cover;
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -166,51 +168,58 @@ body {
   }
 }
 
-/* Glassmorphism panel styling — outer shadow tinted toward the page's own
-   foreground hue (not flat black) plus a hairline inner highlight along the
-   top/left edge to suggest light catching a glass edge, instead of a plain
-   backdrop-blur box.
-   Deliberately placed in @layer components (not left unlayered): Tailwind v4
-   orders its own layers base < components < utilities, so an unlayered rule
-   here would always beat ANY Tailwind utility class regardless of source
-   order — which is exactly what was silently overriding tint utilities like
-   `bg-theme-sidebar/50` on headers/panels that pair them with `glass-panel`,
-   producing the washed-out "frosted middle layer" look. Inside
-   @layer components, an explicit utility on the same element now wins as
-   intended, while elements that use `glass-panel` alone still fall back to
-   this default background. */
+/* Surface styling. The class name `glass-panel` is kept because ~220 call sites
+   use it, but it is now a SOLID card (no blur, no translucency) so text contrast
+   is predictable in both themes. Kept in @layer components so an explicit
+   Tailwind utility on the same element still wins. */
 @layer components {
   .glass-panel {
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
-    box-shadow:
-      0 10px 30px -4px rgba(54, 28, 106, 0.08),
-      0 4px 12px -2px rgba(54, 28, 106, 0.04),
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+    box-shadow: 0 1px 2px rgba(29, 24, 37, 0.06), 0 4px 12px -4px rgba(29, 24, 37, 0.08);
   }
 
   .dark .glass-panel {
-    box-shadow:
-      0 12px 36px 0 rgba(0, 0, 0, 0.50),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
-      inset 1px 0 0 0 rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px -6px rgba(0, 0, 0, 0.5);
   }
 
-  /* Background Theme Layout — side-to-side gradient, themed via --page-gradient
-     (a light, airy version in :root; nice dark neutral grays in .dark). */
   .bg-space-theme {
-    background: var(--page-gradient);
-    background-attachment: fixed;
-    background-size: cover;
+    background-color: var(--background);
   }
+}
 
-  @media (max-width: 768px) {
-    .bg-space-theme, body {
-      background: var(--page-gradient);
-      background-attachment: fixed;
-    }
+/* Accessibility baseline ------------------------------------------------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 200;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  transform: translateY(-200%);
+  transition: transform 0.15s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -409,73 +418,6 @@ body {
   animation: rippling 0.3s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
-/* ------------------------------------------------------------- */
-/* React Bits MagicBento Dynamic Card Hover & Border Glow        */
-/* Wrapped in @layer components (like the glass-panel base rule  */
-/* above) so its `position: relative` on .glass-panel never beats */
-/* an explicit Tailwind `absolute` utility on the same element —  */
-/* left unlayered, this rule was overriding every glass-panel     */
-/* dropdown (Quick Switch, notification bell, user menu) back to  */
-/* `position: relative`, since unlayered CSS always wins over any */
-/* Tailwind layer regardless of source order, breaking their      */
-/* `absolute right-0 top-full` anchoring in production.           */
-/* ------------------------------------------------------------- */
-@layer components {
-  .magic-bento-card,
-  .glass-panel:not(header):not(aside):not(.no-magic),
-  .dashboard-card {
-    --glow-x: 50%;
-    --glow-y: 50%;
-    --glow-intensity: 0;
-    --glow-radius: 260px;
-    --glow-color: 227, 74, 33;
-    position: relative;
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s ease;
-    will-change: transform;
-  }
-
-  .magic-bento-card::after,
-  .glass-panel:not(header):not(aside):not(.no-magic)::after,
-  .dashboard-card::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: radial-gradient(
-      var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-      rgba(var(--glow-color), calc(var(--glow-intensity) * 0.95)) 0%,
-      rgba(var(--glow-color), calc(var(--glow-intensity) * 0.4)) 35%,
-      transparent 70%
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    z-index: 20;
-  }
-
-  .magic-bento-card:hover::after,
-  .glass-panel:not(header):not(aside):not(.no-magic):hover::after,
-  .dashboard-card:hover::after {
-    opacity: 1;
-  }
-
-  .magic-bento-card:hover,
-  .glass-panel:not(header):not(aside):not(.no-magic):hover,
-  .dashboard-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px -10px rgba(54, 28, 106, 0.35);
-  }
-}
-
 .magic-particle::before {
   content: '';
   position: absolute;
@@ -487,11 +429,3 @@ body {
   border-radius: 50%;
   z-index: -1;
 }
-
-
-
-
-
-
-
-
