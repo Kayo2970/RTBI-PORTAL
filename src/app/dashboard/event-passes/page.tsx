@@ -75,6 +75,7 @@ import { IssuedCertificatesPanel } from '@/components/issued-certificates-panel'
 import { EventPassEditModal } from '@/components/event-pass-edit-modal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SearchableSelect } from '@/components/searchable-select';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 export default function EventPassesPage() {
   const router = useRouter();
@@ -277,7 +278,7 @@ export default function EventPassesPage() {
       return;
     }
 
-    if (!window.confirm(`Dispatch pass invitation emails to ${unsent.length} attendees now?`)) {
+    if (!await askConfirm(`Dispatch pass invitation emails to ${unsent.length} attendees now?`)) {
       return;
     }
 
@@ -303,7 +304,7 @@ export default function EventPassesPage() {
     const targets = eventPasses.filter((p) => selectedPassIds.has(p.id));
     if (targets.length === 0) return;
     const preview = targets.slice(0, 8).map((p) => `• ${p.attendeeName} (${p.serialNumber})`).join('\n');
-    if (!window.confirm(`Permanently delete ${targets.length} issued pass${targets.length === 1 ? '' : 'es'}?\n\n${preview}${targets.length > 8 ? `\n…and ${targets.length - 8} more` : ''}\n\nTheir QR codes stop working. This cannot be undone.`)) return;
+    if (!await askConfirm(`Permanently delete ${targets.length} issued pass${targets.length === 1 ? '' : 'es'}?\n\n${preview}${targets.length > 8 ? `\n…and ${targets.length - 8} more` : ''}\n\nTheir QR codes stop working. This cannot be undone.`)) return;
     setIsBulkDeleting(true);
     const task = beginTask({ label: `Deleting ${targets.length} pass${targets.length === 1 ? '' : 'es'}`, total: targets.length });
     try {
@@ -412,17 +413,17 @@ export default function EventPassesPage() {
     if (isViewed) {
       return (
         <div className="flex flex-col gap-0.5">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-success/15 text-success dark:text-success border border-success/30 shadow-sm shadow-success/15">
-            <Eye className="h-3 w-3 text-success shrink-0" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-success/15 text-success dark:text-success border border-success/30 shadow-sm shadow-success/15">
+            <Eye className="h-3 w-3 text-success dark:text-success-soft shrink-0" />
             <span>Pass Viewed</span>
             {pass.passViewCount && pass.passViewCount > 1 ? (
-              <span className="px-1 py-0.1 bg-success/20 rounded text-[9px] font-mono">
+              <span className="px-1 py-0.1 bg-success/20 rounded text-xs font-mono">
                 {pass.passViewCount}x
               </span>
             ) : null}
           </span>
           {pass.passViewedAt && (
-            <span className="text-[9px] text-success dark:text-success/80 pl-1 font-mono">
+            <span className="text-xs text-success dark:text-success/80 pl-1 font-mono">
               {new Date(pass.passViewedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} &middot; {new Date(pass.passViewedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
             </span>
           )}
@@ -433,12 +434,12 @@ export default function EventPassesPage() {
     if (isReceived) {
       return (
         <div className="flex flex-col gap-0.5">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-accent/15 text-accent dark:text-accent border border-accent/30">
-            <MailCheck className="h-3 w-3 text-accent shrink-0" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent/15 text-accent dark:text-accent border border-accent/30">
+            <MailCheck className="h-3 w-3 text-accent-strong dark:text-accent-soft shrink-0" />
             <span>Email Received</span>
           </span>
           {pass.emailReceivedAt && (
-            <span className="text-[9px] text-accent dark:text-accent/80 pl-1 font-mono">
+            <span className="text-xs text-accent dark:text-accent/80 pl-1 font-mono">
               {new Date(pass.emailReceivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} &middot; {new Date(pass.emailReceivedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
             </span>
           )}
@@ -449,12 +450,12 @@ export default function EventPassesPage() {
     if (isSent) {
       return (
         <div className="flex flex-col gap-0.5">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-warning/15 text-warning dark:text-warning border border-warning/30">
-            <Send className="h-3 w-3 text-warning shrink-0" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-warning/15 text-warning dark:text-warning border border-warning/30">
+            <Send className="h-3 w-3 text-warning dark:text-warning-soft shrink-0" />
             <span>Email Sent</span>
           </span>
           {pass.emailSentAt && (
-            <span className="text-[9px] text-warning dark:text-warning/80 pl-1 font-mono">
+            <span className="text-xs text-warning dark:text-warning/80 pl-1 font-mono">
               {new Date(pass.emailSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} &middot; {new Date(pass.emailSentAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
             </span>
           )}
@@ -463,7 +464,7 @@ export default function EventPassesPage() {
     }
 
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-theme-card/10 text-theme-text-secondary dark:text-theme-text-secondary border border-theme-border/20">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-theme-card/10 text-theme-text-secondary dark:text-theme-text-secondary border border-theme-border/20">
         <Mail className="h-3 w-3 opacity-60 shrink-0" />
         <span>Not Sent</span>
       </span>
@@ -511,7 +512,7 @@ export default function EventPassesPage() {
         ? 'bg-warning/15 text-warning dark:text-warning border border-warning/30'
         : 'bg-accent/15 text-accent dark:text-accent border border-accent/30';
     return (
-      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${cls}`}>
+      <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${cls}`}>
         {(st === 'Checked In' || st === 'Attended') && <Check className="h-2.5 w-2.5" />}
         <span>{label}</span>
       </span>
@@ -658,13 +659,13 @@ export default function EventPassesPage() {
       {/* Notifications */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/25 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300 shadow-md shadow-success/10">
-          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span className="font-semibold">{successMsg}</span>
         </div>
       )}
       {errorMsg && (
         <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/25 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300 shadow-md shadow-danger/10">
-          <AlertCircle className="h-5 w-5 text-danger shrink-0" />
+          <AlertCircle className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
           <span className="font-semibold">{errorMsg}</span>
         </div>
       )}
@@ -673,7 +674,7 @@ export default function EventPassesPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-theme-border/30 pb-4 min-w-0">
         <div className="min-w-0">
           <h1 className="text-xl md:text-2xl font-black text-theme-text-primary flex items-center gap-2.5">
-            <div className="p-2 bg-accent/15 rounded-2xl text-accent border border-accent/20">
+            <div className="p-2 bg-accent/15 rounded-2xl text-accent-strong dark:text-accent-soft border border-accent/20">
               <Ticket className="h-6 w-6" />
             </div>
             Event Passes &amp; Gate Turnstile
@@ -720,10 +721,10 @@ export default function EventPassesPage() {
                 Issued Event Passes
                 {eventPasses.length > 0 && (
                   <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                    className={`px-1.5 py-0.2 rounded-full text-xs font-mono ${
                       activeTab === 'passes'
                         ? 'bg-white/20 text-white'
-                        : 'bg-accent/15 text-accent border border-accent/25'
+                        : 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25'
                     }`}
                   >
                     {eventPasses.length}
@@ -789,7 +790,7 @@ export default function EventPassesPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab('passes')}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:underline cursor-pointer ml-2"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer ml-2"
                   >
                     <span>Open Full Deep Dive View</span>
                     <ChevronRight className="h-3 w-3" />
@@ -818,7 +819,7 @@ export default function EventPassesPage() {
                     setSelectedPushPass(null);
                     setIsPushModalOpen(true);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/35 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/35 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
                   title="Broadcast lock-screen push notification to attendees"
                 >
                   <Bell className="h-3.5 w-3.5 animate-pulse" />
@@ -855,7 +856,7 @@ export default function EventPassesPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-theme-card-border/90 dark:border-white/10 text-theme-text-secondary text-[11px] uppercase tracking-wider">
+                    <tr className="border-b border-theme-card-border/90 dark:border-white/10 text-theme-text-secondary text-xs uppercase tracking-wider">
                       <SortableTh label="Serial ID" columnKey="serial" sort={studioSort.sort} onToggle={studioSort.toggle} />
                       <SortableTh label="Attendee & Category" columnKey="name" sort={studioSort.sort} onToggle={studioSort.toggle} />
                       <SortableTh label="Room / Venue" columnKey="venue" sort={studioSort.sort} onToggle={studioSort.toggle} />
@@ -902,12 +903,12 @@ export default function EventPassesPage() {
                             <div className="font-bold text-theme-text-primary">{pass.attendeeName}</div>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               {pass.guestCategory && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-accent/15 text-accent border border-accent/25">
+                                <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
                                   {pass.guestCategory}
                                 </span>
                               )}
                               {pass.attendeeOrg && (
-                                <span className="text-[10px] text-theme-text-secondary truncate max-w-[150px]">
+                                <span className="text-xs text-theme-text-secondary truncate max-w-[150px]">
                                   {pass.attendeeOrg}
                                 </span>
                               )}
@@ -915,7 +916,7 @@ export default function EventPassesPage() {
                           </td>
                           <td className="py-3 px-4 min-w-[140px] max-w-[220px] align-top">
                             <span className="font-semibold text-theme-text-primary dark:text-theme-text-primary flex items-start gap-1 min-w-0">
-                              <MapPin className="h-3 w-3 text-accent shrink-0 mt-0.5" />
+                              <MapPin className="h-3 w-3 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
                               <span className="min-w-0 break-words [overflow-wrap:anywhere]">{pass.roomOrVenue || pass.eventVenue || 'Main Auditorium'}</span>
                             </span>
                           </td>
@@ -923,7 +924,7 @@ export default function EventPassesPage() {
                             {pass.eventName}
                           </td>
                           <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent/15 text-accent border border-accent/30">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30">
                               {pass.passType}
                             </span>
                           </td>
@@ -940,7 +941,7 @@ export default function EventPassesPage() {
                                 href={`/pass/${pass.serialNumber}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                className="px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                                 title={`View Pass for ${pass.attendeeName}`}
                               >
                                 <Eye className="h-3 w-3" />
@@ -951,7 +952,7 @@ export default function EventPassesPage() {
                                 type="button"
                                 disabled={dispatchingPassId === pass.id}
                                 onClick={() => handleDispatchSinglePass(pass)}
-                                className="p-1.5 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                                className="p-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
                                 title={`Dispatch Pass Email to ${pass.attendeeEmail || pass.attendeeName}`}
                               >
                                 {dispatchingPassId === pass.id ? (
@@ -969,7 +970,7 @@ export default function EventPassesPage() {
                                     setEventPasses(getEventPasses());
                                     triggerSuccess(`Checked in ${pass.attendeeName}!`);
                                   }}
-                                  className="px-2.5 py-1 bg-success/20 hover:bg-success/30 text-success dark:text-success border border-success/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                                  className="px-2.5 py-1 bg-success/20 hover:bg-success/30 text-success dark:text-success border border-success/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
                                 >
                                   Admit
                                 </button>
@@ -982,7 +983,7 @@ export default function EventPassesPage() {
                                     setSelectedEditPass(pass);
                                     setIsEditModalOpen(true);
                                   }}
-                                  className="p-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                                  className="p-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
                                   title={`Edit pass details for ${pass.attendeeName}`}
                                 >
                                   <Edit3 className="h-3 w-3" />
@@ -1010,14 +1011,14 @@ export default function EventPassesPage() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
               <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-accent/20 text-accent border border-accent/30 inline-flex items-center gap-1.5">
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/30 inline-flex items-center gap-1.5">
                     <Sparkles className="h-3 w-3" /> Event Pass Analytics &amp; Roster
                   </span>
                   {selectedDeepEvent && (
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
                       selectedDeepEvent.status === 'active'
-                        ? 'bg-success/20 text-success border border-success/30'
-                        : 'bg-accent/20 text-accent border border-accent/30'
+                        ? 'bg-success/20 text-success dark:text-success-soft border border-success/30'
+                        : 'bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/30'
                     }`}>
                       {selectedDeepEvent.status}
                     </span>
@@ -1037,11 +1038,11 @@ export default function EventPassesPage() {
                 {selectedDeepEvent && (
                   <div className="flex flex-wrap items-center gap-4 text-xs text-theme-text-secondary pt-1">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <Calendar className="h-3.5 w-3.5 text-accent" />
+                      <Calendar className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                       {selectedDeepEvent.startDate} {selectedDeepEvent.endDate && selectedDeepEvent.endDate !== selectedDeepEvent.startDate ? `→ ${selectedDeepEvent.endDate}` : ''}
                     </span>
                     <span className="flex items-center gap-1.5 font-medium">
-                      <MapPin className="h-3.5 w-3.5 text-accent" />
+                      <MapPin className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                       {selectedDeepEvent.location || 'Main Campus Auditorium'}
                     </span>
                   </div>
@@ -1074,7 +1075,7 @@ export default function EventPassesPage() {
                 <button
                   type="button"
                   onClick={() => handleExportAttendance(deepFilterEventId, (rows) => deepSort.apply(rows, passSortGetters))}
-                  className="px-3.5 py-2.5 bg-success/20 hover:bg-success/30 text-success border border-success/40 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-success/10"
+                  className="px-3.5 py-2.5 bg-success/20 hover:bg-success/30 text-success dark:text-success-soft border border-success/40 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-success/10"
                 >
                   <FileSpreadsheet className="h-3.5 w-3.5" />
                   <span>Export CSV</span>
@@ -1086,56 +1087,56 @@ export default function EventPassesPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mt-6 pt-6 border-t border-white/10">
               {/* 1. Total Passes */}
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center justify-between text-theme-text-secondary text-[11px] font-bold">
+                <div className="flex items-center justify-between text-theme-text-secondary text-xs font-bold">
                   <span>Passes Issued</span>
-                  <Ticket className="h-3.5 w-3.5 text-accent" />
+                  <Ticket className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 </div>
                 <div className="text-2xl font-black text-white">{kpis.total}</div>
-                <div className="text-[10px] text-theme-text-secondary">Total registered guests</div>
+                <div className="text-xs text-theme-text-secondary">Total registered guests</div>
               </div>
 
               {/* 2. Email Sent */}
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center justify-between text-theme-text-secondary text-[11px] font-bold">
+                <div className="flex items-center justify-between text-theme-text-secondary text-xs font-bold">
                   <span>Email Sent</span>
-                  <Send className="h-3.5 w-3.5 text-warning" />
+                  <Send className="h-3.5 w-3.5 text-warning dark:text-warning-soft" />
                 </div>
-                <div className="text-2xl font-black text-warning">
+                <div className="text-2xl font-black text-warning dark:text-warning-soft">
                   {kpis.sent}
                   <span className="text-xs font-normal text-theme-text-secondary ml-1.5">({kpis.sentPct}%)</span>
                 </div>
-                <div className="text-[10px] text-theme-text-secondary">Dispatched credentials</div>
+                <div className="text-xs text-theme-text-secondary">Dispatched credentials</div>
               </div>
 
               {/* 3. Pending Dispatch */}
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center justify-between text-theme-text-secondary text-[11px] font-bold">
+                <div className="flex items-center justify-between text-theme-text-secondary text-xs font-bold">
                   <span>Pending Dispatch</span>
-                  <Mail className="h-3.5 w-3.5 text-accent" />
+                  <Mail className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 </div>
-                <div className="text-2xl font-black text-accent">
+                <div className="text-2xl font-black text-accent-strong dark:text-accent-soft">
                   {kpis.pendingDispatch}
                   <span className="text-xs font-normal text-theme-text-secondary ml-1.5">({kpis.pendingDispatchPct}%)</span>
                 </div>
-                <div className="text-[10px] text-theme-text-secondary">Passes not yet emailed</div>
+                <div className="text-xs text-theme-text-secondary">Passes not yet emailed</div>
               </div>
 
               {/* 4. Yet to Arrive */}
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center justify-between text-theme-text-secondary text-[11px] font-bold">
+                <div className="flex items-center justify-between text-theme-text-secondary text-xs font-bold">
                   <span>Yet to Arrive</span>
-                  <Clock className="h-3.5 w-3.5 text-success" />
+                  <Clock className="h-3.5 w-3.5 text-success dark:text-success-soft" />
                 </div>
-                <div className="text-2xl font-black text-success">
+                <div className="text-2xl font-black text-success dark:text-success-soft">
                   {kpis.yetToArrive}
                   <span className="text-xs font-normal text-theme-text-secondary ml-1.5">({kpis.yetToArrivePct}%)</span>
                 </div>
-                <div className="text-[10px] text-theme-text-secondary">Not yet scanned at gate</div>
+                <div className="text-xs text-theme-text-secondary">Not yet scanned at gate</div>
               </div>
 
               {/* 5. Gate Turnstile Checked In */}
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center justify-between text-theme-text-secondary text-[11px] font-bold">
+                <div className="flex items-center justify-between text-theme-text-secondary text-xs font-bold">
                   <span>Admitted Gate</span>
                   <ShieldCheck className="h-3.5 w-3.5 text-secondary" />
                 </div>
@@ -1143,7 +1144,7 @@ export default function EventPassesPage() {
                   {kpis.admitted}
                   <span className="text-xs font-normal text-theme-text-secondary ml-1.5">({kpis.admittedPct}%)</span>
                 </div>
-                <div className="text-[10px] text-theme-text-secondary">Scanned at turnstile{kpis.absent > 0 ? <span className="text-danger font-bold"> · {kpis.absent} absent</span> : null}</div>
+                <div className="text-xs text-theme-text-secondary">Scanned at turnstile{kpis.absent > 0 ? <span className="text-danger dark:text-danger-soft font-bold"> · {kpis.absent} absent</span> : null}</div>
               </div>
             </div>
           </div>
@@ -1169,7 +1170,7 @@ export default function EventPassesPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('certificates')}
-                  className="px-3 py-2 bg-warning/15 hover:bg-warning/25 text-warning border border-warning/30 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-2 bg-warning/15 hover:bg-warning/25 text-warning dark:text-warning-soft border border-warning/30 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                   title="Email PDF certificates to everyone who attended a finished event"
                 >
                   <Award className="h-3.5 w-3.5" />
@@ -1181,7 +1182,7 @@ export default function EventPassesPage() {
                   type="button"
                   disabled={isBatchDispatching}
                   onClick={() => handleBatchDispatchUnsent(deepFilteredPasses)}
-                  className="px-3 py-2 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-3 py-2 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                   title="Dispatch emails to all unsent passes in this filtered view"
                 >
                   {isBatchDispatching ? (
@@ -1200,7 +1201,7 @@ export default function EventPassesPage() {
                     setSelectedPushPass(null);
                     setIsPushModalOpen(true);
                   }}
-                  className="px-3 py-2 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-2 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <Bell className="h-3.5 w-3.5" />
                   <span>Broadcast Push</span>
@@ -1211,7 +1212,7 @@ export default function EventPassesPage() {
 
             {/* Filter Pills / Dropdowns */}
             <div className="flex items-center gap-2.5 flex-wrap pt-2 border-t border-theme-border/20 text-xs">
-              <span className="text-[11px] font-bold text-theme-text-secondary flex items-center gap-1 mr-1">
+              <span className="text-xs font-bold text-theme-text-secondary flex items-center gap-1 mr-1">
                 <Filter className="h-3 w-3" /> Filters:
               </span>
 
@@ -1303,7 +1304,7 @@ export default function EventPassesPage() {
                     setDeepFilterCategory('ALL');
                     setDeepSearchQuery('');
                   }}
-                  className="px-2.5 py-1 text-accent hover:underline font-bold text-xs cursor-pointer ml-auto"
+                  className="px-2.5 py-1 text-accent-strong dark:text-accent-soft hover:underline font-bold text-xs cursor-pointer ml-auto"
                 >
                   Reset Filters
                 </button>
@@ -1317,22 +1318,22 @@ export default function EventPassesPage() {
               <span>
                 Showing <strong>{deepFilteredPasses.length}</strong> of {eventPasses.length} issued passes
               </span>
-              <span className="text-[11px] font-mono">
+              <span className="text-xs font-mono">
                 Click any Serial ID to view public verified credential
               </span>
             </div>
 
             {canSelectPasses && selectedPassIds.size > 0 && (
               <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-accent/10 border-y border-accent/30 text-xs">
-                <div className="font-bold text-accent">
+                <div className="font-bold text-accent-strong dark:text-accent-soft">
                   {selectedPassIds.size} selected
                   {(() => {
                     const noEmail = eventPasses.filter((p) => selectedPassIds.has(p.id) && !p.attendeeEmail).length;
-                    return noEmail > 0 ? <span className="ml-2 font-semibold text-warning">· {noEmail} without an email</span> : null;
+                    return noEmail > 0 ? <span className="ml-2 font-semibold text-warning dark:text-warning-soft">· {noEmail} without an email</span> : null;
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => setSelectedPassIds(new Set(deepFilteredPasses.map((p) => p.id)))} className="px-3 py-1.5 rounded-lg border border-accent/30 text-accent font-bold hover:bg-accent/10 cursor-pointer">
+                  <button type="button" onClick={() => setSelectedPassIds(new Set(deepFilteredPasses.map((p) => p.id)))} className="px-3 py-1.5 rounded-lg border border-accent/30 text-accent-strong dark:text-accent-soft font-bold hover:bg-accent/10 cursor-pointer">
                     Select all {deepFilteredPasses.length} in view
                   </button>
                   <button type="button" onClick={() => setSelectedPassIds(new Set())} className="px-3 py-1.5 rounded-lg text-theme-text-secondary font-bold hover:text-theme-text-primary cursor-pointer">
@@ -1344,7 +1345,7 @@ export default function EventPassesPage() {
                     </button>
                   )}
                   {canDeletePass && (
-                    <button type="button" disabled={isBulkDeleting} onClick={handleBulkDeletePasses} className="px-4 py-1.5 rounded-lg border border-danger/40 text-danger hover:bg-danger/10 font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+                    <button type="button" disabled={isBulkDeleting} onClick={handleBulkDeletePasses} className="px-4 py-1.5 rounded-lg border border-danger/40 text-danger dark:text-danger-soft hover:bg-danger/10 font-black flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
                       <Trash2 className="h-3.5 w-3.5" /> {isBulkDeleting ? 'Deleting…' : `Delete ${selectedPassIds.size}`}
                     </button>
                   )}
@@ -1383,7 +1384,7 @@ export default function EventPassesPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-theme-card-border/90 dark:border-white/10 text-theme-text-secondary text-[11px] uppercase tracking-wider">
+                    <tr className="border-b border-theme-card-border/90 dark:border-white/10 text-theme-text-secondary text-xs uppercase tracking-wider">
                       {canSelectPasses && <th className="py-3 px-3 w-8">
                         <input
                           type="checkbox"
@@ -1445,16 +1446,16 @@ export default function EventPassesPage() {
                                 className="flex items-center gap-2 font-black text-theme-text-primary text-xs cursor-pointer"
                                 aria-expanded={g.open}
                               >
-                                <span className="text-[10px]">{g.open ? '▼' : '▶'}</span>
+                                <span className="text-xs">{g.open ? '▼' : '▶'}</span>
                                 {g.eventName}
                               </button>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${g.done ? 'bg-theme-card/15 text-theme-text-secondary border-theme-border/30' : 'bg-success/15 text-success border-success/30'}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${g.done ? 'bg-theme-card/15 text-theme-text-secondary border-theme-border/30' : 'bg-success/15 text-success dark:text-success-soft border-success/30'}`}>
                                 {g.done ? 'Completed' : 'Live / upcoming'}
                               </span>
-                              <span className="text-[11px] text-theme-text-secondary">
+                              <span className="text-xs text-theme-text-secondary">
                                 {g.passes.length} pass{g.passes.length === 1 ? '' : 'es'}
                                 {g.done ? ` · ${g.attended} attended · ` : ' · '}
-                                {g.done ? <span className={g.absent > 0 ? 'text-danger font-bold' : ''}>{g.absent} absent</span> : `${g.attended} checked in`}
+                                {g.done ? <span className={g.absent > 0 ? 'text-danger dark:text-danger-soft font-bold' : ''}>{g.absent} absent</span> : `${g.attended} checked in`}
                               </span>
                             </div>
                           </td>
@@ -1498,7 +1499,7 @@ export default function EventPassesPage() {
                           <div className="font-bold text-theme-text-primary text-sm">{pass.attendeeName}</div>
                           {pass.approvalStatus && (
                             <div
-                              className="mt-0.5 inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/15 px-2 py-0.5 text-[9px] font-bold text-warning"
+                              className="mt-0.5 inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/15 px-2 py-0.5 text-xs font-bold text-warning dark:text-warning-soft"
                               title={`Submitted by ${pass.submittedBy || 'a member'}${pass.approvalPolicyName ? ` under "${pass.approvalPolicyName}"` : ''}`}
                             >
                               ⏳ {pass.approvalStatus === 'pending_create' ? 'Issue' : pass.approvalStatus === 'pending_edit' ? 'Edit' : 'Delete'} awaiting {pass.approverName || 'approval'}
@@ -1506,18 +1507,18 @@ export default function EventPassesPage() {
                           )}
                           <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                             {pass.guestCategory && (
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-accent/15 text-accent border border-accent/25">
+                              <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
                                 {pass.guestCategory}
                               </span>
                             )}
                             {pass.attendeeOrg && (
-                              <span className="text-[10px] text-theme-text-secondary truncate max-w-[160px]">
+                              <span className="text-xs text-theme-text-secondary truncate max-w-[160px]">
                                 {pass.attendeeOrg}
                               </span>
                             )}
                           </div>
                           {pass.attendeeEmail && (
-                            <div className="text-[10px] text-theme-text-secondary font-mono mt-0.5 truncate max-w-[200px]">
+                            <div className="text-xs text-theme-text-secondary font-mono mt-0.5 truncate max-w-[200px]">
                               {pass.attendeeEmail}
                             </div>
                           )}
@@ -1526,7 +1527,7 @@ export default function EventPassesPage() {
                         {/* Room / Venue */}
                         <td className="py-3 px-4 min-w-[140px] max-w-[220px] align-top">
                           <span className="font-semibold text-theme-text-primary dark:text-theme-text-primary flex items-start gap-1 min-w-0">
-                            <MapPin className="h-3 w-3 text-accent shrink-0 mt-0.5" />
+                            <MapPin className="h-3 w-3 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
                             <span className="min-w-0 break-words [overflow-wrap:anywhere]">{pass.roomOrVenue || pass.eventVenue || 'Main Auditorium'}</span>
                           </span>
                         </td>
@@ -1535,13 +1536,13 @@ export default function EventPassesPage() {
                         <td className="py-3 px-4 text-theme-text-secondary max-w-[180px] truncate">
                           <div className="font-medium text-theme-text-primary truncate">{pass.eventName}</div>
                           {pass.validityDate && (
-                            <div className="text-[10px] text-theme-text-secondary">{pass.validityDate}</div>
+                            <div className="text-xs text-theme-text-secondary">{pass.validityDate}</div>
                           )}
                         </td>
 
                         {/* Pass Tier */}
                         <td className="py-3 px-4">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-accent/15 text-accent border border-accent/30">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30">
                             {pass.passType}
                           </span>
                         </td>
@@ -1570,19 +1571,19 @@ export default function EventPassesPage() {
                         <td className="py-3 px-4">
                           {gateBadge(pass)}
                           {pass.checkedInAt && (
-                            <div className="text-[9px] text-theme-text-secondary mt-0.5 font-mono">
+                            <div className="text-xs text-theme-text-secondary mt-0.5 font-mono">
                               {new Date(pass.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {pass.checkedInBy || 'Staff'}
                             </div>
                           )}
                         </td>
 
                         {/* Issued By */}
-                        <td className="py-3 px-4 text-theme-text-secondary text-[11px]">
+                        <td className="py-3 px-4 text-theme-text-secondary text-xs">
                           <div>{pass.issuedBy}</div>
                         </td>
 
                         {/* Issued On */}
-                        <td className="py-3 px-4 text-theme-text-secondary text-[11px] whitespace-nowrap">
+                        <td className="py-3 px-4 text-theme-text-secondary text-xs whitespace-nowrap">
                           {pass.issuedAt && !isNaN(Date.parse(pass.issuedAt))
                             ? new Date(pass.issuedAt).toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                             : '—'}
@@ -1596,7 +1597,7 @@ export default function EventPassesPage() {
                               href={`/pass/${pass.serialNumber}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                               title={`View pass for ${pass.attendeeName}`}
                             >
                               <Eye className="h-3 w-3" />
@@ -1609,7 +1610,7 @@ export default function EventPassesPage() {
                               type="button"
                               disabled={dispatchingPassId === pass.id || pass.approvalStatus === 'pending_create'}
                               onClick={() => handleDispatchSinglePass(pass)}
-                              className="p-1.5 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                              className="p-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
                               title={
                                 pass.emailStatus === 'Pass Viewed' || pass.emailStatus === 'Email Sent'
                                   ? `Resend Pass Email to ${pass.attendeeEmail || pass.attendeeName}`
@@ -1633,7 +1634,7 @@ export default function EventPassesPage() {
                                   setEventPasses(getEventPasses());
                                   triggerSuccess(`Admitted ${pass.attendeeName} at turnstile!`);
                                 }}
-                                className="px-2.5 py-1 bg-success/20 hover:bg-success/30 text-success dark:text-success border border-success/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                                className="px-2.5 py-1 bg-success/20 hover:bg-success/30 text-success dark:text-success border border-success/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
                               >
                                 Admit
                               </button>
@@ -1646,7 +1647,7 @@ export default function EventPassesPage() {
                                 setSelectedPushPass(pass);
                                 setIsPushModalOpen(true);
                               }}
-                              className="p-1.5 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/25 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                              className="p-1.5 bg-accent/10 hover:bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/25 rounded-lg text-xs font-bold transition-all cursor-pointer"
                               title="Send Lock-Screen Push Alert to this Attendee"
                             >
                               <Bell className="h-3 w-3" />
@@ -1660,7 +1661,7 @@ export default function EventPassesPage() {
                                   setSelectedEditPass(pass);
                                   setIsEditModalOpen(true);
                                 }}
-                                className="p-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                                className="p-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
                                 title={`Edit pass details for ${pass.attendeeName}`}
                               >
                                 <Edit3 className="h-3 w-3" />
@@ -1674,7 +1675,7 @@ export default function EventPassesPage() {
                                 navigator.clipboard.writeText(pass.serialNumber);
                                 triggerSuccess(`Copied serial ${pass.serialNumber}`);
                               }}
-                              className="px-2 py-1 bg-theme-border/25 dark:bg-white/10 hover:bg-theme-border/40 dark:hover:bg-white/20 text-theme-text-primary dark:text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                              className="px-2 py-1 bg-theme-border/25 dark:bg-white/10 hover:bg-theme-border/40 dark:hover:bg-white/20 text-theme-text-primary dark:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
                               title="Copy Serial ID"
                             >
                               Copy ID
@@ -1684,9 +1685,9 @@ export default function EventPassesPage() {
                             {canDeletePass && (
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                   if (
-                                    window.confirm(
+                                    await askConfirm(
                                       `Delete pass ${pass.serialNumber} for ${pass.attendeeName}? This cannot be undone.`
                                     )
                                   ) {
@@ -1695,7 +1696,7 @@ export default function EventPassesPage() {
                                     triggerSuccess(`Deleted pass ${pass.serialNumber}.`);
                                   }
                                 }}
-                                className="p-1.5 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger border border-danger/30 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                                className="p-1.5 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger border border-danger/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
                                 title={`Delete pass for ${pass.attendeeName}`}
                               >
                                 <Trash2 className="h-3 w-3" />

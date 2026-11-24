@@ -11,6 +11,7 @@ import {
 } from '@/lib/proposals';
 import { fetchProposals, createProposal, decideProposal, respondToProposal, deleteProposal } from '@/lib/proposals-client';
 import { formatFileSize } from '@/components/ui/file-dropzone';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 type Tab = 'inbox' | 'sent' | 'review';
 
@@ -25,9 +26,9 @@ const readAsDataUrl = (file: File) =>
   });
 
 const statusStyle: Record<string, string> = {
-  'Pending Approval': 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  Approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  Rejected: 'bg-danger/15 text-danger border-danger/30',
+  'Pending Approval': 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+  Approved: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+  Rejected: 'bg-danger/15 text-danger dark:text-danger-soft border-danger/30',
 };
 
 const fmtDate = (iso: string) => {
@@ -176,7 +177,7 @@ export default function ProposalsPage() {
       }`}
     >
       <Icon className="h-3.5 w-3.5" /> {label}
-      <span className={`text-[10px] px-1.5 rounded-full ${activeTab === key ? 'bg-white/20' : 'bg-theme-border/30'}`}>{count}</span>
+      <span className={`text-xs px-1.5 rounded-full ${activeTab === key ? 'bg-white/20' : 'bg-theme-border/30'}`}>{count}</span>
     </button>
   );
 
@@ -186,11 +187,11 @@ export default function ProposalsPage() {
     <div className="p-6 md:p-8 space-y-6">
       {notice && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs">
-          <CheckCircle className="h-5 w-5 text-success shrink-0" /> {notice}
+          <CheckCircle className="h-5 w-5 text-success dark:text-success-soft shrink-0" /> {notice}
         </div>
       )}
       {error && (
-        <div className="flex items-center justify-between gap-3 p-4 bg-danger/10 border border-danger/25 rounded-2xl text-danger text-xs">
+        <div className="flex items-center justify-between gap-3 p-4 bg-danger/10 border border-danger/25 rounded-2xl text-danger dark:text-danger-soft text-xs">
           <span>{error}</span>
           <button onClick={() => setError('')} className="cursor-pointer"><X className="h-4 w-4" /></button>
         </div>
@@ -198,7 +199,7 @@ export default function ProposalsPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2"><Lightbulb className="h-5 w-5 text-accent" /> Proposals</h1>
+          <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2"><Lightbulb className="h-5 w-5 text-accent-strong dark:text-accent-soft" /> Proposals</h1>
           <p className="text-xs text-theme-text-secondary">Share an idea with the CEO, employees, startups or specific people. An authorised approver signs it off before it is delivered.</p>
         </div>
         <button
@@ -227,7 +228,7 @@ export default function ProposalsPage() {
                 const on = groups.includes(g);
                 return (
                   <button type="button" key={g} onClick={() => setGroups(on ? groups.filter(x => x !== g) : [...groups, g])}
-                    className={`px-3 py-1.5 rounded-full border text-[11px] font-semibold cursor-pointer transition-all ${on ? 'bg-accent text-white border-accent' : 'border-theme-border/40 text-theme-text-secondary hover:bg-theme-border/10'}`}>
+                    className={`px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all ${on ? 'bg-accent text-white border-accent' : 'border-theme-border/40 text-theme-text-secondary hover:bg-theme-border/10'}`}>
                     {g}
                   </button>
                 );
@@ -251,7 +252,7 @@ export default function ProposalsPage() {
             {memberIds.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {memberIds.map(id => (
-                  <span key={id} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/15 text-accent border border-accent/20 text-[11px] font-semibold">
+                  <span key={id} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20 text-xs font-semibold">
                     {members.find(m => m.id === id)?.name || id}
                     <button type="button" onClick={() => setMemberIds(memberIds.filter(x => x !== id))} className="cursor-pointer"><X className="h-3 w-3" /></button>
                   </span>
@@ -279,7 +280,7 @@ export default function ProposalsPage() {
             )}
           </div>
 
-          {formError && <p className="text-danger font-medium">{formError}</p>}
+          {formError && <p className="text-danger dark:text-danger-soft font-medium">{formError}</p>}
           <div className="flex justify-end">
             <button type="submit" disabled={submitting}
               className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl cursor-pointer disabled:opacity-60">
@@ -313,15 +314,15 @@ export default function ProposalsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center flex-wrap gap-2.5">
                     <h3 className="font-bold text-sm text-theme-text-primary">{p.title}</h3>
-                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${statusStyle[p.status]}`}>
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${statusStyle[p.status]}`}>
                       {p.status === 'Pending Approval' ? <Clock className="h-3 w-3" /> : p.status === 'Approved' ? <CheckCircle className="h-3 w-3" /> : <X className="h-3 w-3" />}
                       {p.status === 'Approved' && !p.decidedBy ? 'Sent' : p.status}
                     </span>
                   </div>
-                  <span className="text-theme-text-secondary text-[11px]">by <strong className="text-theme-text-primary">{p.authorName}</strong> · {fmtDate(p.createdAt)}</span>
+                  <span className="text-theme-text-secondary text-xs">by <strong className="text-theme-text-primary">{p.authorName}</strong> · {fmtDate(p.createdAt)}</span>
                 </div>
 
-                <p className="flex items-start gap-1.5 text-[11px] text-theme-text-secondary"><Users className="h-3.5 w-3.5 mt-0.5 shrink-0" /> To: {recipientLabel(p)}</p>
+                <p className="flex items-start gap-1.5 text-xs text-theme-text-secondary"><Users className="h-3.5 w-3.5 mt-0.5 shrink-0" /> To: {recipientLabel(p)}</p>
                 <p className="text-theme-text-secondary leading-relaxed bg-theme-background/20 p-3 rounded-xl border border-theme-border/20 whitespace-pre-wrap">{p.body}</p>
 
                 {p.attachments.length > 0 && (
@@ -336,7 +337,7 @@ export default function ProposalsPage() {
                 )}
 
                 {p.status !== 'Pending Approval' && p.decidedBy && (
-                  <p className={`text-[11px] ${p.status === 'Approved' ? 'text-emerald-400' : 'text-danger'}`}>
+                  <p className={`text-xs ${p.status === 'Approved' ? 'text-emerald-700 dark:text-emerald-300' : 'text-danger dark:text-danger-soft'}`}>
                     {p.status} by <strong>{p.decidedBy}</strong>{p.decisionNote ? ` — “${p.decisionNote}”` : ''}
                   </p>
                 )}
@@ -385,8 +386,8 @@ export default function ProposalsPage() {
 
                 {p.viewer?.canDelete && (
                   <div className="flex justify-end">
-                    <button disabled={busy} onClick={() => { if (confirm('Delete this proposal and its attachments?')) run(p.id, () => deleteProposal(p.id), 'Proposal deleted.'); }}
-                      className="flex items-center gap-1 text-[11px] text-theme-text-secondary hover:text-danger cursor-pointer">
+                    <button disabled={busy} onClick={async () => { if (await askConfirm('Delete this proposal and its attachments?')) run(p.id, () => deleteProposal(p.id), 'Proposal deleted.'); }}
+                      className="flex items-center gap-1 text-xs text-theme-text-secondary hover:text-danger cursor-pointer">
                       <Trash2 className="h-3.5 w-3.5" /> Delete
                     </button>
                   </div>

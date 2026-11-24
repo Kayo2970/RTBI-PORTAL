@@ -26,7 +26,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ki
     const { rec, error } = await buildRecord({ def, body: await request.json(), existing, actor, isManager });
     if (error || !rec) return NextResponse.json({ error: error || 'Invalid record.' }, { status: 400 });
     rec.updatedBy = actor.id;
-    await mutateCollection<any>('incubationRecords', cur => cur.map(r => (r.id === id ? rec : r)));
+    // Optimistic concurrency: refuse if someone saved this record after we read it (their change-log entries would be lost).
+    let conflict = false;
+    await mutateCollection<any>('incubationRecords', cur => {
+      const live = cur.find(r => r.id === id);
+      if (!live || (live.updatedAt ?? null) !== (existing.updatedAt ?? null) || (live.changeLog?.length ?? 0) !== (existing.changeLog?.length ?? 0)) { conflict = true; return cur; }
+      return cur.map(r => (r.id === id ? rec : r));
+    });
+    if (conflict) return NextResponse.json({ error: 'Someone else changed this record a moment ago. Reload it and try again.' }, { status: 409 });
     await applyStartupStatusEffects(rec);
     await incubationAudit(actor, `${kind.toUpperCase()}_UPDATED`, id, `${def.label} updated.`);
     return NextResponse.json(rec);

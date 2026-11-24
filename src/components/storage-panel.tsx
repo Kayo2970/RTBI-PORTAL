@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { HardDrive, RefreshCw, Trash2 } from 'lucide-react';
 import { authHeaders } from '@/lib/local-data';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface Report {
   totalBytes: number;
@@ -43,7 +44,7 @@ export function StoragePanel() {
   }, [load]);
 
   const run = async (action: 'delete-orphans' | 'delete-snapshots', confirmText: string) => {
-    if (!window.confirm(confirmText)) return;
+    if (!await askConfirm(confirmText)) return;
     setBusy(true);
     setMessage('');
     try {
@@ -73,7 +74,7 @@ export function StoragePanel() {
     <div className="glass-panel rounded-2xl p-5 border border-theme-border space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-bold flex items-center gap-2">
-          <HardDrive className="h-4 w-4 text-accent" /> Server Storage
+          <HardDrive className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Server Storage
         </h2>
         <button
           type="button"
@@ -90,20 +91,20 @@ export function StoragePanel() {
           <p className="text-xs text-theme-text-secondary">
             <strong className="text-theme-text-primary">{fmt(report.totalBytes)}</strong> of uploads across {report.fileCount} files.{' '}
             {report.orphanCount > 0 ? (
-              <span className="text-amber-400 font-semibold">
+              <span className="text-amber-700 dark:text-amber-300 font-semibold">
                 {report.orphanCount} orphaned file(s) ({fmt(report.orphanBytes)}) are not referenced by any record.
               </span>
             ) : (
-              <span className="text-emerald-400 font-semibold">No orphaned files.</span>
+              <span className="text-emerald-700 dark:text-emerald-300 font-semibold">No orphaned files.</span>
             )}
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {report.categories.map((c) => (
               <div key={c.category} className="rounded-xl border border-theme-border p-2.5">
-                <div className="text-[10px] uppercase tracking-wider text-theme-text-secondary">{c.category}</div>
+                <div className="text-xs uppercase tracking-wider text-theme-text-secondary">{c.category}</div>
                 <div className="text-sm font-bold">{fmt(c.bytes)}</div>
-                <div className="text-[10px] text-theme-text-secondary">{c.files} files</div>
+                <div className="text-xs text-theme-text-secondary">{c.files} files</div>
               </div>
             ))}
           </div>
@@ -136,7 +137,7 @@ export function StoragePanel() {
           </div>
 
           {report.largest.length > 0 && (
-            <details className="text-[11px] text-theme-text-secondary">
+            <details className="text-xs text-theme-text-secondary">
               <summary className="cursor-pointer font-semibold">Largest files</summary>
               <ul className="mt-1.5 space-y-0.5 font-mono">
                 {report.largest.map((f) => (
@@ -150,7 +151,7 @@ export function StoragePanel() {
           )}
         </>
       )}
-      {message && <p className="text-xs font-semibold text-accent">{message}</p>}
+      {message && <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft">{message}</p>}
     </div>
   );
 }

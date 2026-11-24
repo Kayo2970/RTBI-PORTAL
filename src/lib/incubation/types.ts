@@ -181,7 +181,7 @@ export const SCREENING_AREAS = [
 export const DECISION_OPTIONS = ['Selected', 'Selected subject to conditions', 'Waitlisted', 'Further information required', 'Not selected'] as const;
 export type DecisionOption = (typeof DECISION_OPTIONS)[number];
 
-export const APPLICATION_STATUSES = ['Received', 'Clarification required', 'Ineligible', 'Eligible', 'Evaluation', 'Decision recorded', 'Decision final'] as const;
+export const APPLICATION_STATUSES = ['Received', 'Clarification required', 'Ineligible', 'Eligible', 'Evaluation', 'Decision recorded', 'Decision final', 'Withdrawn'] as const;
 
 export interface ApplicationFile { name: string; url: string; storageKey: string; type?: string; label?: string }
 

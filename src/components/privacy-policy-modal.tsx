@@ -16,7 +16,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
         {/* Header */}
         <div className="flex items-center justify-between border-b border-theme-border/20 pb-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-accent/15 text-accent border border-accent/20">
+            <div className="p-2.5 rounded-2xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
@@ -36,7 +36,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
         <div className="flex-1 overflow-y-auto space-y-5 text-xs text-theme-text-primary pr-2 leading-relaxed">
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Database className="h-4 w-4 text-accent" />
+              <Database className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               1. What Data We Collect
             </h3>
             <p className="text-theme-text-secondary">
@@ -52,7 +52,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Lock className="h-4 w-4 text-warning" />
+              <Lock className="h-4 w-4 text-warning dark:text-warning-soft" />
               2. How It's Stored & Protected
             </h3>
             <p className="text-theme-text-secondary">
@@ -62,7 +62,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Users className="h-4 w-4 text-accent" />
+              <Users className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               3. Who Can See It
             </h3>
             <p className="text-theme-text-secondary">
@@ -72,7 +72,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-accent" />
+              <UserCheck className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               4. Audit Logging
             </h3>
             <p className="text-theme-text-secondary">
@@ -82,7 +82,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Clock className="h-4 w-4 text-warning" />
+              <Clock className="h-4 w-4 text-warning dark:text-warning-soft" />
               5. How Long We Keep It
             </h3>
             <p className="text-theme-text-secondary">
@@ -92,7 +92,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Mail className="h-4 w-4 text-accent" />
+              <Mail className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               6. Your Choices
             </h3>
             <p className="text-theme-text-secondary">
@@ -101,7 +101,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
           </div>
 
           {/* Contact Box */}
-          <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl text-[11px] text-theme-text-secondary flex items-center justify-between">
+          <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl text-xs text-theme-text-secondary flex items-center justify-between">
             <span>For privacy questions or data requests, contact:</span>
             <span className="font-semibold text-theme-text-primary font-mono">kayo2970@gmail.com</span>
           </div>
@@ -109,7 +109,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-theme-border/20 shrink-0">
-          <span className="text-[11px] text-theme-text-secondary">
+          <span className="text-xs text-theme-text-secondary">
             &copy; 2026 Ramaiah Technology Business Incubator Portal. All rights reserved.
           </span>
           <button

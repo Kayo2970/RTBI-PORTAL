@@ -17,6 +17,7 @@ import { canManageAnnualBudget, canAddExpense, canDeleteExpense, canManageIncome
 import { toCsvRow, downloadCsv } from '@/lib/csv';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
 import { EmptyState } from '@/components/ui/empty-state';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 const CURRENT_FY = getCurrentFinancialYear();
 const CURRENT_FY_START = parseInt(CURRENT_FY.split('-')[0], 10);
@@ -198,8 +199,8 @@ export default function FinancePage() {
     }
   };
 
-  const handleDeleteExpense = (exp: ExpenseItem) => {
-    if (!confirm(`Delete this ${inr(exp.amount)} expense (${exp.description})? This also removes its bill.`)) return;
+  const handleDeleteExpense = async (exp: ExpenseItem) => {
+    if (!await askConfirm(`Delete this ${inr(exp.amount)} expense (${exp.description})? This also removes its bill.`)) return;
     deleteExpense(exp.id, user?.name || 'User');
     setTick(t => t + 1);
   };
@@ -255,22 +256,22 @@ export default function FinancePage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-theme-text-primary tracking-tight">Finance</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/30 text-[10px] font-extrabold uppercase tracking-wider">{fy}</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30 text-xs font-extrabold uppercase tracking-wider">{fy}</span>
           </div>
           <p className="text-xs text-theme-text-secondary mt-1">Annual budget by overhead head, bill-backed expenses, and income — including verified invoice payments.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 bg-theme-card border border-theme-card-border px-3 py-1.5 rounded-xl">
-            <CalendarIcon className="h-4 w-4 text-accent shrink-0" />
+            <CalendarIcon className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
             <select value={fy} onChange={e => setFy(e.target.value)} className="bg-transparent font-semibold text-xs text-theme-text-primary focus:outline-none cursor-pointer">
               {FINANCIAL_YEARS.map(y => <option key={y} value={y} className="bg-theme-card text-theme-text-primary">Financial Year {y}</option>)}
             </select>
           </div>
           <Link href="/dashboard/expenses" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5 transition-all">
-            <Receipt className="h-4 w-4 text-accent" /> Expenses Module
+            <Receipt className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Expenses Module
           </Link>
           <Link href="/dashboard/invoices" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5 transition-all">
-            <FileText className="h-4 w-4 text-accent" /> Invoices
+            <FileText className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Invoices
           </Link>
           {canBook && (
             <button onClick={openExpense} className="px-3.5 py-2 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 shadow-md cursor-pointer">
@@ -283,17 +284,17 @@ export default function FinancePage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'Annual Budget', value: budget ? inr(budget.totalAmount) : 'Not set', sub: budget ? `${inr(summary.allocated)} allocated to heads` : 'Set one to begin tracking', icon: Landmark, tone: 'text-accent' },
-          { label: 'Spent', value: inr(summary.totalSpent), sub: budget ? `${inr(budgetRemaining)} ${budgetRemaining >= 0 ? 'remaining' : 'over budget'}` : `${expenses.length} expense(s)`, icon: TrendingDown, tone: budgetRemaining < 0 && budget ? 'text-danger' : 'text-amber-500' },
+          { label: 'Annual Budget', value: budget ? inr(budget.totalAmount) : 'Not set', sub: budget ? `${inr(summary.allocated)} allocated to heads` : 'Set one to begin tracking', icon: Landmark, tone: 'text-accent-strong dark:text-accent-soft' },
+          { label: 'Spent', value: inr(summary.totalSpent), sub: budget ? `${inr(budgetRemaining)} ${budgetRemaining >= 0 ? 'remaining' : 'over budget'}` : `${expenses.length} expense(s)`, icon: TrendingDown, tone: budgetRemaining < 0 && budget ? 'text-danger dark:text-danger-soft' : 'text-amber-500' },
           { label: 'Income', value: inr(summary.totalIncome), sub: `${inr(summary.invoiceIncome)} from verified invoices`, icon: TrendingUp, tone: 'text-emerald-500' },
-          { label: 'Net (Income − Spent)', value: inr(balance), sub: balance >= 0 ? 'Surplus' : 'Deficit', icon: PiggyBank, tone: balance >= 0 ? 'text-emerald-500' : 'text-danger' },
+          { label: 'Net (Income − Spent)', value: inr(balance), sub: balance >= 0 ? 'Surplus' : 'Deficit', icon: PiggyBank, tone: balance >= 0 ? 'text-emerald-500' : 'text-danger dark:text-danger-soft' },
         ].map(k => (
           <div key={k.label} className="glass-panel rounded-2xl p-4 border border-theme-card-border">
-            <div className="flex items-center justify-between text-theme-text-secondary text-[11px] font-semibold uppercase tracking-wider">
+            <div className="flex items-center justify-between text-theme-text-secondary text-xs font-semibold uppercase tracking-wider">
               {k.label}<k.icon className={`h-4 w-4 ${k.tone}`} />
             </div>
             <div className={`mt-2 text-lg font-bold font-mono ${k.tone}`}>{k.value}</div>
-            <div className="text-[11px] text-theme-text-secondary mt-0.5">{k.sub}</div>
+            <div className="text-xs text-theme-text-secondary mt-0.5">{k.sub}</div>
           </div>
         ))}
       </div>
@@ -301,7 +302,7 @@ export default function FinancePage() {
       {/* Tabs */}
       <div className="flex gap-1 border-b border-theme-border/40">
         {([['overview', 'Budget by Head'], ['expenses', `Expenses (${expenses.length})`], ['income', `Income (${income.length})`]] as [Tab, string][]).map(([k, label]) => (
-          <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${tab === k ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
+          <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${tab === k ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
         ))}
       </div>
 
@@ -311,7 +312,7 @@ export default function FinancePage() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <h2 className="text-sm font-bold text-theme-text-primary">Annual budget breakup — FY {fy}</h2>
-              {budget && <p className="text-[11px] text-theme-text-secondary">Last set by {budget.updatedBy} on {budget.updatedAt}{budget.notes ? ` · ${budget.notes}` : ''}</p>}
+              {budget && <p className="text-xs text-theme-text-secondary">Last set by {budget.updatedBy} on {budget.updatedAt}{budget.notes ? ` · ${budget.notes}` : ''}</p>}
             </div>
             {canSetBudget && (
               <button onClick={openBudget} className="px-3.5 py-2 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer">
@@ -334,8 +335,8 @@ export default function FinancePage() {
                     <div className="flex items-center justify-between text-xs gap-3">
                       <span className="font-semibold text-theme-text-primary">{h.label}</span>
                       <span className="font-mono text-theme-text-secondary text-right">
-                        <span className={over ? 'text-danger font-bold' : 'text-theme-text-primary'}>{inr(spent)}</span> of {inr(alloc)}
-                        <span className={`ml-2 ${over ? 'text-danger' : 'text-emerald-500'}`}>{over ? `${inr(spent - alloc)} over` : `${inr(alloc - spent)} left`}</span>
+                        <span className={over ? 'text-danger dark:text-danger-soft font-bold' : 'text-theme-text-primary'}>{inr(spent)}</span> of {inr(alloc)}
+                        <span className={`ml-2 ${over ? 'text-danger dark:text-danger-soft' : 'text-emerald-500'}`}>{over ? `${inr(spent - alloc)} over` : `${inr(alloc - spent)} left`}</span>
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-theme-border/30 overflow-hidden">
@@ -363,7 +364,7 @@ export default function FinancePage() {
             </select>
             <div className="flex items-center gap-2">
               <Link href="/dashboard/expenses" className="px-3 py-2 border border-theme-card-border hover:border-accent rounded-xl text-xs font-semibold text-theme-text-primary flex items-center gap-1.5 transition-all">
-                <ReceiptText className="h-3.5 w-3.5 text-accent" /> Open Expenses Module
+                <ReceiptText className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Open Expenses Module
               </Link>
               <button onClick={exportExpensesCsv} disabled={!expenses.length} className="px-3 py-2 border border-theme-card-border rounded-xl text-xs font-semibold text-theme-text-primary flex items-center gap-1.5 hover:border-accent disabled:opacity-40 cursor-pointer">
                 <Download className="h-3.5 w-3.5" /> Export CSV
@@ -385,16 +386,16 @@ export default function FinancePage() {
                   {visibleExpenses.map(x => (
                     <tr key={x.id} className="border-b border-theme-border/20 align-top">
                       <td className="py-2.5 pr-3 whitespace-nowrap text-theme-text-secondary">{x.expenseDate}</td>
-                      <td className="pr-3"><span className="px-2 py-0.5 rounded-md bg-accent/10 text-accent border border-accent/20 text-[10px] font-semibold">{getExpenseHeadLabel(x.head)}</span></td>
+                      <td className="pr-3"><span className="px-2 py-0.5 rounded-md bg-accent/10 text-accent-strong dark:text-accent-soft border border-accent/20 text-xs font-semibold">{getExpenseHeadLabel(x.head)}</span></td>
                       <td className="pr-3 text-theme-text-primary max-w-xs">
                         {x.description}
-                        {(x.vendor || x.eventName) && <div className="text-[10px] text-theme-text-secondary">{[x.vendor, x.eventName && `Event: ${x.eventName}`].filter(Boolean).join(' · ')}</div>}
+                        {(x.vendor || x.eventName) && <div className="text-xs text-theme-text-secondary">{[x.vendor, x.eventName && `Event: ${x.eventName}`].filter(Boolean).join(' · ')}</div>}
                       </td>
                       <td className="pr-3 text-theme-text-secondary">{x.submittedBy}</td>
                       <td className="pr-3">
                         <div className="flex flex-col gap-0.5">
                           {x.billFiles.map((f, i) => (
-                            <a key={i} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline"><Paperclip className="h-3 w-3" />{f.name || `Bill ${i + 1}`}</a>
+                            <a key={i} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline"><Paperclip className="h-3 w-3" />{f.name || `Bill ${i + 1}`}</a>
                           ))}
                         </div>
                       </td>
@@ -413,7 +414,7 @@ export default function FinancePage() {
       {tab === 'income' && (
         <div className="glass-panel rounded-2xl border border-theme-card-border p-5 space-y-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-[11px] text-theme-text-secondary max-w-xl">Payments on invoices appear here automatically as <strong>Other Income</strong> once a verifier confirms them, with a link back to the invoice they came from.</p>
+            <p className="text-xs text-theme-text-secondary max-w-xl">Payments on invoices appear here automatically as <strong>Other Income</strong> once a verifier confirms them, with a link back to the invoice they came from.</p>
             {canEditIncome && <button onClick={() => openIncome()} className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"><Plus className="h-4 w-4" /> Add Income</button>}
           </div>
           {sortedIncome.length === 0 ? (
@@ -430,23 +431,23 @@ export default function FinancePage() {
                   {sortedIncome.map(i => (
                     <tr key={i.id} className="border-b border-theme-border/20 align-top">
                       <td className="py-2.5 pr-3 whitespace-nowrap text-theme-text-secondary">{i.receivedDate || i.createdAt}</td>
-                      <td className="pr-3"><span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[10px] font-semibold">{INCOME_TYPE_LABEL[i.type || 'other']}</span></td>
+                      <td className="pr-3"><span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-xs font-semibold">{INCOME_TYPE_LABEL[i.type || 'other']}</span></td>
                       <td className="pr-3 text-theme-text-primary">
                         {i.source === 'invoice' ? (
                           <>
-                            <Link href={`/dashboard/invoices?open=${i.invoiceId}`} className="inline-flex items-center gap-1 text-accent hover:underline font-semibold">Invoice {i.invoiceNumber} <ExternalLink className="h-3 w-3" /></Link>
-                            <div className="text-[10px] text-theme-text-secondary">{i.clientName} · {i.paymentMode} · Ref {i.paymentReference}</div>
+                            <Link href={`/dashboard/invoices?open=${i.invoiceId}`} className="inline-flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline font-semibold">Invoice {i.invoiceNumber} <ExternalLink className="h-3 w-3" /></Link>
+                            <div className="text-xs text-theme-text-secondary">{i.clientName} · {i.paymentMode} · Ref {i.paymentReference}</div>
                           </>
                         ) : (
-                          <>{i.name}{i.notes && <div className="text-[10px] text-theme-text-secondary">{i.notes}</div>}</>
+                          <>{i.name}{i.notes && <div className="text-xs text-theme-text-secondary">{i.notes}</div>}</>
                         )}
                       </td>
-                      <td className="pr-3 text-right font-mono font-semibold text-emerald-600">{inr(i.amount)}</td>
+                      <td className="pr-3 text-right font-mono font-semibold text-emerald-700">{inr(i.amount)}</td>
                       <td className="text-right whitespace-nowrap">
                         {canEditIncome && i.source !== 'invoice' && (
                           <>
                             <button onClick={() => openIncome(i)} className="text-theme-text-secondary hover:text-accent mr-2 cursor-pointer" aria-label="Edit income"><Edit2 className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => { if (confirm(`Delete "${i.name}"?`)) { deleteIncomeSource(i.id, user?.name || 'Admin'); setTick(t => t + 1); } }} className="text-theme-text-secondary hover:text-danger cursor-pointer" aria-label="Delete income"><Trash2 className="h-3.5 w-3.5" /></button>
+                            <button onClick={async () => { if (await askConfirm(`Delete "${i.name}"?`)) { deleteIncomeSource(i.id, user?.name || 'Admin'); setTick(t => t + 1); } }} className="text-theme-text-secondary hover:text-danger cursor-pointer" aria-label="Delete income"><Trash2 className="h-3.5 w-3.5" /></button>
                           </>
                         )}
                       </td>
@@ -463,7 +464,7 @@ export default function FinancePage() {
       {budgetOpen && (
         <ModalShell title={`Annual Budget — FY ${fy}`} onClose={() => setBudgetOpen(false)} wide>
           <form onSubmit={handleSaveBudget} className="space-y-4 text-xs">
-            {budgetError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl">{budgetError}</div>}
+            {budgetError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl">{budgetError}</div>}
             <div className="space-y-1.5">
               <label className="block font-medium text-theme-text-secondary">Total Annual Budget (₹) *</label>
               <input type="number" min={1} value={budgetTotal} onChange={e => setBudgetTotal(e.target.value)} className={`${inputCls} font-mono`} placeholder="e.g. 5000000" />
@@ -473,12 +474,12 @@ export default function FinancePage() {
               <div className="grid sm:grid-cols-2 gap-3">
                 {EXPENSE_HEADS.map((h, idx) => (
                   <div key={h.key} className="space-y-1">
-                    <label className="block text-[11px] text-theme-text-secondary">{idx + 1}. {h.label}</label>
+                    <label className="block text-xs text-theme-text-secondary">{idx + 1}. {h.label}</label>
                     <input type="number" min={0} value={budgetAlloc[h.key] || ''} onChange={e => setBudgetAlloc({ ...budgetAlloc, [h.key]: e.target.value })} className={`${inputCls} font-mono`} placeholder="0" />
                   </div>
                 ))}
               </div>
-              <div className={`flex justify-between rounded-xl px-3 py-2 border ${allocSum > budgetTotalNum + 0.005 ? 'border-danger/40 bg-danger/10 text-danger' : 'border-theme-card-border text-theme-text-secondary'}`}>
+              <div className={`flex justify-between rounded-xl px-3 py-2 border ${allocSum > budgetTotalNum + 0.005 ? 'border-danger/40 bg-danger/10 text-danger dark:text-danger-soft' : 'border-theme-card-border text-theme-text-secondary'}`}>
                 <span>Allocated {inr(allocSum)} of {inr(budgetTotalNum)}</span>
                 <span className="font-semibold">{allocSum > budgetTotalNum + 0.005 ? `${inr(allocSum - budgetTotalNum)} over` : `${inr(budgetTotalNum - allocSum)} unallocated`}</span>
               </div>
@@ -496,7 +497,7 @@ export default function FinancePage() {
       {expenseOpen && (
         <ModalShell title="Add Expense" onClose={() => !expSaving && setExpenseOpen(false)}>
           <form onSubmit={handleSaveExpense} className="space-y-4 text-xs">
-            {expError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{expError}</div>}
+            {expError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{expError}</div>}
             <div className="space-y-1.5">
               <label className="block font-medium text-theme-text-secondary">Head *</label>
               <select value={expHead} onChange={e => setExpHead(e.target.value as any)} className={inputCls}>
@@ -514,7 +515,7 @@ export default function FinancePage() {
                 <input type="date" value={expDate} max={todayIso()} onChange={e => setExpDate(e.target.value)} className={inputCls} />
               </div>
             </div>
-            {overBudgetWarning && <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-600 rounded-xl">{overBudgetWarning}</div>}
+            {overBudgetWarning && <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-700 rounded-xl">{overBudgetWarning}</div>}
             <div className="space-y-1.5">
               <label className="block font-medium text-theme-text-secondary">What is the expense for? *</label>
               <textarea rows={3} value={expDesc} onChange={e => setExpDesc(e.target.value)} className={inputCls} placeholder="e.g. Cab fare to Hyderabad for the investor meet, 12 Nov" />
@@ -534,8 +535,8 @@ export default function FinancePage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5 text-accent" />Bill * (image or PDF)</label>
-                <span className="text-[10px] text-theme-text-secondary">{expFiles.length}/{MAX_BILLS}</span>
+                <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />Bill * (image or PDF)</label>
+                <span className="text-xs text-theme-text-secondary">{expFiles.length}/{MAX_BILLS}</span>
               </div>
               {expFiles.length < MAX_BILLS && (
                 <FileDropzone onFilesSelected={fs => setExpFiles(prev => [...prev, ...fs].slice(0, MAX_BILLS))} accept="image/*,.pdf" multiple disabled={expSaving} label="Upload the bill or receipt" hint="Drag and drop, or click to browse" compact />
@@ -552,7 +553,7 @@ export default function FinancePage() {
       {incomeOpen && (
         <ModalShell title={editingIncome ? 'Edit Income' : 'Add Income'} onClose={() => setIncomeOpen(false)}>
           <form onSubmit={handleSaveIncome} className="space-y-4 text-xs">
-            {incError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl">{incError}</div>}
+            {incError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl">{incError}</div>}
             <div className="space-y-1.5">
               <label className="block font-medium text-theme-text-secondary">Title *</label>
               <input type="text" value={incName} onChange={e => setIncName(e.target.value)} className={inputCls} placeholder="e.g. TCS Innovation Grant" />

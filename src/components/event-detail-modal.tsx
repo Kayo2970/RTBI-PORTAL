@@ -53,8 +53,8 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
   const sponsors = getEventSponsors(event.id);
 
   const STATUS_STYLES: Record<EventItem['status'], { bg: string; text: string; border: string }> = {
-    planned: { bg: 'bg-accent/15', text: 'text-accent', border: 'border-accent/30' },
-    active: { bg: 'bg-warning/15', text: 'text-warning', border: 'border-warning/30' },
+    planned: { bg: 'bg-accent/15', text: 'text-accent-strong dark:text-accent-soft', border: 'border-accent/30' },
+    active: { bg: 'bg-warning/15', text: 'text-warning dark:text-warning-soft', border: 'border-warning/30' },
     completed: { bg: 'bg-emerald-500/15', text: 'text-emerald-500 dark:text-emerald-400', border: 'border-emerald-500/30' },
     archived: { bg: 'bg-theme-border/30', text: 'text-theme-text-secondary', border: 'border-theme-border/40' },
   };
@@ -74,11 +74,11 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border capitalize ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
                 {effectiveStatus}
               </span>
               {event.approvalStatus && event.approvalStatus !== 'approved' && (
-                <span className="text-[10px] font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30 px-2 py-0.5 rounded-full">
                   Approval: {event.approvalStatus.replace('pending_', 'pending ')}
                 </span>
               )}
@@ -87,12 +87,12 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
               {event.title}
             </h2>
             <p className="text-xs text-theme-text-secondary flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-accent flex items-center gap-1">
+              <span className="font-semibold text-accent-strong dark:text-accent-soft flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatEventDateRange(event)}
               </span>
               {formatEventPlanningNote(event) && (
-                <span className="text-warning flex items-center gap-1 font-medium">
+                <span className="text-warning dark:text-warning-soft flex items-center gap-1 font-medium">
                   <Clock className="h-3 w-3" />
                   {formatEventPlanningNote(event)}
                 </span>
@@ -113,33 +113,33 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
         {/* Quick Insights Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex flex-col justify-between">
-            <span className="text-[10px] uppercase font-bold text-theme-text-secondary flex items-center gap-1">
-              <Calendar className="h-3 w-3 text-accent" />
+            <span className="text-xs uppercase font-bold text-theme-text-secondary flex items-center gap-1">
+              <Calendar className="h-3 w-3 text-accent-strong dark:text-accent-soft" />
               Event Dates
             </span>
             <span className="text-xs font-bold text-theme-text-primary mt-1">
               {event.datesTBD ? 'Dates TBD' : event.startDate || '—'}
             </span>
-            <span className="text-[10px] text-theme-text-secondary">
+            <span className="text-xs text-theme-text-secondary">
               {event.datesTBD ? 'To be finalized' : `Until ${event.endDate || '—'}`}
             </span>
           </div>
 
           <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex flex-col justify-between">
-            <span className="text-[10px] uppercase font-bold text-theme-text-secondary flex items-center gap-1">
-              <Clock className="h-3 w-3 text-warning" />
+            <span className="text-xs uppercase font-bold text-theme-text-secondary flex items-center gap-1">
+              <Clock className="h-3 w-3 text-warning dark:text-warning-soft" />
               Planning Phase
             </span>
             <span className="text-xs font-bold text-theme-text-primary mt-1">
               {event.planningStartDate ? event.planningStartDate : 'Standard'}
             </span>
-            <span className="text-[10px] text-theme-text-secondary">
+            <span className="text-xs text-theme-text-secondary">
               {event.planningStartDate ? 'Prep kickoff date' : 'Aligned with event'}
             </span>
           </div>
 
           <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex flex-col justify-between">
-            <span className="text-[10px] uppercase font-bold text-theme-text-secondary flex items-center gap-1">
+            <span className="text-xs uppercase font-bold text-theme-text-secondary flex items-center gap-1">
               <MapPin className="h-3 w-3 text-emerald-500" />
               Venue & Location
             </span>
@@ -149,14 +149,14 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
           </div>
 
           <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl flex flex-col justify-between">
-            <span className="text-[10px] uppercase font-bold text-theme-text-secondary flex items-center gap-1">
-              <CheckSquare className="h-3 w-3 text-accent" />
+            <span className="text-xs uppercase font-bold text-theme-text-secondary flex items-center gap-1">
+              <CheckSquare className="h-3 w-3 text-accent-strong dark:text-accent-soft" />
               Deliverables
             </span>
             <span className="text-xs font-bold text-theme-text-primary mt-1">
               {eventTasks.length} {eventTasks.length === 1 ? 'Task' : 'Tasks'}
             </span>
-            <span className="text-[10px] text-emerald-500 font-semibold">
+            <span className="text-xs text-emerald-500 font-semibold">
               {completedTasks} completed
             </span>
           </div>
@@ -179,7 +179,7 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1.5">
-              <CheckSquare className="h-3.5 w-3.5 text-accent" />
+              <CheckSquare className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
               Event Tasks & Deliverables ({eventTasks.length})
             </h3>
           </div>
@@ -197,21 +197,21 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
                 >
                   <div className="min-w-0 space-y-0.5">
                     <h4 className="font-semibold text-theme-text-primary truncate">{task.title}</h4>
-                    <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary">
+                    <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
                       <span>Assigned to: <strong className="text-theme-text-primary font-medium">{task.assignee || 'Unassigned'}</strong></span>
                       <span>&middot;</span>
                       <span>Due: <strong className="text-theme-text-primary font-medium">{task.dueDate}</strong></span>
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                     task.status === 'Completed'
-                      ? 'bg-success/15 text-success border border-success/30'
+                      ? 'bg-success/15 text-success dark:text-success-soft border border-success/30'
                       : task.status === 'In Progress'
-                        ? 'bg-warning/15 text-warning border border-warning/30'
+                        ? 'bg-warning/15 text-warning dark:text-warning-soft border border-warning/30'
                         : task.status === 'Pending Extension'
-                          ? 'bg-danger/15 text-danger border border-danger/30'
-                          : 'bg-accent/15 text-accent border border-accent/30'
+                          ? 'bg-danger/15 text-danger dark:text-danger-soft border border-danger/30'
+                          : 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30'
                   }`}>
                     {task.status}
                   </span>
@@ -233,7 +233,7 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
                 <div key={idx} className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl flex items-center justify-between text-xs">
                   <div>
                     <span className="font-semibold text-theme-text-primary block">{sp.name}</span>
-                    {sp.tier && <span className="text-[10px] text-theme-text-secondary capitalize">{sp.tier} tier</span>}
+                    {sp.tier && <span className="text-xs text-theme-text-secondary capitalize">{sp.tier} tier</span>}
                   </div>
                   <span className="font-bold text-emerald-500 text-xs">
                     ₹{sp.amount?.toLocaleString() || 0}
@@ -256,7 +256,7 @@ export function EventDetailModal({ event, tasks = [], isOpen, onClose }: EventDe
 
           <Link
             href={`/dashboard/events/${event.id}`}
-            className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1"
           >
             Manage in Events Module <ExternalLink className="h-3.5 w-3.5" />
           </Link>

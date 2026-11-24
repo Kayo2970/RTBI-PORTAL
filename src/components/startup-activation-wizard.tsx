@@ -36,10 +36,10 @@ const STEPS = [
 const inputCls =
   'w-full py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary placeholder-theme-text-secondary focus:outline-none focus:border-accent text-xs transition-all';
 const labelCls = 'block font-semibold text-theme-text-secondary uppercase tracking-wider';
-const hintCls = 'text-[11px] text-theme-text-secondary/70';
+const hintCls = 'text-xs text-theme-text-secondary';
 
 function Optional() {
-  return <span className="normal-case font-medium text-theme-text-secondary/70"> (optional)</span>;
+  return <span className="normal-case font-medium text-theme-text-secondary"> (optional)</span>;
 }
 
 export function StartupActivationWizard({ name, email, isSubmitting, submitError, onSubmit }: Props) {
@@ -168,10 +168,10 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
   return (
     <div className="space-y-5 text-xs">
       <div className="flex items-center gap-2.5 p-3.5 bg-accent/10 border border-accent/20 rounded-2xl">
-        <Sparkles className="h-4 w-4 text-accent shrink-0" />
+        <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
         <div className="min-w-0">
           <p className="font-bold text-theme-text-primary truncate">Welcome, {name}!</p>
-          <p className="text-[11px] text-theme-text-secondary truncate">{email} · let&apos;s build your startup profile</p>
+          <p className="text-xs text-theme-text-secondary truncate">{email} · let&apos;s build your startup profile</p>
         </div>
       </div>
 
@@ -186,13 +186,13 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center border transition-all ${
                   active ? 'bg-accent text-white border-accent shadow-md shadow-accent/30'
-                    : done ? 'bg-accent/20 text-accent border-accent/40'
+                    : done ? 'bg-accent/20 text-accent-strong dark:text-accent-soft border-accent/40'
                     : 'bg-theme-background/40 text-theme-text-secondary border-theme-card-border'
                 }`}
               >
                 {done ? <Check className="h-4 w-4" /> : <Icon className="h-3.5 w-3.5" />}
               </div>
-              <span className={`text-[10px] font-semibold uppercase tracking-wider ${active ? 'text-theme-text-primary' : 'text-theme-text-secondary'}`}>
+              <span className={`text-xs font-semibold uppercase tracking-wider ${active ? 'text-theme-text-primary' : 'text-theme-text-secondary'}`}>
                 {s.label}
               </span>
             </li>
@@ -201,7 +201,7 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
       </ol>
 
       {shownError && (
-        <div role="alert" className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger leading-relaxed">
+        <div role="alert" className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger dark:text-danger-soft leading-relaxed">
           <ShieldAlert className="h-4 w-4 shrink-0" />
           <span>{shownError}</span>
         </div>
@@ -260,7 +260,7 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
                 {logoData ? (
                   <img src={logoData} alt="Logo preview" className="h-full w-full object-contain p-1.5" />
                 ) : (
-                  <ImagePlus className="h-7 w-7 text-theme-text-secondary/60" />
+                  <ImagePlus className="h-7 w-7 text-theme-text-secondary" />
                 )}
               </div>
               <div className="space-y-2">
@@ -273,7 +273,7 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
                   </button>
                   {logoData && (
                     <button type="button" onClick={() => { setLogoData(''); setLogoFileName(''); }}
-                      className="px-3 py-2 rounded-xl text-danger hover:bg-danger/10 font-semibold flex items-center gap-1 cursor-pointer transition-all">
+                      className="px-3 py-2 rounded-xl text-danger dark:text-danger-soft hover:bg-danger/10 font-semibold flex items-center gap-1 cursor-pointer transition-all">
                       <X className="h-3.5 w-3.5" /> Remove
                     </button>
                   )}
@@ -300,18 +300,18 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
       {step === 2 && (
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className={labelCls}>About Us <span className="text-accent normal-case font-bold">*</span></label>
+            <label className={labelCls}>About Us <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">*</span></label>
             <textarea value={aboutUs} onChange={(e) => setAboutUs(e.target.value)} rows={4} maxLength={2000}
               placeholder="Who you are, what you're building and why it matters." className={`${inputCls} px-4 resize-none`} />
             <p className={`${hintCls} text-right`}>{aboutUs.length}/2000</p>
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>The Problem <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
+            <label className={labelCls}>The Problem <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">* (Mandatory)</span></label>
             <textarea value={problem} onChange={(e) => setProblem(e.target.value)} rows={3} maxLength={1000}
               placeholder="What specific problem and customer pain are you solving? (Mandatory)" className={`${inputCls} px-4 resize-none`} />
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>Your Solution <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
+            <label className={labelCls}>Your Solution <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">* (Mandatory)</span></label>
             <textarea value={solution} onChange={(e) => setSolution(e.target.value)} rows={3} maxLength={1000}
               placeholder="How does your innovative technology or product solve it? (Mandatory)" className={`${inputCls} px-4 resize-none`} />
           </div>
@@ -323,14 +323,14 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className={labelCls}>Sector <span className="text-accent normal-case font-bold">*</span></label>
+              <label className={labelCls}>Sector <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">*</span></label>
               <select value={sector} onChange={(e) => setSector(e.target.value)} className={`${inputCls} px-3`}>
                 <option value="">Select sector…</option>
                 {STARTUP_SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className={labelCls}>Stage <span className="text-accent normal-case font-bold">*</span></label>
+              <label className={labelCls}>Stage <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">*</span></label>
               <select value={stage} onChange={(e) => setStage(e.target.value)} className={`${inputCls} px-3`}>
                 <option value="">Select stage…</option>
                 {STARTUP_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -357,7 +357,7 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>Website <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
+            <label className={labelCls}>Website <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">* (Mandatory)</span></label>
             <div className="relative">
               <Globe className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />
               <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://yourstartup.com" className={`${inputCls} pl-10 pr-4`} />
@@ -365,7 +365,7 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
             <p className={hintCls}>Official company or product website (Mandatory).</p>
           </div>
           <div className="space-y-1.5">
-            <label className={labelCls}>Social Media Links <span className="text-accent normal-case font-bold">* (Mandatory)</span></label>
+            <label className={labelCls}>Social Media Links <span className="text-accent-strong dark:text-accent-soft normal-case font-bold">* (Mandatory)</span></label>
             <p className={hintCls}>Provide your LinkedIn company page or active social profile (Mandatory).</p>
             <div className="space-y-2">
               {([
@@ -389,16 +389,16 @@ export function StartupActivationWizard({ name, email, isSubmitting, submitError
           <div className="rounded-2xl border border-theme-card-border bg-theme-background/40 p-4 space-y-3">
             <div className="flex items-center gap-3">
               <div className="h-14 w-14 shrink-0 rounded-xl bg-white/5 border border-theme-card-border flex items-center justify-center overflow-hidden">
-                {logoData ? <img src={logoData} alt="" className="h-full w-full object-contain p-1" /> : <Building2 className="h-6 w-6 text-theme-text-secondary/60" />}
+                {logoData ? <img src={logoData} alt="" className="h-full w-full object-contain p-1" /> : <Building2 className="h-6 w-6 text-theme-text-secondary" />}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-extrabold text-theme-text-primary truncate">{startupName}</p>
-                {tagline && <p className="text-[11px] text-theme-text-secondary truncate">{tagline}</p>}
+                {tagline && <p className="text-xs text-theme-text-secondary truncate">{tagline}</p>}
               </div>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {[sector, stage, teamSize && `Team ${teamSize}`, foundedYear && `Since ${foundedYear}`, location].filter(Boolean).map((chip) => (
-                <span key={String(chip)} className="px-2 py-0.5 rounded-full bg-accent/15 border border-accent/25 text-accent text-[10px] font-bold">{chip}</span>
+                <span key={String(chip)} className="px-2 py-0.5 rounded-full bg-accent/15 border border-accent/25 text-accent-strong dark:text-accent-soft text-xs font-bold">{chip}</span>
               ))}
             </div>
             <p className="text-theme-text-secondary leading-relaxed whitespace-pre-line line-clamp-6">{aboutUs}</p>

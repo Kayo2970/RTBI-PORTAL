@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { mutateCollection } from '@/lib/server-db';
+import { mutateCollection, readCollection } from '@/lib/server-db';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
 import { canManageStartupsServer } from '@/lib/permissions-server';
@@ -30,6 +30,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ kin
     const isManager = await canManageStartupsServer(actor);
     const { rec, error } = await buildRecord({ def, body: await request.json(), actor, isManager });
     if (error || !rec) return NextResponse.json({ error: error || 'Invalid record.' }, { status: 400 });
+    // Closed startups only accept their exit paperwork and evidence — no new reviews, sessions or agreements.
+    if (rec.startupId && !['exit', 'evidence', 'incident'].includes(kind)) {
+      const st = (await readCollection<any>('startups')).find(x => x.id === rec.startupId);
+      if (st && ['Graduated', 'Exited'].includes(st.status)) return NextResponse.json({ error: `${st.name} is ${st.status}. New ${def.plural.toLowerCase()} cannot be added.` }, { status: 400 });
+    }
     await mutateCollection<any>('incubationRecords', cur => [rec, ...cur]);
     await applyStartupStatusEffects(rec);
     await incubationAudit(actor, `${kind.toUpperCase()}_CREATED`, rec.id, `${def.label} created${rec.startupId ? ` for ${rec.startupId}` : ''}.`);

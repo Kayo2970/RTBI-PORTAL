@@ -450,9 +450,9 @@ export default function EventsPage() {
   const getStatusBadge = (eventStatus: EventItem['status']) => {
     switch (eventStatus) {
       case 'active':
-        return 'bg-success/15 text-success border border-success/30';
+        return 'bg-success/15 text-success dark:text-success-soft border border-success/30';
       case 'planned':
-        return 'bg-warning/15 text-warning border border-warning/30';
+        return 'bg-warning/15 text-warning dark:text-warning-soft border border-warning/30';
       case 'completed':
         return 'bg-primary/15 text-primary-light border border-primary/30';
       case 'archived':
@@ -508,13 +508,13 @@ export default function EventsPage() {
       {/* Alert Banner */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
       {errorMsg && (
         <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <ShieldAlert className="h-5 w-5 text-danger shrink-0" />
+          <ShieldAlert className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -541,7 +541,7 @@ export default function EventsPage() {
               {...csvDragHandlers}
               className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border shadow-sm ${
                 isCsvDragOver
-                  ? 'border-accent bg-accent/15 shadow-md shadow-accent/25 ring-2 ring-accent/30 text-accent'
+                  ? 'border-accent bg-accent/15 shadow-md shadow-accent/25 ring-2 ring-accent/30 text-accent-strong dark:text-accent-soft'
                   : 'border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-800 dark:text-white'
               }`}
               title="Upload Filled CSV File — click or drag and drop"
@@ -559,7 +559,7 @@ export default function EventsPage() {
 
             <Link
               href="/dashboard/event-passes"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-accent/15 border border-accent/35 text-accent hover:bg-accent/25 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-accent/15 border border-accent/35 text-accent-strong dark:text-accent-soft hover:bg-accent/25 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
             >
               <Ticket className="h-4 w-4" />
               Event Passes
@@ -631,15 +631,15 @@ export default function EventsPage() {
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(effectiveStatus)}`}>
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(effectiveStatus)}`}>
                         {effectiveStatus}
                       </span>
                     </div>
                   </div>
 
                   {(event.approvalStatus === 'pending_create' || event.approvalStatus === 'pending_edit' || event.approvalStatus === 'pending_delete') && canSeeApprovalMeta(event) && (
-                    <div className={`flex items-center justify-between gap-2 p-2.5 border rounded-xl text-[11px] ${event.approvalStatus === 'pending_delete' ? 'bg-danger/10 border-danger/25' : 'bg-warning/10 border-warning/25'}`}>
-                      <div className={`flex items-center gap-1.5 font-semibold ${event.approvalStatus === 'pending_delete' ? 'text-danger' : 'text-warning'}`}>
+                    <div className={`flex items-center justify-between gap-2 p-2.5 border rounded-xl text-xs ${event.approvalStatus === 'pending_delete' ? 'bg-danger/10 border-danger/25' : 'bg-warning/10 border-warning/25'}`}>
+                      <div className={`flex items-center gap-1.5 font-semibold ${event.approvalStatus === 'pending_delete' ? 'text-danger dark:text-danger-soft' : 'text-warning dark:text-warning-soft'}`}>
                         <Clock className="h-3.5 w-3.5 shrink-0" />
                         <span>
                           {canApprovePendingEvent(event, user)
@@ -651,14 +651,14 @@ export default function EventsPage() {
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleApproveEvent(event.id)}
-                            className="p-1 hover:bg-success/15 rounded-md text-success cursor-pointer"
+                            className="p-1 hover:bg-success/15 rounded-md text-success dark:text-success-soft cursor-pointer"
                             title="Approve"
                           >
                             <Check className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => setRejectingEventId(event.id)}
-                            className="p-1 hover:bg-danger/15 rounded-md text-danger cursor-pointer"
+                            className="p-1 hover:bg-danger/15 rounded-md text-danger dark:text-danger-soft cursor-pointer"
                             title="Reject"
                           >
                             <Ban className="h-3.5 w-3.5" />
@@ -669,7 +669,7 @@ export default function EventsPage() {
                   )}
 
                   {event.approvalStatus === 'rejected' && canSeeApprovalMeta(event) && (
-                    <div className="flex items-center gap-1.5 p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-[11px] text-danger font-semibold">
+                    <div className="flex items-center gap-1.5 p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-xs text-danger dark:text-danger-soft font-semibold">
                       <Ban className="h-3.5 w-3.5 shrink-0" />
                       <span>Rejected by {event.decidedBy || 'approver'}{event.rejectionReason ? `: ${event.rejectionReason}` : ''}</span>
                     </div>
@@ -688,19 +688,19 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-1 text-xs text-theme-text-secondary pt-1">
-                    <div className="flex items-center gap-1.5 text-[11px]">
-                      <Calendar className="h-3.5 w-3.5 text-accent" />
-                      <span className={event.datesTBD ? 'text-warning font-semibold' : ''}>{formatEventDateRange(event)}</span>
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <Calendar className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
+                      <span className={event.datesTBD ? 'text-warning dark:text-warning-soft font-semibold' : ''}>{formatEventDateRange(event)}</span>
                     </div>
                     {formatEventPlanningNote(event) && (
-                      <div className="flex items-center gap-1.5 text-[11px]">
+                      <div className="flex items-center gap-1.5 text-xs">
                         <Clock className="h-3.5 w-3.5 text-accent/70" />
                         <span className="text-accent/90 font-medium">{formatEventPlanningNote(event)}</span>
                       </div>
                     )}
                     {event.location && (
-                      <div className="flex items-center gap-1.5 text-[11px]">
-                        <MapPin className="h-3.5 w-3.5 text-warning" />
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <MapPin className="h-3.5 w-3.5 text-warning dark:text-warning-soft" />
                         <span className="truncate">{event.location}</span>
                       </div>
                     )}
@@ -709,8 +709,8 @@ export default function EventsPage() {
                       const spTotal = getEventSponsorTotal(event);
                       if (allSponsors.length === 0) return null;
                       return (
-                        <div className="flex items-center gap-1.5 text-[11px]">
-                          <Handshake className="h-3.5 w-3.5 text-emerald-400" />
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Handshake className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
                           <span className="truncate">
                             🤝 {allSponsors.map((s) => s.name).join(', ')} — ₹{spTotal.toLocaleString()}
                           </span>
@@ -723,7 +723,7 @@ export default function EventsPage() {
                 <div className="border-t border-theme-border/20 pt-4 flex items-center justify-between text-xs">
                   <Link
                     href={`/dashboard/events/${event.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-accent hover:text-primary-light transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-accent-strong dark:text-accent-soft hover:text-primary-light transition-all"
                   >
                     <span>Event Workspace</span>
                     <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
@@ -731,7 +731,7 @@ export default function EventsPage() {
                   {canExportEventDetails(user) && (
                     <button
                       onClick={() => downloadEventDetailsCsv(event, members)}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-theme-text-secondary hover:text-accent transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-theme-text-secondary hover:text-accent transition-all cursor-pointer"
                       title="Download event details and student details (CSV)"
                     >
                       <Download className="h-3.5 w-3.5" />
@@ -762,7 +762,7 @@ export default function EventsPage() {
                       {canDeleteEvent(user) && event.approvalStatus !== 'pending_delete' && (
                         <button
                           onClick={() => setDeletingEventId(event.id)}
-                          className="p-1.5 hover:bg-danger/10 rounded-lg transition-all text-danger cursor-pointer"
+                          className="p-1.5 hover:bg-danger/10 rounded-lg transition-all text-danger dark:text-danger-soft cursor-pointer"
                           title="Delete Event"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -797,7 +797,7 @@ export default function EventsPage() {
             </div>
 
             {formError && (
-              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger text-xs flex items-center gap-2">
+              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger dark:text-danger-soft text-xs flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -824,7 +824,7 @@ export default function EventsPage() {
                     role="tab"
                     aria-selected={formTab === key}
                     onClick={() => setFormTab(key)}
-                    className={`shrink-0 px-3.5 py-2 rounded-full text-[11px] font-bold cursor-pointer transition-all ${
+                    className={`shrink-0 px-3.5 py-2 rounded-full text-xs font-bold cursor-pointer transition-all ${
                       formTab === key ? 'bg-accent text-white shadow-md shadow-accent/20' : 'bg-theme-background/40 text-theme-text-secondary border border-theme-card-border'
                     }`}
                   >
@@ -907,7 +907,7 @@ export default function EventsPage() {
                       onChange={(e) => handleEndDateChange(e.target.value)}
                       className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                     />
-                    <p className="text-[11px] text-theme-text-secondary">
+                    <p className="text-xs text-theme-text-secondary">
                       Set this directly, or pick a Start Date and Number of Days above and it fills itself in.
                     </p>
                   </div>
@@ -923,7 +923,7 @@ export default function EventsPage() {
                   onChange={(e) => setPlanningStartDate(e.target.value)}
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                 />
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   When prep work (bookings, design briefs...) actually starts. Independent of the Event Date(s) above — set this even while the event's own dates are still To Be Decided, so planning can begin before the event date is locked in.
                 </p>
               </div>
@@ -956,12 +956,12 @@ export default function EventsPage() {
                   <button
                     type="button"
                     onClick={addSponsorRow}
-                    className="text-accent font-semibold flex items-center gap-1 hover:underline cursor-pointer text-[11px]"
+                    className="text-accent-strong dark:text-accent-soft font-semibold flex items-center gap-1 hover:underline cursor-pointer text-xs"
                   >
                     <Plus className="h-3.5 w-3.5" /> Add Sponsor
                   </button>
                 </div>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   In the Budget module, a sponsor's contribution is used up first — the Centre's budget only covers what's left.
                   Amount can be added now or later, once confirmed.
                 </p>
@@ -985,7 +985,7 @@ export default function EventsPage() {
                     <button
                       type="button"
                       onClick={() => removeSponsorRow(s.id)}
-                      className="p-1.5 text-danger hover:bg-danger/10 rounded-lg cursor-pointer shrink-0"
+                      className="p-1.5 text-danger dark:text-danger-soft hover:bg-danger/10 rounded-lg cursor-pointer shrink-0"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -1053,7 +1053,7 @@ export default function EventsPage() {
           <div className="glass-panel w-full max-w-md rounded-3xl p-6 flex flex-col space-y-4 relative border border-white/15 shadow-2xl">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Ban className="h-4.5 w-4.5 text-danger" />
+                <Ban className="h-4.5 w-4.5 text-danger dark:text-danger-soft" />
                 Reject Submission
               </h2>
               <button

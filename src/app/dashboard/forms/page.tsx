@@ -82,6 +82,7 @@ import { canCreateForms, canDeleteForms, seesOnlyOwnForms, isOwnForm, getFormApp
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SearchableSelect } from '@/components/searchable-select';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 const CHART_COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4'];
 
@@ -405,9 +406,9 @@ export default function FormsBuilderPage() {
     triggerNotification('Field schema saved as a reusable template.');
   };
 
-  const handleDeleteTemplate = (templateId: string) => {
+  const handleDeleteTemplate = async (templateId: string) => {
     const t = templates.find((x) => x.id === templateId);
-    if (!window.confirm(`Delete the template "${t?.name || ''}"? Forms already created from it are not affected.${isBuiltInTemplate(templateId) ? ' You can restore this built-in template later from Manage Templates.' : ''}`)) return;
+    if (!await askConfirm(`Delete the template "${t?.name || ''}"? Forms already created from it are not affected.${isBuiltInTemplate(templateId) ? ' You can restore this built-in template later from Manage Templates.' : ''}`)) return;
     deleteFormTemplate(templateId, user?.name || 'User');
     setTemplates(getFormTemplates());
     if (selectedTemplateId === templateId) setSelectedTemplateId('');
@@ -703,7 +704,7 @@ export default function FormsBuilderPage() {
       {/* Alert Notification */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -748,25 +749,25 @@ export default function FormsBuilderPage() {
       {forms.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft flex items-center justify-center shrink-0">
               <FileText className="h-4.5 w-4.5" />
             </div>
             <div>
               <p className="text-lg font-bold text-theme-text-primary leading-none">{forms.length}</p>
-              <p className="text-[10px] text-theme-text-secondary mt-1">Total Forms</p>
+              <p className="text-xs text-theme-text-secondary mt-1">Total Forms</p>
             </div>
           </div>
           <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
               <Users className="h-4.5 w-4.5" />
             </div>
             <div>
               <p className="text-lg font-bold text-theme-text-primary leading-none">{submissions.length}</p>
-              <p className="text-[10px] text-theme-text-secondary mt-1">Total Responses</p>
+              <p className="text-xs text-theme-text-secondary mt-1">Total Responses</p>
             </div>
           </div>
           <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-blue-500/15 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0">
               <TrendingUp className="h-4.5 w-4.5" />
             </div>
             <div>
@@ -778,16 +779,16 @@ export default function FormsBuilderPage() {
                   return !isNaN(d.getTime()) && d >= weekAgo;
                 }).length}
               </p>
-              <p className="text-[10px] text-theme-text-secondary mt-1">Responses This Week</p>
+              <p className="text-xs text-theme-text-secondary mt-1">Responses This Week</p>
             </div>
           </div>
           <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
               <LayoutTemplate className="h-4.5 w-4.5" />
             </div>
             <div>
               <p className="text-lg font-bold text-theme-text-primary leading-none">{templates.length}</p>
-              <p className="text-[10px] text-theme-text-secondary mt-1">Saved Templates</p>
+              <p className="text-xs text-theme-text-secondary mt-1">Saved Templates</p>
             </div>
           </div>
         </div>
@@ -831,26 +832,26 @@ export default function FormsBuilderPage() {
                         <div className="flex items-center gap-1.5">
                           <h4 className="font-bold text-theme-text-primary text-xs leading-snug">{form.title}</h4>
                           {form.isSample && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-warning/15 text-warning border border-warning/20">
+                            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-warning/15 text-warning dark:text-warning-soft border border-warning/20">
                               Sample
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5 font-mono">/forms/{form.slug}</p>
+                        <p className="text-xs text-theme-text-secondary mt-0.5 font-mono">/forms/{form.slug}</p>
                         {form.closeAt && !isNaN(Date.parse(form.closeAt)) && (
-                          <p className={`text-[10px] mt-0.5 font-semibold ${isFormClosed(form) ? 'text-danger' : 'text-theme-text-secondary'}`}>
+                          <p className={`text-xs mt-0.5 font-semibold ${isFormClosed(form) ? 'text-danger dark:text-danger-soft' : 'text-theme-text-secondary'}`}>
                             {isFormClosed(form) ? 'Closed' : 'Closes'} {formatCloseAt(form.closeAt)}
                           </p>
                         )}
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft">
                         {formSubs.length} responses
                       </span>
                     </div>
 
                     {(form.approvalStatus === 'pending_create' || form.approvalStatus === 'pending_edit' || form.approvalStatus === 'pending_delete') && canSeeFormApprovalMeta(form) && (
-                      <div className={`flex items-center justify-between gap-2 p-2 border rounded-lg text-[10px] ${form.approvalStatus === 'pending_delete' ? 'bg-danger/10 border-danger/25' : 'bg-warning/10 border-warning/25'}`}>
-                        <div className={`flex items-center gap-1 font-semibold ${form.approvalStatus === 'pending_delete' ? 'text-danger' : 'text-warning'}`}>
+                      <div className={`flex items-center justify-between gap-2 p-2 border rounded-lg text-xs ${form.approvalStatus === 'pending_delete' ? 'bg-danger/10 border-danger/25' : 'bg-warning/10 border-warning/25'}`}>
+                        <div className={`flex items-center gap-1 font-semibold ${form.approvalStatus === 'pending_delete' ? 'text-danger dark:text-danger-soft' : 'text-warning dark:text-warning-soft'}`}>
                           <Clock className="h-3 w-3 shrink-0" />
                           <span>
                             {form.approvalStatus === 'pending_delete' ? 'Deletion awaiting approval' : form.approvalStatus === 'pending_edit' ? 'Edit awaiting approval' : 'Awaiting approval'}
@@ -860,14 +861,14 @@ export default function FormsBuilderPage() {
                           <div className="flex items-center gap-1 shrink-0">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleApproveForm(form.id); }}
-                              className="p-0.5 hover:bg-success/15 rounded text-success cursor-pointer"
+                              className="p-0.5 hover:bg-success/15 rounded text-success dark:text-success-soft cursor-pointer"
                               title="Approve"
                             >
                               <Check className="h-3 w-3" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); setRejectingFormId(form.id); }}
-                              className="p-0.5 hover:bg-danger/15 rounded text-danger cursor-pointer"
+                              className="p-0.5 hover:bg-danger/15 rounded text-danger dark:text-danger-soft cursor-pointer"
                               title="Reject"
                             >
                               <Ban className="h-3 w-3" />
@@ -878,24 +879,24 @@ export default function FormsBuilderPage() {
                     )}
 
                     {form.approvalStatus === 'rejected' && canSeeFormApprovalMeta(form) && (
-                      <div className="flex items-center gap-1 p-2 bg-danger/10 border border-danger/25 rounded-lg text-[10px] text-danger font-semibold">
+                      <div className="flex items-center gap-1 p-2 bg-danger/10 border border-danger/25 rounded-lg text-xs text-danger dark:text-danger-soft font-semibold">
                         <Ban className="h-3 w-3 shrink-0" />
                         <span>Rejected by {form.decidedBy || 'approver'}{form.rejectionReason ? `: ${form.rejectionReason}` : ''}</span>
                       </div>
                     )}
 
-                    <p className="text-[11px] text-theme-text-secondary line-clamp-1">
+                    <p className="text-xs text-theme-text-secondary line-clamp-1">
                       {form.description || `${form.fields.length} question fields`}
                     </p>
 
                     {form.eventName && (
-                      <p className="text-[10px] text-accent flex items-center gap-1 font-semibold">
+                      <p className="text-xs text-accent-strong dark:text-accent-soft flex items-center gap-1 font-semibold">
                         <CalendarDays className="h-3 w-3" />
                         Linked to {form.eventName}
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between pt-1 border-t border-theme-border/20 text-[11px]">
+                    <div className="flex items-center justify-between pt-1 border-t border-theme-border/20 text-xs">
                       {form.approvalStatus === 'pending_create' ? (
                         <span className="text-theme-text-secondary italic">Link generates once approved</span>
                       ) : (
@@ -904,7 +905,7 @@ export default function FormsBuilderPage() {
                             e.stopPropagation();
                             handleCopyLink(form.slug);
                           }}
-                          className="text-accent hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                          className="text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                         >
                           <Copy className="h-3 w-3" />
                           {copiedSlug === form.slug ? 'Copied Link!' : 'Copy Link'}
@@ -919,7 +920,7 @@ export default function FormsBuilderPage() {
                                 e.stopPropagation();
                                 setQrModalForm(form);
                               }}
-                              className="p-1 hover:bg-accent/15 rounded text-accent hover:text-accent cursor-pointer"
+                              className="p-1 hover:bg-accent/15 rounded text-accent-strong dark:text-accent-soft hover:text-accent cursor-pointer"
                               title="Preview & Download QR Code"
                             >
                               <QrCode className="h-3.5 w-3.5" />
@@ -953,7 +954,7 @@ export default function FormsBuilderPage() {
                                   e.stopPropagation();
                                   setDeletingFormId(form.id);
                                 }}
-                                className="p-1 hover:bg-danger/10 rounded text-danger cursor-pointer"
+                                className="p-1 hover:bg-danger/10 rounded text-danger dark:text-danger-soft cursor-pointer"
                                 title="Delete Form"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -978,30 +979,30 @@ export default function FormsBuilderPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-bold text-theme-text-primary">{selectedForm.title}</h3>
                       {selectedForm.isSample && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning border border-warning/20">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning dark:text-warning-soft border border-warning/20">
                           Sample Dataset
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-theme-text-secondary mt-0.5">
-                      Public URL: <code className="text-accent font-mono">/forms/{selectedForm.slug}</code> &middot; Created by {selectedForm.createdBy}
+                      Public URL: <code className="text-accent-strong dark:text-accent-soft font-mono">/forms/{selectedForm.slug}</code> &middot; Created by {selectedForm.createdBy}
                     </p>
                     {selectedForm.eventName && (
-                      <p className="text-[11px] text-accent mt-1 flex items-center gap-1 font-semibold">
+                      <p className="text-xs text-accent-strong dark:text-accent-soft mt-1 flex items-center gap-1 font-semibold">
                         <CalendarDays className="h-3.5 w-3.5" />
                         Linked to event: {selectedForm.eventName}
                       </p>
                     )}
                   </div>
                   {selectedForm.approvalStatus === 'pending_create' ? (
-                    <span className="text-xs text-warning font-semibold flex items-center gap-1.5 self-start sm:self-auto">
+                    <span className="text-xs text-warning dark:text-warning-soft font-semibold flex items-center gap-1.5 self-start sm:self-auto">
                       <Clock className="h-3.5 w-3.5" /> Link generates once approved
                     </span>
                   ) : (
                     <div className="flex items-center gap-2 self-start sm:self-auto">
                       <button
                         onClick={() => setQrModalForm(selectedForm)}
-                        className="px-3 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent text-xs font-semibold rounded-xl transition-all border border-accent/30 cursor-pointer flex items-center gap-1.5"
+                        className="px-3 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft text-xs font-semibold rounded-xl transition-all border border-accent/30 cursor-pointer flex items-center gap-1.5"
                       >
                         <QrCode className="h-3.5 w-3.5" />
                         QR Code & Print
@@ -1028,7 +1029,7 @@ export default function FormsBuilderPage() {
                       {selectedSubmissions.length > 0 && canDeleteResponses(selectedForm) && (
                         <button
                           onClick={() => setDeletingResponse('ALL')}
-                          className="px-2.5 py-1 bg-danger/10 hover:bg-danger/20 text-danger rounded-lg transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1 bg-danger/10 hover:bg-danger/20 text-danger dark:text-danger-soft rounded-lg transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
                           title="Delete every response to this form"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -1038,7 +1039,7 @@ export default function FormsBuilderPage() {
                       {selectedSubmissions.length > 0 && (
                         <button
                           onClick={handleDownloadSubmissionsCsv}
-                          className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary rounded-lg transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary rounded-lg transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
                           title="Download all responses as CSV"
                         >
                           <FileDown className="h-3.5 w-3.5" />
@@ -1048,13 +1049,13 @@ export default function FormsBuilderPage() {
                       <div className="flex items-center gap-1 bg-theme-border/20 rounded-xl p-1">
                         <button
                           onClick={() => setViewMode('table')}
-                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${viewMode === 'table' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${viewMode === 'table' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}
                         >
                           <Table2 className="h-3 w-3" /> Table
                         </button>
                         <button
                           onClick={() => setViewMode('charts')}
-                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${viewMode === 'charts' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${viewMode === 'charts' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}
                         >
                           <BarChart3 className="h-3 w-3" /> Charts
                         </button>
@@ -1103,7 +1104,7 @@ export default function FormsBuilderPage() {
                                 <td className="py-3 pr-3">
                                   <button
                                     onClick={() => handleDownloadFilledWord(sub.id)}
-                                    className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-all cursor-pointer"
+                                    className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg text-blue-700 dark:text-blue-300 transition-all cursor-pointer"
                                     title="Download filled feedback form (.docx)"
                                   >
                                     <FileText className="h-3.5 w-3.5" />
@@ -1114,7 +1115,7 @@ export default function FormsBuilderPage() {
                                 <td className="py-3 pr-3">
                                   <button
                                     onClick={() => setDeletingResponse(sub.id)}
-                                    className="p-1.5 bg-danger/10 hover:bg-danger/20 rounded-lg text-danger transition-all cursor-pointer"
+                                    className="p-1.5 bg-danger/10 hover:bg-danger/20 rounded-lg text-danger dark:text-danger-soft transition-all cursor-pointer"
                                     title="Delete this response"
                                   >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -1178,16 +1179,16 @@ export default function FormsBuilderPage() {
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
                               <p className="text-lg font-bold text-theme-text-primary leading-none">{selectedSubmissions.length}</p>
-                              <p className="text-[10px] text-theme-text-secondary mt-1">Total Responses</p>
+                              <p className="text-xs text-theme-text-secondary mt-1">Total Responses</p>
                             </div>
                             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
                               <p className="text-lg font-bold text-theme-text-primary leading-none">{thisWeekCount}</p>
-                              <p className="text-[10px] text-theme-text-secondary mt-1">This Week</p>
+                              <p className="text-xs text-theme-text-secondary mt-1">This Week</p>
                             </div>
                             {overallAverage !== null && (
                               <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                                <p className="text-lg font-bold text-accent leading-none">{overallAverage.toFixed(1)} / 5.0</p>
-                                <p className="text-[10px] text-theme-text-secondary mt-1">Overall Avg. Rating</p>
+                                <p className="text-lg font-bold text-accent-strong dark:text-accent-soft leading-none">{overallAverage.toFixed(1)} / 5.0</p>
+                                <p className="text-xs text-theme-text-secondary mt-1">Overall Avg. Rating</p>
                               </div>
                             )}
                           </div>
@@ -1196,7 +1197,7 @@ export default function FormsBuilderPage() {
                           {trendData.length > 1 && (
                             <div className="p-4 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-2">
                               <h5 className="text-xs font-bold text-theme-text-primary flex items-center gap-1.5">
-                                <TrendingUp className="h-3.5 w-3.5 text-accent" />
+                                <TrendingUp className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                                 Responses Over Time
                               </h5>
                               <div className="h-40 w-full">
@@ -1241,14 +1242,14 @@ export default function FormsBuilderPage() {
                                 <div className="flex items-center justify-between">
                                   <h5 className="text-xs font-bold text-theme-text-primary">{f.label}</h5>
                                   {average !== null && (
-                                    <span className="flex items-center gap-1 text-[11px] font-bold text-accent">
+                                    <span className="flex items-center gap-1 text-xs font-bold text-accent-strong dark:text-accent-soft">
                                       <Gauge className="h-3 w-3" />
                                       Avg {average.toFixed(1)}{f.type === 'scale' ? ' / 5.0' : ''}
                                     </span>
                                   )}
                                 </div>
                                 {data.length === 0 ? (
-                                  <p className="text-[11px] text-theme-text-secondary py-6 text-center">No responses to this question yet.</p>
+                                  <p className="text-xs text-theme-text-secondary py-6 text-center">No responses to this question yet.</p>
                                 ) : (
                                   <div className="h-48 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -1321,7 +1322,7 @@ export default function FormsBuilderPage() {
             </div>
 
             {formError && (
-              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger text-xs flex items-center gap-2">
+              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger dark:text-danger-soft text-xs flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -1331,11 +1332,11 @@ export default function FormsBuilderPage() {
               <div className="p-3.5 bg-accent/10 border border-accent/20 rounded-2xl space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-xs text-theme-text-primary flex items-center gap-1.5">
-                    <LayoutTemplate className="h-4 w-4 text-accent" />
+                    <LayoutTemplate className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                     Select Template (optional)
                   </label>
                   {selectedTemplateId && (
-                    <span className="text-[10px] text-accent font-semibold px-2 py-0.5 rounded-md bg-accent/15 border border-accent/25">
+                    <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold px-2 py-0.5 rounded-md bg-accent/15 border border-accent/25">
                       Template Applied
                     </span>
                   )}
@@ -1354,7 +1355,7 @@ export default function FormsBuilderPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenEditTemplate(selectedTemplateId)}
-                        className="p-2.5 hover:bg-accent/10 rounded-xl text-accent transition-all cursor-pointer"
+                        className="p-2.5 hover:bg-accent/10 rounded-xl text-accent-strong dark:text-accent-soft transition-all cursor-pointer"
                         title="Edit This Custom Template"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -1362,7 +1363,7 @@ export default function FormsBuilderPage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteTemplate(selectedTemplateId)}
-                        className="p-2.5 hover:bg-danger/10 rounded-xl text-danger transition-all cursor-pointer"
+                        className="p-2.5 hover:bg-danger/10 rounded-xl text-danger dark:text-danger-soft transition-all cursor-pointer"
                         title="Delete This Custom Template"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1370,7 +1371,7 @@ export default function FormsBuilderPage() {
                     </>
                   )}
                 </div>
-                <p className="text-[10px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Choose a pre-built template to auto-populate form questions, or start with blank questions below.
                 </p>
               </div>
@@ -1431,7 +1432,7 @@ export default function FormsBuilderPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={backgroundImageUrl} alt="" className="h-full w-full object-cover scale-110" style={{ filter: `blur(${backgroundBlur}px)` }} />
                     <div className="absolute inset-0 bg-black" style={{ opacity: backgroundDim / 100 }} />
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-white drop-shadow">Live preview</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white drop-shadow">Live preview</span>
                   </div>
                 </div>
               )}
@@ -1469,7 +1470,7 @@ export default function FormsBuilderPage() {
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Leave empty to keep the form open. After this time, respondents see &quot;Sorry, this form is currently closed. Please contact the administrator.&quot;
                 </p>
               </div>
@@ -1498,7 +1499,7 @@ export default function FormsBuilderPage() {
                     <button
                       type="button"
                       onClick={() => { setTemplateNameDraft(''); setIsSaveTemplateOpen(true); }}
-                      className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary rounded-lg transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                      className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary rounded-lg transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
                       title="Save these fields as a reusable template"
                     >
                       <Save className="h-3.5 w-3.5" />
@@ -1507,7 +1508,7 @@ export default function FormsBuilderPage() {
                     <button
                       type="button"
                       onClick={addField}
-                      className="px-2.5 py-1 bg-accent/20 hover:bg-accent text-accent hover:text-white rounded-lg transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                      className="px-2.5 py-1 bg-accent/20 hover:bg-accent text-accent-strong dark:text-accent-soft hover:text-white rounded-lg transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       Add Question
@@ -1556,7 +1557,7 @@ export default function FormsBuilderPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               Saves the current {fields.length} question field{fields.length === 1 ? '' : 's'} as a reusable template you can start future forms from.
             </p>
             <form onSubmit={handleSaveTemplate} className="space-y-3 text-xs">
@@ -1607,21 +1608,21 @@ export default function FormsBuilderPage() {
                   <div className="min-w-0">
                     <p className="font-bold text-theme-text-primary flex items-center gap-1.5 flex-wrap">
                       {t.name}
-                      {builtIn && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent">Built-in</span>}
-                      {builtIn && t.customized && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">Edited</span>}
+                      {builtIn && <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent-strong dark:text-accent-soft">Built-in</span>}
+                      {builtIn && t.customized && <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Edited</span>}
                     </p>
-                    <p className="text-[10px] text-theme-text-secondary">{t.fields.length} field{t.fields.length === 1 ? '' : 's'}</p>
+                    <p className="text-xs text-theme-text-secondary">{t.fields.length} field{t.fields.length === 1 ? '' : 's'}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {builtIn && t.customized && (
-                      <button type="button" onClick={() => handleRestoreTemplate(t.id)} className="px-2 py-1.5 hover:bg-theme-border/30 rounded-lg text-theme-text-secondary text-[10px] font-semibold transition-all cursor-pointer" title="Discard your edits and go back to the original">
+                      <button type="button" onClick={() => handleRestoreTemplate(t.id)} className="px-2 py-1.5 hover:bg-theme-border/30 rounded-lg text-theme-text-secondary text-xs font-semibold transition-all cursor-pointer" title="Discard your edits and go back to the original">
                         Reset
                       </button>
                     )}
-                    <button type="button" onClick={() => { setIsManageTemplatesOpen(false); handleOpenEditTemplate(t.id); }} className="p-2 hover:bg-accent/10 rounded-lg text-accent transition-all cursor-pointer" title="Edit Template">
+                    <button type="button" onClick={() => { setIsManageTemplatesOpen(false); handleOpenEditTemplate(t.id); }} className="p-2 hover:bg-accent/10 rounded-lg text-accent-strong dark:text-accent-soft transition-all cursor-pointer" title="Edit Template">
                       <Edit2 className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" onClick={() => handleDeleteTemplate(t.id)} className="p-2 hover:bg-danger/10 rounded-lg text-danger transition-all cursor-pointer" title="Delete Template">
+                    <button type="button" onClick={() => handleDeleteTemplate(t.id)} className="p-2 hover:bg-danger/10 rounded-lg text-danger dark:text-danger-soft transition-all cursor-pointer" title="Delete Template">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -1630,7 +1631,7 @@ export default function FormsBuilderPage() {
               return (
                 <div className="space-y-4 text-xs">
                   <div className="space-y-2">
-                    <p className="font-semibold text-theme-text-secondary uppercase tracking-wider text-[10px]">
+                    <p className="font-semibold text-theme-text-secondary uppercase tracking-wider text-xs">
                       Your Templates ({customTemplates.length})
                     </p>
                     {customTemplates.length === 0 ? (
@@ -1643,7 +1644,7 @@ export default function FormsBuilderPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="font-semibold text-theme-text-secondary uppercase tracking-wider text-[10px]">
+                    <p className="font-semibold text-theme-text-secondary uppercase tracking-wider text-xs">
                       Built-in Templates ({builtInTemplates.length})
                     </p>
                     {builtInTemplates.length === 0 ? (
@@ -1652,7 +1653,7 @@ export default function FormsBuilderPage() {
                       <div className="space-y-2">{builtInTemplates.map(t => row(t, true))}</div>
                     )}
                     {builtInTemplates.some(t => t.id === FEEDBACK_FORM_TEMPLATE_ID) && (
-                      <p className="text-[10px] text-amber-400/90">
+                      <p className="text-xs text-amber-400/90">
                         Tip: the Feedback Form&apos;s downloadable Word copy is built from its original questions — if you remove or rename those, the matching spots in the Word file are left blank.
                       </p>
                     )}
@@ -1660,11 +1661,11 @@ export default function FormsBuilderPage() {
 
                   {deletedBuiltIns.length > 0 && (
                     <div className="space-y-2">
-                      <p className="font-semibold text-theme-text-secondary uppercase tracking-wider text-[10px]">Deleted built-in templates</p>
+                      <p className="font-semibold text-theme-text-secondary uppercase tracking-wider text-xs">Deleted built-in templates</p>
                       {deletedBuiltIns.map(t => (
                         <div key={t.id} className="flex items-center justify-between gap-2 p-3 bg-theme-border/5 border border-dashed border-theme-border/30 rounded-xl">
                           <p className="font-semibold text-theme-text-secondary">{t.name}</p>
-                          <button type="button" onClick={() => handleRestoreTemplate(t.id)} className="px-3 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent rounded-lg text-[11px] font-bold cursor-pointer">
+                          <button type="button" onClick={() => handleRestoreTemplate(t.id)} className="px-3 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft rounded-lg text-xs font-bold cursor-pointer">
                             Restore
                           </button>
                         </div>
@@ -1719,7 +1720,7 @@ export default function FormsBuilderPage() {
                   <button
                     type="button"
                     onClick={addEditTemplateField}
-                    className="px-2.5 py-1 bg-accent/20 hover:bg-accent text-accent hover:text-white rounded-lg transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                    className="px-2.5 py-1 bg-accent/20 hover:bg-accent text-accent-strong dark:text-accent-soft hover:text-white rounded-lg transition-all text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add Question
@@ -1778,7 +1779,7 @@ export default function FormsBuilderPage() {
           <div className="glass-panel w-full max-w-md rounded-3xl p-6 flex flex-col space-y-4 relative border border-white/15 shadow-2xl">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Ban className="h-4.5 w-4.5 text-danger" />
+                <Ban className="h-4.5 w-4.5 text-danger dark:text-danger-soft" />
                 Reject Submission
               </h2>
               <button

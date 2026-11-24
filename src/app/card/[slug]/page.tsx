@@ -65,7 +65,7 @@ export default function PublicVisitingCardPage({ params }: { params: Promise<{ s
     return (
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 relative z-0 overflow-hidden">
         <div className="glass-panel w-full max-w-md rounded-3xl p-8 flex flex-col items-center text-center space-y-4 border border-white/20 dark:border-white/15 shadow-2xl backdrop-blur-2xl bg-theme-card/90">
-          <div className="h-12 w-12 rounded-2xl bg-danger/15 border border-danger/30 flex items-center justify-center text-danger">
+          <div className="h-12 w-12 rounded-2xl bg-danger/15 border border-danger/30 flex items-center justify-center text-danger dark:text-danger-soft">
             <AlertTriangle className="h-6 w-6" />
           </div>
           <h1 className="text-lg font-bold text-theme-text-primary">Card not available</h1>

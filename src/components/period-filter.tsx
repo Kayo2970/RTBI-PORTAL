@@ -41,7 +41,7 @@ export function PeriodFilter({ value, onChange, availableMonths, className }: Pe
             onChange={(e) => onChange({ ...value, from: e.target.value })}
             className="px-3 py-2 bg-theme-background/30 border border-theme-border/40 rounded-xl text-xs text-theme-text-primary focus:outline-none focus:border-accent"
           />
-          <span className="text-[11px] text-theme-text-secondary">to</span>
+          <span className="text-xs text-theme-text-secondary">to</span>
           <input
             type="date"
             value={value.to}

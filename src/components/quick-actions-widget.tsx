@@ -76,7 +76,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Facilities',
     href: '/dashboard/bookings',
     icon: DoorOpen,
-    accentColor: 'text-sky-400',
+    accentColor: 'text-sky-700 dark:text-sky-300',
     bgColor: 'bg-sky-500/15',
     borderColor: 'border-sky-500/30',
     isAllowed: (u) => canBookRoom(u),
@@ -91,7 +91,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Workspace',
     href: '/dashboard/calendar',
     icon: CalendarDays,
-    accentColor: 'text-accent',
+    accentColor: 'text-accent-strong dark:text-accent-soft',
     bgColor: 'bg-accent/15',
     borderColor: 'border-accent/30',
     isAllowed: (u) => !!u,
@@ -104,7 +104,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Workspace',
     href: '/dashboard/tasks',
     icon: CheckSquare,
-    accentColor: 'text-emerald-400',
+    accentColor: 'text-emerald-700 dark:text-emerald-300',
     bgColor: 'bg-emerald-500/15',
     borderColor: 'border-emerald-500/30',
     isAllowed: (u) => !!u,
@@ -117,7 +117,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Workspace',
     href: '/dashboard/tasks?action=new',
     icon: PlusCircle,
-    accentColor: 'text-amber-400',
+    accentColor: 'text-amber-700 dark:text-amber-300',
     bgColor: 'bg-amber-500/15',
     borderColor: 'border-amber-500/30',
     isAllowed: (u) => canCreateTask(u),
@@ -130,7 +130,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Workspace',
     href: '/dashboard/events',
     icon: Calendar,
-    accentColor: 'text-rose-400',
+    accentColor: 'text-rose-700 dark:text-rose-300',
     bgColor: 'bg-rose-500/15',
     borderColor: 'border-rose-500/30',
     isAllowed: (u) => !!u,
@@ -195,7 +195,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Workspace',
     href: '/dashboard/proposals',
     icon: Lightbulb,
-    accentColor: 'text-yellow-400',
+    accentColor: 'text-yellow-700 dark:text-yellow-300',
     bgColor: 'bg-yellow-500/15',
     borderColor: 'border-yellow-500/30',
     isAllowed: (u) => !!u,
@@ -208,7 +208,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Workspace',
     href: '/dashboard/ratings',
     icon: Star,
-    accentColor: 'text-amber-400',
+    accentColor: 'text-amber-700 dark:text-amber-300',
     bgColor: 'bg-amber-500/15',
     borderColor: 'border-amber-500/30',
     isAllowed: (u) => !!u,
@@ -249,7 +249,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Operations',
     href: '/dashboard/reimbursements',
     icon: Receipt,
-    accentColor: 'text-emerald-400',
+    accentColor: 'text-emerald-700 dark:text-emerald-300',
     bgColor: 'bg-emerald-500/15',
     borderColor: 'border-emerald-500/30',
     isAllowed: (u) => !!u,
@@ -262,7 +262,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Operations',
     href: '/dashboard/budget',
     icon: Wallet,
-    accentColor: 'text-blue-400',
+    accentColor: 'text-blue-700 dark:text-blue-300',
     bgColor: 'bg-blue-500/15',
     borderColor: 'border-blue-500/30',
     isAllowed: (u) => !!u,
@@ -275,7 +275,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Operations',
     href: '/dashboard/expenses',
     icon: ReceiptText,
-    accentColor: 'text-amber-400',
+    accentColor: 'text-amber-700 dark:text-amber-300',
     bgColor: 'bg-amber-500/15',
     borderColor: 'border-amber-500/30',
     isAllowed: (u) => canAddExpense(u),
@@ -288,7 +288,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Operations',
     href: '/dashboard/invoices',
     icon: ReceiptText,
-    accentColor: 'text-sky-400',
+    accentColor: 'text-sky-700 dark:text-sky-300',
     bgColor: 'bg-sky-500/15',
     borderColor: 'border-sky-500/30',
     isAllowed: (u) => canManageBilling(u) || (u?.tier !== undefined && u.tier <= 3),
@@ -314,7 +314,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Operations',
     href: '/dashboard/announcements',
     icon: Megaphone,
-    accentColor: 'text-orange-400',
+    accentColor: 'text-orange-700 dark:text-orange-300',
     bgColor: 'bg-orange-500/15',
     borderColor: 'border-orange-500/30',
     isAllowed: (u) => !!u,
@@ -327,7 +327,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Operations',
     href: '/dashboard/guest-directory',
     icon: Contact,
-    accentColor: 'text-emerald-400',
+    accentColor: 'text-emerald-700 dark:text-emerald-300',
     bgColor: 'bg-emerald-500/15',
     borderColor: 'border-emerald-500/30',
     isAllowed: (u) => canAccessGuestDirectory(u),
@@ -342,7 +342,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Administration',
     href: '/dashboard/broadcaster',
     icon: Send,
-    accentColor: 'text-accent',
+    accentColor: 'text-accent-strong dark:text-accent-soft',
     bgColor: 'bg-accent/15',
     borderColor: 'border-accent/30',
     isAllowed: (u) => isSuperUser(u),
@@ -355,7 +355,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Administration',
     href: '/dashboard/users',
     icon: Users,
-    accentColor: 'text-red-400',
+    accentColor: 'text-red-700 dark:text-red-300',
     bgColor: 'bg-red-500/15',
     borderColor: 'border-red-500/30',
     isAllowed: (u) => isSuperUser(u),
@@ -381,7 +381,7 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     category: 'Administration',
     href: '/dashboard/email',
     icon: Mail,
-    accentColor: 'text-blue-400',
+    accentColor: 'text-blue-700 dark:text-blue-300',
     bgColor: 'bg-blue-500/15',
     borderColor: 'border-blue-500/30',
     isAllowed: (u) => canManageEmailSettings(u),
@@ -528,17 +528,17 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
       {/* Widget Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-accent/15 text-accent border border-accent/25">
+          <div className="p-1.5 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
             <Sparkles className="h-4 w-4" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
               Quick Actions
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-accent/15 text-accent border border-accent/25">
+              <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
                 {activeActions.length} active
               </span>
             </h2>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               Personalized shortcuts dock to quickly jump to your permitted modules
             </p>
           </div>
@@ -550,7 +550,7 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
           onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-theme-border/40 hover:border-accent/40 bg-theme-background/30 hover:bg-theme-border/20 text-xs font-semibold text-theme-text-primary transition-all cursor-pointer shadow-sm self-start sm:self-auto"
         >
-          <SlidersHorizontal className="h-3.5 w-3.5 text-accent" />
+          <SlidersHorizontal className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
           Customize Dock
         </button>
       </div>
@@ -579,7 +579,7 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
                   <h3 className="font-bold text-xs text-theme-text-primary group-hover:text-accent transition-colors line-clamp-1">
                     {action.title}
                   </h3>
-                  <p className="text-[10px] text-theme-text-secondary line-clamp-1 mt-0.5">
+                  <p className="text-xs text-theme-text-secondary line-clamp-1 mt-0.5">
                     {action.shortDesc}
                   </p>
                 </div>
@@ -601,7 +601,7 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
           <span className="text-xs font-semibold text-theme-text-secondary group-hover:text-theme-text-primary transition-colors">
             Add More
           </span>
-          <span className="text-[10px] text-theme-text-secondary/70">
+          <span className="text-xs text-theme-text-secondary">
             Customize dock
           </span>
         </button>
@@ -639,7 +639,7 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
             <div className="flex items-start justify-between gap-3 border-b border-theme-border/20 pb-3">
               <div>
                 <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-accent" />
+                  <SlidersHorizontal className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Customize Home Quick Actions
                 </h3>
                 <p className="text-xs text-theme-text-secondary mt-0.5">
@@ -672,14 +672,14 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
                 <button
                   type="button"
                   onClick={selectAllPermitted}
-                  className="px-2.5 py-1.5 rounded-lg border border-theme-border/30 hover:border-accent/40 bg-theme-background/20 text-theme-text-primary text-[11px] font-semibold transition-colors cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-lg border border-theme-border/30 hover:border-accent/40 bg-theme-background/20 text-theme-text-primary text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Select All
                 </button>
                 <button
                   type="button"
                   onClick={resetToDefaults}
-                  className="px-2.5 py-1.5 rounded-lg border border-theme-border/30 hover:border-theme-border bg-theme-background/20 text-theme-text-secondary hover:text-theme-text-primary text-[11px] font-semibold transition-colors cursor-pointer flex items-center gap-1"
+                  className="px-2.5 py-1.5 rounded-lg border border-theme-border/30 hover:border-theme-border bg-theme-background/20 text-theme-text-secondary hover:text-theme-text-primary text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <RotateCcw className="h-3 w-3" /> Reset
                 </button>
@@ -696,7 +696,7 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
                   return (
                     <div key={category} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-[11px] font-bold text-theme-text-secondary uppercase tracking-wider">
+                        <h4 className="text-xs font-bold text-theme-text-secondary uppercase tracking-wider">
                           {category} ({items.length})
                         </h4>
                       </div>
@@ -727,7 +727,7 @@ export function QuickActionsWidget({ user }: QuickActionsWidgetProps) {
                                   <p className="font-bold text-xs text-theme-text-primary truncate">
                                     {action.title}
                                   </p>
-                                  <p className="text-[10px] text-theme-text-secondary truncate">
+                                  <p className="text-xs text-theme-text-secondary truncate">
                                     {action.shortDesc}
                                   </p>
                                 </div>

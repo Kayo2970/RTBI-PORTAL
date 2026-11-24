@@ -31,7 +31,7 @@ function Card({ title, note, children }: { title: string; note?: string; childre
     <div className="p-4 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-2">
       <div>
         <h5 className="text-xs font-bold text-theme-text-primary">{title}</h5>
-        {note && <p className="text-[10px] text-theme-text-secondary mt-0.5">{note}</p>}
+        {note && <p className="text-xs text-theme-text-secondary mt-0.5">{note}</p>}
       </div>
       {children}
     </div>
@@ -41,9 +41,9 @@ function Card({ title, note, children }: { title: string; note?: string; childre
 function Tile({ value, label, sub, accent }: { value: string; label: string; sub?: string; accent?: boolean }) {
   return (
     <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
-      <p className={`text-lg font-bold leading-none ${accent ? 'text-accent' : 'text-theme-text-primary'}`}>{value}</p>
-      <p className="text-[10px] text-theme-text-secondary mt-1">{label}</p>
-      {sub && <p className="text-[10px] text-theme-text-secondary/80">{sub}</p>}
+      <p className={`text-lg font-bold leading-none ${accent ? 'text-accent-strong dark:text-accent-soft' : 'text-theme-text-primary'}`}>{value}</p>
+      <p className="text-xs text-theme-text-secondary mt-1">{label}</p>
+      {sub && <p className="text-xs text-theme-text-secondary">{sub}</p>}
     </div>
   );
 }
@@ -53,10 +53,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 const TONE: Record<Insight['tone'], { cls: string; Icon: typeof Info }> = {
-  good: { cls: 'bg-success/10 border-success/25 text-success', Icon: CheckCircle2 },
-  warn: { cls: 'bg-warning/10 border-warning/25 text-warning', Icon: AlertTriangle },
-  bad: { cls: 'bg-danger/10 border-danger/25 text-danger', Icon: ShieldAlert },
-  info: { cls: 'bg-accent/10 border-accent/25 text-accent', Icon: Info },
+  good: { cls: 'bg-success/10 border-success/25 text-success dark:text-success-soft', Icon: CheckCircle2 },
+  warn: { cls: 'bg-warning/10 border-warning/25 text-warning dark:text-warning-soft', Icon: AlertTriangle },
+  bad: { cls: 'bg-danger/10 border-danger/25 text-danger dark:text-danger-soft', Icon: ShieldAlert },
+  info: { cls: 'bg-accent/10 border-accent/25 text-accent-strong dark:text-accent-soft', Icon: Info },
 };
 
 function heat(mean: number | null): string {
@@ -73,7 +73,7 @@ const SegmentTable = ({ title, segs }: { title: string; segs: SegmentStats[] }) 
   return (
     <Card title={title} note="Groups under 10 responses are shown for reference only and left out of the heatmap.">
       <div className="overflow-x-auto">
-        <table className="min-w-full text-[11px] text-left">
+        <table className="min-w-full text-xs text-left">
           <thead>
             <tr className="text-theme-text-secondary border-b border-theme-border/40">
               <th className="py-1.5 pr-3 font-semibold">Group</th>
@@ -86,7 +86,7 @@ const SegmentTable = ({ title, segs }: { title: string; segs: SegmentStats[] }) 
           <tbody className="divide-y divide-theme-border/20">
             {segs.map(s => (
               <tr key={s.name} className={s.n < 10 ? 'text-theme-text-secondary' : 'text-theme-text-primary'}>
-                <td className="py-1.5 pr-3">{s.name}{s.n < 10 && <span className="ml-1.5 text-[9px] opacity-70">(n&lt;10)</span>}</td>
+                <td className="py-1.5 pr-3">{s.name}{s.n < 10 && <span className="ml-1.5 text-xs opacity-70">(n&lt;10)</span>}</td>
                 <td className="py-1.5 pr-3 text-right">{s.n}</td>
                 <td className="py-1.5 pr-3 text-right font-semibold">{s.indexMean.toFixed(2)}</td>
                 <td className="py-1.5 pr-3 text-right">{pct(s.top2)}</td>
@@ -98,7 +98,7 @@ const SegmentTable = ({ title, segs }: { title: string; segs: SegmentStats[] }) 
       </div>
       {big.length >= 2 && (
         <div className="overflow-x-auto pt-2">
-          <table className="min-w-full text-[10px] text-center border-separate border-spacing-0.5">
+          <table className="min-w-full text-xs text-center border-separate border-spacing-0.5">
             <thead>
               <tr className="text-theme-text-secondary">
                 <th className="text-left font-semibold pr-2">Parameter</th>
@@ -132,11 +132,11 @@ const ParamRow = ({ p, avg }: { p: ParamStats; avg: number | null }) => (
     <td className="py-1.5 pr-2 text-right text-theme-text-secondary">{p.ci === null ? '—' : `±${p.ci.toFixed(2)}`}</td>
     <td className="py-1.5 pr-2 text-right">{f1(p.median, 1)}</td>
     <td className="py-1.5 pr-2 text-right">{f1(p.mode, 0)}</td>
-    <td className={`py-1.5 pr-2 text-right ${(p.sd ?? 0) > 1.1 ? 'text-warning font-semibold' : ''}`}>{f1(p.sd)}</td>
+    <td className={`py-1.5 pr-2 text-right ${(p.sd ?? 0) > 1.1 ? 'text-warning dark:text-warning-soft font-semibold' : ''}`}>{f1(p.sd)}</td>
     <td className="py-1.5 pr-2 text-right">{pct(p.top2)}</td>
     <td className="py-1.5 pr-2 text-right">{pct(p.bottom2)}</td>
     <td className="py-1.5 pr-2 text-right">{p.net === null ? '—' : `${p.net > 0 ? '+' : ''}${Math.round(p.net)}`}</td>
-    <td className={`py-1.5 pr-2 text-right ${p.mean !== null && avg !== null && p.mean < avg - 0.25 ? 'text-warning font-semibold' : ''}`}>
+    <td className={`py-1.5 pr-2 text-right ${p.mean !== null && avg !== null && p.mean < avg - 0.25 ? 'text-warning dark:text-warning-soft font-semibold' : ''}`}>
       {p.mean === null || avg === null ? '—' : `${p.mean - avg >= 0 ? '+' : ''}${(p.mean - avg).toFixed(2)}`}
     </td>
     <td className="py-1.5 text-right">{p.rank ?? '—'}</td>
@@ -174,15 +174,15 @@ export function FeedbackAnalysisPanel({ form, submissions }: { form: PublicFormI
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-accent/10 border border-accent/20 rounded-xl">
         <div className="flex items-center gap-2 text-xs font-bold text-theme-text-primary">
-          <Lightbulb className="h-4 w-4 text-accent" />
+          <Lightbulb className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
           Feedback Analysis
           <span className="font-normal text-theme-text-secondary">· {a.n} form{a.n === 1 ? '' : 's'}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-[11px] text-theme-text-secondary">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-theme-text-secondary">
           <button
             onClick={downloadReport}
             disabled={building}
-            className="px-2.5 py-1 bg-accent hover:bg-accent/90 disabled:opacity-60 text-white rounded-lg text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+            className="px-2.5 py-1 bg-accent hover:bg-accent/90 disabled:opacity-60 text-white rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer"
             title="Download a written report (charts, observations, tables, conclusions and recommendations) as a Word document"
           >
             <FileText className="h-3.5 w-3.5" /> {building ? 'Preparing…' : 'Word report'}
@@ -220,7 +220,7 @@ export function FeedbackAnalysisPanel({ form, submissions }: { form: PublicFormI
       <SectionTitle>Parameter results</SectionTitle>
       <Card title="Summary statistics" note="95% interval = the range the true mean of all attendees probably lies in. SD above 1.1 (amber) means split opinions. vs avg is the mean minus this event’s own average across the nine parameters (amber = at least 0.25 below).">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-[11px] text-left">
+          <table className="min-w-full text-xs text-left">
             <thead>
               <tr className="text-theme-text-secondary border-b border-theme-border/40">
                 <th className="py-1.5 pr-3 font-semibold">Parameter</th>
@@ -350,7 +350,7 @@ export function FeedbackAnalysisPanel({ form, submissions }: { form: PublicFormI
           <div className="space-y-4 pt-2">
             {[{ label: 'Enhanced knowledge / skills', d: a.knowledge }, { label: 'Will apply the learning', d: a.apply }].map(({ label, d }) => (
               <div key={label} className="space-y-1">
-                <div className="flex justify-between text-[11px]">
+                <div className="flex justify-between text-xs">
                   <span className="text-theme-text-primary font-semibold">{label}</span>
                   <span className="text-theme-text-secondary">
                     {d.ci ? `${pct(d.ci.p * 100)} (${pct(d.ci.lo * 100)}–${pct(d.ci.hi * 100)}) · n=${d.n}` : 'No answers'}
@@ -397,10 +397,10 @@ export function FeedbackAnalysisPanel({ form, submissions }: { form: PublicFormI
         )}
         {a.alpha && (
           <Card title="Do the nine ratings measure one thing?" note={`Cronbach's alpha over ${a.alpha.n} complete forms. 0.70+ acceptable, 0.80+ good.`}>
-            <p className={`text-2xl font-black ${a.alpha.alpha >= 0.8 ? 'text-success' : a.alpha.alpha >= 0.7 ? 'text-accent' : 'text-warning'}`}>
+            <p className={`text-2xl font-black ${a.alpha.alpha >= 0.8 ? 'text-success dark:text-success-soft' : a.alpha.alpha >= 0.7 ? 'text-accent-strong dark:text-accent-soft' : 'text-warning dark:text-warning-soft'}`}>
               {a.alpha.alpha.toFixed(2)}
             </p>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               {a.alpha.alpha >= 0.8 ? 'Good — the nine ratings can be combined into the respondent index.' : a.alpha.alpha >= 0.7 ? 'Acceptable — the respondent index is reasonable to use.' : 'Below 0.70 — read the ratings separately rather than as one index.'}
             </p>
           </Card>
@@ -408,39 +408,39 @@ export function FeedbackAnalysisPanel({ form, submissions }: { form: PublicFormI
       </div>
 
       <SectionTitle>Open comments</SectionTitle>
-      <p className="text-[10px] text-theme-text-secondary -mt-2">
+      <p className="text-xs text-theme-text-secondary -mt-2">
         Auto-coded by keyword as a first pass — one respondent can appear under several themes. Spot-check against the raw answers before quoting figures in a report.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {a.comments.map(c => (
           <Card key={c.key} title={c.title} note={`${c.answered} of ${a.n} answered`}>
             {c.themes.length === 0 ? (
-              <p className="text-[11px] text-theme-text-secondary py-3 text-center">No themes detected yet.</p>
+              <p className="text-xs text-theme-text-secondary py-3 text-center">No themes detected yet.</p>
             ) : (
               <div className="space-y-2.5">
                 {c.themes.slice(0, 6).map(t => (
                   <div key={t.theme} className="space-y-1">
-                    <div className="flex justify-between text-[11px]">
+                    <div className="flex justify-between text-xs">
                       <span className="font-semibold text-theme-text-primary">{t.theme}</span>
                       <span className="text-theme-text-secondary">{t.respondents} · {Math.round(t.pct)}%</span>
                     </div>
                     <div className="h-1.5 bg-theme-border/30 rounded-full overflow-hidden">
                       <div className="h-full bg-accent" style={{ width: `${Math.min(100, t.pct)}%` }} />
                     </div>
-                    {t.quotes[0] && <p className="text-[10px] italic text-theme-text-secondary">&ldquo;{t.quotes[0]}&rdquo;</p>}
+                    {t.quotes[0] && <p className="text-xs italic text-theme-text-secondary">&ldquo;{t.quotes[0]}&rdquo;</p>}
                   </div>
                 ))}
               </div>
             )}
             {c.key === 'future' && c.themes.some(t => t.pct >= 10) && (
-              <p className="text-[10px] text-accent pt-1">Topics named by 10% or more of respondents point to real demand.</p>
+              <p className="text-xs text-accent-strong dark:text-accent-soft pt-1">Topics named by 10% or more of respondents point to real demand.</p>
             )}
           </Card>
         ))}
       </div>
 
       {(a.quality.straightLined > 0 || a.quality.contradictions > 0 || a.quality.duplicates > 0) && (
-        <p className="text-[10px] text-theme-text-secondary">
+        <p className="text-xs text-theme-text-secondary">
           Data quality: {a.quality.straightLined} straight-lined · {a.quality.contradictions} contradictory · {a.quality.duplicates} possible duplicate(s). Flags are included as columns in the analysis dataset so results can be re-run without them.
         </p>
       )}
