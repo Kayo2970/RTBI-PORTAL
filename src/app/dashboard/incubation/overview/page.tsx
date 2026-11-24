@@ -68,7 +68,7 @@ export default function IncubationOverviewPage() {
   }
 
   const active = data.startups.filter((s) => s.status === 'Active');
-  const inPipeline = data.applications.filter((a) => !['Ineligible', 'Decision final'].includes(a.status) && !a.decision?.finalisedAt).length;
+  const inPipeline = data.applications.filter((a) => !['Ineligible', 'Decision final', 'Withdrawn'].includes(a.status) && !a.decision?.finalisedAt).length;
   const overdue = data.alerts.filter((a) => a.severity === 'overdue');
   const kpiMet = data.kpi ? data.kpi.rows.filter((k) => k.status === 'Met').length : 0;
   const attention = [...data.alerts].sort((a, b) => Number(b.severity === 'overdue') - Number(a.severity === 'overdue')).slice(0, 7);
@@ -94,11 +94,11 @@ export default function IncubationOverviewPage() {
       <div className="grid lg:grid-cols-5 gap-4">
         <section className="glass-panel rounded-2xl p-5 lg:col-span-3" aria-labelledby="attn">
           <div className="flex items-center justify-between mb-3">
-            <h2 id="attn" className="font-bold text-base flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-600" aria-hidden="true" /> Needs attention</h2>
+            <h2 id="attn" className="font-bold text-base flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-700" aria-hidden="true" /> Needs attention</h2>
             <Badge tone={overdue.length ? 'danger' : 'success'}>{data.alerts.length} item{data.alerts.length === 1 ? '' : 's'}</Badge>
           </div>
           {attention.length === 0 ? (
-            <p className="flex items-center gap-2 text-sm text-theme-text-secondary py-6"><CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden="true" /> You are all caught up. No overdue reviews, agreements, or decisions.</p>
+            <p className="flex items-center gap-2 text-sm text-theme-text-secondary py-6"><CheckCircle2 className="h-5 w-5 text-emerald-700" aria-hidden="true" /> You are all caught up. No overdue reviews, agreements, or decisions.</p>
           ) : (
             <ul className="divide-y divide-theme-border">
               {attention.map((a) => (
@@ -133,7 +133,7 @@ export default function IncubationOverviewPage() {
 
       <div className="grid lg:grid-cols-2 gap-4">
         <section className="glass-panel rounded-2xl p-5" aria-labelledby="kpis">
-          <div className="flex items-center justify-between mb-1"><h2 id="kpis" className="font-bold text-base">KPIs vs annual target</h2><Link href="/dashboard/incubation/kpi" className="text-sm font-semibold text-accent dark:text-accent-soft underline">Full report</Link></div>
+          <div className="flex items-center justify-between mb-1"><h2 id="kpis" className="font-bold text-base">KPIs vs annual target</h2><Link href="/dashboard/incubation/kpi" className="text-sm font-semibold text-accent-strong dark:text-accent-soft underline">Full report</Link></div>
           {data.kpi?.settingsStatus !== 'approved' && data.kpi && <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">Targets are still Proposed. Confirm them against the signed Annexure F.</p>}
           {kpiChart.length === 0 ? <p className="text-sm text-theme-text-secondary py-8">KPI data is not available.</p> : (
             <div className="h-72 text-theme-text-secondary" role="img" aria-label={`KPI year to date against target: ${kpiChart.map((k) => `${k.name} ${k['Year to date']} of ${k.Target}`).join('; ')}`}>
@@ -153,7 +153,7 @@ export default function IncubationOverviewPage() {
         </section>
 
         <section className="glass-panel rounded-2xl p-5" aria-labelledby="rag">
-          <div className="flex items-center justify-between mb-3"><h2 id="rag" className="font-bold text-base">Cohort health (latest RAG)</h2><Link href="/dashboard/incubation/records/review" className="text-sm font-semibold text-accent dark:text-accent-soft underline">All reviews</Link></div>
+          <div className="flex items-center justify-between mb-3"><h2 id="rag" className="font-bold text-base">Cohort health (latest RAG)</h2><Link href="/dashboard/incubation/records/review" className="text-sm font-semibold text-accent-strong dark:text-accent-soft underline">All reviews</Link></div>
           {active.length === 0 ? <p className="text-sm text-theme-text-secondary py-8">No active startups yet.</p> : (
             <ul className="grid sm:grid-cols-2 gap-2">
               {active.slice(0, 12).map((s) => {

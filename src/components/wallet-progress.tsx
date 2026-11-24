@@ -60,7 +60,7 @@ export function useWalletProgress(expectedMs = 5000) {
 export function WalletProgressBar({ progress, label }: { progress: number; label: string }) {
   const pct = Math.round(progress);
   return (
-    <div className="w-full max-w-md my-3 p-4 bg-accent/15 border border-accent/40 rounded-2xl text-accent shadow-lg shadow-accent/10 animate-in fade-in zoom-in-95" role="status" aria-live="polite">
+    <div className="w-full max-w-md my-3 p-4 bg-accent/15 border border-accent/40 rounded-2xl text-accent-strong dark:text-accent-soft shadow-lg shadow-accent/10 animate-in fade-in zoom-in-95" role="status" aria-live="polite">
       <div className="flex items-center justify-between text-xs font-semibold mb-2.5">
         <span>{label}</span>
         <span className="tabular-nums">{pct}%</span>

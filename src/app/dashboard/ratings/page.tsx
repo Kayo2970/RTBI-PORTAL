@@ -65,13 +65,13 @@ function TaskTimingLine({ task }: { task: TaskItem | undefined }) {
   const late = getTaskLateness(task);
   return (
     <div className="space-y-1 mt-1">
-      <p className="text-[10px] text-theme-text-secondary">
+      <p className="text-xs text-theme-text-secondary">
         {assigned ? <>Assigned <strong className="text-theme-text-primary">{assigned}</strong> &middot; </> : null}
         Due <strong className="text-theme-text-primary">{task.dueDate}</strong>
         {task.status === 'Completed' && task.completedAt ? <> &middot; Completed <strong className="text-theme-text-primary">{task.completedAt.slice(0, 10)}</strong></> : null}
       </p>
       {late && (
-        <p className="text-[10px] font-bold text-danger bg-danger/10 border border-danger/30 rounded-lg px-2 py-1">
+        <p className="text-xs font-bold text-danger dark:text-danger-soft bg-danger/10 border border-danger/30 rounded-lg px-2 py-1">
           Submitted {late.daysLate} day{late.daysLate === 1 ? '' : 's'} after the deadline — no extension was given
         </p>
       )}
@@ -664,7 +664,7 @@ export default function RatingsPage() {
         </div>
         <div className="flex gap-1 border-b border-theme-border/30">
           {([['task', 'Task ratings'], ['startup', 'Startup scorecards']] as const).map(([k, label]) => (
-            <button key={k} onClick={() => setRatingsView(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${ratingsView === k ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
+            <button key={k} onClick={() => setRatingsView(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${ratingsView === k ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
           ))}
         </div>
         <ScorecardsPanel user={user} />
@@ -678,7 +678,7 @@ export default function RatingsPage() {
       {/* Alert Banner */}
       {alertMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{alertMsg}</span>
         </div>
       )}
@@ -690,7 +690,7 @@ export default function RatingsPage() {
       </div>
       <div className="flex gap-1 border-b border-theme-border/30">
         {([['task', 'Task ratings'], ['startup', 'Startup scorecards']] as const).map(([k, label]) => (
-          <button key={k} onClick={() => setRatingsView(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${ratingsView === k ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
+          <button key={k} onClick={() => setRatingsView(k)} className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${ratingsView === k ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}>{label}</button>
         ))}
       </div>
 
@@ -702,7 +702,7 @@ export default function RatingsPage() {
         <div className="glass-panel rounded-2xl p-6 lg:col-span-1 space-y-4 flex flex-col max-h-[580px]">
           <div>
             <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-              <CheckSquare className="h-4 w-4 text-accent" />
+              <CheckSquare className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               Task Evaluation Queue
             </h3>
             <p className="text-xs text-theme-text-secondary">
@@ -714,13 +714,13 @@ export default function RatingsPage() {
             <button
               type="button"
               onClick={() => setQueueTab('pending')}
-              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 queueTab === 'pending' ? 'bg-accent text-white' : 'text-theme-text-secondary hover:text-theme-text-primary'
               }`}
             >
               Pending
               {pendingQueueTasks.length > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${queueTab === 'pending' ? 'bg-white/25' : 'bg-theme-border/40'}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${queueTab === 'pending' ? 'bg-white/25' : 'bg-theme-border/40'}`}>
                   {pendingQueueTasks.length}
                 </span>
               )}
@@ -728,13 +728,13 @@ export default function RatingsPage() {
             <button
               type="button"
               onClick={() => setQueueTab('evaluated')}
-              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-semibold rounded-md transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 queueTab === 'evaluated' ? 'bg-accent text-white' : 'text-theme-text-secondary hover:text-theme-text-primary'
               }`}
             >
               Evaluated
               {evaluatedQueueTasks.length > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${queueTab === 'evaluated' ? 'bg-white/25' : 'bg-theme-border/40'}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${queueTab === 'evaluated' ? 'bg-white/25' : 'bg-theme-border/40'}`}>
                   {evaluatedQueueTasks.length}
                 </span>
               )}
@@ -780,7 +780,7 @@ export default function RatingsPage() {
                 <select
                   value={queueSortBy}
                   onChange={(e) => setQueueSortBy(e.target.value as typeof queueSortBy)}
-                  className="w-full bg-transparent text-[11px] text-theme-text-primary focus:outline-none"
+                  className="w-full bg-transparent text-xs text-theme-text-primary focus:outline-none"
                 >
                   <option value="pendingFirst">Sort: Task Title (A-Z)</option>
                   <option value="titleAsc">Sort: Task Title (A-Z)</option>
@@ -791,7 +791,7 @@ export default function RatingsPage() {
               {hasActiveQueueFilters && (
                 <button
                   onClick={clearQueueFilters}
-                  className="px-2 py-1.5 text-[11px] font-semibold text-theme-text-secondary hover:text-theme-text-primary bg-theme-border/30 hover:bg-theme-border/50 rounded-lg transition-all cursor-pointer shrink-0"
+                  className="px-2 py-1.5 text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary bg-theme-border/30 hover:bg-theme-border/50 rounded-lg transition-all cursor-pointer shrink-0"
                 >
                   Clear
                 </button>
@@ -812,10 +812,10 @@ export default function RatingsPage() {
               queueGroups.map(group => (
                 <details key={group.key} open className="group">
                   <summary className="flex items-center justify-between cursor-pointer list-none select-none py-1">
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-theme-text-primary">
-                      <Briefcase className="h-3 w-3 text-accent" />
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-theme-text-primary">
+                      <Briefcase className="h-3 w-3 text-accent-strong dark:text-accent-soft" />
                       {group.label}
-                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-theme-border/30 text-theme-text-secondary">
+                      <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-theme-border/30 text-theme-text-secondary">
                         {group.tasks.length}
                       </span>
                     </span>
@@ -848,49 +848,49 @@ export default function RatingsPage() {
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <h4 className="font-bold text-xs text-theme-text-primary line-clamp-1">{task.title}</h4>
-                              <p className="text-[10px] text-theme-text-secondary mt-0.5">
+                              <p className="text-xs text-theme-text-secondary mt-0.5">
                                 Assignee: <strong className="text-theme-text-primary">{task.assignee}</strong>
                               </p>
                               <TaskTimingLine task={task} />
                               <div className="flex items-center flex-wrap gap-1.5 mt-1">
                                 {task.event ? (
-                                  <span className="text-[10px] text-accent font-semibold">{task.event}</span>
+                                  <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold">{task.event}</span>
                                 ) : (
-                                  <span className="text-[9px] font-medium px-1.5 py-0.5 bg-theme-border/20 text-theme-text-secondary rounded">
+                                  <span className="text-xs font-medium px-1.5 py-0.5 bg-theme-border/20 text-theme-text-secondary rounded">
                                     Standalone Deliverable
                                   </span>
                                 )}
                                 {isDesignDeliverable && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-purple-500/15 text-purple-400 rounded border border-purple-500/20 flex items-center gap-1">
+                                  <span className="text-xs font-bold px-1.5 py-0.5 bg-purple-500/15 text-purple-400 rounded border border-purple-500/20 flex items-center gap-1">
                                     <Palette className="h-2.5 w-2.5" /> Design Deliverable
                                   </span>
                                 )}
                                 {task.assigneeType === 'group' && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-warning/15 text-warning rounded border border-warning/20 flex items-center gap-1">
+                                  <span className="text-xs font-bold px-1.5 py-0.5 bg-warning/15 text-warning dark:text-warning-soft rounded border border-warning/20 flex items-center gap-1">
                                     <Users className="h-2.5 w-2.5" /> Group Task
                                   </span>
                                 )}
                               </div>
                             </div>
-                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-success/15 text-success">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0 bg-success/15 text-success dark:text-success-soft">
                               {task.status}
                             </span>
                           </div>
 
                           {avgScoreSoFar ? (
                             <div className="pt-1 border-t border-theme-border/20 space-y-1">
-                              <div className="flex items-center justify-between text-[11px]">
+                              <div className="flex items-center justify-between text-xs">
                                 <span className="text-theme-text-secondary">Average Score so far:</span>
-                                <span className="font-bold text-accent flex items-center gap-1">
+                                <span className="font-bold text-accent-strong dark:text-accent-soft flex items-center gap-1">
                                   <Star className="h-3 w-3 fill-accent" />
                                   {avgScoreSoFar}/5.0
                                 </span>
                               </div>
-                              <div className="flex items-center flex-wrap gap-1.5 text-[9px]">
+                              <div className="flex items-center flex-wrap gap-1.5 text-xs">
                                 {fanOut && memberRows.length > 0
-                                  ? <span className="text-success font-semibold">✓ {memberRows.length} student rating{memberRows.length === 1 ? '' : 's'} so far</span>
+                                  ? <span className="text-success dark:text-success-soft font-semibold">✓ {memberRows.length} student rating{memberRows.length === 1 ? '' : 's'} so far</span>
                                   : existingTaskRatings.map(r => (
-                                  <span key={r.id} className="text-success font-semibold flex items-center gap-0.5">
+                                  <span key={r.id} className="text-success dark:text-success-soft font-semibold flex items-center gap-0.5">
                                     ✓ {r.raterName} ({r.reviewerRole ? r.reviewerRole.replace('_', ' ') : 'Evaluator'})
                                   </span>
                                 ))}
@@ -900,22 +900,22 @@ export default function RatingsPage() {
 
                           <div className="pt-1 border-t border-theme-border/20 flex items-center justify-between gap-2">
                             {!canEval ? (
-                              <span className="text-[10px] text-warning font-medium italic">
+                              <span className="text-xs text-warning dark:text-warning-soft font-medium italic">
                                 Evaluations restricted to Super User and CEO
                               </span>
                             ) : queueTab === 'evaluated' ? (
-                              <span className="text-[10px] text-success font-semibold flex items-center gap-1">
+                              <span className="text-xs text-success dark:text-success-soft font-semibold flex items-center gap-1">
                                 <Check className="h-3 w-3" /> You evaluated this
                               </span>
                             ) : (
-                              <span className="text-[10px] text-theme-text-secondary">
+                              <span className="text-xs text-theme-text-secondary">
                                 {task.assigneeType === 'group' ? 'Rates entire group' : 'Pending Evaluation'}
                               </span>
                             )}
                             {canEval && queueTab === 'pending' && (
                               <button
                                 onClick={() => openEvaluationForTask(task)}
-                                className="px-3 py-1 text-[11px] font-medium rounded-lg cursor-pointer transition-all bg-accent hover:bg-primary-light text-white shadow-sm"
+                                className="px-3 py-1 text-xs font-medium rounded-lg cursor-pointer transition-all bg-accent hover:bg-primary-light text-white shadow-sm"
                               >
                                 Evaluate Performance
                               </button>
@@ -925,7 +925,7 @@ export default function RatingsPage() {
                                 return (
                                   <button
                                     onClick={() => openEvaluationForTask(task)}
-                                    className="px-3 py-1 text-[11px] font-medium rounded-lg cursor-pointer transition-all bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary"
+                                    className="px-3 py-1 text-xs font-medium rounded-lg cursor-pointer transition-all bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary"
                                   >
                                     Re-rate Members
                                   </button>
@@ -935,7 +935,7 @@ export default function RatingsPage() {
                               return myRating ? (
                                 <button
                                   onClick={() => openEditEvaluation(myRating)}
-                                  className="px-3 py-1 text-[11px] font-medium rounded-lg cursor-pointer transition-all bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary"
+                                  className="px-3 py-1 text-xs font-medium rounded-lg cursor-pointer transition-all bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary"
                                 >
                                   Edit My Review
                                 </button>
@@ -1054,7 +1054,7 @@ export default function RatingsPage() {
                 <button
                   type="button"
                   onClick={clearHistoryFilters}
-                  className="px-2.5 py-1.5 text-xs text-accent hover:text-accent/80 font-medium transition-colors"
+                  className="px-2.5 py-1.5 text-xs text-accent-strong dark:text-accent-soft hover:text-accent/80 font-medium transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -1070,7 +1070,7 @@ export default function RatingsPage() {
                   <button
                     type="button"
                     onClick={clearHistoryFilters}
-                    className="text-xs text-accent hover:underline font-medium"
+                    className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-medium"
                   >
                     Reset all filters
                   </button>
@@ -1104,9 +1104,9 @@ export default function RatingsPage() {
                         <td className="py-3.5 pr-2 max-w-xs align-top">
                           <p className="font-semibold text-theme-text-primary truncate">{group.taskTitle}</p>
                           {group.eventName ? (
-                            <span className="text-[10px] text-accent font-medium">{group.eventName}</span>
+                            <span className="text-xs text-accent-strong dark:text-accent-soft font-medium">{group.eventName}</span>
                           ) : (
-                            <span className="text-[10px] text-theme-text-secondary">Standalone Deliverable</span>
+                            <span className="text-xs text-theme-text-secondary">Standalone Deliverable</span>
                           )}
                         </td>
 
@@ -1116,15 +1116,15 @@ export default function RatingsPage() {
                             <div key={rating.id} className="flex items-center gap-1.5 flex-wrap">
                               <span className="font-semibold text-theme-text-primary">{rating.raterName}</span>
                               {rating.reviewerRole && (
-                                <span className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
+                                <span className={`inline-flex items-center text-xs font-bold px-1.5 py-0.5 rounded-full border ${
                                   rating.reviewerRole === 'SUPER_USER'
-                                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                    : 'bg-accent/10 text-accent border-accent/20'
+                                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                                    : 'bg-accent/10 text-accent-strong dark:text-accent-soft border-accent/20'
                                 }`}>
                                   {rating.reviewerRole === 'SUPER_USER' ? 'Super User' : rating.reviewerRole === 'CEO' ? 'CEO' : 'Reviewer'}
                                 </span>
                               )}
-                              <span className="font-bold text-accent">({rating.overallScore.toFixed(1)})</span>
+                              <span className="font-bold text-accent-strong dark:text-accent-soft">({rating.overallScore.toFixed(1)})</span>
                             </div>
                           ))}
                         </td>
@@ -1132,9 +1132,9 @@ export default function RatingsPage() {
                         {/* Breakdown — real per-criterion scores when the rubric is known, else the legacy Q/T/I/C fields */}
                         <td className="py-3.5 pr-2 text-theme-text-secondary whitespace-nowrap align-top space-y-1">
                           {group.ratings.map(rating => (
-                            <div key={rating.id} className="text-[11px]">
+                            <div key={rating.id} className="text-xs">
                               {group.ratings.length > 1 && (
-                                <span className="text-[9px] text-theme-text-secondary mr-1">{rating.raterName.split(' ')[0]}:</span>
+                                <span className="text-xs text-theme-text-secondary mr-1">{rating.raterName.split(' ')[0]}:</span>
                               )}
                               {rating.criteriaSet && rating.scores ? (
                                 <span title={CRITERIA_SET_LABEL[rating.criteriaSet]}>
@@ -1165,7 +1165,7 @@ export default function RatingsPage() {
                               {group.aggregateScore.toFixed(1)} / 5.0
                             </span>
                             {group.ratings.length > 1 && (
-                              <span className="text-[9px] text-theme-text-secondary font-medium">
+                              <span className="text-xs text-theme-text-secondary font-medium">
                                 Avg of {group.ratings.length} reviews
                               </span>
                             )}
@@ -1179,23 +1179,23 @@ export default function RatingsPage() {
                             const liveLate = taskForRow ? getTaskLateness(taskForRow) : null;
                             const note = group.ratings.find(r => r.lateNote)?.lateNote || (liveLate ? describeTaskLateness(liveLate) : '');
                             return note ? (
-                              <p className="text-[11px] font-bold text-danger" title={note}>{note}</p>
+                              <p className="text-xs font-bold text-danger dark:text-danger-soft" title={note}>{note}</p>
                             ) : null;
                           })()}
                           {group.ratings.map(r => r.notes ? (
-                            <p key={r.id} className="text-[11px] truncate" title={`${r.raterName}: ${r.notes}`}>
+                            <p key={r.id} className="text-xs truncate" title={`${r.raterName}: ${r.notes}`}>
                               {group.ratings.length > 1 ? <strong className="text-theme-text-primary">{r.raterName.split(' ')[0]}: </strong> : null}
                               {r.notes}
                             </p>
                           ) : null).filter(Boolean).length > 0 ? (
                             group.ratings.map(r => r.notes ? (
-                              <p key={r.id} className="text-[11px] truncate" title={`${r.raterName}: ${r.notes}`}>
+                              <p key={r.id} className="text-xs truncate" title={`${r.raterName}: ${r.notes}`}>
                                 {group.ratings.length > 1 ? <strong className="text-theme-text-primary">{r.raterName.split(' ')[0]}: </strong> : null}
                                 {r.notes}
                               </p>
                             ) : null)
                           ) : (
-                            <span className="text-[11px]">—</span>
+                            <span className="text-xs">—</span>
                           )}
                         </td>
 
@@ -1217,7 +1217,7 @@ export default function RatingsPage() {
                                     </button>
                                     <button
                                       onClick={() => setDeletingRatingId(rating.id)}
-                                      className="p-1 hover:bg-danger/10 rounded-md text-danger transition-all cursor-pointer"
+                                      className="p-1 hover:bg-danger/10 rounded-md text-danger dark:text-danger-soft transition-all cursor-pointer"
                                       title={`Delete ${rating.raterName}'s Scorecard`}
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
@@ -1260,7 +1260,7 @@ export default function RatingsPage() {
             </div>
 
             {formError && (
-              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger text-xs flex items-center gap-2">
+              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger dark:text-danger-soft text-xs flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -1269,15 +1269,15 @@ export default function RatingsPage() {
             {/* Task & Assignee Info Header */}
             <div className="bg-accent/10 border border-accent/15 p-3.5 rounded-2xl text-xs space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-theme-text-secondary font-semibold uppercase tracking-wider text-[10px]">Deliverable</span>
+                <span className="text-theme-text-secondary font-semibold uppercase tracking-wider text-xs">Deliverable</span>
                 {selectedTask?.event && (
-                  <span className="text-[10px] text-accent font-semibold">{selectedTask.event}</span>
+                  <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold">{selectedTask.event}</span>
                 )}
               </div>
               <h3 className="text-sm font-bold text-theme-text-primary">
                 {editingRating ? editingRating.taskTitle : selectedTask?.title}
               </h3>
-              <p className="text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary">
                 Student Assignee: <strong className="text-theme-text-primary">{editingRating ? editingRating.targetName : selectedTask?.assignee}</strong>
               </p>
               <TaskTimingLine task={editingRating ? tasks.find(t => t.id === editingRating.taskId) : selectedTask || undefined} />
@@ -1293,12 +1293,12 @@ export default function RatingsPage() {
                 if (editingRating || roster.length < 2) {
                   return (
                     <div className="pt-1.5 space-y-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-text-secondary">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-theme-text-secondary">
                         {kind} Members ({roster.length})
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {roster.map(m => (
-                          <span key={m.id} className="px-2 py-0.5 rounded-lg bg-theme-background/40 border border-theme-border/40 text-[11px] font-medium text-theme-text-primary">
+                          <span key={m.id} className="px-2 py-0.5 rounded-lg bg-theme-background/40 border border-theme-border/40 text-xs font-medium text-theme-text-primary">
                             {m.name}
                           </span>
                         ))}
@@ -1313,10 +1313,10 @@ export default function RatingsPage() {
                   setSelectedMemberIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
                 return (
                   <div className="pt-2 space-y-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-theme-text-secondary">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-theme-text-secondary">
                       Who is this rating for? ({rateable.length} {kind.toLowerCase()} members)
                     </p>
-                    <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold">
+                    <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold">
                       <button
                         type="button"
                         onClick={() => { setRateMode('all'); setSelectedMemberIds(rateable.map(m => m.id)); }}
@@ -1334,18 +1334,18 @@ export default function RatingsPage() {
                     </div>
                     {rateMode === 'selected' ? (
                       <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-[10px] text-theme-text-secondary">
+                        <div className="flex items-center justify-between text-xs text-theme-text-secondary">
                           <span>{selectedMemberIds.length} selected &mdash; this score applies only to them</span>
                           <span className="flex gap-2">
-                            <button type="button" className="text-accent font-semibold cursor-pointer" onClick={() => setSelectedMemberIds(rateable.map(m => m.id))}>Select all</button>
-                            <button type="button" className="text-accent font-semibold cursor-pointer" onClick={() => setSelectedMemberIds([])}>Clear</button>
+                            <button type="button" className="text-accent-strong dark:text-accent-soft font-semibold cursor-pointer" onClick={() => setSelectedMemberIds(rateable.map(m => m.id))}>Select all</button>
+                            <button type="button" className="text-accent-strong dark:text-accent-soft font-semibold cursor-pointer" onClick={() => setSelectedMemberIds([])}>Clear</button>
                           </span>
                         </div>
                         <div className="max-h-40 overflow-y-auto space-y-1 pr-1">
                           {rateable.map(m => {
                             const mine = myRows.find(r => r.targetId === m.id);
                             return (
-                              <label key={m.id} className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-theme-background/40 border border-theme-border/40 cursor-pointer text-[11px]">
+                              <label key={m.id} className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-theme-background/40 border border-theme-border/40 cursor-pointer text-xs">
                                 <span className="flex items-center gap-2 text-theme-text-primary font-medium">
                                   <input
                                     type="checkbox"
@@ -1356,20 +1356,20 @@ export default function RatingsPage() {
                                   {m.name}
                                 </span>
                                 {mine && (
-                                  <span className="text-[10px] font-bold text-success whitespace-nowrap">Rated {mine.overallScore.toFixed(1)}</span>
+                                  <span className="text-xs font-bold text-success dark:text-success-soft whitespace-nowrap">Rated {mine.overallScore.toFixed(1)}</span>
                                 )}
                               </label>
                             );
                           })}
                         </div>
-                        <p className="text-[10px] text-theme-text-secondary/80 italic">
+                        <p className="text-xs text-theme-text-secondary italic">
                           Submit once per group of students. Each student keeps their own score, and the {kind.toLowerCase()}&apos;s overall score is the average of all its students&apos; ratings.
                         </p>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {rateable.map(m => (
-                          <span key={m.id} className="px-2 py-0.5 rounded-lg bg-theme-background/40 border border-theme-border/40 text-[11px] font-medium text-theme-text-primary">
+                          <span key={m.id} className="px-2 py-0.5 rounded-lg bg-theme-background/40 border border-theme-border/40 text-xs font-medium text-theme-text-primary">
                             {m.name}
                           </span>
                         ))}
@@ -1383,7 +1383,7 @@ export default function RatingsPage() {
                 if (role === 'SUPER_USER' || role === 'CEO') {
                   const roleLabel = role === 'SUPER_USER' ? 'Super User' : 'CEO';
                   return (
-                    <p className="text-[10px] text-theme-text-secondary/80 italic">
+                    <p className="text-xs text-theme-text-secondary italic">
                       Reviewing as {roleLabel} — the score shown for this task is the live average of evaluations submitted so far.
                     </p>
                   );
@@ -1394,7 +1394,7 @@ export default function RatingsPage() {
 
             <form onSubmit={handleEvaluateSubmit} className="space-y-4 text-xs">
 
-              <div className="text-[10px] font-bold uppercase tracking-wide text-accent">
+              <div className="text-xs font-bold uppercase tracking-wide text-accent-strong dark:text-accent-soft">
                 {CRITERIA_SET_LABEL[activeCriteriaSet]} Rubric
               </div>
 
@@ -1404,7 +1404,7 @@ export default function RatingsPage() {
                   <div className="space-y-1" key={criterion.key} title={criterion.description}>
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-semibold text-theme-text-primary">{idx + 1}. {criterion.label}</span>
-                      <span className="font-bold text-accent">{(scores[criterion.key] ?? 3).toFixed(1)} / 5</span>
+                      <span className="font-bold text-accent-strong dark:text-accent-soft">{(scores[criterion.key] ?? 3).toFixed(1)} / 5</span>
                     </div>
                     <input
                       type="range" min="1" max="5" step="0.5"
@@ -1431,7 +1431,7 @@ export default function RatingsPage() {
               {/* Rolling Average Score */}
               <div className="bg-theme-border/10 p-3 rounded-xl border border-theme-border/20 flex justify-between items-center">
                 <span className="font-semibold text-theme-text-secondary">Calculated Performance Rating:</span>
-                <span className="text-sm font-black text-warning flex items-center gap-1">
+                <span className="text-sm font-black text-warning dark:text-warning-soft flex items-center gap-1">
                   <Star className="h-4 w-4 fill-warning stroke-warning" />
                   {averageScore(scores).toFixed(1)} / 5.0
                 </span>

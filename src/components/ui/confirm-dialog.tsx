@@ -50,9 +50,20 @@ export function ConfirmHost() {
       }
     >
       <div className="flex gap-3">
-        {danger && <AlertTriangle className="h-6 w-6 text-rose-600 shrink-0" aria-hidden="true" />}
+        {danger && <AlertTriangle className="h-6 w-6 text-rose-700 shrink-0" aria-hidden="true" />}
         <div className="text-sm text-theme-text-secondary leading-relaxed">{p?.message ?? 'Are you sure?'}</div>
       </div>
     </Dialog>
   );
+}
+
+/** Drop-in for `window.confirm(message)`: `if (!(await askConfirm('Delete this?'))) return;`. Newlines in the message are kept. */
+export function askConfirm(message: string, opts: { title?: string; confirmLabel?: string; tone?: 'danger' | 'primary' } = {}): Promise<boolean> {
+  const destructive = /delete|remove|wipe|cancel|archive|permanent|discard/i.test(message);
+  return confirmDialog({
+    title: opts.title ?? (destructive ? 'Are you sure?' : 'Please confirm'),
+    message: <span className="whitespace-pre-line">{message}</span>,
+    confirmLabel: opts.confirmLabel ?? (destructive ? 'Yes, continue' : 'Confirm'),
+    tone: opts.tone ?? (destructive ? 'danger' : 'primary'),
+  });
 }

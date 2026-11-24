@@ -35,7 +35,7 @@ export function ZeroTrustRestrictedScreen({ user, onSignOut }: ZeroTrustRestrict
             priority
           />
           <div className="text-left border-l border-theme-border/30 pl-3">
-            <span className="text-[10px] font-mono tracking-widest uppercase text-theme-text-secondary block">
+            <span className="text-xs font-mono tracking-widest uppercase text-theme-text-secondary block">
               RTBI PORTAL
             </span>
             <span className="text-xs font-bold text-theme-text-primary">
@@ -49,14 +49,14 @@ export function ZeroTrustRestrictedScreen({ user, onSignOut }: ZeroTrustRestrict
           <div className="h-20 w-20 rounded-3xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-500 shadow-inner">
             <ShieldAlert className="h-10 w-10 animate-pulse" />
           </div>
-          <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-theme-background border border-red-500/40 flex items-center justify-center text-red-400">
+          <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-theme-background border border-red-500/40 flex items-center justify-center text-red-700 dark:text-red-300">
             <Lock className="h-3.5 w-3.5" />
           </div>
         </div>
 
         {/* Heading & Policy Statement */}
         <div className="space-y-2">
-          <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-red-500/20 text-red-400 border border-red-500/30">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30">
             Zero-Trust Site-Wide Policy Enforced
           </span>
           <h1 className="text-2xl font-bold text-theme-text-primary tracking-tight">
@@ -75,24 +75,24 @@ export function ZeroTrustRestrictedScreen({ user, onSignOut }: ZeroTrustRestrict
           </div>
           <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
             <span className="text-theme-text-secondary font-medium">Email Address</span>
-            <span className="font-mono text-theme-text-primary text-[11px]">{user?.email || 'N/A'}</span>
+            <span className="font-mono text-theme-text-primary text-xs">{user?.email || 'N/A'}</span>
           </div>
           <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
             <span className="text-theme-text-secondary font-medium">Current Role</span>
-            <span className="font-bold text-accent px-2 py-0.5 rounded bg-accent/15 border border-accent/25 text-[11px]">
+            <span className="font-bold text-accent-strong dark:text-accent-soft px-2 py-0.5 rounded bg-accent/15 border border-accent/25 text-xs">
               {roleName} (Tier {userTier})
             </span>
           </div>
           <div className="flex items-center justify-between pt-0.5">
             <span className="text-theme-text-secondary font-medium">Policy Status</span>
-            <span className="font-bold text-red-400 flex items-center gap-1.5 text-[11px]">
+            <span className="font-bold text-red-700 dark:text-red-300 flex items-center gap-1.5 text-xs">
               <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
               Locked (Zero Access)
             </span>
           </div>
         </div>
 
-        <p className="text-[11px] text-theme-text-secondary/80 leading-relaxed italic">
+        <p className="text-xs text-theme-text-secondary leading-relaxed italic">
           Granular permissions and module visibility for {roleName} accounts will be provisioned by the Super User as individual modules are finalized.
         </p>
 
@@ -101,7 +101,7 @@ export function ZeroTrustRestrictedScreen({ user, onSignOut }: ZeroTrustRestrict
           {onSignOut && (
             <button
               onClick={onSignOut}
-              className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-xs font-bold transition-all cursor-pointer shadow-sm"
+              className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-700 dark:text-red-300 text-xs font-bold transition-all cursor-pointer shadow-sm"
             >
               <LogOut className="h-4 w-4" />
               Sign Out

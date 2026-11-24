@@ -408,7 +408,7 @@ export function MailComposerBroadcaster({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-theme-border/20 pb-4">
         <div>
           <h2 className="text-lg font-bold text-theme-text-primary flex items-center gap-2">
-            <Send className="h-5 w-5 text-accent" />
+            <Send className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
             {title}
           </h2>
           <p className="text-xs text-theme-text-secondary mt-0.5">{subtitle}</p>
@@ -417,7 +417,7 @@ export function MailComposerBroadcaster({
           <button
             type="button"
             onClick={onNavigateToSettings}
-            className="text-xs font-semibold text-accent hover:underline flex items-center gap-1.5 cursor-pointer self-start md:self-auto"
+            className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1.5 cursor-pointer self-start md:self-auto"
           >
             <ShieldCheck className="h-4 w-4" />
             Verify SMTP Configuration
@@ -429,8 +429,8 @@ export function MailComposerBroadcaster({
         <div
           className={`p-3.5 rounded-2xl text-xs flex items-center justify-between gap-3 border ${
             notice.kind === 'ok'
-              ? 'bg-success/15 border-success/30 text-emerald-400'
-              : 'bg-danger/15 border-danger/30 text-rose-400'
+              ? 'bg-success/15 border-success/30 text-emerald-700 dark:text-emerald-300'
+              : 'bg-danger/15 border-danger/30 text-rose-700 dark:text-rose-300'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -455,7 +455,7 @@ export function MailComposerBroadcaster({
           <div className="glass-panel p-5 md:p-6 rounded-3xl border border-theme-card-border space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-theme-border/15 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-accent/20 text-accent font-bold text-[11px] flex items-center justify-center">
+                <span className="w-5 h-5 rounded-full bg-accent/20 text-accent-strong dark:text-accent-soft font-bold text-xs flex items-center justify-center">
                   1
                 </span>
                 <h3 className="text-sm font-bold text-theme-text-primary">Recipients &amp; Mail Merge</h3>
@@ -515,11 +515,11 @@ export function MailComposerBroadcaster({
                 spellCheck={false}
                 className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary font-mono text-xs focus:outline-none focus:border-accent"
               />
-              <p className="text-[11px] text-theme-text-secondary">
-                Provide a header row with an <code className="text-accent">email</code> column and any number of custom columns
-                (e.g. <code className="text-accent">name</code>, <code className="text-accent">role</code>,{' '}
-                <code className="text-accent">department</code>). Each column becomes a dynamic{' '}
-                <code className="text-accent">{'{{placeholder}}'}</code>.
+              <p className="text-xs text-theme-text-secondary">
+                Provide a header row with an <code className="text-accent-strong dark:text-accent-soft">email</code> column and any number of custom columns
+                (e.g. <code className="text-accent-strong dark:text-accent-soft">name</code>, <code className="text-accent-strong dark:text-accent-soft">role</code>,{' '}
+                <code className="text-accent-strong dark:text-accent-soft">department</code>). Each column becomes a dynamic{' '}
+                <code className="text-accent-strong dark:text-accent-soft">{'{{placeholder}}'}</code>.
               </p>
             </div>
 
@@ -528,13 +528,13 @@ export function MailComposerBroadcaster({
               <div className="rounded-2xl border border-theme-card-border overflow-hidden bg-theme-background/20">
                 <div className="flex items-center justify-between px-3.5 py-2 bg-theme-background/60 text-xs font-semibold text-theme-text-primary border-b border-theme-border/20">
                   <span className="flex items-center gap-2">
-                    <CheckSquare className="h-3.5 w-3.5 text-success" />
+                    <CheckSquare className="h-3.5 w-3.5 text-success dark:text-success-soft" />
                     <span>
                       {recipients.length} valid recipient{recipients.length === 1 ? '' : 's'} parsed
                     </span>
                   </span>
                   {recipients.length > 5 && (
-                    <span className="text-[11px] font-normal text-theme-text-secondary">Showing first 5 rows</span>
+                    <span className="text-xs font-normal text-theme-text-secondary">Showing first 5 rows</span>
                   )}
                 </div>
                 <div className="overflow-x-auto max-h-44 text-xs">
@@ -542,13 +542,13 @@ export function MailComposerBroadcaster({
                     <thead>
                       <tr className="border-b border-theme-border/20 text-theme-text-secondary font-medium">
                         {columns.map((c) => (
-                          <th key={c} className="px-3 py-1.5 font-mono uppercase text-[10px] tracking-wider">
+                          <th key={c} className="px-3 py-1.5 font-mono uppercase text-xs tracking-wider">
                             {c}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-theme-border/10 text-theme-text-primary font-mono text-[11px]">
+                    <tbody className="divide-y divide-theme-border/10 text-theme-text-primary font-mono text-xs">
                       {recipients.slice(0, 5).map((r, i) => (
                         <tr key={`${r.email}-${i}`} className="hover:bg-theme-border/10">
                           {columns.map((col) => (
@@ -571,7 +571,7 @@ export function MailComposerBroadcaster({
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   {skipped.length} line{skipped.length === 1 ? '' : 's'} skipped:
                 </p>
-                <ul className="list-disc list-inside text-[11px] space-y-0.5 text-amber-200/80">
+                <ul className="list-disc list-inside text-xs space-y-0.5 text-amber-200/80">
                   {skipped.slice(0, 5).map((s, idx) => (
                     <li key={idx}>
                       Line {s.line}: {s.reason}
@@ -587,7 +587,7 @@ export function MailComposerBroadcaster({
           <div className="glass-panel p-5 md:p-6 rounded-3xl border border-theme-card-border space-y-4">
             <div className="flex items-center justify-between border-b border-theme-border/15 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-accent/20 text-accent font-bold text-[11px] flex items-center justify-center">
+                <span className="w-5 h-5 rounded-full bg-accent/20 text-accent-strong dark:text-accent-soft font-bold text-xs flex items-center justify-center">
                   2
                 </span>
                 <h3 className="text-sm font-bold text-theme-text-primary">Email Content</h3>
@@ -622,7 +622,7 @@ export function MailComposerBroadcaster({
                   <button
                     type="button"
                     onClick={handleInsertAttachmentNote}
-                    className="px-2 py-0.5 bg-accent/15 text-accent border border-accent/30 rounded-md font-semibold hover:bg-accent/25 transition-all cursor-pointer text-[10px]"
+                    className="px-2 py-0.5 bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30 rounded-md font-semibold hover:bg-accent/25 transition-all cursor-pointer text-xs"
                     title="Insert notice naming attachments"
                   >
                     + Mention attachments in body
@@ -647,8 +647,8 @@ export function MailComposerBroadcaster({
 
               {/* Dynamic Placeholder Insertion Buttons */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[11px] font-semibold text-theme-text-secondary flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-accent" />
+                <span className="text-xs font-semibold text-theme-text-secondary flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-accent-strong dark:text-accent-soft" />
                   Insert placeholder:
                 </span>
                 {columns.map((col) => (
@@ -656,7 +656,7 @@ export function MailComposerBroadcaster({
                     key={col}
                     type="button"
                     onClick={() => insertAtCursor(`{{${col}}}`)}
-                    className="px-2 py-0.5 rounded-lg border border-theme-card-border bg-theme-background/50 hover:bg-theme-border/30 text-theme-text-primary font-mono text-[11px] font-medium cursor-pointer transition-all"
+                    className="px-2 py-0.5 rounded-lg border border-theme-card-border bg-theme-background/50 hover:bg-theme-border/30 text-theme-text-primary font-mono text-xs font-medium cursor-pointer transition-all"
                   >
                     {`{{${col}}}`}
                   </button>
@@ -705,13 +705,13 @@ export function MailComposerBroadcaster({
                   Attach Files
                 </button>
                 {attachments.length > 0 && (
-                  <span className="text-[11px] text-theme-text-secondary">
+                  <span className="text-xs text-theme-text-secondary">
                     {formatBytes(totalAttachmentBytes)} of {formatBytes(MAX_TOTAL_ATTACHMENT_BYTES)}
                   </span>
                 )}
               </div>
 
-              {attachmentError && <p className="text-[11px] text-danger">{attachmentError}</p>}
+              {attachmentError && <p className="text-xs text-danger dark:text-danger-soft">{attachmentError}</p>}
 
               {attachments.length > 0 && (
                 <div className="space-y-1.5">
@@ -722,7 +722,7 @@ export function MailComposerBroadcaster({
                     >
                       <span className="truncate text-theme-text-primary font-medium">
                         {att.filename}{' '}
-                        <span className="text-[11px] text-theme-text-secondary">({formatBytes(att.size)})</span>
+                        <span className="text-xs text-theme-text-secondary">({formatBytes(att.size)})</span>
                       </span>
                       <button
                         type="button"
@@ -742,7 +742,7 @@ export function MailComposerBroadcaster({
           {/* STEP 3: DISPATCH & SCHEDULE */}
           <div className="glass-panel p-5 md:p-6 rounded-3xl border border-theme-card-border space-y-4">
             <div className="flex items-center gap-2 border-b border-theme-border/15 pb-3">
-              <span className="w-5 h-5 rounded-full bg-accent/20 text-accent font-bold text-[11px] flex items-center justify-center">
+              <span className="w-5 h-5 rounded-full bg-accent/20 text-accent-strong dark:text-accent-soft font-bold text-xs flex items-center justify-center">
                 3
               </span>
               <h3 className="text-sm font-bold text-theme-text-primary">Dispatch Settings &amp; Broadcast</h3>
@@ -784,7 +784,7 @@ export function MailComposerBroadcaster({
                   onChange={(e) => setScheduleOn(e.target.checked)}
                   className="rounded"
                 />
-                <CalendarClock className="h-4 w-4 text-accent" />
+                <CalendarClock className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 <span>Send later at scheduled time</span>
               </label>
 
@@ -801,12 +801,12 @@ export function MailComposerBroadcaster({
             <div className="pt-3 flex flex-wrap items-center justify-between gap-3">
               <div className="text-xs text-theme-text-secondary">
                 {validationError ? (
-                  <span className="text-danger flex items-center gap-1.5">
+                  <span className="text-danger dark:text-danger-soft flex items-center gap-1.5">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     {validationError}
                   </span>
                 ) : (
-                  <span className="text-emerald-400 flex items-center gap-1.5">
+                  <span className="text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5" />
                     Ready to broadcast to {recipients.length} recipient{recipients.length === 1 ? '' : 's'}
                   </span>
@@ -842,7 +842,7 @@ export function MailComposerBroadcaster({
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <span className="font-mono text-[11px] px-1 text-theme-text-primary">
+                  <span className="font-mono text-xs px-1 text-theme-text-primary">
                     {previewIndex + 1} / {recipients.length}
                   </span>
                   <button
@@ -873,7 +873,7 @@ export function MailComposerBroadcaster({
               </p>
               <p>
                 Subject:{' '}
-                <strong className="text-accent font-sans font-semibold">
+                <strong className="text-accent-strong dark:text-accent-soft font-sans font-semibold">
                   {previewSubject || subject || 'Subject Line Preview'}
                 </strong>
               </p>
@@ -892,7 +892,7 @@ export function MailComposerBroadcaster({
             />
 
             {attachments.length > 0 && (
-              <p className="text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary">
                 Attachments: {attachments.map((a) => a.filename).join(', ')}
               </p>
             )}
@@ -907,7 +907,7 @@ export function MailComposerBroadcaster({
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
               <div>
                 <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                  <Users className="h-4 w-4 text-accent" />
+                  <Users className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Select Members from Users Directory
                 </h3>
                 <p className="text-xs text-theme-text-secondary mt-0.5">
@@ -964,7 +964,7 @@ export function MailComposerBroadcaster({
                 <button
                   type="button"
                   onClick={selectAllFiltered}
-                  className="text-accent hover:underline font-semibold cursor-pointer"
+                  className="text-accent-strong dark:text-accent-soft hover:underline font-semibold cursor-pointer"
                 >
                   Select all visible ({filteredDirectoryMembers.length})
                 </button>
@@ -983,7 +983,7 @@ export function MailComposerBroadcaster({
             <div className="flex-1 overflow-y-auto border border-theme-card-border rounded-2xl bg-theme-background/20 max-h-80">
               {directoryLoading ? (
                 <div className="p-8 flex flex-col items-center justify-center gap-2 text-theme-text-secondary text-xs">
-                  <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                  <Loader2 className="h-6 w-6 animate-spin text-accent-strong dark:text-accent-soft" />
                   <span>Loading directory members…</span>
                 </div>
               ) : filteredDirectoryMembers.length === 0 ? (
@@ -1003,7 +1003,7 @@ export function MailComposerBroadcaster({
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="text-accent">
+                          <div className="text-accent-strong dark:text-accent-soft">
                             {isSelected ? (
                               <CheckSquare className="h-4 w-4" />
                             ) : (
@@ -1013,11 +1013,11 @@ export function MailComposerBroadcaster({
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-theme-text-primary truncate">{m.name}</span>
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-theme-border/20 text-theme-text-secondary">
+                              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-theme-border/20 text-theme-text-secondary">
                                 {m.division || m.role}
                               </span>
                             </div>
-                            <div className="text-[11px] text-theme-text-secondary truncate flex items-center gap-2 mt-0.5">
+                            <div className="text-xs text-theme-text-secondary truncate flex items-center gap-2 mt-0.5">
                               <span>{m.email}</span>
                               {(m.department || m.program) && (
                                 <>
@@ -1044,7 +1044,7 @@ export function MailComposerBroadcaster({
             {/* Bottom Options & Action */}
             <div className="border-t border-theme-border/20 pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
               <div className="flex flex-wrap items-center gap-4">
-                <div className="font-semibold text-accent flex items-center gap-1.5">
+                <div className="font-semibold text-accent-strong dark:text-accent-soft flex items-center gap-1.5">
                   <UserCheck className="h-4 w-4" />
                   {selectedMemberEmails.size} member{selectedMemberEmails.size === 1 ? '' : 's'} selected
                 </div>
@@ -1124,7 +1124,7 @@ export function MailComposerBroadcaster({
                 </p>
               )}
               {scheduleOn && sendAt && (
-                <p className="text-accent font-semibold">
+                <p className="text-accent-strong dark:text-accent-soft font-semibold">
                   Scheduled delivery:{' '}
                   {new Date(sendAt).toLocaleString('en-IN', {
                     day: '2-digit',

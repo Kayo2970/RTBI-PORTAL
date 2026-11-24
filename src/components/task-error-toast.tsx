@@ -24,8 +24,8 @@ export function TaskErrorToast({
   return (
     <div className="fixed bottom-5 right-5 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 max-w-sm w-[calc(100vw-2.5rem)]">
       <div className="glass-panel p-4 rounded-2xl bg-slate-900/95 dark:bg-[#0c1a2e]/95 backdrop-blur-xl border border-rose-500/40 shadow-2xl shadow-rose-950/40 flex items-start gap-3.5 text-white">
-        <div className="h-9 w-9 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 mt-0.5">
-          <AlertTriangle className="h-4 w-4 text-rose-400" />
+        <div className="h-9 w-9 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-700 dark:text-rose-300 shrink-0 mt-0.5">
+          <AlertTriangle className="h-4 w-4 text-rose-700 dark:text-rose-300" />
         </div>
 
         <div className="flex-1 min-w-0 pr-1">
@@ -43,7 +43,7 @@ export function TaskErrorToast({
             </button>
           </div>
 
-          <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+          <p className="text-xs text-slate-300 mt-1 leading-snug">
             {message}
           </p>
 

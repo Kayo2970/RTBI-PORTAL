@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, Circle, Rocket } from 'lucide-react';
 import { fetchOnboarding, fetchRecords, fetchStartups } from '@/lib/incubation/client';
@@ -25,6 +26,7 @@ const SECTIONS: Section[] = [
 /** Read-only "My programme" view for startup (tier 4) founders. Everything shown is already scoped to their startup by the server. */
 export default function StartupWorkspacePage() {
   const user = useCurrentUser();
+  const wanted = useSearchParams().get('startup');
   const [startup, setStartup] = useState<Startup | null | undefined>(undefined);
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [missing, setMissing] = useState<string[]>([]);
@@ -37,7 +39,8 @@ export default function StartupWorkspacePage() {
     (async () => {
       try {
         const list = await fetchStartups();
-        const mine = list.find(s => s.founderMemberIds?.includes(user.id)) ?? list[0] ?? null;
+        // Founders always get their own startup; staff may open any startup's view with ?startup=.
+        const mine = (user.tier <= 3 && wanted ? list.find(s => s.id === wanted) : undefined) ?? list.find(s => s.founderMemberIds?.includes(user.id)) ?? (user.tier <= 3 ? undefined : list[0]) ?? null;
         if (!live) return;
         setStartup(mine);
         if (!mine) return;
@@ -48,7 +51,7 @@ export default function StartupWorkspacePage() {
       } catch (e: any) { if (live) { setError(e.message); setStartup(null); } }
     })();
     return () => { live = false; };
-  }, [user]);
+  }, [user, wanted]);
 
   if (startup === undefined) return <div className="p-6 md:p-8 space-y-4" aria-busy="true"><Skeleton className="h-10 w-72" /><Skeleton className="h-32" /><Skeleton className="h-48" /></div>;
   if (!startup) {
@@ -80,7 +83,7 @@ export default function StartupWorkspacePage() {
         <ul className="grid md:grid-cols-2 gap-x-6 gap-y-1">
           {items.map(i => (
             <li key={i.key} className="flex items-start gap-2 min-h-9 text-sm">
-              {done[i.key] ? <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" aria-hidden="true" /> : <Circle className="h-5 w-5 text-theme-text-secondary shrink-0" aria-hidden="true" />}
+              {done[i.key] ? <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0" aria-hidden="true" /> : <Circle className="h-5 w-5 text-theme-text-secondary shrink-0" aria-hidden="true" />}
               <span><span className="font-medium">{i.label}</span><span className="sr-only">{done[i.key] ? ' (done)' : ' (pending)'}</span></span>
             </li>
           ))}

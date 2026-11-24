@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { toast } from '@/components/ui/toast';
 import { Rocket, Plus, X, Search, Settings2, Loader2, Edit3, Globe, MapPin, Users, Calendar, Building2, ExternalLink, Sparkles } from 'lucide-react';
 import { Chip } from '@/components/ui';
 import { Badge, Panel, ragClass } from '@/components/incubation/ui';
@@ -112,7 +113,7 @@ export default function IncubationPage() {
                   <td className="p-3">{s.pathway}</td>
                   <td className="p-3">{s.cohort || '—'}</td>
                   <td className="p-3">{founderNames(s)}</td>
-                  {canManage && <td className="p-3 text-right whitespace-nowrap"><Link href={`/dashboard/incubation/onboarding?startup=${s.id}`} className="text-accent font-semibold mr-3">Onboarding</Link><button onClick={() => setEditing(s)} className="text-accent font-semibold">Edit</button></td>}
+                  {canManage && <td className="p-3 text-right whitespace-nowrap"><Link href={`/dashboard/incubation/workspace?startup=${s.id}`} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Workspace</Link><Link href={`/dashboard/incubation/onboarding?startup=${s.id}`} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Onboarding</Link>{s.status === 'Waitlisted' && <button onClick={async () => { const ref = window.prompt('Approval reference (minutes / order no.) to promote this waitlisted startup to Selected:'); if (ref && ref.trim()) { try { await updateStartup(s.id, { status: 'Selected', approvalRef: ref } as any); toast.success('Startup promoted from the waitlist'); load(); } catch (e: any) { toast.error('Could not promote', { description: e.message }); } } }} className="text-accent-strong dark:text-accent-soft font-semibold mr-3">Promote</button>}<button onClick={() => setEditing(s)} className="text-accent-strong dark:text-accent-soft font-semibold">Edit</button></td>}
                 </tr>
               ))}
             </tbody>
@@ -254,7 +255,7 @@ function MyStartup({ startup, onUpdate }: { startup: Startup; onUpdate?: () => v
                 className="w-16 h-16 rounded-2xl object-cover border border-white/15 bg-black/20"
               />
             ) : (
-              <div className="w-16 h-16 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-center text-accent">
+              <div className="w-16 h-16 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
                 <Rocket className="h-8 w-8" />
               </div>
             )}
@@ -266,12 +267,12 @@ function MyStartup({ startup, onUpdate }: { startup: Startup; onUpdate?: () => v
                 </span>
               </div>
               {startup.tagline && (
-                <p className="text-sm text-accent mt-0.5 font-medium">{startup.tagline}</p>
+                <p className="text-sm text-accent-strong dark:text-accent-soft mt-0.5 font-medium">{startup.tagline}</p>
               )}
               <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-theme-text-secondary">
                 {startup.sector && (
                   <span className="flex items-center gap-1 font-semibold text-theme-text-primary">
-                    <Building2 className="h-3.5 w-3.5 text-accent" /> {startup.sector}
+                    <Building2 className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> {startup.sector}
                   </span>
                 )}
                 {startup.stage && (
@@ -323,7 +324,7 @@ function MyStartup({ startup, onUpdate }: { startup: Startup; onUpdate?: () => v
                 href={startup.website.startsWith('http') ? startup.website : `https://${startup.website}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-accent hover:underline font-semibold"
+                className="flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline font-semibold"
               >
                 <Globe className="h-3.5 w-3.5" /> Website <ExternalLink className="h-3 w-3" />
               </a>
@@ -543,7 +544,7 @@ function FounderProfileModal({ startup, onClose, onSaved }: { startup: Startup; 
         <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
           <div>
             <h2 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Rocket className="h-4 w-4 text-accent" /> Edit Startup Profile
+              <Rocket className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Edit Startup Profile
             </h2>
             <p className="text-xs text-theme-text-secondary">
               Update your company information stored in the Startup Registry.
@@ -576,7 +577,7 @@ function FounderProfileModal({ startup, onClose, onSaved }: { startup: Startup; 
           </label>
 
           <label className="space-y-1">
-            <span className="font-semibold text-theme-text-secondary">Website <span className="text-accent">* (Mandatory)</span></span>
+            <span className="font-semibold text-theme-text-secondary">Website <span className="text-accent-strong dark:text-accent-soft">* (Mandatory)</span></span>
             <input required className={inputCls} placeholder="https://example.com" value={f.website} onChange={set('website')} />
           </label>
 
@@ -601,17 +602,17 @@ function FounderProfileModal({ startup, onClose, onSaved }: { startup: Startup; 
           </label>
 
           <label className="space-y-1 md:col-span-2">
-            <span className="font-semibold text-theme-text-secondary">Problem Statement <span className="text-accent">* (Mandatory)</span></span>
+            <span className="font-semibold text-theme-text-secondary">Problem Statement <span className="text-accent-strong dark:text-accent-soft">* (Mandatory)</span></span>
             <textarea required rows={2} className={inputCls} placeholder="What problem are you solving? (Mandatory)" value={f.problem} onChange={set('problem')} />
           </label>
 
           <label className="space-y-1 md:col-span-2">
-            <span className="font-semibold text-theme-text-secondary">Solution Description <span className="text-accent">* (Mandatory)</span></span>
+            <span className="font-semibold text-theme-text-secondary">Solution Description <span className="text-accent-strong dark:text-accent-soft">* (Mandatory)</span></span>
             <textarea required rows={2} className={inputCls} placeholder="How does your technology/solution address this problem? (Mandatory)" value={f.solution} onChange={set('solution')} />
           </label>
 
           <label className="space-y-1">
-            <span className="font-semibold text-theme-text-secondary">LinkedIn Profile <span className="text-accent">* (Mandatory Social Link)</span></span>
+            <span className="font-semibold text-theme-text-secondary">LinkedIn Profile <span className="text-accent-strong dark:text-accent-soft">* (Mandatory Social Link)</span></span>
             <input className={inputCls} placeholder="https://linkedin.com/company/..." value={f.linkedin} onChange={set('linkedin')} />
           </label>
 

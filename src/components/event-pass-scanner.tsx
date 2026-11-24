@@ -446,7 +446,7 @@ export function EventPassScanner({
     <div className="glass-panel rounded-3xl p-6 md:p-8 space-y-6 border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-2xl max-w-2xl mx-auto text-xs">
       <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+          <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
             <QrCode className="h-5 w-5" />
           </div>
           <div>
@@ -465,7 +465,7 @@ export function EventPassScanner({
           onClick={() => (isCameraActive ? stopCamera() : startCamera())}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md ${
             isCameraActive
-              ? 'bg-danger/20 text-danger border border-danger/40 hover:bg-danger/30'
+              ? 'bg-danger/20 text-danger dark:text-danger-soft border border-danger/40 hover:bg-danger/30'
               : 'bg-accent text-white hover:bg-accent/90 shadow-accent/25'
           }`}
         >
@@ -483,8 +483,8 @@ export function EventPassScanner({
 
       {/* CAMERA ERROR BANNER */}
       {cameraError && (
-        <div className="p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger text-xs flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-danger shrink-0" />
+        <div className="p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger dark:text-danger-soft text-xs flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
           <span>{cameraError}</span>
         </div>
       )}
@@ -509,7 +509,7 @@ export function EventPassScanner({
 
           {/* Top Camera Controls Overlay */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20">
-            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-black/70 text-white border border-white/20 backdrop-blur-md flex items-center gap-1.5">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-black/70 text-white border border-white/20 backdrop-blur-md flex items-center gap-1.5">
               <span className={`h-2 w-2 rounded-full ${lastScannedFeedback ? 'bg-success/30 scale-125' : 'bg-success/30 animate-ping'}`} />
               {lastScannedFeedback ? 'Pass Scanned!' : 'Scanning Turnstile QR'}
             </span>
@@ -561,7 +561,7 @@ export function EventPassScanner({
 
           {/* Bottom Hint */}
           <div className="absolute bottom-3 inset-x-0 text-center z-20">
-            <span className="text-[10px] font-semibold text-white/90 bg-black/60 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
+            <span className="text-xs font-semibold text-white/90 bg-black/60 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
               Align event pass QR code within the target
             </span>
           </div>
@@ -619,10 +619,10 @@ export function EventPassScanner({
 
             if (isCancelled) {
               return (
-                <div className="p-6 rounded-2xl bg-danger/10 border border-danger/30 text-danger flex items-center gap-3">
-                  <XCircle className="h-6 w-6 text-danger shrink-0" />
+                <div className="p-6 rounded-2xl bg-danger/10 border border-danger/30 text-danger dark:text-danger-soft flex items-center gap-3">
+                  <XCircle className="h-6 w-6 text-danger dark:text-danger-soft shrink-0" />
                   <div>
-                    <div className="font-bold text-danger">Pass Cancelled — Do Not Admit</div>
+                    <div className="font-bold text-danger dark:text-danger-soft">Pass Cancelled — Do Not Admit</div>
                     <div className="text-xs text-danger/80">
                       {pass.attendeeName} · {pass.serialNumber}
                     </div>
@@ -635,10 +635,10 @@ export function EventPassScanner({
               <div
                 className={`p-6 rounded-2xl border space-y-4 ${
                   isAllAttended
-                    ? 'bg-success/10 border-success/30 text-success'
+                    ? 'bg-success/10 border-success/30 text-success dark:text-success-soft'
                     : attendance.length > 0
-                    ? 'bg-accent/10 border-accent/30 text-accent'
-                    : 'bg-success/10 border-success/30 text-success'
+                    ? 'bg-accent/10 border-accent/30 text-accent-strong dark:text-accent-soft'
+                    : 'bg-success/10 border-success/30 text-success dark:text-success-soft'
                 }`}
               >
                 {/* Header Status */}
@@ -646,15 +646,15 @@ export function EventPassScanner({
                   <div className="flex items-center gap-2">
                     {isAllAttended ? (
                       <>
-                        <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
-                        <span className="font-bold text-success text-sm">
+                        <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
+                        <span className="font-bold text-success dark:text-success-soft text-sm">
                           {checkInSuccess ? 'Checked In Successfully!' : 'Pass Fully Checked In (All Days Attended)'}
                         </span>
                       </>
                     ) : attendance.length > 0 ? (
                       <>
-                        <Clock className="h-5 w-5 text-accent shrink-0" />
-                        <span className="font-bold text-accent text-sm">
+                        <Clock className="h-5 w-5 text-accent-strong dark:text-accent-soft shrink-0" />
+                        <span className="font-bold text-accent-strong dark:text-accent-soft text-sm">
                           {checkInSuccess
                             ? 'Checked In Successfully!'
                             : `Partially Attended (${attendance.length}/${availableDays.length} Days)`}
@@ -662,14 +662,14 @@ export function EventPassScanner({
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
-                        <span className="font-bold text-success text-sm">
+                        <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
+                        <span className="font-bold text-success dark:text-success-soft text-sm">
                           {validToday ? 'Genuine & Verified Pass' : `Genuine pass — not valid today (${formatValidDaysLabel(validDays)})`}
                         </span>
                       </>
                     )}
                   </div>
-                  <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-black/40 border border-white/10 text-white font-bold">
+                  <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-black/40 border border-white/10 text-white font-bold">
                     {pass.serialNumber}
                   </span>
                 </div>
@@ -677,19 +677,19 @@ export function EventPassScanner({
                 {/* Attendee Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-black/30 border border-white/10 text-white">
                   <div className="space-y-0.5">
-                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Attendee</span>
+                    <span className="text-xs text-theme-text-secondary uppercase tracking-wider block font-semibold">Attendee</span>
                     <span className="text-sm font-extrabold block">{pass.attendeeName}</span>
                     {pass.guestCategory && (
-                      <span className="inline-block text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent border border-accent/30 mt-0.5">
+                      <span className="inline-block text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/30 mt-0.5">
                         {pass.guestCategory}
                       </span>
                     )}
                   </div>
 
                   <div className="space-y-0.5">
-                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Assigned Room / Venue</span>
-                    <span className="text-xs font-bold text-accent flex items-start gap-1 min-w-0">
-                      <MapPin className="h-3 w-3 text-accent shrink-0 mt-0.5" />
+                    <span className="text-xs text-theme-text-secondary uppercase tracking-wider block font-semibold">Assigned Room / Venue</span>
+                    <span className="text-xs font-bold text-accent-strong dark:text-accent-soft flex items-start gap-1 min-w-0">
+                      <MapPin className="h-3 w-3 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
                       <span className="min-w-0 break-words [overflow-wrap:anywhere]">{pass.roomOrVenue || pass.eventVenue || 'Main Auditorium'}</span>
                     </span>
                     <span className="text-[10.5px] text-theme-text-secondary block">
@@ -698,12 +698,12 @@ export function EventPassScanner({
                   </div>
 
                   <div className="space-y-0.5 pt-2 border-t border-white/10">
-                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Event</span>
+                    <span className="text-xs text-theme-text-secondary uppercase tracking-wider block font-semibold">Event</span>
                     <span className="text-xs font-semibold block truncate">{pass.eventName}</span>
                   </div>
 
                   <div className="space-y-0.5 pt-2 border-t border-white/10">
-                    <span className="text-[9px] text-theme-text-secondary uppercase tracking-wider block font-semibold">Validity / Issued</span>
+                    <span className="text-xs text-theme-text-secondary uppercase tracking-wider block font-semibold">Validity / Issued</span>
                     <span className="text-xs text-theme-text-secondary block">
                       {isStructured ? formatValidDaysLabel(validDays) : pass.validityDate || pass.eventDate || '2026'}
                     </span>
@@ -714,17 +714,17 @@ export function EventPassScanner({
                 <div className="space-y-3 p-4 rounded-xl bg-black/40 border border-white/10 text-white">
                   <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-accent" />
+                      <Calendar className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                       <span className="font-extrabold text-xs text-white">
                         Multi-Day Attendance Roster
                       </span>
                     </div>
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
                         isAllAttended
-                          ? 'bg-success/20 text-success border border-success/30'
+                          ? 'bg-success/20 text-success dark:text-success-soft border border-success/30'
                           : attendance.length > 0
-                          ? 'bg-warning/20 text-warning border border-warning/30'
+                          ? 'bg-warning/20 text-warning dark:text-warning-soft border border-warning/30'
                           : 'bg-theme-card/20 text-theme-text-secondary border border-theme-border/30'
                       }`}
                     >
@@ -743,16 +743,16 @@ export function EventPassScanner({
                         return (
                           <div
                             key={day}
-                            className="flex items-center justify-between p-2.5 rounded-xl bg-success/15 border border-success/30 text-success"
+                            className="flex items-center justify-between p-2.5 rounded-xl bg-success/15 border border-success/30 text-success dark:text-success-soft"
                           >
                             <div className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                              <CheckCircle2 className="h-4 w-4 text-success dark:text-success-soft shrink-0" />
                               <span className="font-extrabold text-xs text-white">{dayLabel(day)}</span>
-                              <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-success/20 text-success font-semibold">
+                              <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-success/20 text-success dark:text-success-soft font-semibold">
                                 Attended
                               </span>
                             </div>
-                            <div className="text-[10px] text-success/90 flex items-center gap-1 font-medium">
+                            <div className="text-xs text-success/90 flex items-center gap-1 font-medium">
                               <Clock className="h-3 w-3 shrink-0" />
                               <span>
                                 {new Date(record.timestamp).toLocaleTimeString([], {
@@ -773,7 +773,7 @@ export function EventPassScanner({
                             className="w-full flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/[0.03] text-theme-text-secondary"
                           >
                             <span className="font-bold text-xs">{dayLabel(day)}</span>
-                            <span className="text-[10px] font-medium">{day < today ? 'Missed' : 'Not yet — valid on this date'}</span>
+                            <span className="text-xs font-medium">{day < today ? 'Missed' : 'Not yet — valid on this date'}</span>
                           </div>
                         );
                       }
@@ -803,7 +803,7 @@ export function EventPassScanner({
                             </div>
                             <span className="font-bold text-xs">{dayLabel(day)}</span>
                           </div>
-                          <span className="text-[10px] text-theme-text-secondary font-medium">
+                          <span className="text-xs text-theme-text-secondary font-medium">
                             {isSelected ? 'Selected for check-in' : 'Click to select'}
                           </span>
                         </button>
@@ -817,7 +817,7 @@ export function EventPassScanner({
                       <button
                         type="button"
                         onClick={() => setShowAddCustomDay(true)}
-                        className="text-[10.5px] text-accent hover:text-accent flex items-center gap-1 font-bold cursor-pointer transition-colors"
+                        className="text-[10.5px] text-accent-strong dark:text-accent-soft hover:text-accent flex items-center gap-1 font-bold cursor-pointer transition-colors"
                       >
                         <Plus className="h-3.5 w-3.5" /> Add Day / Custom Session
                       </button>
@@ -880,7 +880,7 @@ export function EventPassScanner({
                           <button
                             type="button"
                             onClick={() => handleCheckInDays(pendingDays)}
-                            className="py-3 px-4 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/40 font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
+                            className="py-3 px-4 bg-accent/20 hover:bg-accent/30 text-accent-strong dark:text-accent-soft border border-accent/40 font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
                             title="Mark all remaining days attended at once"
                           >
                             Check In All Remaining ({pendingDays.length} Days)
@@ -888,19 +888,19 @@ export function EventPassScanner({
                         )}
                       </>
                     ) : isStructured && pendingDays.length > 0 ? (
-                      <div className="w-full py-2.5 px-4 bg-warning/15 border border-warning/30 text-warning font-bold rounded-xl text-xs flex items-center justify-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-warning" />
+                      <div className="w-full py-2.5 px-4 bg-warning/15 border border-warning/30 text-warning dark:text-warning-soft font-bold rounded-xl text-xs flex items-center justify-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-warning dark:text-warning-soft" />
                         {validToday ? 'Already checked in for today' : 'This pass is not valid today — no check-in possible'}
                       </div>
                     ) : (
-                      <div className="w-full py-2.5 px-4 bg-success/20 border border-success/30 text-success font-extrabold rounded-xl text-xs flex items-center justify-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      <div className="w-full py-2.5 px-4 bg-success/20 border border-success/30 text-success dark:text-success-soft font-extrabold rounded-xl text-xs flex items-center justify-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-success dark:text-success-soft" />
                         Pass Checked In for All Registered Days
                       </div>
                     )}
                   </div>
                   {checkInError && (
-                    <div className="text-xs font-semibold text-danger bg-danger/10 border border-danger/30 rounded-lg px-3 py-2">
+                    <div className="text-xs font-semibold text-danger dark:text-danger-soft bg-danger/10 border border-danger/30 rounded-lg px-3 py-2">
                       {checkInError}
                     </div>
                   )}
@@ -908,10 +908,10 @@ export function EventPassScanner({
               </div>
             );
           })() : (
-            <div className="p-6 rounded-2xl bg-danger/10 border border-danger/30 text-danger space-y-2 flex items-center gap-3">
-              <XCircle className="h-6 w-6 text-danger shrink-0" />
+            <div className="p-6 rounded-2xl bg-danger/10 border border-danger/30 text-danger dark:text-danger-soft space-y-2 flex items-center gap-3">
+              <XCircle className="h-6 w-6 text-danger dark:text-danger-soft shrink-0" />
               <div>
-                <div className="font-bold text-danger">Verification Failed</div>
+                <div className="font-bold text-danger dark:text-danger-soft">Verification Failed</div>
                 <div className="text-xs text-danger/80">{verificationResult.reason}</div>
               </div>
             </div>

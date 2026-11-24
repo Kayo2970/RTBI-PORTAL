@@ -36,6 +36,7 @@ import {
 import { EventPassKeycard } from './event-pass-keycard';
 import { AppleWalletPassPreview } from './apple-wallet-pass-preview';
 import { CardArtworkToggle, EventTitleToggle, PassColorControls, PassFontControls, PassQrControls, PassSection, PassTextColorControls, PassValidityPicker } from './pass-design-controls';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface EventPassEditModalProps {
   isOpen: boolean;
@@ -301,13 +302,13 @@ export function EventPassEditModal({
         {/* Header */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between bg-theme-card/60">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-accent/15 border border-accent/30 text-accent">
+            <div className="p-2.5 rounded-xl bg-accent/15 border border-accent/30 text-accent-strong dark:text-accent-soft">
               <Ticket className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white">Edit Event Pass</h3>
-                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 font-bold">
+                <span className="font-mono text-xs px-2 py-0.5 rounded bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30 font-bold">
                   {pass.serialNumber}
                 </span>
               </div>
@@ -329,22 +330,22 @@ export function EventPassEditModal({
           <div className="space-y-4 min-w-0">
           {/* Live Wallet Sync Notice Banner */}
           <div className="p-3 rounded-xl bg-gradient-to-r from-accent/10 via-secondary/10 to-transparent border border-accent/20 flex items-start gap-2.5">
-            <Smartphone className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+            <Smartphone className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
             <div className="text-xs text-theme-text-secondary">
-              <span className="font-bold text-accent">Live Apple &amp; Google Wallet Sync:</span>{' '}
+              <span className="font-bold text-accent-strong dark:text-accent-soft">Live Apple &amp; Google Wallet Sync:</span>{' '}
               When you save changes, if this pass has been issued or installed on Apple Wallet / Google Wallet, updates will be pushed automatically to the attendee's device lock screen.
             </div>
           </div>
 
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-xs text-danger flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-xs text-danger dark:text-danger-soft flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successInfo && (
-            <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-xs text-success flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-xs text-success dark:text-success-soft flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               <span>
                 {successInfo.message}
@@ -355,14 +356,14 @@ export function EventPassEditModal({
 
           <PassSection title="1 · Event & guest details" hint="Who the pass is for, event, venue, valid days" icon={<Ticket className="h-4 w-4" />} open={!!open.details} onToggle={() => toggle('details')}>
           {successInfo?.walletWarn && (
-            <div className="p-3 rounded-xl bg-warning/10 border border-warning/30 text-xs text-warning flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-warning/10 border border-warning/30 text-xs text-warning dark:text-warning-soft flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{successInfo.walletWarn}</span>
             </div>
           )}
 
           {/* Wallet status + manual re-issue */}
-          <div className="p-3 rounded-xl border border-theme-card-border dark:border-white/10 bg-theme-background/60 dark:bg-white/[0.03] text-[11px] flex flex-wrap items-center justify-between gap-2">
+          <div className="p-3 rounded-xl border border-theme-card-border dark:border-white/10 bg-theme-background/60 dark:bg-white/[0.03] text-xs flex flex-wrap items-center justify-between gap-2">
             <div className="text-theme-text-secondary dark:text-theme-text-secondary">
               <span className="font-bold">Wallet pass: </span>
               {!pass.walletSerialNumber
@@ -373,15 +374,15 @@ export function EventPassEditModal({
                 ? `added by the guest ${new Date(pass.walletInstalledAt).toLocaleString()} — edits are pushed to their phone live.`
                 : 'created, not yet added by the guest.'}
               {pass.walletSyncedAt && <span className="text-theme-text-secondary"> Last synced {new Date(pass.walletSyncedAt).toLocaleString()}.</span>}
-              {pass.walletLastError && <span className="text-warning font-semibold"> Last error: {pass.walletLastError}</span>}
-              {reissueMsg && <span className="block mt-1 font-semibold text-success">{reissueMsg}</span>}
+              {pass.walletLastError && <span className="text-warning dark:text-warning-soft font-semibold"> Last error: {pass.walletLastError}</span>}
+              {reissueMsg && <span className="block mt-1 font-semibold text-success dark:text-success-soft">{reissueMsg}</span>}
             </div>
             {pass.walletSerialNumber && (
               <button
                 type="button"
                 disabled={reissuing}
                 onClick={async () => {
-                  if (!window.confirm('Re-issue the wallet pass?\n\nA brand-new pass is built from the current design. The copy already on the guest\'s phone is removed, so they need to tap Add to Wallet again.')) return;
+                  if (!await askConfirm('Re-issue the wallet pass?\n\nA brand-new pass is built from the current design. The copy already on the guest\'s phone is removed, so they need to tap Add to Wallet again.')) return;
                   setReissuing(true);
                   setReissueMsg('');
                   try {
@@ -395,7 +396,7 @@ export function EventPassEditModal({
                     setReissuing(false);
                   }
                 }}
-                className="px-3 py-1.5 rounded-lg border border-accent/40 text-accent font-bold hover:bg-accent/10 cursor-pointer disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg border border-accent/40 text-accent-strong dark:text-accent-soft font-bold hover:bg-accent/10 cursor-pointer disabled:opacity-50"
               >
                 {reissuing ? 'Re-issuing…' : 'Re-issue wallet pass'}
               </button>
@@ -405,7 +406,7 @@ export function EventPassEditModal({
           {/* Event */}
           <div>
             <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-accent" />
+              <Calendar className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
               Event
             </label>
             <select
@@ -421,7 +422,7 @@ export function EventPassEditModal({
               ))}
             </select>
             {eventChanged && (
-              <p className="mt-1 text-[10px] text-warning">Moving this pass to another event — name, dates and venue follow the new event.</p>
+              <p className="mt-1 text-xs text-warning dark:text-warning-soft">Moving this pass to another event — name, dates and venue follow the new event.</p>
             )}
           </div>
 
@@ -429,8 +430,8 @@ export function EventPassEditModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-accent" />
-                Attendee Full Name <span className="text-danger">*</span>
+                <User className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
+                Attendee Full Name <span className="text-danger dark:text-danger-soft">*</span>
               </label>
               <input
                 type="text"
@@ -473,7 +474,7 @@ export function EventPassEditModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-                <Ticket className="h-3.5 w-3.5 text-accent" />
+                <Ticket className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 Pass Tier / Type
               </label>
               <select
@@ -507,9 +508,9 @@ export function EventPassEditModal({
                 onChange={(e) => setStatus(e.target.value as any)}
                 className="w-full bg-theme-card/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-accent"
               >
-                <option value="Active" className="bg-theme-card text-accent">Active (Ready for Scan)</option>
-                <option value="Checked In" className="bg-theme-card text-success">Checked In (Admitted)</option>
-                <option value="Cancelled" className="bg-theme-card text-danger">Cancelled / Void</option>
+                <option value="Active" className="bg-theme-card text-accent-strong dark:text-accent-soft">Active (Ready for Scan)</option>
+                <option value="Checked In" className="bg-theme-card text-success dark:text-success-soft">Checked In (Admitted)</option>
+                <option value="Cancelled" className="bg-theme-card text-danger dark:text-danger-soft">Cancelled / Void</option>
               </select>
             </div>
           </div>
@@ -518,7 +519,7 @@ export function EventPassEditModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5 text-accent" />
+                <Building2 className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 Organization / Department
               </label>
               <input
@@ -532,7 +533,7 @@ export function EventPassEditModal({
 
             <div>
               <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-accent" />
+                <MapPin className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 Assigned Room / Venue
               </label>
               <input
@@ -549,8 +550,8 @@ export function EventPassEditModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-accent" />
-                Attendee Email <span className="text-danger">*</span>
+                <Mail className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
+                Attendee Email <span className="text-danger dark:text-danger-soft">*</span>
               </label>
               <input
                 type="email"
@@ -564,7 +565,7 @@ export function EventPassEditModal({
 
             <div>
               <label className="block text-xs font-semibold text-theme-text-secondary mb-1.5 flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-accent" />
+                <Phone className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 Attendee Phone
               </label>
               <input
@@ -661,10 +662,10 @@ export function EventPassEditModal({
 
           {/* Live preview: exactly the pass the recipient receives */}
           <aside className="lg:sticky lg:top-0 self-start space-y-2 min-w-0 overflow-x-auto">
-            <p className="text-[11px] font-bold text-theme-text-secondary flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5 text-accent" /> Live preview — the issued pass
+            <p className="text-xs font-bold text-theme-text-secondary flex items-center gap-1.5">
+              <Eye className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Live preview — the issued pass
             </p>
-            <div className="flex items-center gap-1 rounded-full border border-white/15 p-0.5 text-[10px] font-bold w-fit">
+            <div className="flex items-center gap-1 rounded-full border border-white/15 p-0.5 text-xs font-bold w-fit">
               {([['pass', 'Issued Pass'], ['wallet', 'Apple Wallet']] as const).map(([m, name]) => (
                 <button key={m} type="button" onClick={() => setPreviewMode(m)} className={`px-3 py-1 rounded-full cursor-pointer ${previewMode === m ? 'bg-accent text-white' : 'text-theme-text-secondary hover:text-white'}`}>{name}</button>
               ))}

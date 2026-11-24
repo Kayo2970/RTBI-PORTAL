@@ -36,6 +36,7 @@ import {
   btnDanger,
   fmtDateTime,
 } from '@/components/billing-ui';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 const blankRoom = { name: '', capacity: '8', location: '', amenities: '', hourlyRate: '0', gstPercent: '0' };
 
@@ -207,7 +208,7 @@ export default function BookingsPage() {
     new Date(slotStartIso).getTime() >= Date.now() - 5 * 60_000;
 
   async function cancel(b: Booking) {
-    if (!confirm(`Cancel booking for "${b.roomName}" (${b.title})?`)) return;
+    if (!await askConfirm(`Cancel booking for "${b.roomName}" (${b.title})?`)) return;
     setCancelling(b.id);
     try {
       const r = await api<{ invoiceNote?: string }>(`/api/bookings/${b.id}`, 'PATCH', { action: 'cancel' });
@@ -252,7 +253,7 @@ export default function BookingsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-            <DoorOpen className="h-5 w-5 text-accent" />
+            <DoorOpen className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
             Room Bookings
           </h1>
           <p className="text-xs text-theme-text-secondary">
@@ -262,7 +263,7 @@ export default function BookingsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/dashboard/calendar" className={btnGhost}>
-            <CalendarDays className="h-4 w-4 text-accent" /> View in Calendar
+            <CalendarDays className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> View in Calendar
           </Link>
           <button
             className={btnPrimary}
@@ -289,14 +290,14 @@ export default function BookingsPage() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-theme-border/20 pb-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-accent/15 text-accent border border-accent/20">
+            <div className="p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
               <Clock className="h-4 w-4" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-theme-text-primary">
                 1. Select Desired Date &amp; Time Slot
               </h2>
-              <p className="text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary">
                 Rooms automatically evaluate real-time availability for this exact window
               </p>
             </div>
@@ -304,13 +305,13 @@ export default function BookingsPage() {
 
           {/* Quick Date Chips */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] text-theme-text-secondary font-medium uppercase tracking-wide mr-1">
+            <span className="text-xs text-theme-text-secondary font-medium uppercase tracking-wide mr-1">
               Quick Date:
             </span>
             <button
               type="button"
               onClick={() => setSlotDate(todayStr)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                 slotDate === todayStr
                   ? 'bg-accent text-white border-accent shadow-sm'
                   : 'bg-theme-background/30 text-theme-text-secondary border-theme-border/30 hover:border-accent/40'
@@ -321,7 +322,7 @@ export default function BookingsPage() {
             <button
               type="button"
               onClick={() => setSlotDate(tomorrowStr)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                 slotDate === tomorrowStr
                   ? 'bg-accent text-white border-accent shadow-sm'
                   : 'bg-theme-background/30 text-theme-text-secondary border-theme-border/30 hover:border-accent/40'
@@ -335,7 +336,7 @@ export default function BookingsPage() {
         {/* Date and Time Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>
-            <label className="block text-[11px] font-semibold text-theme-text-secondary mb-1">
+            <label className="block text-xs font-semibold text-theme-text-secondary mb-1">
               Date
             </label>
             <input
@@ -348,7 +349,7 @@ export default function BookingsPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-theme-text-secondary mb-1">
+            <label className="block text-xs font-semibold text-theme-text-secondary mb-1">
               Start Time
             </label>
             <input
@@ -368,7 +369,7 @@ export default function BookingsPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[11px] font-semibold text-theme-text-secondary">
+              <label className="text-xs font-semibold text-theme-text-secondary">
                 End Time
               </label>
               {/* Duration presets */}
@@ -376,21 +377,21 @@ export default function BookingsPage() {
                 <button
                   type="button"
                   onClick={() => setSlotToTime(addMinutesToTime(slotFromTime, 30))}
-                  className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/40 hover:bg-theme-border/40 text-theme-text-secondary font-medium transition-colors"
+                  className="px-1.5 py-0.5 rounded text-xs bg-theme-background/40 hover:bg-theme-border/40 text-theme-text-secondary font-medium transition-colors"
                 >
                   +30m
                 </button>
                 <button
                   type="button"
                   onClick={() => setSlotToTime(addMinutesToTime(slotFromTime, 60))}
-                  className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/40 hover:bg-theme-border/40 text-theme-text-secondary font-medium transition-colors"
+                  className="px-1.5 py-0.5 rounded text-xs bg-theme-background/40 hover:bg-theme-border/40 text-theme-text-secondary font-medium transition-colors"
                 >
                   +1h
                 </button>
                 <button
                   type="button"
                   onClick={() => setSlotToTime(addMinutesToTime(slotFromTime, 120))}
-                  className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/40 hover:bg-theme-border/40 text-theme-text-secondary font-medium transition-colors"
+                  className="px-1.5 py-0.5 rounded text-xs bg-theme-background/40 hover:bg-theme-border/40 text-theme-text-secondary font-medium transition-colors"
                 >
                   +2h
                 </button>
@@ -408,7 +409,7 @@ export default function BookingsPage() {
         {/* Selected Slot Confirmation Summary Pill */}
         <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-theme-background/25 border border-theme-border/20 text-xs">
           <div className="flex items-center gap-2 text-theme-text-primary">
-            <Sparkles className="h-4 w-4 text-accent shrink-0" />
+            <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
             <span>
               Checking availability for:{' '}
               <strong className="text-theme-text-primary">{formatDateHuman(slotDate)}</strong> from{' '}
@@ -423,7 +424,7 @@ export default function BookingsPage() {
           </div>
 
           {!isSlotValid && (
-            <span className="text-amber-400 font-semibold flex items-center gap-1 text-[11px]">
+            <span className="text-amber-700 dark:text-amber-300 font-semibold flex items-center gap-1 text-xs">
               <AlertCircle className="h-3.5 w-3.5" /> Please pick a valid future time slot
             </span>
           )}
@@ -435,10 +436,10 @@ export default function BookingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
-              <DoorOpen className="h-4 w-4 text-accent" />
+              <DoorOpen className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               2. Inspect &amp; Select an Available Room
             </h2>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               Rooms with conflicts are highlighted in red; available rooms can be booked instantly.
             </p>
           </div>
@@ -480,15 +481,15 @@ export default function BookingsPage() {
                       <div
                         className={`p-2.5 rounded-2xl ${
                           isBoardroom
-                            ? 'bg-accent/15 text-accent border border-accent/25'
-                            : 'bg-sky-500/15 text-sky-400 border border-sky-500/25'
+                            ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25'
+                            : 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/25'
                         }`}
                       >
                         <DoorOpen className="h-5 w-5" />
                       </div>
                       <div>
                         <h3 className="font-bold text-base text-theme-text-primary">{r.name}</h3>
-                        <p className="text-[11px] text-theme-text-secondary">{r.location || 'RTBI Facility'}</p>
+                        <p className="text-xs text-theme-text-secondary">{r.location || 'RTBI Facility'}</p>
                       </div>
                     </div>
 
@@ -496,11 +497,11 @@ export default function BookingsPage() {
                     {!r.active ? (
                       <Badge tone="grey">Inactive</Badge>
                     ) : isAvailable ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm animate-in fade-in">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-sm animate-in fade-in">
                         <Check className="h-3.5 w-3.5" /> Available Now
                       </span>
                     ) : isSlotValid ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30">
                         <XCircle className="h-3.5 w-3.5" /> Booked / Occupied
                       </span>
                     ) : (
@@ -511,13 +512,13 @@ export default function BookingsPage() {
                   {/* Room details */}
                   <div className="text-xs text-theme-text-secondary space-y-2 pt-1">
                     <p className="flex items-center gap-2">
-                      <Users className="h-3.5 w-3.5 text-theme-text-secondary/80" />
+                      <Users className="h-3.5 w-3.5 text-theme-text-secondary" />
                       <span>
                         Capacity: <strong className="text-theme-text-primary">{r.capacity} people</strong>
                       </span>
                     </p>
                     {r.amenities && (
-                      <p className="text-[11px] text-theme-text-secondary/90 leading-relaxed bg-theme-background/30 p-2.5 rounded-xl border border-theme-border/20">
+                      <p className="text-xs text-theme-text-secondary/90 leading-relaxed bg-theme-background/30 p-2.5 rounded-xl border border-theme-border/20">
                         {r.amenities}
                       </p>
                     )}
@@ -527,7 +528,7 @@ export default function BookingsPage() {
                         {formatINR(r.hourlyRate)}/hr + {r.gstPercent}% GST
                       </p>
                     ) : (
-                      <p className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 pt-0.5">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1 pt-0.5">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Complimentary for Incubated Startups
                       </p>
                     )}
@@ -535,12 +536,12 @@ export default function BookingsPage() {
 
                   {/* Conflict Notice if booked */}
                   {!isAvailable && clash && (
-                    <div className="text-[11px] p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 space-y-0.5">
+                    <div className="text-xs p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 space-y-0.5">
                       <p className="font-semibold flex items-center gap-1">
                         <AlertCircle className="h-3 w-3 shrink-0" />
                         Reserved by {clash.organisation || clash.bookedByName}
                       </p>
-                      <p className="text-[10px] text-red-300/80">
+                      <p className="text-xs text-red-300/80">
                         {formatIsoTime12(clash.start)} – {formatIsoTime12(clash.end)}: &quot;{clash.title}&quot;
                       </p>
                     </div>
@@ -600,7 +601,7 @@ export default function BookingsPage() {
             <h2 className="text-sm font-bold text-theme-text-primary">
               {view === 'all' ? 'All Scheduled Bookings' : 'My Bookings'}
             </h2>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               See which startup is using each room and when.
             </p>
           </div>
@@ -653,14 +654,14 @@ export default function BookingsPage() {
                     <td className="p-3 whitespace-nowrap">
                       <span className="font-semibold">{fmtDateTime(b.start)}</span>
                       <br />
-                      <span className="text-[11px] text-theme-text-secondary">to {fmtDateTime(b.end)}</span>
+                      <span className="text-xs text-theme-text-secondary">to {fmtDateTime(b.end)}</span>
                     </td>
                     <td className="p-3">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded-md font-bold text-[11px] ${
+                        className={`inline-block px-2 py-0.5 rounded-md font-bold text-xs ${
                           b.roomName.toLowerCase().includes('board')
-                            ? 'bg-accent/15 text-accent border border-accent/25'
-                            : 'bg-sky-500/15 text-sky-400 border border-sky-500/25'
+                            ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25'
+                            : 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/25'
                         }`}
                       >
                         {b.roomName}
@@ -674,7 +675,7 @@ export default function BookingsPage() {
                         {b.organisation || b.bookedByName}
                       </div>
                       {b.organisation && b.bookedByName && b.organisation !== b.bookedByName && (
-                        <div className="text-[11px] text-theme-text-secondary">({b.bookedByName})</div>
+                        <div className="text-xs text-theme-text-secondary">({b.bookedByName})</div>
                       )}
                     </td>
                     <td className="p-3">
@@ -997,20 +998,20 @@ function BookingModal({
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Step Indicator Header */}
         <div className="flex items-center gap-2 text-xs font-semibold text-theme-text-secondary border-b border-theme-border/20 pb-3">
-          <span className="flex items-center gap-1.5 text-accent font-bold">
-            <span className="h-5 w-5 rounded-full bg-accent text-white flex items-center justify-center text-[10px]">
+          <span className="flex items-center gap-1.5 text-accent-strong dark:text-accent-soft font-bold">
+            <span className="h-5 w-5 rounded-full bg-accent text-white flex items-center justify-center text-xs">
               1
             </span>
             Pick Date &amp; Time
           </span>
-          <ChevronRight className="h-3.5 w-3.5 text-theme-text-secondary/50" />
+          <ChevronRight className="h-3.5 w-3.5 text-theme-text-secondary" />
           <span
             className={`flex items-center gap-1.5 font-bold ${
-              selectedRoom ? 'text-accent' : 'text-theme-text-secondary'
+              selectedRoom ? 'text-accent-strong dark:text-accent-soft' : 'text-theme-text-secondary'
             }`}
           >
             <span
-              className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] ${
+              className={`h-5 w-5 rounded-full flex items-center justify-center text-xs ${
                 selectedRoom ? 'bg-accent text-white' : 'bg-theme-border/50 text-theme-text-secondary'
               }`}
             >
@@ -1018,14 +1019,14 @@ function BookingModal({
             </span>
             Select Available Room
           </span>
-          <ChevronRight className="h-3.5 w-3.5 text-theme-text-secondary/50" />
+          <ChevronRight className="h-3.5 w-3.5 text-theme-text-secondary" />
           <span
             className={`flex items-center gap-1.5 font-bold ${
-              purpose.trim() ? 'text-accent' : 'text-theme-text-secondary'
+              purpose.trim() ? 'text-accent-strong dark:text-accent-soft' : 'text-theme-text-secondary'
             }`}
           >
             <span
-              className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] ${
+              className={`h-5 w-5 rounded-full flex items-center justify-center text-xs ${
                 purpose.trim() ? 'bg-accent text-white' : 'bg-theme-border/50 text-theme-text-secondary'
               }`}
             >
@@ -1041,7 +1042,7 @@ function BookingModal({
         <div className="space-y-3 p-4 rounded-2xl bg-theme-background/30 border border-theme-border/30">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-accent" />
+              <CalendarIcon className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               <h3 className="text-xs font-bold text-theme-text-primary uppercase tracking-wide">
                 Step 1: Choose Meeting Date &amp; Time
               </h3>
@@ -1051,7 +1052,7 @@ function BookingModal({
               <button
                 type="button"
                 onClick={() => setDate(todayStr)}
-                className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                   date === todayStr
                     ? 'bg-accent text-white border-accent'
                     : 'bg-theme-background/40 text-theme-text-secondary border-theme-border/30 hover:border-accent/40'
@@ -1062,7 +1063,7 @@ function BookingModal({
               <button
                 type="button"
                 onClick={() => setDate(tomorrowStr)}
-                className={`px-2.5 py-0.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                   date === tomorrowStr
                     ? 'bg-accent text-white border-accent'
                     : 'bg-theme-background/40 text-theme-text-secondary border-theme-border/30 hover:border-accent/40'
@@ -1075,7 +1076,7 @@ function BookingModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold text-theme-text-secondary mb-1">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1">
                 Booking Date *
               </label>
               <input
@@ -1089,7 +1090,7 @@ function BookingModal({
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-theme-text-secondary mb-1">
+              <label className="block text-xs font-semibold text-theme-text-secondary mb-1">
                 From Time *
               </label>
               <input
@@ -1109,28 +1110,28 @@ function BookingModal({
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-semibold text-theme-text-secondary">
+                <label className="text-xs font-semibold text-theme-text-secondary">
                   To Time *
                 </label>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setToTime(addMinutesToTime(fromTime, 30))}
-                    className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/50 hover:bg-theme-border/50 text-theme-text-secondary font-medium transition-colors"
+                    className="px-1.5 py-0.5 rounded text-xs bg-theme-background/50 hover:bg-theme-border/50 text-theme-text-secondary font-medium transition-colors"
                   >
                     +30m
                   </button>
                   <button
                     type="button"
                     onClick={() => setToTime(addMinutesToTime(fromTime, 60))}
-                    className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/50 hover:bg-theme-border/50 text-theme-text-secondary font-medium transition-colors"
+                    className="px-1.5 py-0.5 rounded text-xs bg-theme-background/50 hover:bg-theme-border/50 text-theme-text-secondary font-medium transition-colors"
                   >
                     +1h
                   </button>
                   <button
                     type="button"
                     onClick={() => setToTime(addMinutesToTime(fromTime, 90))}
-                    className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/50 hover:bg-theme-border/50 text-theme-text-secondary font-medium transition-colors"
+                    className="px-1.5 py-0.5 rounded text-xs bg-theme-background/50 hover:bg-theme-border/50 text-theme-text-secondary font-medium transition-colors"
                   >
                     +1.5h
                   </button>
@@ -1148,27 +1149,27 @@ function BookingModal({
 
           {/* Validation Feedback */}
           {isPast && (
-            <p className="text-[11px] text-red-400 flex items-center gap-1 font-medium">
+            <p className="text-xs text-red-700 dark:text-red-300 flex items-center gap-1 font-medium">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               The selected time has already passed today. Please select a future time slot.
             </p>
           )}
           {!isPast && !isValidRange && fromTime && toTime && (
-            <p className="text-[11px] text-amber-400 flex items-center gap-1 font-medium">
+            <p className="text-xs text-amber-700 dark:text-amber-300 flex items-center gap-1 font-medium">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               End time must be after the start time.
             </p>
           )}
 
           {isValidRange && (
-            <div className="text-[11px] text-theme-text-secondary flex items-center justify-between pt-1">
+            <div className="text-xs text-theme-text-secondary flex items-center justify-between pt-1">
               <span className="flex items-center gap-1.5 text-theme-text-primary">
-                <Clock className="h-3.5 w-3.5 text-accent" />
+                <Clock className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 Slot: <strong>{formatDateHuman(date)}</strong> · {formatTime12(fromTime)} to{' '}
                 {formatTime12(toTime)}
               </span>
               {durationStr && (
-                <span className="px-2 py-0.5 rounded-md bg-accent/15 text-accent font-bold">
+                <span className="px-2 py-0.5 rounded-md bg-accent/15 text-accent-strong dark:text-accent-soft font-bold">
                   {durationStr}
                 </span>
               )}
@@ -1182,14 +1183,14 @@ function BookingModal({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-theme-text-primary uppercase tracking-wide flex items-center gap-2">
-              <DoorOpen className="h-4 w-4 text-accent" />
+              <DoorOpen className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               Step 2: What is Available for this Slot?
             </h3>
             {dayBookings.length > 0 && (
               <button
                 type="button"
                 onClick={() => setShowScheduleDetails((v) => !v)}
-                className="text-[11px] text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                className="text-xs text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1 font-semibold cursor-pointer"
               >
                 <Info className="h-3 w-3" />
                 {showScheduleDetails ? 'Hide Day Schedule' : `View ${dayBookings.length} Bookings on ${date}`}
@@ -1200,15 +1201,15 @@ function BookingModal({
           {/* Expandable Day Schedule to see all occupied slots for the date */}
           {showScheduleDetails && dayBookings.length > 0 && (
             <div className="p-3 rounded-2xl bg-theme-background/40 border border-theme-border/30 text-xs space-y-1.5 animate-in fade-in">
-              <p className="font-bold text-theme-text-primary text-[11px] flex items-center gap-1.5 pb-1 border-b border-theme-border/20">
-                <CalendarDays className="h-3.5 w-3.5 text-accent" />
+              <p className="font-bold text-theme-text-primary text-xs flex items-center gap-1.5 pb-1 border-b border-theme-border/20">
+                <CalendarDays className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                 All Reservations on {formatDateHuman(date)}:
               </p>
               <div className="space-y-1 max-h-36 overflow-y-auto">
                 {dayBookings.map((b) => (
                   <div
                     key={b.id}
-                    className="flex items-center justify-between text-[11px] py-1 border-b border-theme-border/10 last:border-0"
+                    className="flex items-center justify-between text-xs py-1 border-b border-theme-border/10 last:border-0"
                   >
                     <span className="font-semibold text-theme-text-primary">
                       {formatIsoTime12(b.start)} – {formatIsoTime12(b.end)}: {b.roomName}
@@ -1251,15 +1252,15 @@ function BookingModal({
                         <div
                           className={`p-2 rounded-xl ${
                             isBoardroom
-                              ? 'bg-accent/15 text-accent border border-accent/25'
-                              : 'bg-sky-500/15 text-sky-400 border border-sky-500/25'
+                              ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25'
+                              : 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/25'
                           }`}
                         >
                           <DoorOpen className="h-4 w-4" />
                         </div>
                         <div>
                           <h4 className="font-bold text-xs text-theme-text-primary">{r.name}</h4>
-                          <p className="text-[10px] text-theme-text-secondary">
+                          <p className="text-xs text-theme-text-secondary">
                             Seats {r.capacity} · {r.location || 'RTBI Hub'}
                           </p>
                         </div>
@@ -1268,17 +1269,17 @@ function BookingModal({
                       {/* Status Tag */}
                       {isAvailable ? (
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 ${
+                          className={`px-2 py-0.5 rounded-full text-xs font-bold border flex items-center gap-1 ${
                             isSelected
                               ? 'bg-accent text-white border-accent'
-                              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                              : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                           }`}
                         >
                           <Check className="h-3 w-3" />
                           {isSelected ? 'Selected' : 'Available'}
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-red-500/15 text-red-400 border-red-500/30 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold border bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30 flex items-center gap-1">
                           <XCircle className="h-3 w-3" />
                           Occupied
                         </span>
@@ -1286,17 +1287,17 @@ function BookingModal({
                     </div>
 
                     {r.amenities && (
-                      <p className="text-[10px] text-theme-text-secondary leading-relaxed bg-theme-background/30 p-2 rounded-lg border border-theme-border/20 line-clamp-2">
+                      <p className="text-xs text-theme-text-secondary leading-relaxed bg-theme-background/30 p-2 rounded-lg border border-theme-border/20 line-clamp-2">
                         {r.amenities}
                       </p>
                     )}
 
                     {r.hourlyRate > 0 ? (
-                      <p className="text-[11px] font-semibold text-theme-text-primary">
+                      <p className="text-xs font-semibold text-theme-text-primary">
                         {formatINR(r.hourlyRate)}/hr + {r.gstPercent}% GST
                       </p>
                     ) : (
-                      <p className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" /> Complimentary for Incubated Startups
                       </p>
                     )}
@@ -1304,7 +1305,7 @@ function BookingModal({
 
                   {/* Conflict Notice if room is booked */}
                   {!isAvailable && clash && (
-                    <div className="mt-3 pt-2 border-t border-red-500/20 text-[10px] text-red-300 space-y-0.5">
+                    <div className="mt-3 pt-2 border-t border-red-500/20 text-xs text-red-300 space-y-0.5">
                       <p className="font-semibold">
                         Reserved by {clash.organisation || clash.bookedByName}
                       </p>
@@ -1315,8 +1316,8 @@ function BookingModal({
                   )}
 
                   {isAvailable && (
-                    <div className="mt-3 pt-2 border-t border-theme-border/20 text-[11px] flex items-center justify-between font-semibold">
-                      <span className={isSelected ? 'text-accent' : 'text-theme-text-secondary'}>
+                    <div className="mt-3 pt-2 border-t border-theme-border/20 text-xs flex items-center justify-between font-semibold">
+                      <span className={isSelected ? 'text-accent-strong dark:text-accent-soft' : 'text-theme-text-secondary'}>
                         {isSelected ? '✓ Ready to book' : 'Click to select this room'}
                       </span>
                     </div>
@@ -1342,10 +1343,10 @@ function BookingModal({
           <div className="space-y-3 p-4 rounded-2xl bg-theme-background/30 border border-theme-border/30 animate-in fade-in">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-theme-text-primary uppercase tracking-wide flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
+                <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Step 3: Purpose &amp; Attendee Details
               </h3>
-              <span className="text-[11px] text-theme-text-secondary font-medium">
+              <span className="text-xs text-theme-text-secondary font-medium">
                 Booking for: <strong className="text-theme-text-primary">{startupName}</strong>
               </span>
             </div>
@@ -1353,17 +1354,17 @@ function BookingModal({
             {/* Purpose input with quick suggestion chips */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-theme-text-secondary">
+                <label className="text-xs font-semibold text-theme-text-secondary">
                   Purpose of Booking *
                 </label>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[10px] text-theme-text-secondary mr-1">Suggestions:</span>
+                  <span className="text-xs text-theme-text-secondary mr-1">Suggestions:</span>
                   {PURPOSE_SUGGESTIONS.slice(0, 3).map((s) => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setPurpose(s)}
-                      className="px-1.5 py-0.5 rounded text-[10px] bg-theme-background/60 hover:bg-theme-border/40 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border/30 transition-colors"
+                      className="px-1.5 py-0.5 rounded text-xs bg-theme-background/60 hover:bg-theme-border/40 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border/30 transition-colors"
                     >
                       {s}
                     </button>
@@ -1383,7 +1384,7 @@ function BookingModal({
             {/* Expected Attendees */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="block text-[11px] font-semibold text-theme-text-secondary mb-1">
+                <label className="block text-xs font-semibold text-theme-text-secondary mb-1">
                   Expected Attendees (Max {selectedRoom.capacity})
                 </label>
                 <input
@@ -1398,7 +1399,7 @@ function BookingModal({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-theme-text-secondary mb-1">
+                <label className="block text-xs font-semibold text-theme-text-secondary mb-1">
                   Startup / Organization
                 </label>
                 <div className="px-4 py-2.5 bg-theme-background/20 border border-theme-card-border/50 rounded-xl text-theme-text-primary text-xs font-semibold">

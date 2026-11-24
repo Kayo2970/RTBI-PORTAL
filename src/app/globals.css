@@ -53,6 +53,10 @@
   /* AA-safe orange: 5.4:1 with white text, 5.1:1 on white. (Was #E34A21, ~4:1.) */
   --color-accent: #C23B14;
   --color-accent-soft: #FF9A7B; /* accent text on dark surfaces */
+  --color-accent-strong: #A9330F; /* accent text on light surfaces and tints (>=6:1) */
+  --color-success-soft: #4ADE80;
+  --color-warning-soft: #FBBF24;
+  --color-danger-soft: #FDA4AF;
   --color-secondary: #932961;
   --color-success: #15803D;
   --color-warning: #B45309;

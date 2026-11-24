@@ -76,11 +76,11 @@ export function LockedDevicesPanel() {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
-            <LockKeyhole className="h-4 w-4 text-accent" />
+            <LockKeyhole className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-theme-text-primary">Locked devices</h2>
-            <p className="text-[11px] text-theme-text-secondary">Devices blocked from signing in after repeated wrong passwords or codes. Locks lift on their own; unlock one early if it&apos;s a genuine user.</p>
+            <p className="text-xs text-theme-text-secondary">Devices blocked from signing in after repeated wrong passwords or codes. Locks lift on their own; unlock one early if it&apos;s a genuine user.</p>
           </div>
         </div>
         <button onClick={load} className="p-2 rounded-lg text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/20 cursor-pointer" title="Refresh">
@@ -88,13 +88,13 @@ export function LockedDevicesPanel() {
         </button>
       </div>
 
-      {error && <p className="text-xs text-danger bg-danger/10 border border-danger/20 rounded-lg px-3 py-2">{error}</p>}
+      {error && <p className="text-xs text-danger dark:text-danger-soft bg-danger/10 border border-danger/20 rounded-lg px-3 py-2">{error}</p>}
 
       {locks === null && !error ? (
         <div className="flex items-center gap-2 text-xs text-theme-text-secondary py-3"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…</div>
       ) : active.length === 0 ? (
         <div className="flex items-center gap-2 text-xs text-theme-text-secondary py-3">
-          <ShieldCheck className="h-4 w-4 text-success" /> No devices are locked right now.
+          <ShieldCheck className="h-4 w-4 text-success dark:text-success-soft" /> No devices are locked right now.
         </div>
       ) : (
         <ul className="divide-y divide-theme-border/30">
@@ -103,11 +103,11 @@ export function LockedDevicesPanel() {
               <div className="min-w-0 space-y-0.5">
                 <p className="font-semibold text-theme-text-primary truncate">
                   {l.scope === 'device' ? 'All accounts' : l.account}
-                  <span className="ml-2 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-danger/10 text-danger border border-danger/20">
+                  <span className="ml-2 text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-danger/10 text-danger dark:text-danger-soft border border-danger/20">
                     {l.scope === 'device' ? 'Whole device' : 'One account'}
                   </span>
                 </p>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   {deviceLabel(l.userAgent)} · IP {l.ip} · lock level {l.level} · unlocks in <span className="font-mono text-theme-text-primary">{remaining(l.lockedUntil, now)}</span>
                 </p>
               </div>
