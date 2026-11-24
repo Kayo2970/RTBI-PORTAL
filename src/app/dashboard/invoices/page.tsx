@@ -16,6 +16,7 @@ import { computeInvoiceTotals, type ClientRecord } from '@/lib/finance';
 import { canManageInvoices, canVerifyInvoicePayment } from '@/lib/permissions';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
 import { EmptyState } from '@/components/ui/empty-state';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 const inr = (n: number) => `₹${(Number(n) || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 const todayIso = () => new Date().toISOString().split('T')[0];
@@ -23,9 +24,9 @@ const inputCls = 'w-full px-4 py-2.5 bg-theme-background/40 border border-theme-
 const PAYMENT_MODES = ['Bank Transfer', 'UPI', 'Cheque', 'Cash', 'Other'] as const;
 
 const STATUS_STYLE: Record<InvoiceStatus, string> = {
-  Issued: 'bg-amber-500/10 text-amber-600 border-amber-500/30',
+  Issued: 'bg-amber-500/10 text-amber-700 border-amber-500/30',
   'Payment Recorded': 'bg-sky-500/10 text-sky-600 border-sky-500/30',
-  Paid: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
+  Paid: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30',
   Cancelled: 'bg-theme-border/20 text-theme-text-secondary border-theme-border/40',
 };
 
@@ -315,15 +316,15 @@ export default function InvoicesPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/budget" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5">
-            Finance <ExternalLink className="h-3.5 w-3.5 text-accent" />
+            Finance <ExternalLink className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
           </Link>
           <button
             onClick={() => setRegisterOpen(true)}
             className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
-            <BookOpen className="h-4 w-4 text-accent" />
+            <BookOpen className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
             Client Register
-            <span className="px-1.5 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-bold">
+            <span className="px-1.5 py-0.5 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft text-xs font-bold">
               {register.length}
             </span>
           </button>
@@ -346,9 +347,9 @@ export default function InvoicesPage() {
           { l: 'Received & verified', v: inr(received), s: 'Booked to income' },
         ].map(k => (
           <div key={k.l} className="glass-panel rounded-2xl p-4 border border-theme-card-border">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-theme-text-secondary">{k.l}</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-theme-text-secondary">{k.l}</div>
             <div className="mt-2 text-lg font-bold font-mono text-theme-text-primary">{k.v}</div>
-            <div className="text-[11px] text-theme-text-secondary">{k.s}</div>
+            <div className="text-xs text-theme-text-secondary">{k.s}</div>
           </div>
         ))}
       </div>
@@ -360,7 +361,7 @@ export default function InvoicesPage() {
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border cursor-pointer ${statusFilter === s ? 'bg-accent text-white border-accent' : 'border-theme-card-border text-theme-text-secondary hover:border-accent'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusFilter === s ? 'bg-accent text-white border-accent' : 'border-theme-card-border text-theme-text-secondary hover:border-accent'}`}
               >
                 {s === 'all' ? 'All' : s}
               </button>
@@ -395,19 +396,19 @@ export default function InvoicesPage() {
               <tbody>
                 {visible.map(i => (
                   <tr key={i.id} onClick={() => { setActionError(''); setRejecting(false); setOpenId(i.id); }} className="border-b border-theme-border/20 cursor-pointer hover:bg-accent/5">
-                    <td className="py-2.5 pr-3 font-semibold text-accent">{i.invoiceNumber}</td>
+                    <td className="py-2.5 pr-3 font-semibold text-accent-strong dark:text-accent-soft">{i.invoiceNumber}</td>
                     <td className="pr-3 text-theme-text-primary">
                       <div className="flex items-center gap-1.5">
                         <span className="font-medium">{i.clientName}</span>
                         {i.isStartup && (
-                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 text-purple-600 border border-purple-500/25">
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/10 text-purple-600 border border-purple-500/25">
                             <Rocket className="h-2.5 w-2.5" /> Startup
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="pr-3 text-theme-text-secondary">{i.issueDate}</td>
-                    <td className="pr-3"><span className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold ${STATUS_STYLE[i.status]}`}>{i.status}</span></td>
+                    <td className="pr-3"><span className={`px-2 py-0.5 rounded-md border text-xs font-semibold ${STATUS_STYLE[i.status]}`}>{i.status}</span></td>
                     <td className="pr-3 text-right font-mono font-semibold text-theme-text-primary">{inr(i.totalAmount)}</td>
                   </tr>
                 ))}
@@ -423,16 +424,16 @@ export default function InvoicesPage() {
           <div className="space-y-4 text-xs">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className={`px-2.5 py-1 rounded-md border text-[11px] font-semibold ${STATUS_STYLE[open.status]}`}>{open.status}</span>
+                <span className={`px-2.5 py-1 rounded-md border text-xs font-semibold ${STATUS_STYLE[open.status]}`}>{open.status}</span>
                 {open.isStartup && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/10 text-purple-600 border border-purple-500/25">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-purple-500/10 text-purple-600 border border-purple-500/25">
                     <Rocket className="h-3 w-3" /> Incubated Startup
                   </span>
                 )}
               </div>
-              <button onClick={() => printInvoice(open)} className="px-3 py-1.5 border border-theme-card-border rounded-lg text-[11px] font-semibold text-theme-text-primary flex items-center gap-1.5 hover:border-accent cursor-pointer"><Printer className="h-3.5 w-3.5" />Print / Save PDF</button>
+              <button onClick={() => printInvoice(open)} className="px-3 py-1.5 border border-theme-card-border rounded-lg text-xs font-semibold text-theme-text-primary flex items-center gap-1.5 hover:border-accent cursor-pointer"><Printer className="h-3.5 w-3.5" />Print / Save PDF</button>
             </div>
-            {actionError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{actionError}</div>}
+            {actionError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{actionError}</div>}
 
             <div className="grid sm:grid-cols-2 gap-3 text-theme-text-secondary bg-theme-background/30 p-3.5 rounded-xl border border-theme-card-border">
               <div>
@@ -440,7 +441,7 @@ export default function InvoicesPage() {
                   {open.clientName}
                 </div>
                 {open.clientAddress && <div className="whitespace-pre-line mt-1">{open.clientAddress}</div>}
-                {open.clientGstin && <div className="mt-0.5 font-mono text-[11px]">GSTIN: {open.clientGstin}</div>}
+                {open.clientGstin && <div className="mt-0.5 font-mono text-xs">GSTIN: {open.clientGstin}</div>}
                 {open.clientEmail && <div className="mt-0.5">{open.clientEmail}</div>}
               </div>
               <div className="sm:text-right">
@@ -463,16 +464,16 @@ export default function InvoicesPage() {
 
             {open.payment && (
               <div className="rounded-xl border border-theme-card-border p-3 space-y-1 bg-accent/5">
-                <div className="font-semibold text-theme-text-primary flex items-center gap-1.5"><Banknote className="h-4 w-4 text-accent" />Payment {open.status === 'Paid' ? 'verified' : 'awaiting verification'}</div>
+                <div className="font-semibold text-theme-text-primary flex items-center gap-1.5"><Banknote className="h-4 w-4 text-accent-strong dark:text-accent-soft" />Payment {open.status === 'Paid' ? 'verified' : 'awaiting verification'}</div>
                 <div className="text-theme-text-secondary">{inr(open.payment.amount)} via {open.payment.mode} on {open.payment.paidOn} · Ref <span className="font-mono">{open.payment.reference}</span></div>
                 <div className="text-theme-text-secondary">Recorded by {open.payment.recordedBy}{open.verifiedBy && ` · Verified by ${open.verifiedBy} on ${open.verifiedAt}`}</div>
-                {open.payment.proofFiles.map((f, i) => <a key={i} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline mr-3"><Paperclip className="h-3 w-3" />{f.name}</a>)}
-                {open.status === 'Paid' && <div className="pt-1"><Link href="/dashboard/budget" className="text-emerald-600 font-semibold hover:underline">Booked to Finance as Other Income →</Link></div>}
+                {open.payment.proofFiles.map((f, i) => <a key={i} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline mr-3"><Paperclip className="h-3 w-3" />{f.name}</a>)}
+                {open.status === 'Paid' && <div className="pt-1"><Link href="/dashboard/budget" className="text-emerald-700 font-semibold hover:underline">Booked to Finance as Other Income →</Link></div>}
               </div>
             )}
             {open.rejectedPayments?.map((p, i) => (
               <div key={i} className="rounded-xl border border-danger/25 bg-danger/5 p-3 text-theme-text-secondary">
-                Earlier payment of {inr(p.amount)} (ref {p.reference}) by {p.recordedBy} was sent back: <span className="text-danger">{p.rejectionNote}</span>
+                Earlier payment of {inr(p.amount)} (ref {p.reference}) by {p.recordedBy} was sent back: <span className="text-danger dark:text-danger-soft">{p.rejectionNote}</span>
               </div>
             ))}
 
@@ -487,10 +488,10 @@ export default function InvoicesPage() {
               )}
               {open.status === 'Payment Recorded' && !canVerify && <span className="text-theme-text-secondary">Waiting for the Super User or CEO to verify this payment.</span>}
               {(open.status === 'Issued' || open.status === 'Payment Recorded') && (
-                <button disabled={busy} onClick={() => { if (confirm(`Cancel invoice ${open.invoiceNumber}?`)) run(() => cancelInvoice(open.id, user.name), 'Invoice cancelled.'); }} className="px-3.5 py-2 border border-theme-card-border text-theme-text-secondary font-semibold rounded-xl flex items-center gap-1.5 hover:border-danger hover:text-danger cursor-pointer"><Ban className="h-4 w-4" />Cancel Invoice</button>
+                <button disabled={busy} onClick={async () => { if (await askConfirm(`Cancel invoice ${open.invoiceNumber}?`)) run(() => cancelInvoice(open.id, user.name), 'Invoice cancelled.'); }} className="px-3.5 py-2 border border-theme-card-border text-theme-text-secondary font-semibold rounded-xl flex items-center gap-1.5 hover:border-danger hover:text-danger cursor-pointer"><Ban className="h-4 w-4" />Cancel Invoice</button>
               )}
             </div>
-            {open.status === 'Payment Recorded' && canVerify && recorderIsMe && user?.tier !== 1 && <p className="text-amber-600">You recorded this payment, so a different person has to verify it.</p>}
+            {open.status === 'Payment Recorded' && canVerify && recorderIsMe && user?.tier !== 1 && <p className="text-amber-700">You recorded this payment, so a different person has to verify it.</p>}
             {rejecting && (
               <div className="space-y-2">
                 <textarea rows={2} value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Why is this payment being sent back? (e.g. UTR not found in bank statement)" className={inputCls} />
@@ -508,7 +509,7 @@ export default function InvoicesPage() {
       {open && payOpen && (
         <Modal title={`Record payment — ${open.invoiceNumber}`} onClose={() => !pSaving && setPayOpen(false)}>
           <form onSubmit={handleRecordPayment} className="space-y-4 text-xs">
-            {pError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{pError}</div>}
+            {pError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{pError}</div>}
             <p className="text-theme-text-secondary">Invoice total {inr(open.totalAmount)}. The payment will be added to income only after a Super User or CEO verifies it.</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><label className="block font-medium text-theme-text-secondary">Amount received (₹) *</label><input type="number" min={0} step="0.01" value={pAmount} onChange={e => setPAmount(e.target.value)} className={`${inputCls} font-mono`} /></div>
@@ -519,7 +520,7 @@ export default function InvoicesPage() {
               <div className="space-y-1.5"><label className="block font-medium text-theme-text-secondary">Reference (UTR / cheque no.) *</label><input type="text" value={pRef} onChange={e => setPRef(e.target.value)} className={inputCls} /></div>
             </div>
             <div className="space-y-2">
-              <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5 text-accent" />Proof of payment (bank statement / screenshot)</label>
+              <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />Proof of payment (bank statement / screenshot)</label>
               {pFiles.length < 3 && <FileDropzone onFilesSelected={fs => setPFiles(prev => [...prev, ...fs].slice(0, 3))} accept="image/*,.pdf" multiple disabled={pSaving} label="Upload proof" hint="Up to 3 files" compact />}
               {pFiles.map((f, i) => <FilePreviewRow key={`${f.name}-${i}`} file={f} onRemove={!pSaving ? () => setPFiles(pFiles.filter((_, j) => j !== i)) : undefined} />)}
             </div>
@@ -533,7 +534,7 @@ export default function InvoicesPage() {
       {createOpen && (
         <Modal title="Generate Invoice" onClose={() => !cSaving && setCreateOpen(false)} wide>
           <form onSubmit={handleCreate} className="space-y-4 text-xs">
-            {cError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{cError}</div>}
+            {cError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl flex gap-2"><AlertCircle className="h-4 w-4 shrink-0" />{cError}</div>}
 
             {/* Toggle Card */}
             <div className="p-3.5 rounded-xl bg-theme-background/60 border border-theme-card-border space-y-3">
@@ -546,12 +547,12 @@ export default function InvoicesPage() {
                     <div className="font-semibold text-theme-text-primary text-xs flex items-center gap-1.5">
                       Bill to Incubated Startup or Registered Client
                       {isRegisteredClient && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-accent/15 text-accent font-bold">
+                        <span className="px-1.5 py-0.5 rounded text-xs bg-accent/15 text-accent-strong dark:text-accent-soft font-bold">
                           ACTIVE
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-theme-text-secondary">
+                    <div className="text-xs text-theme-text-secondary">
                       Turn this toggle ON to auto-fill details from your startup register or previous clients
                     </div>
                   </div>
@@ -587,19 +588,19 @@ export default function InvoicesPage() {
                   {selectedClient ? (
                     <div className="p-3 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className={`p-2 rounded-lg ${selectedClient.isStartup ? 'bg-purple-500/20 text-purple-600' : 'bg-accent/20 text-accent'}`}>
+                        <div className={`p-2 rounded-lg ${selectedClient.isStartup ? 'bg-purple-500/20 text-purple-600' : 'bg-accent/20 text-accent-strong dark:text-accent-soft'}`}>
                           {selectedClient.isStartup ? <Rocket className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                         </div>
                         <div>
                           <div className="font-bold text-theme-text-primary flex items-center gap-1.5">
                             {selectedClient.name}
                             {selectedClient.isStartup && (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-600">
+                              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-600">
                                 Startup
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-theme-text-secondary">
+                          <div className="text-xs text-theme-text-secondary">
                             {selectedClient.email && <span>{selectedClient.email} · </span>}
                             {selectedClient.gstin ? <span>GSTIN: {selectedClient.gstin}</span> : <span>Registered in directory</span>}
                           </div>
@@ -608,7 +609,7 @@ export default function InvoicesPage() {
                       <button
                         type="button"
                         onClick={handleClearSelectedClient}
-                        className="px-2.5 py-1 text-[11px] font-semibold border border-accent/40 rounded-lg text-accent hover:bg-accent hover:text-white transition-colors cursor-pointer"
+                        className="px-2.5 py-1 text-xs font-semibold border border-accent/40 rounded-lg text-accent-strong dark:text-accent-soft hover:bg-accent hover:text-white transition-colors cursor-pointer"
                       >
                         Change
                       </button>
@@ -632,7 +633,7 @@ export default function InvoicesPage() {
                               key={tab}
                               type="button"
                               onClick={() => setClientTab(tab)}
-                              className={`px-2 py-1 rounded-md text-[10px] font-semibold border cursor-pointer ${
+                              className={`px-2 py-1 rounded-md text-xs font-semibold border cursor-pointer ${
                                 clientTab === tab ? 'bg-accent text-white border-accent' : 'border-theme-card-border text-theme-text-secondary'
                               }`}
                             >
@@ -656,19 +657,19 @@ export default function InvoicesPage() {
                               className="p-2 rounded-lg hover:bg-accent/10 cursor-pointer flex items-center justify-between border border-transparent hover:border-accent/25 transition-all"
                             >
                               <div className="flex items-center gap-2">
-                                <div className={`p-1.5 rounded-md ${c.isStartup ? 'bg-purple-500/10 text-purple-600' : 'bg-accent/10 text-accent'}`}>
+                                <div className={`p-1.5 rounded-md ${c.isStartup ? 'bg-purple-500/10 text-purple-600' : 'bg-accent/10 text-accent-strong dark:text-accent-soft'}`}>
                                   {c.isStartup ? <Rocket className="h-3.5 w-3.5" /> : <Building2 className="h-3.5 w-3.5" />}
                                 </div>
                                 <div>
                                   <div className="font-semibold text-theme-text-primary text-xs flex items-center gap-1.5">
                                     {c.name}
                                     {c.isStartup && (
-                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/15 text-purple-600">
+                                      <span className="px-1.5 py-0.2 rounded text-xs font-bold bg-purple-500/15 text-purple-600">
                                         Startup
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-[10px] text-theme-text-secondary flex gap-2">
+                                  <div className="text-xs text-theme-text-secondary flex gap-2">
                                     {c.founderName && <span>Founder: {c.founderName}</span>}
                                     {c.email && <span>{c.email}</span>}
                                     {c.gstin && <span>GSTIN: {c.gstin}</span>}
@@ -676,7 +677,7 @@ export default function InvoicesPage() {
                                   </div>
                                 </div>
                               </div>
-                              <span className="text-accent text-[11px] font-semibold flex items-center gap-0.5">
+                              <span className="text-accent-strong dark:text-accent-soft text-xs font-semibold flex items-center gap-0.5">
                                 Select <ChevronRight className="h-3 w-3" />
                               </span>
                             </div>
@@ -695,7 +696,7 @@ export default function InvoicesPage() {
                 <label className="block font-medium text-theme-text-secondary flex items-center gap-1">
                   Client / Startup Name *
                   {cIsStartup && (
-                    <span className="text-[10px] font-bold text-purple-600 bg-purple-500/10 px-1.5 py-0.2 rounded">
+                    <span className="text-xs font-bold text-purple-600 bg-purple-500/10 px-1.5 py-0.2 rounded">
                       Startup
                     </span>
                   )}
@@ -774,9 +775,9 @@ export default function InvoicesPage() {
                 type="checkbox"
                 checked={cSaveToRegister}
                 onChange={e => setCSaveToRegister(e.target.checked)}
-                className="rounded border-theme-card-border text-accent focus:ring-accent"
+                className="rounded border-theme-card-border text-accent-strong dark:text-accent-soft focus:ring-accent"
               />
-              <span className="text-[11px] font-medium text-theme-text-primary">
+              <span className="text-xs font-medium text-theme-text-primary">
                 Save / update client in register for future billing
               </span>
             </label>
@@ -822,7 +823,7 @@ export default function InvoicesPage() {
               <button
                 type="button"
                 onClick={() => setCLines([...cLines, { description: '', quantity: '1', rate: '' }])}
-                className="text-accent font-semibold hover:underline cursor-pointer flex items-center gap-1"
+                className="text-accent-strong dark:text-accent-soft font-semibold hover:underline cursor-pointer flex items-center gap-1"
               >
                 + Add line item
               </button>
@@ -891,7 +892,7 @@ export default function InvoicesPage() {
                     key={tab}
                     type="button"
                     onClick={() => setRegTab(tab)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${
                       regTab === tab ? 'bg-accent text-white border-accent' : 'border-theme-card-border text-theme-text-secondary hover:border-accent'
                     }`}
                   >
@@ -914,20 +915,20 @@ export default function InvoicesPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-theme-text-primary">{c.name}</span>
                         {c.isStartup && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 border border-purple-500/25">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-purple-500/10 text-purple-600 border border-purple-500/25">
                             <Rocket className="h-3 w-3" /> Incubated Startup
                           </span>
                         )}
                       </div>
-                      <div className="text-theme-text-secondary text-[11px] flex flex-wrap gap-x-4 gap-y-0.5">
+                      <div className="text-theme-text-secondary text-xs flex flex-wrap gap-x-4 gap-y-0.5">
                         {c.founderName && <span>Founder: <strong>{c.founderName}</strong></span>}
-                        {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3 text-accent" />{c.email}</span>}
-                        {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-accent" />{c.phone}</span>}
-                        {c.gstin && <span className="flex items-center gap-1 font-mono"><Hash className="h-3 w-3 text-accent" />GSTIN: {c.gstin}</span>}
-                        {c.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-accent" />{c.address}</span>}
+                        {c.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3 text-accent-strong dark:text-accent-soft" />{c.email}</span>}
+                        {c.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-accent-strong dark:text-accent-soft" />{c.phone}</span>}
+                        {c.gstin && <span className="flex items-center gap-1 font-mono"><Hash className="h-3 w-3 text-accent-strong dark:text-accent-soft" />GSTIN: {c.gstin}</span>}
+                        {c.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-accent-strong dark:text-accent-soft" />{c.address}</span>}
                       </div>
                       {(c.invoiceCount || c.totalBilled) ? (
-                        <div className="text-[10px] text-theme-text-secondary pt-0.5 font-mono">
+                        <div className="text-xs text-theme-text-secondary pt-0.5 font-mono">
                           Billed {c.invoiceCount || 0} time(s) · Total: {inr(c.totalBilled || 0)} {c.lastBilledAt ? `· Last: ${c.lastBilledAt}` : ''}
                         </div>
                       ) : null}

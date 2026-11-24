@@ -147,7 +147,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   if (!event) {
     return (
       <div className="p-6 md:p-8 space-y-6">
-        <Link href="/dashboard/events" className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-semibold">
+        <Link href="/dashboard/events" className="inline-flex items-center gap-1.5 text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold">
           <ChevronLeft className="h-4 w-4" /> Back to Events
         </Link>
         <div className="glass-panel rounded-2xl p-12 text-center text-theme-text-secondary text-xs">
@@ -163,7 +163,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       {/* Alert Banner */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -177,10 +177,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <ChevronLeft className="h-4 w-4" />
           All Events
         </Link>
-        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-          event.status === 'active' ? 'bg-success/15 text-success border border-success/30' :
+        <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+          event.status === 'active' ? 'bg-success/15 text-success dark:text-success-soft border border-success/30' :
           event.status === 'completed' ? 'bg-primary/15 text-primary-light border border-primary/30' :
-          'bg-warning/15 text-warning border border-warning/30'
+          'bg-warning/15 text-warning dark:text-warning-soft border border-warning/30'
         }`}>
           {event.status}
         </span>
@@ -207,8 +207,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
         <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-theme-border/20 text-xs text-theme-text-secondary">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-accent" />
-            <span className={event.datesTBD ? 'text-warning font-semibold' : ''}>{formatEventDateRange(event)}</span>
+            <Calendar className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
+            <span className={event.datesTBD ? 'text-warning dark:text-warning-soft font-semibold' : ''}>{formatEventDateRange(event)}</span>
           </div>
           {formatEventPlanningNote(event) && (
             <div className="flex items-center gap-2">
@@ -218,12 +218,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           )}
           {event.location && (
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-warning" />
+              <MapPin className="h-4 w-4 text-warning dark:text-warning-soft" />
               <span>{event.location}</span>
             </div>
           )}
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-accent" />
+            <Users className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
             <span>{tasks.length} Task{tasks.length === 1 ? '' : 's'} &middot; {eventParticipants.length} Team Member{eventParticipants.length === 1 ? '' : 's'}</span>
           </div>
         </div>
@@ -246,29 +246,29 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <div className="glass-panel rounded-2xl p-5 border border-theme-card-border space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="h-10 w-10 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center text-accent shrink-0">
+                <div className="h-10 w-10 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft shrink-0">
                   <Wallet className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
                     Event Expenses
-                    <Link href="/dashboard/budget" className="text-[10px] text-accent hover:underline font-semibold flex items-center gap-0.5">
+                    <Link href="/dashboard/budget" className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-0.5">
                       View in Finance &rarr;
                     </Link>
                   </h3>
-                  <p className="text-[11px] text-theme-text-secondary">
+                  <p className="text-xs text-theme-text-secondary">
                     Bill-backed expenses booked against this event in the Finance module
                   </p>
                 </div>
               </div>
               <div className="text-xs">
-                <span className="text-[10px] text-theme-text-secondary block font-medium uppercase tracking-wider">Total Spent</span>
-                <span className="font-extrabold text-emerald-400 text-sm">₹{actualSpent.toLocaleString()}</span>
+                <span className="text-xs text-theme-text-secondary block font-medium uppercase tracking-wider">Total Spent</span>
+                <span className="font-extrabold text-emerald-700 dark:text-emerald-300 text-sm">₹{actualSpent.toLocaleString()}</span>
               </div>
             </div>
 
             {Object.keys(spentByHead).length > 0 && (
-              <div className="flex flex-wrap gap-2 text-[11px]">
+              <div className="flex flex-wrap gap-2 text-xs">
                 {Object.entries(spentByHead).map(([head, amt]) => (
                   <span key={head} className="px-2.5 py-1 rounded-lg bg-theme-background/40 border border-theme-border/30 text-theme-text-secondary">
                     {getExpenseHeadLabel(head)}: <strong className="text-theme-text-primary">₹{amt.toLocaleString()}</strong>
@@ -280,14 +280,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             {sponsorTotal > 0 && (
               <div className="p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-emerald-400">
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300">
                     🤝 Event Sponsors ({eventSponsors.map((s) => s.name).join(', ')}): ₹{sponsorTotal.toLocaleString()}
                   </span>
                 </div>
-                <div className="text-[11px] text-theme-text-secondary">
+                <div className="text-xs text-theme-text-secondary">
                   {actualSpent > 0 ? (
                     <span>
-                      <strong className="text-emerald-400">₹{sponsorCovered.toLocaleString()}</strong> depleted from sponsor &middot;{' '}
+                      <strong className="text-emerald-700 dark:text-emerald-300">₹{sponsorCovered.toLocaleString()}</strong> depleted from sponsor &middot;{' '}
                       <strong className="text-indigo-400">₹{surplusReturned.toLocaleString()}</strong> surplus returned to Centre
                     </span>
                   ) : (
@@ -311,10 +311,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider flex items-center gap-2">
-                  <CheckSquare className="h-4 w-4 text-accent" />
+                  <CheckSquare className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Event Tasks & Deliverables ({tasks.length})
                 </h3>
-                <p className="text-[11px] text-theme-text-secondary">Track deadlines and review deliverable completion</p>
+                <p className="text-xs text-theme-text-secondary">Track deadlines and review deliverable completion</p>
               </div>
               {isLeadership && (
                 <button
@@ -353,30 +353,30 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         </td>
                         <td className="py-3 text-theme-text-secondary whitespace-nowrap">{t.dueDate}</td>
                         <td className="py-3">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            t.status === 'Completed' ? 'bg-success/15 text-success' :
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            t.status === 'Completed' ? 'bg-success/15 text-success dark:text-success-soft' :
                             t.status === 'In Progress' ? 'bg-primary/15 text-primary-light' :
-                            t.status === 'Pending Extension' ? 'bg-danger/15 text-danger' :
-                            'bg-warning/15 text-warning'
+                            t.status === 'Pending Extension' ? 'bg-danger/15 text-danger dark:text-danger-soft' :
+                            'bg-warning/15 text-warning dark:text-warning-soft'
                           }`}>
                             {t.status}
                           </span>
                         </td>
                         <td className="py-3">
                           {t.ratingScore ? (
-                            <span className="inline-flex items-center gap-1 font-bold text-accent">
+                            <span className="inline-flex items-center gap-1 font-bold text-accent-strong dark:text-accent-soft">
                               <Award className="h-3 w-3" />
                               {t.ratingScore.toFixed(1)}/5.0
                             </span>
                           ) : (
-                            <span className="text-[10px] text-theme-text-secondary italic">Awaiting evaluation</span>
+                            <span className="text-xs text-theme-text-secondary italic">Awaiting evaluation</span>
                           )}
                         </td>
                         <td className="py-3 text-right">
                           {canDeleteTask(user, t) && (
                             <button
                               onClick={() => setDeletingTaskId(t.id)}
-                              className="p-1 hover:bg-danger/10 rounded-md text-danger transition-all cursor-pointer"
+                              className="p-1 hover:bg-danger/10 rounded-md text-danger dark:text-danger-soft transition-all cursor-pointer"
                               title="Delete Task"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -397,12 +397,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider flex items-center gap-2">
-                    <Ticket className="h-4 w-4 text-accent" />
+                    <Ticket className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                     Event Passes & Guest List ({eventPasses.length})
                   </h3>
-                  <p className="text-[11px] text-theme-text-secondary">Passes issued for this event and the certificates sent to attendees</p>
+                  <p className="text-xs text-theme-text-secondary">Passes issued for this event and the certificates sent to attendees</p>
                 </div>
-                <Link href="/dashboard/event-passes" className="px-3 py-1.5 bg-accent/15 border border-accent/35 text-accent hover:bg-accent/25 text-xs font-bold rounded-xl flex items-center gap-1.5">
+                <Link href="/dashboard/event-passes" className="px-3 py-1.5 bg-accent/15 border border-accent/35 text-accent-strong dark:text-accent-soft hover:bg-accent/25 text-xs font-bold rounded-xl flex items-center gap-1.5">
                   <Ticket className="h-3.5 w-3.5" />
                   Open Event Passes
                 </Link>
@@ -427,14 +427,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         <tr key={p.id} className="hover:bg-theme-border/10 text-xs">
                           <td className="py-2.5 font-semibold text-theme-text-primary">
                             {p.attendeeName}
-                            {(p.attendeeOrg || p.attendeeEmail) && <span className="block text-[10px] font-normal text-theme-text-secondary">{p.attendeeOrg || p.attendeeEmail}</span>}
+                            {(p.attendeeOrg || p.attendeeEmail) && <span className="block text-xs font-normal text-theme-text-secondary">{p.attendeeOrg || p.attendeeEmail}</span>}
                           </td>
                           <td className="py-2.5 text-theme-text-secondary">{p.passType}</td>
-                          <td className="py-2.5 font-mono text-[10px] text-theme-text-secondary">{p.serialNumber}</td>
+                          <td className="py-2.5 font-mono text-xs text-theme-text-secondary">{p.serialNumber}</td>
                           <td className="py-2.5">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              p.status === 'Checked In' ? 'bg-success/15 text-success' :
-                              p.status === 'Cancelled' ? 'bg-danger/15 text-danger' :
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                              p.status === 'Checked In' ? 'bg-success/15 text-success dark:text-success-soft' :
+                              p.status === 'Cancelled' ? 'bg-danger/15 text-danger dark:text-danger-soft' :
                               'bg-primary/15 text-primary-light'
                             }`}>{p.status}</span>
                           </td>
@@ -451,7 +451,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           {/* Section 3: People with a task for this event */}
           <div className="space-y-3 pt-4 border-t border-theme-border/20">
             <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider flex items-center gap-2">
-              <Users className="h-4 w-4 text-warning" />
+              <Users className="h-4 w-4 text-warning dark:text-warning-soft" />
               Event Team ({eventParticipants.length})
             </h3>
 
@@ -463,12 +463,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                 {eventParticipants.map(member => (
                   <div key={member.id} className="p-2.5 bg-theme-border/10 border border-theme-border/20 rounded-xl flex items-center gap-2.5 text-xs">
-                    <div className="h-7 w-7 bg-accent/20 rounded-lg flex items-center justify-center font-bold text-accent text-[10px]">
+                    <div className="h-7 w-7 bg-accent/20 rounded-lg flex items-center justify-center font-bold text-accent-strong dark:text-accent-soft text-xs">
                       {member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div className="overflow-hidden">
                       <p className="font-semibold text-theme-text-primary truncate">{member.name}</p>
-                      <p className="text-[10px] text-theme-text-secondary truncate">{member.division}</p>
+                      <p className="text-xs text-theme-text-secondary truncate">{member.division}</p>
                     </div>
                   </div>
                 ))}

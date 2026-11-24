@@ -60,6 +60,8 @@ import {
 import { fetchAlerts } from '@/lib/incubation/client';
 import { getAnnouncements, getTasks, getMembers, getInvoices, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyInvoicePayment, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
+import { askConfirm } from '@/components/ui/confirm-dialog';
+import { toast } from '@/components/ui/toast';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
@@ -162,7 +164,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const isExternalReviewerUser = user.tier === 3 && (user as any).externalReviewer === true;
   const externalAllowed = (href: string) => href.startsWith('/dashboard/incubation/applications') || href.startsWith('/dashboard/settings') || href.startsWith('/dashboard/approvals');
   const visibleNav = navSections
-    .map(section => ({ ...section, items: section.items.filter(item => !isExternalReviewerUser || externalAllowed(item.href)) }))
+    .map(section => ({ ...section, items: section.items
+      .filter(item => !isExternalReviewerUser || externalAllowed(item.href) || !!item.externalHref)
+      .map(item => (isExternalReviewerUser && item.externalHref ? { ...item, href: item.externalHref } : item)) }))
     .filter(section => section.items.length > 0);
   useEffect(() => {
     if (isExternalReviewerUser && isAuthenticated && !externalAllowed(pathname)) router.replace('/dashboard/incubation/applications');
@@ -795,7 +799,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   );
 
   const handleWipeLocalhostData = async () => {
-    if (!window.confirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
+    if (!await askConfirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
       return;
     }
     try {
@@ -805,7 +809,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       });
       const data = await res.json();
       clearAllLocalMemory();
-      alert(data.message || 'Application data and memory wiped clean.');
+      toast.info(data.message || 'Application data and memory wiped clean.');
       window.location.href = '/setup';
     } catch {
       clearAllLocalMemory();
@@ -862,7 +866,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {visibleNav.map((section) => {
         const items = section.items.filter(item => isNavItemVisible(item, user));
         if (items.length === 0) return null;
-        const hasActive = items.some(i => i.href === activeItem.href);
+        const hasActive = items.some(i => i.name === activeItem.name);
         const expanded = !section.collapsible || isMoreOpen || hasActive;
         const headingId = `nav-${section.id}`;
         return (
@@ -887,7 +891,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <ul id={headingId} className="space-y-1">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = item.href === activeItem.href;
+                  const isActive = item.name === activeItem.name;
                   return (
                     <li key={item.href}>
                       <Link
@@ -997,7 +1001,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           unseenActionCount === 1 ? (
             <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-danger rounded-full ring-2 ring-theme-sidebar" />
           ) : (
-            <span className="absolute -top-1.5 -right-1.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded-full bg-danger text-white text-[9px] font-bold leading-none ring-2 ring-theme-sidebar">
+            <span className="absolute -top-1.5 -right-1.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded-full bg-danger text-white text-xs font-bold leading-none ring-2 ring-theme-sidebar">
               {unseenActionCount > 99 ? '99+' : unseenActionCount}
             </span>
           )
@@ -1028,7 +1032,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {notifications.some(n => !n.read) && (
                   <button
                     onClick={markAllNotificationsAsRead}
-                    className="text-xs text-accent hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                     title="Mark all notifications as read"
                   >
                     <Check className="h-3 w-3" />
@@ -1039,7 +1043,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAllNotifications}
-                    className="text-xs text-danger hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-danger dark:text-danger-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                     title="Clear all received notifications"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -1065,7 +1069,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                       onClick={() => handleNotifClick(notif)}
                       className="flex-1 text-left flex items-start gap-2.5 cursor-pointer min-w-0"
                     >
-                      <Info className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${notif.actionNeeded ? 'text-danger' : 'text-accent'}`} />
+                      <Info className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${notif.actionNeeded ? 'text-danger dark:text-danger-soft' : 'text-accent-strong dark:text-accent-soft'}`} />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-theme-text-primary text-sm leading-snug">{notif.title}</p>
                         <p className="text-xs text-theme-text-secondary mt-0.5">{notif.time}</p>
@@ -1114,13 +1118,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {/* ListBox Header */}
           <div className="flex items-center justify-between px-1.5 pt-1 pb-2.5 border-b border-theme-border/40 mb-2.5">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-accent/20 text-accent">
+              <div className="p-1.5 rounded-xl bg-accent/20 text-accent-strong dark:text-accent-soft">
                 <UserCog className="h-4 w-4" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-theme-text-primary flex items-center gap-1.5">
                   Account Switcher
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-accent bg-accent/15 px-1.5 py-0.2 rounded-full border border-accent/20">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-accent-strong dark:text-accent-soft bg-accent/15 px-1.5 py-0.2 rounded-full border border-accent/20">
                     Super User
                   </span>
                 </h4>
@@ -1164,7 +1168,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {isImpersonating && originalUser && (
             <div className="mb-2.5 p-2.5 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <Undo2 className="h-3.5 w-3.5 text-accent shrink-0" />
+                <Undo2 className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-theme-text-primary truncate">Currently Impersonating</p>
                   <p className="text-xs text-theme-text-secondary truncate">Original: {originalUser.name}</p>
@@ -1223,7 +1227,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                             {m.name}
                           </span>
                           {isSelected && (
-                            <span className="text-[9px] font-semibold text-accent bg-accent/10 px-1.5 py-0.2 rounded-md border border-accent/20 shrink-0">
+                            <span className="text-xs font-semibold text-accent-strong dark:text-accent-soft bg-accent/10 px-1.5 py-0.2 rounded-md border border-accent/20 shrink-0">
                               Active
                             </span>
                           )}
@@ -1231,7 +1235,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                         <div className="flex items-center gap-1.5 text-xs text-theme-text-secondary mt-0.5 truncate">
                           <span className="truncate">{m.email}</span>
                           <span className="shrink-0">•</span>
-                          <span className="font-medium text-theme-text-secondary/80 shrink-0">{m.role}</span>
+                          <span className="font-medium text-theme-text-secondary shrink-0">{m.role}</span>
                         </div>
                       </div>
                     </div>
@@ -1257,7 +1261,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {/* ListBox Footer Info */}
           <div className="pt-2 mt-2 border-t border-theme-border/30 flex items-center justify-between text-xs text-theme-text-secondary px-1 shrink-0">
             <span>{allMembers.length} Available {allMembers.length === 1 ? 'Account' : 'Accounts'}</span>
-            <span className="text-[9px] opacity-75">Click to switch</span>
+            <span className="text-xs opacity-75">Click to switch</span>
           </div>
         </div>
       )}
@@ -1340,7 +1344,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {user.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
                 ) : (
-                  <User className="h-4.5 w-4.5 text-accent" />
+                  <User className="h-4.5 w-4.5 text-accent-strong dark:text-accent-soft" />
                 )}
               </div>
               {showSidebarLabels && (
@@ -1354,7 +1358,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <button
               onClick={handleLogout}
               title={showSidebarLabels ? undefined : 'Sign Out'}
-              className={`flex items-center gap-2.5 w-full py-2 text-sm font-semibold text-danger hover:bg-danger/10 rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap ${showSidebarLabels ? 'px-3.5' : 'justify-center px-0'}`}
+              className={`flex items-center gap-2.5 w-full py-2 text-sm font-semibold text-danger dark:text-danger-soft hover:bg-danger/10 rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap ${showSidebarLabels ? 'px-3.5' : 'justify-center px-0'}`}
             >
               <LogOut className="h-4 w-4 shrink-0" />
               {showSidebarLabels && 'Sign Out'}
@@ -1394,7 +1398,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {isLocalhost && (
             <button
               onClick={handleWipeLocalhostData}
-              className="h-8 w-8 flex items-center justify-center text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
+              className="h-8 w-8 flex items-center justify-center text-rose-700 dark:text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
               title="Wipe data (Localhost)"
             >
               <Trash2 className="h-4 w-4" />
@@ -1453,7 +1457,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
                   ) : (
-                    <User className="h-4.5 w-4.5 text-accent" />
+                    <User className="h-4.5 w-4.5 text-accent-strong dark:text-accent-soft" />
                   )}
                 </div>
                 <div>
@@ -1465,7 +1469,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               {isImpersonating && (
                 <button
                   onClick={() => { setIsMobileMenuOpen(false); handleReturnToSelf(); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 mx-2 bg-warning/15 border border-warning/40 text-warning text-xs font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 mx-2 bg-warning/15 border border-warning/40 text-warning dark:text-warning-soft text-xs font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer"
                   title={`Return to ${originalUser?.name || 'your account'}`}
                 >
                   <Undo2 className="h-3.5 w-3.5 shrink-0" />
@@ -1486,7 +1490,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   setIsMobileMenuOpen(false);
                   handleLogout();
                 }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger/10 rounded-xl transition-all"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-semibold text-danger dark:text-danger-soft hover:bg-danger/10 rounded-xl transition-all"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
@@ -1520,7 +1524,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {isLocalhost && (
               <button
                 onClick={handleWipeLocalhostData}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 text-sm font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/25 text-sm font-bold rounded-xl transition-all cursor-pointer shrink-0"
                 title="Wipe all data and reset memory (Localhost only)"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -1531,7 +1535,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {/* Interactive Guided Tour button */}
             <button
               onClick={() => setIsTourOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 border border-accent/30 text-accent hover:bg-accent/25 text-sm font-bold rounded-xl transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 border border-accent/30 text-accent-strong dark:text-accent-soft hover:bg-accent/25 text-sm font-bold rounded-xl transition-all cursor-pointer shrink-0"
               title="Interactive Tour of Modules & Permissions"
             >
               <Compass className="h-4 w-4" />
@@ -1555,7 +1559,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {isImpersonating && (
               <button
                 onClick={handleReturnToSelf}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-warning/15 border border-warning/40 text-warning text-xs font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer shrink-0 max-w-[220px]"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-warning/15 border border-warning/40 text-warning dark:text-warning-soft text-xs font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer shrink-0 max-w-[220px]"
                 title={`Return to ${originalUser?.name || 'your account'}`}
               >
                 <Undo2 className="h-3.5 w-3.5 shrink-0" />
@@ -1592,7 +1596,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <div className="absolute right-0 top-full mt-2 w-48 max-w-[calc(100vw-2rem)] glass-panel rounded-2xl p-1.5 shadow-2xl border border-theme-border z-50 animate-in fade-in zoom-in-95 duration-150">
                   <button
                     onClick={() => { setIsUserMenuOpen(false); setIsTourOpen(true); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-accent hover:bg-accent/15 rounded-xl transition-all cursor-pointer"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-accent-strong dark:text-accent-soft hover:bg-accent/15 rounded-xl transition-all cursor-pointer"
                   >
                     <Compass className="h-4 w-4" />
                     Guided Tour
@@ -1607,7 +1611,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   </Link>
                   <button
                     onClick={() => { setIsUserMenuOpen(false); handleLogout(); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-danger hover:bg-danger/10 rounded-xl transition-all cursor-pointer"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-danger dark:text-danger-soft hover:bg-danger/10 rounded-xl transition-all cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign Out
@@ -1632,7 +1636,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <button
               type="button"
               onClick={() => setIsTermsOpen(true)}
-              className="font-semibold text-accent underline hover:text-primary-light transition-colors cursor-pointer"
+              className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-primary-light transition-colors cursor-pointer"
             >
               Terms & Conditions
             </button>
@@ -1640,7 +1644,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <button
               type="button"
               onClick={() => setIsPrivacyOpen(true)}
-              className="font-semibold text-accent underline hover:text-primary-light transition-colors cursor-pointer"
+              className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-primary-light transition-colors cursor-pointer"
             >
               Privacy Policy
             </button>

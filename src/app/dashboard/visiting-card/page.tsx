@@ -297,7 +297,7 @@ export default function VisitingCardPage() {
       )}
       {errorMsg && (
         <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <AlertCircle className="h-5 w-5 text-danger shrink-0" />
+          <AlertCircle className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -312,7 +312,7 @@ export default function VisitingCardPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-theme-text-primary">Card Details</h3>
             <label className="flex items-center gap-2 cursor-pointer shrink-0">
-              <span className="text-[11px] font-semibold text-theme-text-secondary">{cardEnabled ? 'Published' : 'Unpublished'}</span>
+              <span className="text-xs font-semibold text-theme-text-secondary">{cardEnabled ? 'Published' : 'Unpublished'}</span>
               <button
                 type="button"
                 onClick={() => setCardEnabled(v => !v)}
@@ -337,7 +337,7 @@ export default function VisitingCardPage() {
                     </span>
                   )}
                   {cardPhotoUpload.status === 'uploading' && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-bold">
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs font-bold">
                       {cardPhotoUpload.progress}%
                     </div>
                   )}
@@ -346,7 +346,7 @@ export default function VisitingCardPage() {
                   <button
                     type="button"
                     onClick={handleOpenCurrentCardCrop}
-                    className="mt-1.5 text-[10px] font-medium text-accent hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                    className="mt-1.5 text-xs font-medium text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1 cursor-pointer transition-colors"
                     title="Re-frame and crop photo"
                   >
                     <Crop className="h-2.5 w-2.5" />
@@ -363,14 +363,14 @@ export default function VisitingCardPage() {
                   hint="JPG, PNG, or GIF. Max size 2 MB. Falls back to your profile photo if unset."
                   compact
                 />
-                {cardPhotoSizeError && <p className="text-[11px] text-danger">{cardPhotoSizeError}</p>}
+                {cardPhotoSizeError && <p className="text-xs text-danger dark:text-danger-soft">{cardPhotoSizeError}</p>}
                 {cardPhotoUpload.status === 'error' && (
-                  <div className="flex items-center justify-between gap-2 text-[11px] text-danger">
+                  <div className="flex items-center justify-between gap-2 text-xs text-danger dark:text-danger-soft">
                     <span className="flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{cardPhotoUpload.error}</span>
                     <button
                       type="button"
                       onClick={cardPhotoUpload.retry}
-                      className="flex items-center gap-1 font-semibold text-accent hover:underline cursor-pointer shrink-0"
+                      className="flex items-center gap-1 font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer shrink-0"
                     >
                       <RotateCw className="h-3 w-3" />
                       Retry
@@ -392,7 +392,7 @@ export default function VisitingCardPage() {
                       placeholder={user?.role || 'e.g. Head of Design'}
                       className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                     />
-                    <p className="text-[10px] text-theme-text-secondary/70">Super User override — leave blank to fall back to your Directory role ({user?.role || '—'}).</p>
+                    <p className="text-xs text-theme-text-secondary">Super User override — leave blank to fall back to your Directory role ({user?.role || '—'}).</p>
                   </>
                 ) : (
                   <>
@@ -402,7 +402,7 @@ export default function VisitingCardPage() {
                       value={user?.role || ''}
                       className="w-full px-4 py-2.5 bg-theme-background/10 border border-theme-border/30 rounded-xl text-theme-text-secondary cursor-not-allowed opacity-70"
                     />
-                    <p className="text-[10px] text-theme-text-secondary/70">Matches your role as set in the Members Directory — not editable here.</p>
+                    <p className="text-xs text-theme-text-secondary">Matches your role as set in the Members Directory — not editable here.</p>
                   </>
                 )}
               </div>
@@ -420,7 +420,7 @@ export default function VisitingCardPage() {
 
             <div className="space-y-1.5">
               <label className="flex items-center gap-1.5 font-medium text-theme-text-secondary">
-                <Linkedin className="h-4 w-4 text-accent" />
+                <Linkedin className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 LinkedIn
               </label>
               <input type="url" value={cardLinkedin} onChange={(e) => setCardLinkedin(e.target.value)} placeholder="https://linkedin.com/in/..." className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent" />
@@ -433,15 +433,15 @@ export default function VisitingCardPage() {
                   <button
                     type="button"
                     onClick={handleAddCustomLink}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                   >
                     <Plus className="h-3 w-3" /> Add Link
                   </button>
                 )}
               </div>
-              {customIconSizeError && <p className="text-[11px] text-danger">{customIconSizeError}</p>}
+              {customIconSizeError && <p className="text-xs text-danger dark:text-danger-soft">{customIconSizeError}</p>}
               {cardCustomLinks.length === 0 ? (
-                <p className="text-[11px] text-theme-text-secondary/70">Add a portfolio, GitHub, personal site, or any other link — pick a preset icon or upload your own.</p>
+                <p className="text-xs text-theme-text-secondary">Add a portfolio, GitHub, personal site, or any other link — pick a preset icon or upload your own.</p>
               ) : (
                 cardCustomLinks.map((link, idx) => {
                   const iconSrc = link.customIconData || link.customIconUrl;
@@ -450,19 +450,19 @@ export default function VisitingCardPage() {
                     <div key={idx} className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-2">
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-lg bg-theme-background/50 border border-theme-border/30 flex items-center justify-center overflow-hidden shrink-0">
-                          {iconSrc ? <img src={iconSrc} alt="" className="h-full w-full object-cover" /> : <PresetIcon className="h-4 w-4 text-accent" />}
+                          {iconSrc ? <img src={iconSrc} alt="" className="h-full w-full object-cover" /> : <PresetIcon className="h-4 w-4 text-accent-strong dark:text-accent-soft" />}
                         </div>
                         <input
                           type="text"
                           value={link.label}
                           onChange={(e) => handleCustomLinkFieldChange(idx, 'label', e.target.value)}
                           placeholder="Label (e.g. Portfolio)"
-                          className="flex-1 px-3 py-2 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary focus:outline-none focus:border-accent text-[11px]"
+                          className="flex-1 px-3 py-2 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary focus:outline-none focus:border-accent text-xs"
                         />
                         <button
                           type="button"
                           onClick={() => handleRemoveCustomLink(idx)}
-                          className="p-1.5 rounded-lg hover:bg-danger/10 text-danger transition-all cursor-pointer shrink-0"
+                          className="p-1.5 rounded-lg hover:bg-danger/10 text-danger dark:text-danger-soft transition-all cursor-pointer shrink-0"
                           title="Remove link"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -473,7 +473,7 @@ export default function VisitingCardPage() {
                         value={link.url}
                         onChange={(e) => handleCustomLinkFieldChange(idx, 'url', e.target.value)}
                         placeholder="https://..."
-                        className="w-full px-3 py-2 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary focus:outline-none focus:border-accent text-[11px]"
+                        className="w-full px-3 py-2 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary focus:outline-none focus:border-accent text-xs"
                       />
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {CUSTOM_LINK_ICONS.map(({ key, label: iconLabel, Icon }) => (
@@ -484,14 +484,14 @@ export default function VisitingCardPage() {
                             title={iconLabel}
                             className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
                               !iconSrc && link.icon === key
-                                ? 'bg-accent/20 border-accent text-accent'
+                                ? 'bg-accent/20 border-accent text-accent-strong dark:text-accent-soft'
                                 : 'bg-theme-background/30 border-theme-border/30 text-theme-text-secondary hover:text-theme-text-primary'
                             }`}
                           >
                             <Icon className="h-3.5 w-3.5" />
                           </button>
                         ))}
-                        <label className="h-7 px-2 rounded-lg flex items-center gap-1 border border-dashed border-theme-border/50 text-[10px] font-medium text-theme-text-secondary hover:text-accent hover:border-accent cursor-pointer transition-all">
+                        <label className="h-7 px-2 rounded-lg flex items-center gap-1 border border-dashed border-theme-border/50 text-xs font-medium text-theme-text-secondary hover:text-accent hover:border-accent cursor-pointer transition-all">
                           <Upload className="h-3 w-3" />
                           {iconSrc ? 'Replace icon' : 'Upload icon'}
                           <input
@@ -513,7 +513,7 @@ export default function VisitingCardPage() {
 
             {cardPublicUrl && (
               <div className="flex items-center gap-2 p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl">
-                <span className="flex-1 text-[11px] font-mono text-accent truncate">{cardPublicUrl}</span>
+                <span className="flex-1 text-xs font-mono text-accent-strong dark:text-accent-soft truncate">{cardPublicUrl}</span>
                 <button
                   type="button"
                   onClick={() => navigator.clipboard.writeText(cardPublicUrl)}
@@ -555,7 +555,7 @@ export default function VisitingCardPage() {
 
         <div className="flex flex-col items-center xl:items-center w-full xl:col-span-5 2xl:col-span-5 gap-4 min-w-0 overflow-visible">
           <div className="flex items-center justify-between w-full max-w-sm px-1 flex-wrap gap-2">
-            <p className="text-[11px] font-semibold text-theme-text-secondary uppercase tracking-wider">Visiting Card</p>
+            <p className="text-xs font-semibold text-theme-text-secondary uppercase tracking-wider">Visiting Card</p>
 
             <button
               type="button"
@@ -593,17 +593,17 @@ export default function VisitingCardPage() {
             {/* Top Bar */}
             <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4 shrink-0 max-w-5xl mx-auto w-full">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-300">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 flex-wrap">
                     RTBI Executive Keycard
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                       <ShieldCheck className="h-3 w-3" /> Authenticated Member View
                     </span>
                   </h2>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-xs text-slate-400">
                     Physical 3D luxury leather bookfold with complete live member credentials.
                   </p>
                 </div>
@@ -616,7 +616,7 @@ export default function VisitingCardPage() {
               >
                 <X className="h-4 w-4" />
                 <span>Exit Fullscreen</span>
-                <span className="text-[10px] text-white/50 font-mono hidden sm:inline">(Esc)</span>
+                <span className="text-xs text-white/50 font-mono hidden sm:inline">(Esc)</span>
               </button>
             </div>
 
@@ -641,7 +641,7 @@ export default function VisitingCardPage() {
             </div>
 
             {/* Bottom HUD Hint */}
-            <div className="border-t border-white/10 pt-3 text-center text-[11px] text-slate-400 shrink-0 max-w-2xl mx-auto w-full">
+            <div className="border-t border-white/10 pt-3 text-center text-xs text-slate-400 shrink-0 max-w-2xl mx-auto w-full">
               <p className="flex items-center justify-center gap-2 flex-wrap">
                 <span>💡 <strong>Interactivity:</strong> Tap leather flap to open/close</span>
                 <span>•</span>
@@ -660,8 +660,8 @@ export default function VisitingCardPage() {
         />
 
         {user?.tier === 1 && (
-          <p className="xl:col-span-12 text-[11px] text-theme-text-secondary">
-            The WalletWallet API key now lives in <a href="/dashboard/settings" className="text-accent hover:underline">Settings → Integrations</a> (Super User).
+          <p className="xl:col-span-12 text-xs text-theme-text-secondary">
+            The WalletWallet API key now lives in <a href="/dashboard/settings" className="text-accent-strong dark:text-accent-soft hover:underline">Settings → Integrations</a> (Super User).
           </p>
         )}
       </div>

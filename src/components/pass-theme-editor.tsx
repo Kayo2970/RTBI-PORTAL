@@ -88,7 +88,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
 
   if (!eligible) {
     return (
-      <p className="text-[11px] text-theme-text-secondary">
+      <p className="text-xs text-theme-text-secondary">
         Select an existing event to customise its pass background, logo and colours.
       </p>
     );
@@ -129,7 +129,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
           <div className="flex items-center gap-2">
             {merged.logoUrl && <img src={merged.logoUrl} alt="" className="h-6 w-auto object-contain" />}
             <div>
-              <div className="text-[9px] font-black tracking-widest" style={{ color: tk.label }}>RTBI • RUAS</div>
+              <div className="text-xs font-black tracking-widest" style={{ color: tk.label }}>RTBI • RUAS</div>
               <div className="text-[8px]" style={{ color: tk.label }}>OFFICIAL EVENT PASS</div>
             </div>
           </div>
@@ -248,7 +248,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
     val.overlay !== (typeof theme.overlay === 'number' ? theme.overlay : DEFAULT_PASS_THEME.overlay);
 
   const colourField = (label: string, key: 'backgroundColor' | 'foregroundColor' | 'labelColor', value: string) => (
-    <label className="flex items-center justify-between gap-2 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
+    <label className="flex items-center justify-between gap-2 text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
       {label}
       <input
         type="color"
@@ -261,15 +261,15 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-secondary">
-        <Palette className="h-3.5 w-3.5 text-accent" /> Pass look for “{eventName}”
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-secondary">
+        <Palette className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Pass look for “{eventName}”
       </div>
 
       {/* Folder + pass preview: the leather holder cover carries the same logo as the pass inside it */}
       <div className="rounded-2xl border border-theme-card-border dark:border-white/10 p-3 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-secondary">Folder &amp; pass preview</div>
-          <div className="flex rounded-full border border-white/15 p-0.5 text-[10px] font-bold">
+          <div className="text-xs font-bold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-secondary">Folder &amp; pass preview</div>
+          <div className="flex rounded-full border border-white/15 p-0.5 text-xs font-bold">
             {(['horizontal', 'vertical'] as const).map((o) => (
               <button
                 key={o}
@@ -284,14 +284,14 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center">
           <div className="shrink-0 text-center">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary mb-1.5">Leather folder cover</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary mb-1.5">Leather folder cover</div>
             <div className="flex justify-center pb-2">
               <HolderCoverPreview logoUrl={merged.logoUrl} width={190} />
             </div>
-            <div className="text-[10px] text-theme-text-secondary mt-1">{merged.logoUrl ? 'Debossed with the event logo' : 'Default RTBI logo — upload one below'}</div>
+            <div className="text-xs text-theme-text-secondary mt-1">{merged.logoUrl ? 'Debossed with the event logo' : 'Default RTBI logo — upload one below'}</div>
           </div>
           <div className="min-w-0 flex-1 max-w-full text-center">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary mb-1.5">
+            <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary mb-1.5">
               {orientation === 'horizontal' ? 'Horizontal pass (email ticket)' : 'Vertical pass (Apple / Google Wallet)'}
             </div>
             {orientation === 'horizontal' ? (
@@ -306,7 +306,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
       {/* Wallet preview: exactly what iOS 27 draws from the portrait 690×1010 crop WalletWallet receives */}
       <div className="flex flex-col sm:flex-row gap-4 items-start">
         <div className="shrink-0">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary mb-1.5">Apple / Google Wallet (iOS 27 poster) <span className="ml-1 normal-case tracking-normal font-semibold text-warning">· Apple fixes the text: white</span></div>
+          <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary mb-1.5">Apple / Google Wallet (iOS 27 poster) <span className="ml-1 normal-case tracking-normal font-semibold text-warning dark:text-warning-soft">· Apple fixes the text: white</span></div>
           <div style={{ zoom: 0.8 }}>{posterPreview}</div>
           <div className="mt-3 max-w-[300px]">
             <EventTitleToggle scope="event" value={draft.showEventTitle} onChange={(v) => setDraft((d) => ({ ...d, showEventTitle: v }))} />
@@ -324,46 +324,46 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
       </div>
 
       {/* Live boarding-pass preview (email + portal ticket) */}
-      <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary -mb-1">Emailed boarding-pass ticket{emailOwn ? ' (custom design)' : ' (uses the event background)'}</div>
+      <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary -mb-1">Emailed boarding-pass ticket{emailOwn ? ' (custom design)' : ' (uses the event background)'}</div>
       {ticketPreview}
 
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => bgInput.current?.click()}
-          className="py-2 px-3 rounded-xl border border-dashed border-theme-border dark:border-white/25 text-[11px] font-bold flex items-center justify-center gap-1.5 hover:border-accent cursor-pointer"
+          className="py-2 px-3 rounded-xl border border-dashed border-theme-border dark:border-white/25 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-accent cursor-pointer"
         >
           <ImagePlus className="h-3.5 w-3.5" /> {merged.backgroundUrl ? 'Replace background' : 'Upload background'}
         </button>
         <button
           type="button"
           onClick={() => logoInput.current?.click()}
-          className="py-2 px-3 rounded-xl border border-dashed border-theme-border dark:border-white/25 text-[11px] font-bold flex items-center justify-center gap-1.5 hover:border-accent cursor-pointer"
+          className="py-2 px-3 rounded-xl border border-dashed border-theme-border dark:border-white/25 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-accent cursor-pointer"
         >
           <ImagePlus className="h-3.5 w-3.5" /> {merged.logoUrl ? 'Replace logo' : 'Upload logo'}
         </button>
         <input ref={bgInput} type="file" accept="image/*" className="hidden" onChange={(e) => pick(e, 'bg')} />
         <input ref={logoInput} type="file" accept="image/*" className="hidden" onChange={(e) => pick(e, 'logo')} />
         {merged.backgroundUrl && (
-          <button type="button" onClick={() => setPendingBg(null)} className="text-[10px] text-danger hover:underline flex items-center justify-center gap-1 cursor-pointer">
+          <button type="button" onClick={() => setPendingBg(null)} className="text-xs text-danger dark:text-danger-soft hover:underline flex items-center justify-center gap-1 cursor-pointer">
             <Trash2 className="h-3 w-3" /> Remove background
           </button>
         )}
         {merged.logoUrl && (
-          <button type="button" onClick={() => setPendingLogo(null)} className="text-[10px] text-danger hover:underline flex items-center justify-center gap-1 cursor-pointer">
+          <button type="button" onClick={() => setPendingLogo(null)} className="text-xs text-danger dark:text-danger-soft hover:underline flex items-center justify-center gap-1 cursor-pointer">
             <Trash2 className="h-3 w-3" /> Remove logo
           </button>
         )}
       </div>
 
-      <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary -mb-1">Portal card &amp; ticket colours <span className="normal-case tracking-normal font-semibold text-theme-text-secondary">(the Wallet poster ignores these — Apple draws its own white text)</span></div>
+      <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary -mb-1">Portal card &amp; ticket colours <span className="normal-case tracking-normal font-semibold text-theme-text-secondary">(the Wallet poster ignores these — Apple draws its own white text)</span></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {colourField('Base colour', 'backgroundColor', val.bg)}
         {colourField('Text colour', 'foregroundColor', val.fg)}
         {colourField('Label colour', 'labelColor', val.label)}
       </div>
 
-      <label className="block text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
+      <label className="block text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
         Darken artwork for legibility: {Math.round(val.overlay * 100)}%
         <input
           type="range"
@@ -379,8 +379,8 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
       {/* Separate design for the emailed ticket */}
       <div className="rounded-2xl border border-theme-card-border dark:border-white/10 p-3 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-secondary">Email ticket design</div>
-          <div className="flex rounded-full border border-white/15 p-0.5 text-[10px] font-bold">
+          <div className="text-xs font-bold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-secondary">Email ticket design</div>
+          <div className="flex rounded-full border border-white/15 p-0.5 text-xs font-bold">
             {([false, true] as const).map((own) => (
               <button
                 key={String(own)}
@@ -397,7 +397,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
           <>
             <p className="text-[10.5px] text-theme-text-secondary">
               Upload art at <strong>1160 × 420 px</strong>. The right 290 px is covered by the white tear-off stub with the QR; the name, event, venue and dates are drawn over the main 870 px.{' '}
-              <a href={`/api/events/${eventId}/pass-theme/template`} className="text-accent underline font-semibold" onClick={async (e) => {
+              <a href={`/api/events/${eventId}/pass-theme/template`} className="text-accent-strong dark:text-accent-soft underline font-semibold" onClick={async (e) => {
                 e.preventDefault();
                 const res = await fetch(`/api/events/${eventId}/pass-theme/template`, { headers: authHeaders() });
                 if (!res.ok) return setMessage('Could not download the template.');
@@ -410,11 +410,11 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
               }}>Download template with safe zones</a>
             </p>
             <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => emailInput.current?.click()} className="py-2 px-3 rounded-xl border border-dashed border-theme-border dark:border-white/25 text-[11px] font-bold flex items-center justify-center gap-1.5 hover:border-accent cursor-pointer">
+              <button type="button" onClick={() => emailInput.current?.click()} className="py-2 px-3 rounded-xl border border-dashed border-theme-border dark:border-white/25 text-xs font-bold flex items-center justify-center gap-1.5 hover:border-accent cursor-pointer">
                 <ImagePlus className="h-3.5 w-3.5" /> {em.art ? 'Replace ticket art' : 'Upload ticket art'}
               </button>
               {em.art && (
-                <button type="button" onClick={() => setPendingEmailArt(null)} className="text-[10px] text-danger hover:underline flex items-center justify-center gap-1 cursor-pointer">
+                <button type="button" onClick={() => setPendingEmailArt(null)} className="text-xs text-danger dark:text-danger-soft hover:underline flex items-center justify-center gap-1 cursor-pointer">
                   <Trash2 className="h-3 w-3" /> Remove ticket art
                 </button>
               )}
@@ -423,7 +423,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
             <div className="flex items-center justify-between text-[10.5px] text-theme-text-secondary">
               <span>{draft.emailBackgroundColor || draft.emailForegroundColor || draft.emailLabelColor ? 'Ticket uses its own colours.' : 'Ticket follows the general colours above.'}</span>
               {(draft.emailBackgroundColor || draft.emailForegroundColor || draft.emailLabelColor) && (
-                <button type="button" onClick={() => setDraft((d) => ({ ...d, emailBackgroundColor: undefined, emailForegroundColor: undefined, emailLabelColor: undefined }))} className="text-accent hover:underline cursor-pointer">
+                <button type="button" onClick={() => setDraft((d) => ({ ...d, emailBackgroundColor: undefined, emailForegroundColor: undefined, emailLabelColor: undefined }))} className="text-accent-strong dark:text-accent-soft hover:underline cursor-pointer">
                   Match general colours
                 </button>
               )}
@@ -434,13 +434,13 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
                 ['Text colour', 'emailForegroundColor', em.fg],
                 ['Label colour', 'emailLabelColor', em.label],
               ] as const).map(([lbl, key, v]) => (
-                <label key={key} className="flex items-center justify-between gap-2 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
+                <label key={key} className="flex items-center justify-between gap-2 text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
                   {lbl}
                   <input type="color" value={v} onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))} className="h-7 w-10 rounded border border-theme-card-border dark:border-white/20 bg-transparent cursor-pointer" />
                 </label>
               ))}
             </div>
-            <label className="block text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
+            <label className="block text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
               Darken ticket art: {Math.round(em.overlay * 100)}%
               <input type="range" min={0} max={0.9} step={0.05} value={em.overlay} onChange={(e) => setDraft((d) => ({ ...d, emailOverlay: Number(e.target.value) }))} className="w-full accent-accent" />
             </label>
@@ -459,7 +459,7 @@ export function PassThemeEditor({ eventId, eventName, onThemeChange }: Props) {
       <p className="text-[10.5px] text-theme-text-secondary">
         Applies to the portal keycard, the emailed boarding pass and the Apple/Google Wallet pass. Text/label colours below affect the portal card and email only — Apple draws wallet text in white.
       </p>
-      {message && <p className="text-[11px] font-semibold text-accent">{message}</p>}
+      {message && <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft">{message}</p>}
     </div>
   );
 }

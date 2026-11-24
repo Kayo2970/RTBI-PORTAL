@@ -63,7 +63,7 @@ export function IosInstallPrompt() {
   return (
     <div className="fixed inset-x-3 bottom-3 z-[60] sm:inset-x-auto sm:right-4 sm:left-4 sm:max-w-sm sm:mx-auto animate-in slide-in-from-bottom-4 fade-in duration-300">
       <div className="glass-panel rounded-2xl border border-theme-border/20 shadow-2xl p-4 flex items-start gap-3">
-        <div className="shrink-0 p-2 rounded-xl bg-accent/15 text-accent border border-accent/20">
+        <div className="shrink-0 p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
           <PlusSquare className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0">

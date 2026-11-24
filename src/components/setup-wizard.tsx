@@ -171,7 +171,7 @@ export function SetupWizard({
   if (isSuccess) {
     return (
       <div className="glass-panel rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-5 border border-emerald-500/30 shadow-2xl animate-in zoom-in-95 duration-300">
-        <div className="h-16 w-16 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+        <div className="h-16 w-16 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
           <CheckCircle2 className="h-10 w-10 animate-bounce" />
         </div>
         <div>
@@ -193,11 +193,11 @@ export function SetupWizard({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-accent/20 rounded-xl text-accent">
+            <div className="p-2 bg-accent/20 rounded-xl text-accent-strong dark:text-accent-soft">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">
+              <span className="text-xs font-bold uppercase tracking-wider text-accent-strong dark:text-accent-soft bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">
                 Fresh Install • Step {step} of 2
               </span>
               <h2 className="text-lg font-black tracking-tight text-theme-text-primary mt-1">
@@ -222,7 +222,7 @@ export function SetupWizard({
 
       {/* Error Alert Box */}
       {error && (
-        <div className="flex items-start gap-2.5 p-3.5 bg-danger/15 border border-danger/30 rounded-2xl text-danger text-xs leading-relaxed animate-in fade-in duration-200">
+        <div className="flex items-start gap-2.5 p-3.5 bg-danger/15 border border-danger/30 rounded-2xl text-danger dark:text-danger-soft text-xs leading-relaxed animate-in fade-in duration-200">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -331,12 +331,12 @@ export function SetupWizard({
       {step === 2 && (
         <form onSubmit={handleFinalSubmit} className="space-y-4 text-xs">
           {isKeyConfigured ? (
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl flex items-start gap-3 text-emerald-400">
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl flex items-start gap-3 text-emerald-700 dark:text-emerald-300">
               <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="font-semibold text-xs text-theme-text-primary">Environment Key Detected</p>
-                <p className="text-[11px] text-theme-text-secondary leading-relaxed">
-                  A <code className="bg-black/30 px-1 py-0.5 rounded text-emerald-400">DATA_ENCRYPTION_KEY</code> is
+                <p className="text-xs text-theme-text-secondary leading-relaxed">
+                  A <code className="bg-black/30 px-1 py-0.5 rounded text-emerald-700 dark:text-emerald-300">DATA_ENCRYPTION_KEY</code> is
                   already set in your server environment or <code className="bg-black/30 px-1 py-0.5 rounded">.env</code> file.
                   Your database collections will be encrypted with this existing key.
                 </p>
@@ -355,8 +355,8 @@ export function SetupWizard({
                       : 'border-theme-card-border bg-theme-background/30 text-theme-text-secondary hover:border-white/20'
                   }`}
                 >
-                  <KeyRound className="h-4 w-4 text-accent shrink-0" />
-                  <span className="text-[11px]">Generate 256-bit Key</span>
+                  <KeyRound className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
+                  <span className="text-xs">Generate 256-bit Key</span>
                 </button>
                 <button
                   type="button"
@@ -367,38 +367,38 @@ export function SetupWizard({
                       : 'border-theme-card-border bg-theme-background/30 text-theme-text-secondary hover:border-white/20'
                   }`}
                 >
-                  <Database className="h-4 w-4 text-accent shrink-0" />
-                  <span className="text-[11px]">Custom Passphrase</span>
+                  <Database className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
+                  <span className="text-xs">Custom Passphrase</span>
                 </button>
               </div>
 
               {/* Key Display / Input */}
               {keyMode === 'generate' ? (
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px]">
+                  <div className="flex justify-between items-center text-xs">
                     <span className="text-theme-text-secondary font-medium">Generated Master Key (Hex):</span>
                     <button
                       type="button"
                       onClick={handleRegenerateKey}
-                      className="text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <RefreshCw className="h-3 w-3" />
                       Regenerate
                     </button>
                   </div>
                   <div className="relative">
-                    <div className="p-3 bg-black/40 border border-theme-card-border rounded-xl font-mono text-[11px] text-emerald-400 break-all select-all pr-20">
+                    <div className="p-3 bg-black/40 border border-theme-card-border rounded-xl font-mono text-xs text-emerald-700 dark:text-emerald-300 break-all select-all pr-20">
                       {generatedKey}
                     </div>
                     <button
                       type="button"
                       onClick={handleCopyKey}
-                      className="absolute right-2 top-2 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-theme-text-primary flex items-center gap-1.5 text-[11px] font-medium transition-all cursor-pointer"
+                      className="absolute right-2 top-2 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-theme-text-primary flex items-center gap-1.5 text-xs font-medium transition-all cursor-pointer"
                     >
                       {hasCopiedKey ? (
                         <>
-                          <Check className="h-3.5 w-3.5 text-emerald-400" />
-                          <span className="text-emerald-400 font-semibold">Copied</span>
+                          <Check className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
+                          <span className="text-emerald-700 dark:text-emerald-300 font-semibold">Copied</span>
                         </>
                       ) : (
                         <>
@@ -428,13 +428,13 @@ export function SetupWizard({
               {/* Warning & Confirmation Checkbox */}
               <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl space-y-2 text-amber-300">
                 <div className="flex items-start gap-2 text-xs">
-                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-400" />
-                  <p className="text-[11px] leading-relaxed">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-700 dark:text-amber-300" />
+                  <p className="text-xs leading-relaxed">
                     <strong>Save this key now!</strong> This key will be saved to your server's <code className="bg-black/40 px-1 py-0.2 rounded font-mono text-white">.env</code>.
                     If the disk is lost or migrated, this key is the only way to decrypt your database.
                   </p>
                 </div>
-                <label className="flex items-center gap-2 pt-1 border-t border-amber-500/20 text-[11px] cursor-pointer text-theme-text-primary select-none">
+                <label className="flex items-center gap-2 pt-1 border-t border-amber-500/20 text-xs cursor-pointer text-theme-text-primary select-none">
                   <input
                     type="checkbox"
                     checked={keyBackedUpConfirmed}

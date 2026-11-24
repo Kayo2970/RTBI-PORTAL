@@ -47,14 +47,14 @@ export function PassColorControls({
             {/* 4.5. Pass Color & Gradient Customization */}
             <div className="space-y-3 p-3.5 rounded-2xl bg-theme-background/70 dark:bg-white/5 border border-theme-card-border dark:border-white/10">
               <div className="flex items-center justify-between">
-                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                  <Palette className="h-3.5 w-3.5 text-accent" />
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs flex items-center gap-1.5">
+                  <Palette className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                   <span>Pass Color &amp; Gradient Customization</span>
                 </label>
               {activeTheme?.backgroundUrl && (
-                <p className="text-[10.5px] text-accent">Event background image is active on the card — the colour/gradient below is only the fallback.</p>
+                <p className="text-[10.5px] text-accent-strong dark:text-accent-soft">Event background image is active on the card — the colour/gradient below is only the fallback.</p>
               )}
-                <div className="flex items-center gap-1 bg-theme-border/80 dark:bg-white/10 p-0.5 rounded-lg text-[10px] font-bold">
+                <div className="flex items-center gap-1 bg-theme-border/80 dark:bg-white/10 p-0.5 rounded-lg text-xs font-bold">
                   <button
                     type="button"
                     onClick={() => setColorMode('gradient')}
@@ -105,7 +105,7 @@ export function PassColorControls({
                           }`}
                           style={{ background: gp.value }}
                         >
-                          <span className="text-[10px] font-extrabold text-white drop-shadow truncate">
+                          <span className="text-xs font-extrabold text-white drop-shadow truncate">
                             {gp.name}
                           </span>
                           {isSelected && <Sparkles className="h-3 w-3 text-white drop-shadow shrink-0" />}
@@ -117,8 +117,8 @@ export function PassColorControls({
                   {/* Dual Tone Color Pickers */}
                   <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-theme-card-border/80 dark:border-white/10">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-theme-text-secondary dark:text-theme-text-secondary">Start Color:</span>
-                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 border border-theme-card-border dark:border-white/15 text-[10px] font-bold text-theme-text-primary dark:text-theme-text-primary">
+                      <span className="text-xs font-bold text-theme-text-secondary dark:text-theme-text-secondary">Start Color:</span>
+                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 border border-theme-card-border dark:border-white/15 text-xs font-bold text-theme-text-primary dark:text-theme-text-primary">
                         <div className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-inner" style={{ backgroundColor: passColor }} />
                         <span>{passColor}</span>
                         <input
@@ -135,8 +135,8 @@ export function PassColorControls({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-theme-text-secondary dark:text-theme-text-secondary">End Color:</span>
-                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 border border-theme-card-border dark:border-white/15 text-[10px] font-bold text-theme-text-primary dark:text-theme-text-primary">
+                      <span className="text-xs font-bold text-theme-text-secondary dark:text-theme-text-secondary">End Color:</span>
+                      <label className="relative cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 border border-theme-card-border dark:border-white/15 text-xs font-bold text-theme-text-primary dark:text-theme-text-primary">
                         <div className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-inner" style={{ backgroundColor: gradientEndColor }} />
                         <span>{gradientEndColor}</span>
                         <input
@@ -183,7 +183,7 @@ export function PassColorControls({
                     })}
 
                     <div className="flex items-center gap-1.5 ml-auto">
-                      <label className="relative cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 hover:bg-theme-border/40 dark:hover:bg-white/20 border border-theme-card-border dark:border-white/15 text-[10px] font-bold text-theme-text-primary dark:text-theme-text-primary transition-all">
+                      <label className="relative cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-border/25 dark:bg-white/10 hover:bg-theme-border/40 dark:hover:bg-white/20 border border-theme-card-border dark:border-white/15 text-xs font-bold text-theme-text-primary dark:text-theme-text-primary transition-all">
                         <span>Custom</span>
                         <input
                           type="color"
@@ -218,10 +218,10 @@ export function PassTextColorControls({
     <>
             {/* 4.6 Text colours */}
             <div className="space-y-2">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center justify-between">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs flex items-center justify-between">
                 <span>Pass Text Colours</span>
                 {(textColor || labelColor) && (
-                  <button type="button" onClick={() => { setTextColor(''); setLabelColor(''); }} className="text-[10px] text-accent hover:underline">
+                  <button type="button" onClick={() => { setTextColor(''); setLabelColor(''); }} className="text-xs text-accent-strong dark:text-accent-soft hover:underline">
                     Reset to auto
                   </button>
                 )}
@@ -231,7 +231,7 @@ export function PassTextColorControls({
                   ['Text (name, event)', textColor, setTextColor, '#ffffff'],
                   ['Labels & accents', labelColor, setLabelColor, '#F26A44'],
                 ] as const).map(([lbl, val, set, fallback]) => (
-                  <label key={lbl} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-theme-card-border dark:border-white/15 bg-theme-background/50 dark:bg-theme-background/60 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
+                  <label key={lbl} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-theme-card-border dark:border-white/15 bg-theme-background/50 dark:bg-theme-background/60 text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
                     {lbl}
                     <input type="color" value={val || fallback} onChange={(e) => set(e.target.value)} className="h-7 w-10 rounded border border-theme-card-border dark:border-white/20 bg-transparent cursor-pointer" />
                   </label>
@@ -261,13 +261,13 @@ export function PassValidityPicker({
 }) {
   return (
               <div className="space-y-1.5">
-                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center justify-between">
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs flex items-center justify-between">
                   <span>Valid On (one pass, one QR for all selected days)</span>
                   {selectedValidDays && (
                     <button
                       type="button"
                       onClick={() => setSelectedValidDays(null)}
-                      className="text-[10px] text-accent hover:underline"
+                      className="text-xs text-accent-strong dark:text-accent-soft hover:underline"
                     >
                       All event days
                     </button>
@@ -282,7 +282,7 @@ export function PassValidityPicker({
                           type="button"
                           key={d}
                           onClick={() => toggleValidDay(d)}
-                          className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer ${
+                          className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
                             on
                               ? 'bg-accent/20 border-accent text-accent dark:text-accent'
                               : 'bg-theme-background/50 dark:bg-theme-background/60 border-theme-card-border dark:border-white/15 text-theme-text-secondary line-through'
@@ -348,9 +348,9 @@ export function PassSection({
         className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer hover:bg-theme-border/70 dark:hover:bg-white/[0.04] transition-colors"
       >
         <span className="flex items-center gap-2.5 min-w-0">
-          {icon && <span className="text-accent shrink-0">{icon}</span>}
+          {icon && <span className="text-accent-strong dark:text-accent-soft shrink-0">{icon}</span>}
           <span className="min-w-0">
-            <span className="block text-[11px] font-extrabold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-primary">{title}</span>
+            <span className="block text-xs font-extrabold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-primary">{title}</span>
             {hint && <span className="block text-[10.5px] text-theme-text-secondary dark:text-theme-text-secondary font-medium normal-case tracking-normal truncate">{hint}</span>}
           </span>
         </span>
@@ -363,10 +363,10 @@ export function PassSection({
   );
 }
 
-const label = 'block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] mb-1.5';
+const label = 'block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs mb-1.5';
 const chip = (on: boolean) =>
-  `px-3 py-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
-    on ? 'border-accent bg-accent/15 text-accent' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary dark:text-theme-text-secondary hover:border-accent/50'
+  `px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all ${
+    on ? 'border-accent bg-accent/15 text-accent-strong dark:text-accent-soft' : 'border-theme-card-border dark:border-white/15 text-theme-text-secondary dark:text-theme-text-secondary hover:border-accent/50'
   }`;
 
 /**
@@ -413,7 +413,7 @@ export function CardArtworkToggle({ value, onChange, hasArtwork }: { value: bool
     <div className="rounded-xl border border-theme-card-border dark:border-white/10 p-3">
       <label className="flex items-center justify-between gap-3 cursor-pointer">
         <span className="min-w-0">
-          <span className="block text-[11px] font-extrabold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-primary">Event artwork on the card</span>
+          <span className="block text-xs font-extrabold uppercase tracking-wider text-theme-text-primary dark:text-theme-text-primary">Event artwork on the card</span>
           <span className="block text-[10.5px] text-theme-text-secondary mt-0.5">
             {hasArtwork
               ? on ? 'On — the event picture covers the card, so colour changes are hidden. Switch off to see your colours.' : 'Off — the card uses the colours / gradient chosen here.'
@@ -465,7 +465,7 @@ export function PassFontControls({
             className="flex-1 min-w-[120px] accent-accent"
             aria-label="Text size"
           />
-          <span className="text-[11px] font-bold tabular-nums text-theme-text-secondary w-10 text-right">{Math.round(fontScale * 100)}%</span>
+          <span className="text-xs font-bold tabular-nums text-theme-text-secondary w-10 text-right">{Math.round(fontScale * 100)}%</span>
         </div>
         <p className="text-[10.5px] text-theme-text-secondary mt-1">Applies to the event title, guest name and details on the portal card, the emailed ticket and the wallet pass artwork. Apple draws its own small field row on the wallet pass.</p>
       </div>
@@ -514,7 +514,7 @@ export function PassQrControls({ value, onChange }: { value: PassQrOptions; onCh
   const weak = ratio < 4;
   const inverted = value.dark.length === 7 && value.light.length === 7 && contrastRatio(value.dark, '#000000') > contrastRatio(value.light, '#000000');
   const colour = (name: string, key: 'dark' | 'light' | 'eye', fallback: string) => (
-    <label className="flex items-center gap-2 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
+    <label className="flex items-center gap-2 text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary">
       {name}
       <input type="color" value={value[key] || fallback} onChange={(e) => onChange({ [key]: e.target.value })} className="h-7 w-9 rounded cursor-pointer bg-transparent" />
     </label>
@@ -532,7 +532,7 @@ export function PassQrControls({ value, onChange }: { value: PassQrOptions; onCh
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-2 text-[11px] font-semibold text-theme-text-secondary dark:text-theme-text-secondary cursor-pointer">
+          <label className="flex items-center gap-2 text-xs font-semibold text-theme-text-secondary dark:text-theme-text-secondary cursor-pointer">
             <input type="checkbox" checked={value.logo} onChange={(e) => onChange({ logo: e.target.checked })} className="accent-accent" />
             Logo in the centre
           </label>
@@ -553,17 +553,17 @@ export function PassQrControls({ value, onChange }: { value: PassQrOptions; onCh
           {colour('Dots', 'dark', DEFAULT_QR_OPTIONS.dark)}
           {colour('Background', 'light', DEFAULT_QR_OPTIONS.light)}
           {colour('Corner eyes', 'eye', value.dark)}
-          {value.eye && <button type="button" onClick={() => onChange({ eye: '' })} className="text-[11px] font-bold text-accent hover:underline cursor-pointer">Eyes = dots</button>}
+          {value.eye && <button type="button" onClick={() => onChange({ eye: '' })} className="text-xs font-bold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer">Eyes = dots</button>}
         </div>
         {(weak || inverted) && (
-          <p className="text-[10.5px] text-warning font-semibold mt-1.5">
+          <p className="text-[10.5px] text-warning dark:text-warning-soft font-semibold mt-1.5">
             {inverted ? 'Light dots on a dark background may not scan on some phones — keep the dots darker than the background.' : 'Low contrast — some scanners may struggle. Pick darker dots or a lighter background.'}
           </p>
         )}
       </div>
 
       <div className="rounded-xl border border-theme-card-border dark:border-white/10 p-3 space-y-2">
-        <label className="flex items-start gap-2 text-[11px] font-bold text-theme-text-primary dark:text-theme-text-primary cursor-pointer">
+        <label className="flex items-start gap-2 text-xs font-bold text-theme-text-primary dark:text-theme-text-primary cursor-pointer">
           <input type="checkbox" checked={value.inWallet} onChange={(e) => onChange({ inWallet: e.target.checked })} className="accent-accent mt-0.5" />
           <span>
             Use this exact QR on the Apple / Google Wallet pass too (recommended)

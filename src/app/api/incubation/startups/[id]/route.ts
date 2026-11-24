@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { mutateCollection, readCollection } from '@/lib/server-db';
 import { requireSession, ForbiddenError } from '@/lib/session';
 import { apiError } from '@/lib/api-error';
-import { canManageStartupsServer } from '@/lib/permissions-server';
+import { canManageStartupsServer, isInternalStaff } from '@/lib/permissions-server';
 import { incubationAudit } from '@/lib/incubation/audit-server';
 import { canSeeStartup, validFounderIds, canFounderEditStartup } from '@/lib/incubation/startups-server';
 import { saveBase64File, parseDataUrl } from '@/lib/file-storage';
@@ -17,8 +17,11 @@ const TEXT_FIELDS = [
 // Fields that authorized founders are allowed to self-update
 const FOUNDER_EDITABLE_FIELDS = new Set([
   'name', 'tagline', 'sector', 'stage', 'technology', 'website',
-  'aboutUs', 'problem', 'solution', 'foundedYear', 'teamSize', 'location', 'notes',
+  'aboutUs', 'problem', 'solution', 'foundedYear', 'teamSize', 'location',
 ]);
+
+const LOCKED_STATUSES = ['Active', 'Graduated', 'Exited', 'Onboarding'];
+const safeUrl = (v: unknown) => (typeof v === 'string' && /^https?:\/\/[^\s]+$/i.test(v.trim()) ? v.trim().slice(0, 300) : undefined);
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -26,6 +29,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const s = (await readCollection<Startup>('startups')).find(x => x.id === id);
     if (!s || !(await canSeeStartup(actor, s))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    // Internal notes and the change log (actor IDs) are for staff, not founders.
+    if (!isInternalStaff(actor)) { const { notes: _n, changeLog: _c, ...pub } = s as any; return NextResponse.json(pub); }
     return NextResponse.json(s);
   } catch (err) {
     return apiError(err, 'incubation-startup-get', 500);
@@ -102,7 +107,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
 
       if (body.socials && typeof body.socials === 'object') {
-        set('socials', body.socials);
+        const soc: Record<string, string> = {};
+        for (const k of ['linkedin', 'twitter', 'instagram'] as const) { const u = safeUrl(body.socials[k]); if (u) soc[k] = u; }
+        set('socials', soc);
       }
 
       // Administrative changes reserved for manager (CEO / Super User)
@@ -110,10 +117,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         if ((STARTUP_PATHWAYS as readonly string[]).includes(body.pathway)) set('pathway', body.pathway);
         if ((STARTUP_MODES as readonly string[]).includes(body.mode)) set('mode', body.mode);
         if (founders) set('founderMemberIds', founders);
-        if (body.status === 'Waitlisted' || body.status === 'Applicant' || body.status === 'Selected') set('status', body.status);
+        // Lifecycle is one-way: an Active / Onboarding / Graduated / Exited startup cannot be pushed back to an earlier status here.
+        if ((body.status === 'Waitlisted' || body.status === 'Applicant' || body.status === 'Selected') && !LOCKED_STATUSES.includes(s.status)) {
+          // Waitlist -> Selected must go through an approval reference.
+          if (s.status === 'Waitlisted' && body.status === 'Selected' && !(typeof body.approvalRef === 'string' && body.approvalRef.trim())) throw new Error('Promoting a waitlisted startup needs an approval reference.');
+          set('status', body.status);
+          if (s.status === 'Waitlisted' && body.status === 'Selected') set('promotedFromWaitlistRef', body.approvalRef.trim().slice(0, 300));
+        }
+        if (typeof body.notes === 'string') set('notes', body.notes.trim().slice(0, 3000) || undefined);
       }
 
-      if (body.consent && typeof body.consent === 'object') {
+      if (isManager && body.consent && typeof body.consent === 'object') {
         const c = {
           externalDisclosure: !!body.consent.externalDisclosure,
           photos: !!body.consent.photos,

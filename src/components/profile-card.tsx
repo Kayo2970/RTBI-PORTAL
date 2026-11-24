@@ -281,7 +281,7 @@ export function ProfileCard({
               {handle && <p className={styles.userHandle}>@{handle.replace(/^@/, '')}</p>}
 
               <div className={styles.orgBadge}>
-                <ShieldCheck className="h-3 w-3 text-sky-400" />
+                <ShieldCheck className="h-3 w-3 text-sky-700 dark:text-sky-300" />
                 <span>Ramaiah Technology Business Incubator Portal</span>
               </div>
             </>
@@ -292,13 +292,13 @@ export function ProfileCard({
             <div className={styles.contactGrid}>
               {phone && (
                 <a href={`tel:${phone}`} className={styles.contactRow}>
-                  <Phone className="h-3.5 w-3.5 text-sky-400" />
+                  <Phone className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
                   <span>{phone}</span>
                 </a>
               )}
               {email && (
                 <a href={`mailto:${email}`} className={styles.contactRow}>
-                  <Mail className="h-3.5 w-3.5 text-sky-400" />
+                  <Mail className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
                   <span className="truncate max-w-[260px]">{email}</span>
                 </a>
               )}
@@ -313,7 +313,7 @@ export function ProfileCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 title="LinkedIn Profile"
-                className="h-8 w-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-sky-400 transition-colors"
+                className="h-8 w-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-sky-700 dark:text-sky-300 transition-colors"
               >
                 <Linkedin className="h-3.5 w-3.5" />
               </a>
@@ -333,12 +333,12 @@ export function ProfileCard({
                     target="_blank"
                     rel="noopener noreferrer"
                     title={link.label}
-                    className="flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-2.5 py-1.5 text-[11px] font-medium text-white/90 transition-colors"
+                    className="flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-2.5 py-1.5 text-xs font-medium text-white/90 transition-colors"
                   >
                     {iconSrc ? (
                       <img src={iconSrc} alt="" className="h-3.5 w-3.5 rounded object-cover" />
                     ) : (
-                      <PresetIcon className="h-3.5 w-3.5 text-sky-400" />
+                      <PresetIcon className="h-3.5 w-3.5 text-sky-700 dark:text-sky-300" />
                     )}
                     <span>{link.label}</span>
                   </a>
@@ -445,7 +445,7 @@ export function ProfileCard({
             </div>
 
             {walletError && (
-              <p className="flex items-center justify-center gap-1.5 text-[10px] text-rose-400 pt-1">
+              <p className="flex items-center justify-center gap-1.5 text-xs text-rose-700 dark:text-rose-300 pt-1">
                 <AlertCircle className="h-3 w-3 shrink-0" />
                 {walletError}
               </p>
@@ -472,14 +472,14 @@ export function ProfileCard({
                 e.stopPropagation();
                 enableIosGyroscope();
               }}
-              className="mt-3 px-3 py-1.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-300 text-[11px] font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+              className="mt-3 px-3 py-1.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
             >
               <Smartphone className="h-3.5 w-3.5 animate-bounce" />
               Tap to Enable 3D Motion (iOS)
             </button>
           ) : (
             <div className={styles.gyroscopeHint}>
-              <Smartphone className="h-3 w-3 text-sky-400 animate-pulse" />
+              <Smartphone className="h-3 w-3 text-sky-700 dark:text-sky-300 animate-pulse" />
               <span>{gyroActive ? '3D Gyroscope Active — Tilt or Swipe Card' : 'Interactive 3D Motion'}</span>
             </div>
           )}

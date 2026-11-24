@@ -1,8 +1,8 @@
 import type React from 'react';
 import {
   LayoutDashboard, Calendar, CheckSquare, Star, Receipt, ReceiptText, DoorOpen, Boxes, FileText, BarChart3,
-  Megaphone, Settings, FileCheck2, IdCard, Ticket, Lightbulb, Rocket, ClipboardCheck, Palette, Send, Mail,
-  Contact, Wallet, ShieldCheck, Users, Library, Sparkles,
+  Megaphone, Settings, FileCheck2, IdCard, Ticket, Lightbulb, Rocket, Palette, Send, Mail,
+  Contact, Wallet, ShieldCheck, Users, Sparkles,
 } from 'lucide-react';
 import { canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
 
@@ -18,6 +18,8 @@ export interface NavItem {
   groupPoliciesOnly?: boolean;
   /** Extra words the command palette matches on. */
   keywords?: string;
+  /** Where external reviewers (who can reach only part of the area) are sent instead of `href`. */
+  externalHref?: string;
 }
 
 export interface NavGroup {
@@ -48,11 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'incubation',
     title: 'Incubation',
     items: [
-      { name: 'Startups', href: '/dashboard/incubation', icon: Rocket, keywords: 'registry portfolio' },
-      { name: 'Applications', href: '/dashboard/incubation/applications', icon: FileText, staffOnly: true, keywords: 'intake screening scorecard' },
-      { name: 'Onboarding', href: '/dashboard/incubation/onboarding', icon: ClipboardCheck, staffOnly: true, keywords: 'activation checklist' },
-      { name: 'Registers', href: '/dashboard/incubation/records/review', icon: Library, matchPrefixes: ['/dashboard/incubation/records'], keywords: 'reviews trl graduation evidence mentors cohorts agreements incidents' },
-      { name: 'KPI Dashboard', href: '/dashboard/incubation/kpi', icon: BarChart3, staffOnly: true, keywords: 'annexure targets' },
+      { name: 'Incubation', href: '/dashboard/incubation/overview', icon: Rocket, matchPrefixes: ['/dashboard/incubation'], externalHref: '/dashboard/incubation/applications', keywords: 'startups applications onboarding registers kpi reviews cohorts mentors graduation' },
     ],
   },
   {
@@ -95,6 +93,38 @@ export const NAV_GROUPS: NavGroup[] = [
 ];
 
 export const ALL_NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+
+/** Deep links the command palette can jump to that are not sidebar items (incubation stages and registers). */
+export interface DeepLink { name: string; parent: string; href: string; keywords?: string; staffOnly?: boolean; managerOnly?: boolean }
+export const DEEP_LINKS: DeepLink[] = [
+  { name: 'Incubation overview', parent: 'Incubation', href: '/dashboard/incubation/overview', staffOnly: true, keywords: 'funnel attention' },
+  { name: 'Startup registry', parent: 'Incubation', href: '/dashboard/incubation', keywords: 'startups portfolio' },
+  { name: 'Applications', parent: 'Incubation', href: '/dashboard/incubation/applications', staffOnly: true, keywords: 'intake screening scorecard decision' },
+  { name: 'Onboarding', parent: 'Incubation', href: '/dashboard/incubation/onboarding', staffOnly: true, keywords: 'activation checklist' },
+  { name: 'KPI dashboard', parent: 'Incubation', href: '/dashboard/incubation/kpi', staffOnly: true, keywords: 'annexure targets kits' },
+  { name: 'Incubation settings', parent: 'Incubation', href: '/dashboard/incubation/settings', staffOnly: true, keywords: 'scorecard weights timers fees' },
+  { name: 'Quarterly reviews', parent: 'Incubation · Compliance', href: '/dashboard/incubation/records/review', staffOnly: true, keywords: 'rag' },
+  { name: 'TRL assessments', parent: 'Incubation · Compliance', href: '/dashboard/incubation/records/trl', staffOnly: true },
+  { name: 'Agreements', parent: 'Incubation · Compliance', href: '/dashboard/incubation/records/agreement', staffOnly: true },
+  { name: 'Evidence index', parent: 'Incubation · Compliance', href: '/dashboard/incubation/records/evidence', staffOnly: true, keywords: 'kits export' },
+  { name: 'Annual renewals', parent: 'Incubation · Compliance', href: '/dashboard/incubation/records/renewal', staffOnly: true },
+  { name: 'Incidents & complaints', parent: 'Incubation · Compliance', href: '/dashboard/incubation/records/incident', managerOnly: true },
+  { name: 'Cohorts', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/cohort', staffOnly: true },
+  { name: 'Cohort milestones', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/milestone', staffOnly: true },
+  { name: 'Programme events', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/programEvent', staffOnly: true },
+  { name: 'Mentors', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/mentor', staffOnly: true },
+  { name: 'Mentor sessions', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/mentorSession', staffOnly: true },
+  { name: 'Partnerships', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/partnership', staffOnly: true },
+  { name: 'PMC / BoG meetings', parent: 'Incubation · Programme', href: '/dashboard/incubation/records/meeting', staffOnly: true },
+  { name: 'Graduation reviews', parent: 'Incubation · Graduation & exit', href: '/dashboard/incubation/records/graduation', staffOnly: true },
+  { name: 'Exits & closure', parent: 'Incubation · Graduation & exit', href: '/dashboard/incubation/records/exit', staffOnly: true },
+];
+
+export function isDeepLinkVisible(l: DeepLink, user: any): boolean {
+  if (user.tier === 3 && user.externalReviewer === true) return l.href === '/dashboard/incubation/applications';
+  if (user.tier === 4) return false;
+  return (!l.staffOnly || user.tier <= 3) && (!l.managerOnly || user.tier <= 2);
+}
 
 /** The one visibility rule used by sidebar, mobile drawer and command palette. */
 export function isNavItemVisible(item: NavItem, user: any): boolean {

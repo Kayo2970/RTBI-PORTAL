@@ -180,12 +180,12 @@ export default function PublicEventPassPage({
     return (
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 relative z-0 overflow-hidden">
         <div className="glass-panel w-full max-w-md rounded-3xl p-8 flex flex-col items-center text-center space-y-5 border border-white/20 shadow-2xl backdrop-blur-2xl bg-[#160B2C]/90 text-white">
-          <div className="h-14 w-14 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+          <div className="h-14 w-14 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
             <Sparkles className="h-7 w-7" />
           </div>
           <div className="space-y-2">
             <h1 className="text-xl font-black">Thank you for being part of</h1>
-            <p className="text-lg font-bold text-accent">{archived.eventName}</p>
+            <p className="text-lg font-bold text-accent-strong dark:text-accent-soft">{archived.eventName}</p>
             <p className="text-xs text-[#D6CFE3] leading-relaxed">
               This event has wrapped up and your pass is now retired. We loved having you with us — follow us on our socials for more exciting events from RTBI.
             </p>
@@ -209,7 +209,7 @@ export default function PublicEventPassPage({
     return (
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 relative z-0 overflow-hidden">
         <div className="glass-panel w-full max-w-md rounded-3xl p-8 flex flex-col items-center text-center space-y-4 border border-white/20 dark:border-white/15 shadow-2xl backdrop-blur-2xl bg-[#160B2C]/90 text-white">
-          <div className="h-14 w-14 rounded-2xl bg-danger/20 border border-danger/30 flex items-center justify-center text-danger">
+          <div className="h-14 w-14 rounded-2xl bg-danger/20 border border-danger/30 flex items-center justify-center text-danger dark:text-danger-soft">
             <AlertTriangle className="h-7 w-7" />
           </div>
           <h1 className="text-lg font-bold">Event Pass Not Found</h1>
@@ -241,13 +241,13 @@ export default function PublicEventPassPage({
       {/* Top Floating Branding */}
       <div className="w-full max-w-2xl flex items-center justify-between gap-4 mb-4 pb-3 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+          <div className="h-9 w-9 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
             <Sparkles className="h-4.5 w-4.5" />
           </div>
           <div>
             <div className="text-xs font-black tracking-wider uppercase text-white flex items-center gap-1.5">
               RTBI
-              <span className="text-[10px] text-accent font-normal">• RUAS</span>
+              <span className="text-xs text-accent-strong dark:text-accent-soft font-normal">• RUAS</span>
             </div>
             <p className="text-[10.5px] text-[#B8AEC8]">Official Digital Turnstile Credential</p>
           </div>
@@ -255,16 +255,16 @@ export default function PublicEventPassPage({
 
         <div className="flex items-center gap-2">
           {isCancelled ? (
-            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-danger/20 text-danger border border-danger/30 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-danger/20 text-danger dark:text-danger-soft border border-danger/30 flex items-center gap-1">
               <AlertTriangle className="h-3.5 w-3.5" /> Cancelled
             </span>
           ) : isCheckedIn ? (
-            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-warning/20 text-warning border border-warning/30 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-warning/20 text-warning dark:text-warning-soft border border-warning/30 flex items-center gap-1">
               <CheckCircle2 className="h-3.5 w-3.5" />
               {isMultiDay ? `Checked In (${attendance.attended}/${attendance.total} days)` : 'Checked In'}
             </span>
           ) : (
-            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-success/20 text-success border border-success/30 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-success/20 text-success dark:text-success-soft border border-success/30 flex items-center gap-1">
               <ShieldCheck className="h-3.5 w-3.5" /> Verified Pass
             </span>
           )}
@@ -284,7 +284,7 @@ export default function PublicEventPassPage({
       </div>
 
       {walletNotice && (
-        <div className="w-full max-w-md my-3 p-3 bg-warning/15 border border-warning/40 rounded-2xl text-warning text-xs font-semibold text-center">
+        <div className="w-full max-w-md my-3 p-3 bg-warning/15 border border-warning/40 rounded-2xl text-warning dark:text-warning-soft text-xs font-semibold text-center">
           We couldn&apos;t add this pass to your wallet right now. Please try again in a minute, or use the QR code below.
         </div>
       )}
@@ -311,7 +311,7 @@ export default function PublicEventPassPage({
             disabled={Boolean(walletLoadingMsg)}
             className="py-3 px-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl border border-white/15 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
           >
-            <ExternalLink className="h-4 w-4 text-success" />
+            <ExternalLink className="h-4 w-4 text-success dark:text-success-soft" />
             <span>Google Wallet</span>
           </button>
         </div>
@@ -322,7 +322,7 @@ export default function PublicEventPassPage({
             onClick={handleAddToCalendar}
             className="py-2.5 px-3 bg-[#160B2C]/80 hover:bg-[#24113F] text-[#E9E4F2] font-semibold rounded-xl border border-white/10 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Calendar className="h-3.5 w-3.5 text-accent" />
+            <Calendar className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
             <span>Add to Calendar</span>
           </button>
 
@@ -331,29 +331,29 @@ export default function PublicEventPassPage({
             onClick={handleSharePass}
             className="py-2.5 px-3 bg-[#160B2C]/80 hover:bg-[#24113F] text-[#E9E4F2] font-semibold rounded-xl border border-white/10 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Share2 className="h-3.5 w-3.5 text-warning" />
+            <Share2 className="h-3.5 w-3.5 text-warning dark:text-warning-soft" />
             <span>{copiedLink ? 'Link Copied!' : 'Share Pass'}</span>
           </button>
         </div>
 
         {/* Turnstile Access Summary Card */}
         <div className="glass-panel rounded-2xl p-4 border border-white/10 bg-[#0F0623]/60 backdrop-blur-xl text-white space-y-2.5 mt-4">
-          <div className="flex items-center justify-between text-[11px] font-bold text-[#D6CFE3] border-b border-white/10 pb-2">
+          <div className="flex items-center justify-between text-xs font-bold text-[#D6CFE3] border-b border-white/10 pb-2">
             <span>Event Turnstile Entry Guidelines</span>
-            <span className="font-mono text-accent">{pass.serialNumber}</span>
+            <span className="font-mono text-accent-strong dark:text-accent-soft">{pass.serialNumber}</span>
           </div>
 
           <div className="space-y-1 text-[11.5px] text-[#D6CFE3]">
             <div className="flex items-start gap-2">
-              <MapPin className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
+              <MapPin className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
               <span><strong>Assigned Venue:</strong> {pass.roomOrVenue || pass.eventVenue || 'Main Auditorium'}</span>
             </div>
             <div className="flex items-start gap-2">
-              <Clock className="h-3.5 w-3.5 text-warning shrink-0 mt-0.5" />
+              <Clock className="h-3.5 w-3.5 text-warning dark:text-warning-soft shrink-0 mt-0.5" />
               <span><strong>Date &amp; Schedule:</strong> {validDays.length > 0 ? formatValidDaysLabel(validDays) : pass.validityDate || pass.eventDate || '2026'}</span>
             </div>
             <div className="flex items-start gap-2">
-              <QrCode className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
+              <QrCode className="h-3.5 w-3.5 text-success dark:text-success-soft shrink-0 mt-0.5" />
               <span>Present this QR code or your Apple/Google Wallet pass at official turnstiles for high-speed automated check-in.</span>
             </div>
           </div>

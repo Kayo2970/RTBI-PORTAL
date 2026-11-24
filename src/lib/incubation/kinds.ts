@@ -23,6 +23,8 @@ export interface FieldDef {
   /** type 'record': the register kind it points at, and which of its fields to show as the label. */
   refKind?: string;
   refLabel?: string;
+  /** Optional form section heading (presentation only; see sections.ts for the inferred default). */
+  section?: string;
 }
 
 export interface KindCtx {

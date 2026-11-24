@@ -32,7 +32,7 @@ function WalletInner() {
       <img src="/card/rtbi-logo.png" alt="RTBI" className="h-14 w-14 object-contain mb-5" />
       {error ? (
         <div className="max-w-md space-y-4">
-          <p className="text-danger text-sm font-semibold">{error}</p>
+          <p className="text-danger dark:text-danger-soft text-sm font-semibold">{error}</p>
           <a href={`/pass/${encodeURIComponent(serial)}`} className="inline-block px-5 py-2.5 rounded-xl bg-accent text-sm font-bold">View your digital pass instead</a>
         </div>
       ) : (
@@ -46,7 +46,7 @@ function WalletInner() {
               : 'Hang tight — we are preparing your personal pass.'}
           </p>
           {done && (
-            <a href={`/pass/${encodeURIComponent(serial)}`} className="mt-5 text-xs text-accent underline">View digital pass</a>
+            <a href={`/pass/${encodeURIComponent(serial)}`} className="mt-5 text-xs text-accent-strong dark:text-accent-soft underline">View digital pass</a>
           )}
         </>
       )}

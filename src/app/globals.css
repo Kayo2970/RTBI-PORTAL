@@ -53,6 +53,10 @@
   /* AA-safe orange: 5.4:1 with white text, 5.1:1 on white. (Was #E34A21, ~4:1.) */
   --color-accent: #C23B14;
   --color-accent-soft: #FF9A7B; /* accent text on dark surfaces */
+  --color-accent-strong: #A9330F; /* accent text on light surfaces and tints (>=6:1) */
+  --color-success-soft: #4ADE80;
+  --color-warning-soft: #FBBF24;
+  --color-danger-soft: #FDA4AF;
   --color-secondary: #932961;
   --color-success: #15803D;
   --color-warning: #B45309;
@@ -189,10 +193,11 @@ body {
 }
 
 /* Accessibility baseline ------------------------------------------------- */
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
-  border-radius: 0.5rem;
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 .skip-link {
@@ -258,12 +263,12 @@ body {
 .skeleton {
   position: relative;
   overflow: hidden;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(54, 28, 106, 0.10);
   border-radius: 0.75rem;
 }
 
 .dark .skeleton {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.10);
 }
 
 .skeleton--shimmer {

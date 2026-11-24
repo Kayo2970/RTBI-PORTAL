@@ -432,10 +432,10 @@ export default function SettingsPage() {
     return 'neutral';
   };
   const auditSeverityClasses: Record<ReturnType<typeof auditSeverity>, string> = {
-    danger: 'bg-danger/10 text-danger',
-    warning: 'bg-warning/10 text-warning',
-    success: 'bg-success/10 text-success',
-    neutral: 'bg-accent/10 text-accent',
+    danger: 'bg-danger/10 text-danger dark:text-danger-soft',
+    warning: 'bg-warning/10 text-warning dark:text-warning-soft',
+    success: 'bg-success/10 text-success dark:text-success-soft',
+    neutral: 'bg-accent/10 text-accent-strong dark:text-accent-soft',
   };
 
   const auditSearchedLogs = auditLogs.filter(log => {
@@ -466,13 +466,13 @@ export default function SettingsPage() {
       {/* Notifications */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl text-emerald-300 text-xs animate-in fade-in duration-300">
-          <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-300 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
       {errorMsg && (
         <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <ShieldAlert className="h-5 w-5 text-danger shrink-0" />
+          <ShieldAlert className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -489,7 +489,7 @@ export default function SettingsPage() {
           onClick={() => setActiveTab('account')}
           className={`pb-3 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'account'
-              ? 'text-accent border-b-2 border-accent'
+              ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
               : 'text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -501,7 +501,7 @@ export default function SettingsPage() {
           onClick={() => setActiveTab('roles')}
           className={`pb-3 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'roles'
-              ? 'text-accent border-b-2 border-accent'
+              ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
               : 'text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -516,7 +516,7 @@ export default function SettingsPage() {
           }}
           className={`pb-3 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'emails'
-              ? 'text-accent border-b-2 border-accent'
+              ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
               : 'text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -528,7 +528,7 @@ export default function SettingsPage() {
             onClick={() => setActiveTab('integrations')}
             className={`pb-3 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'integrations'
-                ? 'text-accent border-b-2 border-accent'
+                ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
                 : 'text-theme-text-secondary hover:text-theme-text-primary'
             }`}
           >
@@ -546,7 +546,7 @@ export default function SettingsPage() {
             }}
             className={`pb-3 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'audit'
-                ? 'text-accent border-b-2 border-accent'
+                ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
                 : 'text-theme-text-secondary hover:text-theme-text-primary'
             }`}
           >
@@ -579,7 +579,7 @@ export default function SettingsPage() {
                       </span>
                     )}
                     {avatarUpload.status === 'uploading' && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-bold">
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs font-bold">
                         {avatarUpload.progress}%
                       </div>
                     )}
@@ -588,7 +588,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={handleOpenCurrentAvatarCrop}
-                      className="mt-1.5 text-[10px] font-medium text-accent hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                      className="mt-1.5 text-xs font-medium text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1 cursor-pointer transition-colors"
                       title="Re-frame and crop photo"
                     >
                       <Crop className="h-2.5 w-2.5" />
@@ -605,17 +605,17 @@ export default function SettingsPage() {
                     hint="JPG, PNG, or GIF. Max size 2 MB."
                     compact
                   />
-                  {avatarSizeError && <p className="text-[11px] text-danger">{avatarSizeError}</p>}
+                  {avatarSizeError && <p className="text-xs text-danger dark:text-danger-soft">{avatarSizeError}</p>}
                   {avatarFile && (
-                    <p className="text-[10px] text-theme-text-secondary">{avatarFile.name} · {formatFileSize(avatarFile.size)}</p>
+                    <p className="text-xs text-theme-text-secondary">{avatarFile.name} · {formatFileSize(avatarFile.size)}</p>
                   )}
                   {avatarUpload.status === 'error' && (
-                    <div className="flex items-center justify-between gap-2 text-[11px] text-danger">
+                    <div className="flex items-center justify-between gap-2 text-xs text-danger dark:text-danger-soft">
                       <span className="flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{avatarUpload.error}</span>
                       <button
                         type="button"
                         onClick={avatarUpload.retry}
-                        className="flex items-center gap-1 font-semibold text-accent hover:underline cursor-pointer shrink-0"
+                        className="flex items-center gap-1 font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer shrink-0"
                       >
                         <RotateCw className="h-3 w-3" />
                         Retry
@@ -644,7 +644,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => { setIsChangingEmail(true); setNewEmailInput(''); setEmailStep('REQUEST'); setEmailChangeMsg(''); setEmailChangeErr(''); }}
-                        className="text-[11px] font-semibold text-accent hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                       >
                         Change Email
                       </button>
@@ -662,18 +662,18 @@ export default function SettingsPage() {
               {isChangingEmail && (
                 <div className="p-4 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-3">
                   <h4 className="font-bold text-xs text-theme-text-primary uppercase tracking-wider flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-accent" />
+                    <Mail className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                     Change Login Email
                   </h4>
-                  <p className="text-[11px] text-theme-text-secondary leading-relaxed">
+                  <p className="text-xs text-theme-text-secondary leading-relaxed">
                     Two verification codes are required — one sent to your <strong>current</strong> email ({user?.email}), then a second sent to the <strong>new</strong> address — so this change only goes through once you've proven you control both inboxes.
                   </p>
 
                   {emailChangeErr && (
-                    <p className="text-[11px] text-danger bg-danger/10 border border-danger/20 rounded-lg px-3 py-2">{emailChangeErr}</p>
+                    <p className="text-xs text-danger dark:text-danger-soft bg-danger/10 border border-danger/20 rounded-lg px-3 py-2">{emailChangeErr}</p>
                   )}
                   {emailChangeMsg && (
-                    <p className="text-[11px] text-success bg-success/10 border border-success/20 rounded-lg px-3 py-2">{emailChangeMsg}</p>
+                    <p className="text-xs text-success dark:text-success-soft bg-success/10 border border-success/20 rounded-lg px-3 py-2">{emailChangeMsg}</p>
                   )}
 
                   {emailStep === 'REQUEST' && (
@@ -711,11 +711,11 @@ export default function SettingsPage() {
 
                   {emailStep === 'VERIFY_OLD' && (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between text-[11px] text-theme-text-secondary">
+                      <div className="flex items-center justify-between text-xs text-theme-text-secondary">
                         <span>
-                          <strong className="text-accent">Step 1 of 2</strong> — Enter the code sent to your current email <strong className="text-theme-text-primary">{user?.email}</strong>
+                          <strong className="text-accent-strong dark:text-accent-soft">Step 1 of 2</strong> — Enter the code sent to your current email <strong className="text-theme-text-primary">{user?.email}</strong>
                         </span>
-                        <span className="font-mono font-bold text-accent">{emailTimeLeftStr}</span>
+                        <span className="font-mono font-bold text-accent-strong dark:text-accent-soft">{emailTimeLeftStr}</span>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
                         <div className="flex-1 space-y-1.5">
@@ -764,11 +764,11 @@ export default function SettingsPage() {
 
                   {emailStep === 'VERIFY_NEW' && (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between text-[11px] text-theme-text-secondary">
+                      <div className="flex items-center justify-between text-xs text-theme-text-secondary">
                         <span>
-                          <strong className="text-accent">Step 2 of 2</strong> — Enter the code sent to your new email <strong className="text-theme-text-primary">{newEmailInput}</strong>
+                          <strong className="text-accent-strong dark:text-accent-soft">Step 2 of 2</strong> — Enter the code sent to your new email <strong className="text-theme-text-primary">{newEmailInput}</strong>
                         </span>
-                        <span className="font-mono font-bold text-accent">{emailTimeLeftStr}</span>
+                        <span className="font-mono font-bold text-accent-strong dark:text-accent-soft">{emailTimeLeftStr}</span>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
                         <div className="flex-1 space-y-1.5">
@@ -837,13 +837,13 @@ export default function SettingsPage() {
                     max={new Date().toISOString().split('T')[0]}
                     className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                   />
-                  <p className="text-[11px] text-theme-text-secondary">We&apos;ll send you a birthday email from the Centre on this date each year.</p>
+                  <p className="text-xs text-theme-text-secondary">We&apos;ll send you a birthday email from the Centre on this date each year.</p>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-theme-border/20 space-y-3">
                 <h4 className="font-bold text-xs text-theme-text-primary uppercase tracking-wider flex items-center gap-1.5">
-                  <Key className="h-4 w-4 text-accent" />
+                  <Key className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Change Password
                 </h4>
 
@@ -888,10 +888,10 @@ export default function SettingsPage() {
           <div className="glass-panel rounded-2xl p-6 space-y-4 flex flex-col justify-between">
             <div className="space-y-3 text-xs">
               <h3 className="text-sm font-bold text-theme-text-primary">Session Info</h3>
-              <div className="bg-theme-background/30 p-4 rounded-xl border border-theme-border/30 space-y-2 text-[11px]">
+              <div className="bg-theme-background/30 p-4 rounded-xl border border-theme-border/30 space-y-2 text-xs">
                 <p className="text-theme-text-secondary">Authenticated Account:</p>
                 <p className="font-bold text-theme-text-primary text-xs">{user?.name}</p>
-                <p className="font-mono text-accent">{user?.email}</p>
+                <p className="font-mono text-accent-strong dark:text-accent-soft">{user?.email}</p>
                 <div className="pt-2 border-t border-theme-border/20 text-theme-text-secondary">
                   <span>Authorized Tier: </span>
                   <strong className="text-theme-text-primary">{user?.role} (Level {user?.tier})</strong>
@@ -900,7 +900,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="text-[11px] text-theme-text-secondary space-y-1">
+            <div className="text-xs text-theme-text-secondary space-y-1">
               <p>Ramaiah Technology Business Incubator Portal</p>
               <p>Build version: v2026.8.19-email-sync</p>
             </div>
@@ -921,7 +921,7 @@ export default function SettingsPage() {
               <div key={rp.tier} className="p-4 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-theme-text-primary text-sm">{rp.role}</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
                     Tier {rp.tier}
                   </span>
                 </div>
@@ -989,14 +989,14 @@ export default function SettingsPage() {
                       {filteredEmailLogs.map(log => (
                         <tr key={log.id} className="hover:bg-theme-border/10 transition-all text-xs">
                           <td className="py-3 pr-2 whitespace-nowrap">
-                            <span className={`font-semibold px-2 py-0.5 rounded text-[10px] uppercase border ${
+                            <span className={`font-semibold px-2 py-0.5 rounded text-xs uppercase border ${
                               log.category === 'AUTH_OTP'
-                                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
                                 : log.category === 'ANNOUNCEMENT'
-                                ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                                ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'
                                 : log.category === 'TASK_ASSIGNMENT'
                                 ? 'bg-purple-500/15 text-purple-400 border-purple-500/30'
-                                : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                             }`}>
                               {log.category.replace('_', ' ')}
                             </span>
@@ -1005,13 +1005,13 @@ export default function SettingsPage() {
                           <td className="py-3 pr-2 text-theme-text-primary max-w-xs truncate" title={log.subject}>
                             {log.subject}
                           </td>
-                          <td className="py-3 pr-2 text-theme-text-secondary whitespace-nowrap font-mono text-[11px]">
+                          <td className="py-3 pr-2 text-theme-text-secondary whitespace-nowrap font-mono text-xs">
                             {new Date(log.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </td>
                           <td className="py-3 text-right">
                             <button
                               onClick={() => setPreviewEmail(log)}
-                              className="px-2.5 py-1 bg-accent/15 hover:bg-accent/30 text-accent rounded-lg transition-all font-medium text-[11px] flex items-center gap-1 ml-auto cursor-pointer"
+                              className="px-2.5 py-1 bg-accent/15 hover:bg-accent/30 text-accent-strong dark:text-accent-soft rounded-lg transition-all font-medium text-xs flex items-center gap-1 ml-auto cursor-pointer"
                             >
                               <Eye className="h-3 w-3" />
                               Preview
@@ -1029,10 +1029,10 @@ export default function SettingsPage() {
             <div className="glass-panel rounded-2xl p-6 space-y-4 h-fit">
               <div>
                 <h3 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
-                  <Send className="h-4 w-4 text-accent" />
+                  <Send className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Test Email Dispatcher
                 </h3>
-                <p className="text-[11px] text-theme-text-secondary mt-1">
+                <p className="text-xs text-theme-text-secondary mt-1">
                   Send a test notification to verify recipient inbox delivery
                 </p>
               </div>
@@ -1106,7 +1106,7 @@ export default function SettingsPage() {
               <p className="text-xs text-theme-text-secondary">Immutable log of system actions, member updates, and governance events — retains the latest 1,000 events</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold text-accent px-2.5 py-0.5 bg-accent/15 rounded-md whitespace-nowrap">
+              <span className="text-xs font-semibold text-accent-strong dark:text-accent-soft px-2.5 py-0.5 bg-accent/15 rounded-md whitespace-nowrap">
                 {filteredAuditLogs.length} of {auditLogs.length} events
               </span>
               <button
@@ -1160,7 +1160,7 @@ export default function SettingsPage() {
                       <tr key={log.id} className="hover:bg-theme-border/10 transition-all text-xs align-top">
                         <td className="py-3 pr-2 text-theme-text-secondary whitespace-nowrap font-mono">{log.timestamp}</td>
                         <td className="py-3 pr-2">
-                          <span className={`font-semibold px-2 py-0.5 rounded text-[10px] uppercase whitespace-nowrap ${auditSeverityClasses[auditSeverity(log.action)]}`}>
+                          <span className={`font-semibold px-2 py-0.5 rounded text-xs uppercase whitespace-nowrap ${auditSeverityClasses[auditSeverity(log.action)]}`}>
                             {log.action}
                           </span>
                         </td>
@@ -1195,10 +1195,10 @@ export default function SettingsPage() {
           <div className="glass-panel w-full max-w-2xl rounded-3xl p-6 flex flex-col space-y-4 max-h-[90vh] border border-white/20 shadow-2xl relative overflow-hidden">
             <div className="flex items-center justify-between border-b border-theme-border/40 pb-3">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-accent" />
+                <FileText className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary">Rendered Email Dispatch Preview</h3>
-                  <p className="text-[11px] text-theme-text-secondary">To: {previewEmail.to}</p>
+                  <p className="text-xs text-theme-text-secondary">To: {previewEmail.to}</p>
                 </div>
               </div>
               <button
@@ -1213,7 +1213,7 @@ export default function SettingsPage() {
               <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewEmail.bodyHtml || '') }} />
             </div>
 
-            <div className="flex justify-between items-center text-[11px] text-theme-text-secondary pt-2 border-t border-theme-border/20">
+            <div className="flex justify-between items-center text-xs text-theme-text-secondary pt-2 border-t border-theme-border/20">
               <span className="font-mono">ID: {previewEmail.id}</span>
               <button
                 onClick={() => setPreviewEmail(null)}
