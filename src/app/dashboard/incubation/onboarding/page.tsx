@@ -34,10 +34,10 @@ import type { Startup } from '@/lib/incubation/types';
 import { Badge, PageHeader, Panel, btnGhost, btnPrimary, inputCls, isManagerUi, isStaffUi, useCurrentUser } from '@/components/incubation/ui';
 
 const DOC_ICONS: Record<string, React.ReactNode> = {
-  logo: <ImageIcon className="h-5 w-5 text-accent" />,
+  logo: <ImageIcon className="h-5 w-5 text-accent-strong dark:text-accent-soft" />,
   entityDocs: <FileText className="h-5 w-5 text-purple-400" />,
   agreement: <FileCheck2 className="h-5 w-5 text-emerald-800 dark:text-emerald-300" />,
-  portfolio: <Briefcase className="h-5 w-5 text-blue-400" />,
+  portfolio: <Briefcase className="h-5 w-5 text-blue-700 dark:text-blue-300" />,
   patents: <Award className="h-5 w-5 text-amber-800 dark:text-amber-300" />,
   rentalAgreement: <Building2 className="h-5 w-5 text-rose-700 dark:text-rose-300" />,
 };
@@ -194,7 +194,7 @@ function OnboardingPageInner() {
       {msg && <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-800 dark:text-emerald-300">{msg}</div>}
       {!data && startupId && (
         <div className="text-sm flex gap-2 items-center text-theme-text-secondary py-6">
-          <Loader2 size={16} className="animate-spin text-accent" /> Loading onboarding records…
+          <Loader2 size={16} className="animate-spin text-accent-strong dark:text-accent-soft" /> Loading onboarding records…
         </div>
       )}
 
@@ -202,7 +202,7 @@ function OnboardingPageInner() {
         <>
           {/* Official RTBI Header Banner from Flyer */}
           <div className="rounded-3xl border border-accent/20 bg-gradient-to-r from-primary/30 via-theme-card to-accent/10 p-6 space-y-4 shadow-xl relative overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-accent border-b border-white/10 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-accent-strong dark:text-accent-soft border-b border-white/10 pb-3">
               <span>RAMAIAH-GoK TECHNOLOGY BUSINESS INCUBATOR</span>
               <span className="flex items-center gap-2">
                 <span>GOVERNMENT OF KARNATAKA</span> · <span>K-TECH</span> · <span>STARTUP KARNATAKA</span>
@@ -283,7 +283,7 @@ function OnboardingPageInner() {
                               {docDef?.num || it.docNum}. {docDef?.label || it.label}
                             </span>
                             {it.required ? (
-                              <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent">
+                              <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent-strong dark:text-accent-soft">
                                 Mandatory
                               </span>
                             ) : (
@@ -344,7 +344,7 @@ function OnboardingPageInner() {
                         onChange={e => patch(it.key, { evidenceRef: e.target.value })}
                       />
                       {docDef?.formats && (
-                        <p className="text-xs text-theme-text-secondary/70">
+                        <p className="text-xs text-theme-text-secondary">
                           Accepted Formats: <span className="font-mono">{docDef.formats}</span>
                         </p>
                       )}

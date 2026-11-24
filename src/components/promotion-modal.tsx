@@ -117,18 +117,18 @@ export function PromotionModal({ data, isOpen, onClose }: PromotionModalProps) {
           {/* Elevation Visual Comparison Pill */}
           <div className="flex items-center justify-center gap-3 p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-inner">
             <div className="text-left">
-              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Previous</span>
+              <span className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 block">Previous</span>
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[120px] block">
                 {data.previousRole} (T{data.previousTier})
               </span>
             </div>
 
-            <div className="p-1.5 rounded-full bg-accent/20 text-accent">
+            <div className="p-1.5 rounded-full bg-accent/20 text-accent-strong dark:text-accent-soft">
               <ArrowRight className="h-4 w-4" />
             </div>
 
             <div className="text-left">
-              <span className="text-[10px] uppercase font-bold text-accent block">New Designation</span>
+              <span className="text-xs uppercase font-bold text-accent-strong dark:text-accent-soft block">New Designation</span>
               <span className="text-xs font-black text-slate-900 dark:text-white truncate max-w-[140px] block">
                 {data.newRole} (Tier {data.newTier})
               </span>
@@ -140,7 +140,7 @@ export function PromotionModal({ data, isOpen, onClose }: PromotionModalProps) {
         {/* Upgraded Capabilities Section (promotion only) or Access Change Notice (demotion) */}
         {isDemotion ? (
           <div className="px-6 md:px-8 py-4 space-y-2 bg-slate-50/50 dark:bg-black/20 border-t border-b border-slate-200 dark:border-white/10">
-            <h4 className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+            <h4 className="text-xs font-black uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
               <TrendingDown className="h-4 w-4" />
               Access Change Notice:
             </h4>
@@ -150,15 +150,15 @@ export function PromotionModal({ data, isOpen, onClose }: PromotionModalProps) {
           </div>
         ) : (
           <div className="px-6 md:px-8 py-4 space-y-3 bg-slate-50/50 dark:bg-black/20 border-t border-b border-slate-200 dark:border-white/10">
-            <h4 className="text-xs font-black uppercase tracking-wider text-accent flex items-center gap-1.5">
-              <Unlock className="h-4 w-4 text-accent" />
+            <h4 className="text-xs font-black uppercase tracking-wider text-accent-strong dark:text-accent-soft flex items-center gap-1.5">
+              <Unlock className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               New Privileges & Upgraded Access:
             </h4>
 
             <ul className="space-y-2">
               {capabilities.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-800 dark:text-slate-200 font-medium">
-                  <span className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
+                  <span className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
                     <Check className="h-2.5 w-2.5 stroke-[3]" />
                   </span>
                   <span>{item}</span>

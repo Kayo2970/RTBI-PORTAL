@@ -54,7 +54,7 @@ export function FormHeaderFraming({ url, value, onChange }: Props) {
 
   return (
     <div className="space-y-2 p-3 rounded-xl border border-theme-card-border">
-      <p className="text-[10px] text-theme-text-secondary">Drag the picture to choose what shows in the banner, and use the sliders to zoom or change the banner height.</p>
+      <p className="text-xs text-theme-text-secondary">Drag the picture to choose what shows in the banner, and use the sliders to zoom or change the banner height.</p>
       <div
         ref={frameRef}
         onPointerDown={onPointerDown}
@@ -69,7 +69,7 @@ export function FormHeaderFraming({ url, value, onChange }: Props) {
       </div>
       {slider('Zoom', 100, 300, 5, 'zoom', '%')}
       {slider('Banner height', 80, 320, 10, 'height', 'px')}
-      <button type="button" onClick={() => onChange(DEFAULT_HEADER_FRAMING)} className="text-[11px] font-semibold text-accent hover:underline cursor-pointer">Reset framing</button>
+      <button type="button" onClick={() => onChange(DEFAULT_HEADER_FRAMING)} className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer">Reset framing</button>
     </div>
   );
 }

@@ -29,12 +29,12 @@ export function CertificateStatusBadge({ status, sentAt, issuedAt, error, sentBy
   const time = status === 'Sent' || status === 'Queued' ? formatCertTime(sentAt) : status === 'Issued' || status === 'Failed' ? formatCertTime(issuedAt) : '';
   return (
     <div className="flex flex-col gap-0.5" title={error || undefined}>
-      <span className={`inline-flex w-fit items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${st.cls}`}>
+      <span className={`inline-flex w-fit items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${st.cls}`}>
         <st.Icon className="h-3 w-3 shrink-0" />
         <span>{label}</span>
       </span>
-      {(count || 0) > 1 ? <span className="text-[9px] pl-1 text-theme-text-secondary">{count} certificates · best status shown</span> : typeName ? <span className="text-[9px] pl-1 text-theme-text-secondary">{typeName}</span> : null}
-      {time && <span className={`text-[9px] pl-1 font-mono ${st.text}`}>{time}{sentBy && status === 'Sent' ? ` · by ${sentBy}` : ''}</span>}
+      {(count || 0) > 1 ? <span className="text-xs pl-1 text-theme-text-secondary">{count} certificates · best status shown</span> : typeName ? <span className="text-xs pl-1 text-theme-text-secondary">{typeName}</span> : null}
+      {time && <span className={`text-xs pl-1 font-mono ${st.text}`}>{time}{sentBy && status === 'Sent' ? ` · by ${sentBy}` : ''}</span>}
     </div>
   );
 }

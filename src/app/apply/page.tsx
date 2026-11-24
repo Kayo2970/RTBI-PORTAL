@@ -147,7 +147,7 @@ export default function ApplyPage() {
     <Shell>
       <div className="max-w-xl mx-auto px-4 py-12">
         <div className="glass-panel rounded-2xl p-8 text-center space-y-4" role="status">
-          <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-600" aria-hidden="true" />
+          <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-700" aria-hidden="true" />
           <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold outline-none">Application received</h1>
           <p>Your application ID is <b className="font-mono text-lg">{doneId}</b>.</p>
           <p className="text-theme-text-secondary">We have emailed you an acknowledgement. Please quote this ID in any correspondence. If anything is missing, we will write to you with a deadline.</p>
@@ -236,7 +236,7 @@ export default function ApplyPage() {
                 <p className="text-sm text-theme-text-secondary">Check your answers. Use “Edit” to change anything.</p>
                 {[{ i: 0, label: 'Contact', rows: [['Name', name], ['Email', email]] as [string, string][] }, ...STEPS.slice(0, -1).map((s, i) => ({ i, label: s.title, rows: APPLICATION_SECTIONS.filter(x => s.sections.includes(x.key)).flatMap(x => x.fields.map(f => [f.label.replace(/ \(.*/, ''), sections[f.key] || ''] as [string, string])) }))].map((g, gi) => (
                   <div key={gi} className="border-t border-theme-border pt-3 first:border-0 first:pt-0">
-                    <div className="flex items-center justify-between"><h3 className="font-bold">{g.label}</h3><button type="button" className="min-h-11 px-3 text-sm font-semibold underline text-accent dark:text-accent-soft" onClick={() => jump(g.i)}>Edit<span className="sr-only"> {g.label}</span></button></div>
+                    <div className="flex items-center justify-between"><h3 className="font-bold">{g.label}</h3><button type="button" className="min-h-11 px-3 text-sm font-semibold underline text-accent-strong dark:text-accent-soft" onClick={() => jump(g.i)}>Edit<span className="sr-only"> {g.label}</span></button></div>
                     <dl className="mt-1 grid sm:grid-cols-[14rem_1fr] gap-x-4 gap-y-1 text-sm">
                       {g.rows.filter(r => r[1]).map(([k, v]) => (<React.Fragment key={k}><dt className="text-theme-text-secondary">{k}</dt><dd className="break-words whitespace-pre-line">{v}</dd></React.Fragment>))}
                     </dl>

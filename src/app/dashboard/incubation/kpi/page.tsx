@@ -35,7 +35,7 @@ export default function KpiPage() {
       {err && <div className="text-sm text-rose-700 dark:text-rose-300">{err}</div>}
       {!r ? !err && <div className="text-sm flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : (
         <>
-          <div className="flex items-center gap-3"><select className={inputCls + ' !w-auto'} value={fy} onChange={e => load(e.target.value)}>{r.fyOptions.map(o => <option key={o}>{o}</option>)}</select>
+          <div className="flex items-center gap-3"><select aria-label="Financial year" className={inputCls + ' !w-auto'} value={fy} onChange={e => load(e.target.value)}>{r.fyOptions.map(o => <option key={o}>{o}</option>)}</select>
             {r.settingsStatus !== 'approved' && <Badge tone="amber">Targets are Proposed — confirm against the signed Annexure F</Badge>}</div>
           <div className="glass-panel rounded-2xl overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary border-b border-theme-border">
             <th className="p-3">Indicator</th><th className="p-3">Annual</th><th className="p-3">YTD</th><th className="p-3">Variance</th><th className="p-3">Status</th><th className="p-3">Cumulative / 5-yr</th><th className="p-3">Evidenced</th></tr></thead>

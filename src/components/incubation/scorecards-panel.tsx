@@ -35,14 +35,14 @@ export function ScorecardsPanel({ user }: { user: any }) {
           <ul className="text-sm space-y-1">{awaiting.map(a => (
             <li key={a.id} className="flex justify-between gap-2"><span className="font-mono">{a.id}</span>
               <span className="text-theme-text-secondary">{a.viewer.coi === 'participate' ? 'COI filed' : 'COI declaration needed'}</span>
-              <Link href={open(a.id)} className="text-accent font-semibold">Score</Link></li>))}</ul>)}
+              <Link href={open(a.id)} className="text-accent-strong dark:text-accent-soft font-semibold">Score</Link></li>))}</ul>)}
       </Panel>
 
       <Panel title="My submitted scorecards">
         {mine.length === 0 ? <p className="text-sm text-theme-text-secondary">None yet.</p> : (
           <table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary"><th>Application</th><th>Weighted /100</th><th>Submitted</th><th /></tr></thead>
             <tbody>{mine.map(a => { const c = a.scorecards!.find(s => s.memberId === user?.id)!; return (
-              <tr key={a.id}><td className="font-mono py-1">{a.id}</td><td>{c.weighted}</td><td>{c.submittedAt.slice(0, 10)}</td><td className="text-right"><Link href={open(a.id)} className="text-accent">Open</Link></td></tr>); })}</tbody></table>)}
+              <tr key={a.id}><td className="font-mono py-1">{a.id}</td><td>{c.weighted}</td><td>{c.submittedAt.slice(0, 10)}</td><td className="text-right"><Link href={open(a.id)} className="text-accent-strong dark:text-accent-soft">Open</Link></td></tr>); })}</tbody></table>)}
       </Panel>
 
       {user?.tier <= 2 && (
@@ -50,7 +50,7 @@ export function ScorecardsPanel({ user }: { user: any }) {
           {inEvaluation.length === 0 ? <p className="text-sm text-theme-text-secondary">None.</p> : (
             <ul className="text-sm space-y-1">{inEvaluation.map(a => (
               <li key={a.id} className="flex justify-between"><span><span className="font-mono">{a.id}</span> · {a.sections?.startupName || a.applicantName}</span>
-                <span>{a.scorecards?.length ?? 0}/{a.assigned?.length ?? 0} submitted · <Link href={open(a.id)} className="text-accent">Open</Link></span></li>))}</ul>)}
+                <span>{a.scorecards?.length ?? 0}/{a.assigned?.length ?? 0} submitted · <Link href={open(a.id)} className="text-accent-strong dark:text-accent-soft">Open</Link></span></li>))}</ul>)}
         </Panel>
       )}
 
@@ -59,7 +59,7 @@ export function ScorecardsPanel({ user }: { user: any }) {
           <ul className="text-sm space-y-1">{recentReviews.map(r => (
             <li key={r.id} className="flex items-center gap-2"><span className="font-mono">{r.startupId}</span><span>{r.quarter}</span>
               <span className={`px-2 py-0.5 rounded-full border text-xs font-semibold ${ragClass[r.rag] || ''}`}>{r.rag}</span></li>))}</ul>
-          <Link href="/dashboard/incubation/records/review" className="text-accent text-sm font-semibold">All quarterly reviews</Link>
+          <Link href="/dashboard/incubation/records/review" className="text-accent-strong dark:text-accent-soft text-sm font-semibold">All quarterly reviews</Link>
         </Panel>
       )}
 
@@ -68,7 +68,7 @@ export function ScorecardsPanel({ user }: { user: any }) {
           <ul className="text-sm space-y-1">{grads.map(g => (
             <li key={g.id} className="flex items-center gap-2"><span className="font-mono">{g.startupId}</span><span>{g.total}/100</span><Badge tone={g.band === 'eligible' ? 'green' : g.band === 'conditional' ? 'amber' : 'red'}>{g.band}</Badge>
               <Badge tone={g.state === 'Final' ? 'green' : 'amber'}>{g.state}</Badge></li>))}</ul>
-          <Link href="/dashboard/incubation/records/graduation" className="text-accent text-sm font-semibold">All graduation reviews</Link>
+          <Link href="/dashboard/incubation/records/graduation" className="text-accent-strong dark:text-accent-soft text-sm font-semibold">All graduation reviews</Link>
         </Panel>
       )}
     </div>

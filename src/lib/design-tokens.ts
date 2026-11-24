@@ -16,28 +16,28 @@ export function getRatingColor(score: number): {
   } else if (score >= 4.0) {
     return {
       bg: 'bg-green-500/15',
-      text: 'text-green-600 dark:text-green-400',
+      text: 'text-green-700 dark:text-green-300',
       border: 'border-green-500/30',
       hex: '#22C55E',
     };
   } else if (score >= 3.0) {
     return {
       bg: 'bg-amber-500/15',
-      text: 'text-amber-600 dark:text-amber-400',
+      text: 'text-amber-700 dark:text-amber-300',
       border: 'border-amber-500/30',
       hex: '#F59E0B',
     };
   } else if (score >= 2.0) {
     return {
       bg: 'bg-orange-500/15',
-      text: 'text-orange-600 dark:text-orange-400',
+      text: 'text-orange-700 dark:text-orange-300',
       border: 'border-orange-500/30',
       hex: '#F97316',
     };
   } else {
     return {
       bg: 'bg-red-500/15',
-      text: 'text-red-600 dark:text-red-400',
+      text: 'text-red-700 dark:text-red-300',
       border: 'border-red-500/30',
       hex: '#EF4444',
     };

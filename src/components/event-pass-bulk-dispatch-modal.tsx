@@ -15,6 +15,7 @@ import {
   getPassValidDays,
   formatValidDaysLabel,
 } from '@/lib/local-data';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface Props {
   isOpen: boolean;
@@ -114,7 +115,7 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
   const send = async (only?: EventPassItem[]) => {
     const list = only || toSend;
     if (list.length === 0) return;
-    if (!only && !window.confirm(`Send ${list.length} pass email${list.length === 1 ? '' : 's'} now? They enter the normal 10-minute email hold before delivery.`)) return;
+    if (!only && !await askConfirm(`Send ${list.length} pass email${list.length === 1 ? '' : 's'} now? They enter the normal 10-minute email hold before delivery.`)) return;
     setIsSending(true);
     stopRef.current = false;
     // Tracked in the bottom-left tray, so it keeps going (and stays visible) if the modal is closed or the module changed.
@@ -149,7 +150,7 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
     if (!sendAt) return setScheduleNote({ kind: 'err', text: 'Pick the date and time to send.' });
     const when = new Date(sendAt);
     if (Number.isNaN(when.getTime()) || when.getTime() < Date.now() + 60_000) return setScheduleNote({ kind: 'err', text: 'Pick a time at least a minute from now.' });
-    if (!window.confirm(`Schedule ${toSend.length} pass email${toSend.length === 1 ? '' : 's'} for ${when.toLocaleString()}? They are built and sent by the server at that time, then enter the normal 10-minute email hold.`)) return;
+    if (!await askConfirm(`Schedule ${toSend.length} pass email${toSend.length === 1 ? '' : 's'} for ${when.toLocaleString()}? They are built and sent by the server at that time, then enter the normal 10-minute email hold.`)) return;
     setIsSending(true);
     setScheduleNote(null);
     const task = beginTask({ label: `Scheduling ${toSend.length} pass email${toSend.length === 1 ? '' : 's'}`, detail: when.toLocaleString() });
@@ -218,9 +219,9 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-white/10">
           <div className="flex items-center gap-2.5 min-w-0">
-            <Mail className="h-4 w-4 text-accent shrink-0" />
+            <Mail className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
             <h3 className="text-sm font-black truncate">Preview &amp; dispatch passes</h3>
-            <span className="text-[11px] font-semibold text-theme-text-secondary shrink-0">{safeIndex + 1} of {total}</span>
+            <span className="text-xs font-semibold text-theme-text-secondary shrink-0">{safeIndex + 1} of {total}</span>
           </div>
           <button type="button" onClick={onClose} title={isSending ? 'Close — sending carries on in the background' : 'Close'} className="p-1.5 rounded-lg hover:bg-white/10 cursor-pointer" aria-label="Close">
             <X className="h-4 w-4" />
@@ -252,7 +253,7 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
         <div className={`flex-1 min-h-0 overflow-y-auto grid grid-cols-1 gap-5 p-5 ${showEditor ? 'xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_minmax(0,4fr)]' : 'xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'}`}>
           {/* Pass */}
           <div className="space-y-3 min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">The pass</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary">The pass</div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img key={pass.id} src={`/api/pass/${encodeURIComponent(pass.serialNumber)}/image`} alt={`Ticket for ${pass.attendeeName}`} className="w-full rounded-2xl border border-white/10 bg-theme-card" />
             <div className="grid grid-cols-2 gap-2 text-[11.5px]">
@@ -265,12 +266,12 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
                 ['Valid', days.length ? formatValidDaysLabel(days) : pass.validityDate || pass.eventDate || '—'],
               ] as const).map(([k, v]) => (
                 <div key={k} className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 min-w-0">
-                  <div className="text-[9px] uppercase tracking-wider text-theme-text-secondary font-semibold">{k}</div>
+                  <div className="text-xs uppercase tracking-wider text-theme-text-secondary font-semibold">{k}</div>
                   <div className="font-bold truncate" title={String(v)}>{v}</div>
                 </div>
               ))}
             </div>
-            <a href={`/pass/${pass.serialNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[11px] font-bold text-accent hover:underline">
+            <a href={`/pass/${pass.serialNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-accent-strong dark:text-accent-soft hover:underline">
               Open the pass page <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -279,16 +280,16 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
           <div className="space-y-3 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">The email</div>
-                <button type="button" onClick={() => { setEditScope('all'); setShowEditor(true); }} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accent/20 border border-accent/40 text-accent text-[10.5px] font-bold hover:bg-accent/30 cursor-pointer">
+                <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary">The email</div>
+                <button type="button" onClick={() => { setEditScope('all'); setShowEditor(true); }} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accent/20 border border-accent/40 text-accent-strong dark:text-accent-soft text-[10.5px] font-bold hover:bg-accent/30 cursor-pointer">
                   <Pencil className="h-3 w-3" /> Edit message (everyone)
                 </button>
                 <button type="button" onClick={startOwnEdit} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/20 text-[10.5px] font-bold hover:bg-white/10 cursor-pointer">
                   <Pencil className="h-3 w-3" /> Edit only {shortName(pass.attendeeName)}&apos;s
                 </button>
-                {ownEdit && <span className="text-[10px] font-bold text-warning">custom message for this person</span>}
+                {ownEdit && <span className="text-xs font-bold text-warning dark:text-warning-soft">custom message for this person</span>}
               </div>
-              <label className="flex items-center gap-2 text-[11px] font-bold cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
                 <input type="checkbox" checked={!!included[pass.id]} onChange={(e) => setIncluded((m) => ({ ...m, [pass.id]: e.target.checked }))} className="h-4 w-4 accent-accent" />
                 Include in dispatch
               </label>
@@ -309,10 +310,10 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
                 <span className="font-bold">{preview?.subject}</span>
               </div>
               {!validEmail(emails[pass.id] || '') && (
-                <div className="flex items-center gap-1.5 text-warning font-semibold"><AlertTriangle className="h-3.5 w-3.5" /> Add a valid email to include this pass.</div>
+                <div className="flex items-center gap-1.5 text-warning dark:text-warning-soft font-semibold"><AlertTriangle className="h-3.5 w-3.5" /> Add a valid email to include this pass.</div>
               )}
-              {st?.state === 'failed' && <div className="text-danger font-semibold">✗ {st.error || 'Failed to send.'}</div>}
-              {st?.state === 'ok' && <div className="text-success font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Queued for delivery.</div>}
+              {st?.state === 'failed' && <div className="text-danger dark:text-danger-soft font-semibold">✗ {st.error || 'Failed to send.'}</div>}
+              {st?.state === 'ok' && <div className="text-success dark:text-success-soft font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Queued for delivery.</div>}
             </div>
             <EmailHtmlPreview
               key={pass.id}
@@ -335,11 +336,11 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
                 <button type="button" onClick={() => setEditScope('all')} className={`px-2.5 py-1 rounded-md cursor-pointer ${editScope === 'all' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}>Everyone</button>
                 <button type="button" onClick={startOwnEdit} className={`px-2.5 py-1 rounded-md cursor-pointer ${editScope === 'one' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}>Only {shortName(pass.attendeeName)}</button>
               </div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">
+              <div className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary">
                 {editScope === 'one' ? `Editing ${pass.attendeeName}'s message only` : 'Edit the message (applies to everyone without their own version)'}
               </div>
               {editScope === 'one' && ownEdit && (
-                <button type="button" onClick={() => { setOverrides((m) => { const n = { ...m }; delete n[pass.id]; return n; }); setEditScope('all'); }} className="text-[10.5px] font-bold text-warning hover:underline cursor-pointer">
+                <button type="button" onClick={() => { setOverrides((m) => { const n = { ...m }; delete n[pass.id]; return n; }); setEditScope('all'); }} className="text-[10.5px] font-bold text-warning dark:text-warning-soft hover:underline cursor-pointer">
                   Discard this person&apos;s version and use the shared message
                 </button>
               )}
@@ -359,31 +360,31 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
               <ChevronRight className="h-4 w-4" />
             </button>
             <span className="hidden sm:inline text-[10.5px] text-theme-text-secondary">← → to navigate</span>
-            <button type="button" onClick={() => setShowEditor((v) => !v)} className="ml-2 px-3 py-1.5 rounded-lg border border-white/15 text-[11px] font-bold hover:bg-white/10 cursor-pointer">
+            <button type="button" onClick={() => setShowEditor((v) => !v)} className="ml-2 px-3 py-1.5 rounded-lg border border-white/15 text-xs font-bold hover:bg-white/10 cursor-pointer">
               {showEditor ? 'Hide message editor' : 'Edit message'}
             </button>
-            <button type="button" onClick={() => setIncluded(Object.fromEntries(passes.map((p) => [p.id, !allIncluded])))} className="ml-2 text-[11px] font-bold text-accent hover:underline cursor-pointer">
+            <button type="button" onClick={() => setIncluded(Object.fromEntries(passes.map((p) => [p.id, !allIncluded])))} className="ml-2 text-xs font-bold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer">
               {allIncluded ? 'Deselect all' : 'Select all'}
             </button>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap justify-end">
-            <span className="text-[11px] text-theme-text-secondary">
+            <span className="text-xs text-theme-text-secondary">
               {isSending || sentCount > 0
                 ? `${sentCount} sent${failed.length ? ` · ${failed.length} failed` : ''}`
                 : `${toSend.length} ready${skippedNoEmail ? ` · ${skippedNoEmail} need an email` : ''}`}
             </span>
             {failed.length > 0 && !isSending && (
-              <button type="button" onClick={() => send(failed.filter((p) => validEmail(emails[p.id] || '')))} className="px-3 py-2 rounded-xl border border-danger/50 text-danger text-xs font-bold hover:bg-danger/10 cursor-pointer">
+              <button type="button" onClick={() => send(failed.filter((p) => validEmail(emails[p.id] || '')))} className="px-3 py-2 rounded-xl border border-danger/50 text-danger dark:text-danger-soft text-xs font-bold hover:bg-danger/10 cursor-pointer">
                 Retry failed
               </button>
             )}
-            <div className="flex items-center gap-1 p-0.5 bg-black/30 border border-white/10 rounded-lg text-[11px] font-bold">
+            <div className="flex items-center gap-1 p-0.5 bg-black/30 border border-white/10 rounded-lg text-xs font-bold">
               <button type="button" onClick={() => setSendMode('now')} className={`px-2.5 py-1.5 rounded-md cursor-pointer ${sendMode === 'now' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}>Send now</button>
               <button type="button" onClick={() => setSendMode('later')} className={`px-2.5 py-1.5 rounded-md cursor-pointer flex items-center gap-1 ${sendMode === 'later' ? 'bg-accent text-white' : 'text-theme-text-secondary'}`}><CalendarClock className="h-3 w-3" /> Schedule</button>
             </div>
             {sendMode === 'later' && (
-              <input type="datetime-local" value={sendAt} onChange={(e) => setSendAt(e.target.value)} className="px-2.5 py-1.5 bg-black/30 border border-white/15 rounded-lg text-[11px] text-white focus:outline-none focus:border-accent [color-scheme:dark]" />
+              <input type="datetime-local" value={sendAt} onChange={(e) => setSendAt(e.target.value)} className="px-2.5 py-1.5 bg-black/30 border border-white/15 rounded-lg text-xs text-white focus:outline-none focus:border-accent [color-scheme:dark]" />
             )}
             {isSending && sendMode === 'now' ? (
               <button type="button" onClick={() => (stopRef.current = true)} className="px-4 py-2.5 rounded-xl bg-white/10 text-xs font-bold cursor-pointer flex items-center gap-2">
@@ -401,7 +402,7 @@ export function EventPassBulkDispatchModal({ isOpen, passes: livePasses, onClose
           </div>
         </div>
         {scheduleNote && (
-          <div className={`px-5 py-2.5 text-[11.5px] font-semibold border-t border-white/10 ${scheduleNote.kind === 'ok' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>{scheduleNote.text}</div>
+          <div className={`px-5 py-2.5 text-[11.5px] font-semibold border-t border-white/10 ${scheduleNote.kind === 'ok' ? 'bg-success/10 text-success dark:text-success-soft' : 'bg-danger/10 text-danger dark:text-danger-soft'}`}>{scheduleNote.text}</div>
         )}
       </div>
     </div>

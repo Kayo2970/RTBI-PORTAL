@@ -85,18 +85,18 @@ export function SearchableSelect({
             setIsOpen(true);
           }}
           placeholder={placeholder}
-          className={`w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-theme-text-primary placeholder-theme-text-secondary ${compact ? 'text-[11px]' : ''}`}
+          className={`w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-theme-text-primary placeholder-theme-text-secondary ${compact ? 'text-xs' : ''}`}
         />
         <ChevronDown className={`text-theme-text-secondary shrink-0 ${compact ? 'h-3 w-3' : 'h-3.5 w-3.5'}`} />
       </div>
 
       {isOpen && (
-        <div className={`absolute left-0 right-0 mt-1.5 max-h-60 overflow-y-auto bg-white/95 dark:bg-[#0B1B2E]/98 backdrop-blur-2xl rounded-xl border border-slate-200/90 dark:border-white/20 shadow-2xl z-50 divide-y divide-slate-100 dark:divide-white/10 animate-in fade-in zoom-in-95 duration-150 ${compact ? 'text-[11px]' : ''}`}>
+        <div className={`absolute left-0 right-0 mt-1.5 max-h-60 overflow-y-auto bg-white/95 dark:bg-[#0B1B2E]/98 backdrop-blur-2xl rounded-xl border border-slate-200/90 dark:border-white/20 shadow-2xl z-50 divide-y divide-slate-100 dark:divide-white/10 animate-in fade-in zoom-in-95 duration-150 ${compact ? 'text-xs' : ''}`}>
           {allLabel && (
             <button
               type="button"
               onClick={() => handleSelect(allValue)}
-              className={`w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer font-medium ${value === allValue ? 'bg-accent/15 text-accent font-bold' : 'text-theme-text-primary'}`}
+              className={`w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer font-medium ${value === allValue ? 'bg-accent/15 text-accent-strong dark:text-accent-soft font-bold' : 'text-theme-text-primary'}`}
             >
               {allLabel}
             </button>
@@ -109,10 +109,10 @@ export function SearchableSelect({
                 key={o.value}
                 type="button"
                 onClick={() => handleSelect(o.value)}
-                className={`w-full flex items-center justify-between gap-2 text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer ${o.value === value ? 'bg-accent/15 text-accent font-bold' : 'text-theme-text-primary'}`}
+                className={`w-full flex items-center justify-between gap-2 text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer ${o.value === value ? 'bg-accent/15 text-accent-strong dark:text-accent-soft font-bold' : 'text-theme-text-primary'}`}
               >
                 <span className="font-medium text-inherit">{o.label}</span>
-                {o.sublabel && <span className="text-theme-text-secondary shrink-0 text-[11px]">{o.sublabel}</span>}
+                {o.sublabel && <span className="text-theme-text-secondary shrink-0 text-xs">{o.sublabel}</span>}
               </button>
             ))
           )}

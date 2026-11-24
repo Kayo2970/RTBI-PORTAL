@@ -389,16 +389,16 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between gap-4 bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-2xl bg-accent/20 border border-accent/30 text-accent shrink-0">
+            <div className="p-2 rounded-2xl bg-accent/20 border border-accent/30 text-accent-strong dark:text-accent-soft shrink-0">
               <Compass className="h-5 w-5 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-accent">
+                <span className="text-xs font-bold uppercase tracking-wider text-accent-strong dark:text-accent-soft">
                   Interactive Guided Tour
                 </span>
                 <span className="text-white/30 text-xs hidden sm:inline">•</span>
-                <span className="text-[11px] font-medium text-theme-text-secondary hidden sm:inline">
+                <span className="text-xs font-medium text-theme-text-secondary hidden sm:inline">
                   Step {currentStepIndex + 1} of {steps.length}
                 </span>
               </div>
@@ -427,7 +427,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           
           {/* Main Step Hero Banner */}
           <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/5 border border-white/10">
-            <div className="p-3.5 rounded-2xl bg-accent/15 border border-accent/25 text-accent shrink-0">
+            <div className="p-3.5 rounded-2xl bg-accent/15 border border-accent/25 text-accent-strong dark:text-accent-soft shrink-0">
               <IconComponent className="h-7 w-7" />
             </div>
             <div className="space-y-1.5 flex-1">
@@ -445,7 +445,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
             
             {/* Box 1: What You Can Do */}
             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2.5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-accent-strong dark:text-accent-soft flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4" />
                 What You Can Do:
               </h4>
@@ -462,7 +462,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
             {/* Box 2: Information Displayed */}
             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2.5">
               <h4 className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                 Information Displayed:
               </h4>
               <ul className="space-y-2">
@@ -481,13 +481,13 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
           {currentStep.id !== 'welcome' && (
             <div className="flex items-center justify-between p-3.5 rounded-2xl bg-accent/10 border border-accent/20">
               <div className="flex items-center gap-2.5 text-xs font-semibold text-theme-text-primary">
-                <IconComponent className="h-4 w-4 text-accent" />
+                <IconComponent className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 <span>Want to explore this workspace right now?</span>
               </div>
               <button
                 type="button"
                 onClick={() => handleNavigateToModule(currentStep.href)}
-                className="flex items-center gap-1.5 text-xs font-bold text-accent hover:text-primary-light transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-xs font-bold text-accent-strong dark:text-accent-soft hover:text-primary-light transition-colors cursor-pointer"
               >
                 <span>Open {currentStep.moduleName}</span>
                 <ArrowRight className="h-3.5 w-3.5" />

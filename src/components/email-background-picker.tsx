@@ -106,13 +106,13 @@ export function EmailBackgroundField({
           {storageKey ? 'Replace picture' : 'Upload a picture'}
         </button>
         {storageKey && (
-          <button type="button" disabled={disabled} onClick={() => onChange({ storageKey: undefined, blur })} className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 border border-rose-500/30 flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+          <button type="button" disabled={disabled} onClick={() => onChange({ storageKey: undefined, blur })} className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300 border border-rose-500/30 flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
             <X className="h-3.5 w-3.5" /> Remove
           </button>
         )}
-        <span className="text-[10px] text-theme-text-secondary">JPG, PNG or WebP, up to 6 MB.</span>
+        <span className="text-xs text-theme-text-secondary">JPG, PNG or WebP, up to 6 MB.</span>
       </div>
-      {error && <p className="text-[11px] text-danger">{error}</p>}
+      {error && <p className="text-xs text-danger dark:text-danger-soft">{error}</p>}
       {storageKey && (
         <>
           <label className="flex items-center gap-3 text-xs text-theme-text-secondary">
@@ -125,7 +125,7 @@ export function EmailBackgroundField({
               <img src={previewUrl} alt="Blurred background preview" className="absolute inset-0 h-full w-full object-cover" />
             )}
             <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div className="w-full max-w-xs rounded-lg bg-white shadow-md border border-slate-200 p-3 text-[10px] text-slate-600">
+              <div className="w-full max-w-xs rounded-lg bg-white shadow-md border border-slate-200 p-3 text-xs text-slate-600">
                 <div className="h-2 w-24 rounded bg-slate-300 mb-2" />
                 <div className="h-1.5 w-full rounded bg-slate-200 mb-1" />
                 <div className="h-1.5 w-4/5 rounded bg-slate-200" />
@@ -135,7 +135,7 @@ export function EmailBackgroundField({
           </div>
         </>
       )}
-      <p className="text-[10px] text-theme-text-secondary leading-relaxed">
+      <p className="text-xs text-theme-text-secondary leading-relaxed">
         Shown behind the e-mail; the message itself stays on a white card so it is easy to read. Desktop Outlook ignores background pictures and shows a plain light background instead.
       </p>
     </div>
@@ -159,7 +159,7 @@ export function EmailBackgroundPicker({
   ];
   return (
     <div className="space-y-2 p-3 rounded-xl border border-slate-200 dark:border-white/10" data-testid="email-background-picker">
-      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Email background (blurred picture)</label>
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Email background (blurred picture)</label>
       <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-700 dark:text-slate-200">
         {opts.map(([mode, text]) => (
           <label key={mode} className="flex items-center gap-1.5 cursor-pointer">
@@ -167,7 +167,7 @@ export function EmailBackgroundPicker({
           </label>
         ))}
       </div>
-      {value.mode === 'default' && <p className="text-[10px] text-slate-500">Uses the background set in Email → Settings, if there is one.</p>}
+      {value.mode === 'default' && <p className="text-xs text-slate-500">Uses the background set in Email → Settings, if there is one.</p>}
       {value.mode === 'custom' && (
         <EmailBackgroundField storageKey={value.storageKey} blur={value.blur} disabled={disabled} onChange={(n) => onChange({ ...value, storageKey: n.storageKey, blur: n.blur })} />
       )}

@@ -71,7 +71,7 @@ export function getTbiEventTrack(event: EventItem): { track: TbiScheduleTrack; l
     return {
       track: 'WORKSHOP',
       label: 'Workshop',
-      badgeCls: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+      badgeCls: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30',
       barGradient: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500',
     };
   }
@@ -87,7 +87,7 @@ export function getTbiEventTrack(event: EventItem): { track: TbiScheduleTrack; l
     return {
       track: 'HACKATHON',
       label: 'Hackathon',
-      badgeCls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+      badgeCls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
       barGradient: 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500',
     };
   }
@@ -95,14 +95,14 @@ export function getTbiEventTrack(event: EventItem): { track: TbiScheduleTrack; l
     return {
       track: 'PROGRAM',
       label: 'Cohort Program',
-      badgeCls: 'bg-accent/15 text-accent border-accent/30',
+      badgeCls: 'bg-accent/15 text-accent-strong dark:text-accent-soft border-accent/30',
       barGradient: 'bg-gradient-to-r from-accent via-rose-600 to-accent',
     };
   }
   return {
     track: 'PROGRAM',
     label: 'TBI Program',
-    badgeCls: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    badgeCls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
     barGradient: 'bg-gradient-to-r from-accent via-amber-600 to-accent',
   };
 }
@@ -150,15 +150,15 @@ function getCountdownBadge(startDate: string, endDate: string, planningStartDate
     return { label: 'Concluded', cls: 'bg-theme-border/20 text-theme-text-secondary' };
   }
   if (startDate <= todayStr && endDate >= todayStr) {
-    return { label: 'Active Today', cls: 'bg-warning/20 text-warning font-bold animate-pulse' };
+    return { label: 'Active Today', cls: 'bg-warning/20 text-warning dark:text-warning-soft font-bold animate-pulse' };
   }
   if (planningStartDate && planningStartDate <= todayStr && startDate > todayStr) {
     const diff = daysBetween(today, parseDate(startDate));
-    return { label: `In Prep (${diff}d to launch)`, cls: 'bg-warning/15 text-warning font-medium' };
+    return { label: `In Prep (${diff}d to launch)`, cls: 'bg-warning/15 text-warning dark:text-warning-soft font-medium' };
   }
   const diff = daysBetween(today, parseDate(startDate));
-  if (diff === 1) return { label: 'Starts Tomorrow', cls: 'bg-accent/20 text-accent font-bold' };
-  if (diff <= 7) return { label: `Starts in ${diff}d`, cls: 'bg-accent/15 text-accent font-semibold' };
+  if (diff === 1) return { label: 'Starts Tomorrow', cls: 'bg-accent/20 text-accent-strong dark:text-accent-soft font-bold' };
+  if (diff <= 7) return { label: `Starts in ${diff}d`, cls: 'bg-accent/15 text-accent-strong dark:text-accent-soft font-semibold' };
   return { label: `In ${diff}d`, cls: 'bg-theme-border/25 text-theme-text-primary' };
 }
 
@@ -459,9 +459,9 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <CalendarRange className="h-4 w-4 text-accent" />
+              <CalendarRange className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               <h3 className="text-base font-bold text-theme-text-primary">Upcoming TBI Schedule</h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent/15 text-accent border border-accent/30 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30 uppercase tracking-wider">
                 Gantt View
               </span>
             </div>
@@ -479,7 +479,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                   setWindowKey(opt.key);
                   setUserPickedWindow(true);
                 }}
-                className={`px-2.5 py-1 text-[11px] font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                   windowKey === opt.key
                     ? 'bg-accent text-white shadow-xs'
                     : 'bg-theme-border/25 text-theme-text-secondary hover:bg-theme-border/50 hover:text-theme-text-primary'
@@ -506,7 +506,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                 type="button"
                 onClick={() => changeZoom(1)}
                 title="Reset zoom to 100%"
-                className="px-1 min-w-[36px] text-[10px] font-bold text-theme-text-secondary hover:text-theme-text-primary tabular-nums cursor-pointer"
+                className="px-1 min-w-[36px] text-xs font-bold text-theme-text-secondary hover:text-theme-text-primary tabular-nums cursor-pointer"
               >
                 {Math.round(zoom * 100)}%
               </button>
@@ -524,7 +524,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
             <button
               type="button"
               onClick={selectCustom}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-2.5 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
                 windowKey === 'custom'
                   ? 'bg-accent text-white shadow-xs'
                   : 'bg-theme-border/25 text-theme-text-secondary hover:bg-theme-border/50 hover:text-theme-text-primary'
@@ -552,8 +552,8 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
 
         {/* TBI Schedule Track Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-0.5">
-          <span className="text-[11px] font-semibold text-theme-text-secondary flex items-center gap-1 shrink-0 mr-1">
-            <Layers className="h-3.5 w-3.5 text-accent" />
+          <span className="text-xs font-semibold text-theme-text-secondary flex items-center gap-1 shrink-0 mr-1">
+            <Layers className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
             Track:
           </span>
           {[
@@ -568,7 +568,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
               key={trk.key}
               type="button"
               onClick={() => setActiveTrack(trk.key as TrackFilterKey)}
-              className={`px-3 py-1 rounded-xl text-[11px] font-semibold cursor-pointer transition-all whitespace-nowrap ${
+              className={`px-3 py-1 rounded-xl text-xs font-semibold cursor-pointer transition-all whitespace-nowrap ${
                 activeTrack === trk.key
                   ? 'bg-accent text-white shadow-xs'
                   : 'bg-theme-background/30 text-theme-text-secondary hover:bg-theme-border/25 hover:text-theme-text-primary'
@@ -582,7 +582,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
 
       {windowKey === 'custom' && (
         <div className="flex flex-wrap items-end gap-3 p-3 rounded-2xl bg-theme-border/10 border border-theme-border/30">
-          <label className="text-[11px] font-semibold text-theme-text-secondary space-y-1">
+          <label className="text-xs font-semibold text-theme-text-secondary space-y-1">
             <span className="block">From</span>
             <input
               type="date"
@@ -592,7 +592,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
               className="px-3 py-1.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-xs text-theme-text-primary focus:outline-none focus:border-accent"
             />
           </label>
-          <label className="text-[11px] font-semibold text-theme-text-secondary space-y-1">
+          <label className="text-xs font-semibold text-theme-text-secondary space-y-1">
             <span className="block">To</span>
             <input
               type="date"
@@ -603,9 +603,9 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
             />
           </label>
           {customError ? (
-            <p className="text-[11px] text-warning font-medium pb-1.5">{customError} Showing default window until fixed.</p>
+            <p className="text-xs text-warning dark:text-warning-soft font-medium pb-1.5">{customError} Showing default window until fixed.</p>
           ) : (
-            <p className="text-[11px] text-theme-text-secondary pb-1.5">{totalDays} days displayed</p>
+            <p className="text-xs text-theme-text-secondary pb-1.5">{totalDays} days displayed</p>
           )}
         </div>
       )}
@@ -615,10 +615,10 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
         <div className="p-4 rounded-3xl bg-gradient-to-r from-accent/15 via-primary/10 to-accent/5 border border-accent/30 shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full ${getTbiEventTrack(selectedEvent).badgeCls}`}>
+              <span className={`text-xs uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full ${getTbiEventTrack(selectedEvent).badgeCls}`}>
                 {getTbiEventTrack(selectedEvent).label}
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize bg-theme-border/30 text-theme-text-primary border border-theme-border/40">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full capitalize bg-theme-border/30 text-theme-text-primary border border-theme-border/40">
                 {getEffectiveEventStatus(selectedEvent, tasks)}
               </span>
             </div>
@@ -628,12 +628,12 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
             </h4>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-theme-text-secondary">
-              <span className="flex items-center gap-1 font-semibold text-accent">
+              <span className="flex items-center gap-1 font-semibold text-accent-strong dark:text-accent-soft">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatEventDateRange(selectedEvent)}
               </span>
               {formatEventPlanningNote(selectedEvent) && (
-                <span className="text-warning font-medium flex items-center gap-1">
+                <span className="text-warning dark:text-warning-soft font-medium flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {formatEventPlanningNote(selectedEvent)}
                 </span>
@@ -683,10 +683,10 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
         <div className="p-4 rounded-3xl bg-gradient-to-r from-blue-500/15 via-cyan-500/10 to-blue-500/5 border border-blue-500/30 shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+              <span className="text-xs uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
                 Facility Booking
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize bg-theme-border/30 text-theme-text-primary">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full capitalize bg-theme-border/30 text-theme-text-primary">
                 {selectedBooking.roomName}
               </span>
             </div>
@@ -764,10 +764,10 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                   className="sticky left-0 z-30 shrink-0 bg-theme-card border-b border-r border-theme-border/20 px-3 py-2 flex items-center justify-between"
                   style={{ width: STICKY_LABEL_WIDTH }}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">
+                  <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary">
                     TBI Schedule Items
                   </span>
-                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-theme-border/20 text-theme-text-secondary">
+                  <span className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-theme-border/20 text-theme-text-secondary">
                     {rowCount} rows
                   </span>
                 </div>
@@ -781,7 +781,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                       className="absolute top-0 h-full flex items-center border-l border-theme-border/15 pl-1.5"
                       style={{ left: t.offset }}
                     >
-                      <span className="text-[9px] font-mono text-theme-text-secondary whitespace-nowrap">
+                      <span className="text-xs font-mono text-theme-text-secondary whitespace-nowrap">
                         {t.label}
                       </span>
                     </div>
@@ -793,7 +793,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                       className="absolute top-0 h-full border-l-2 border-danger z-20 pointer-events-none"
                       style={{ left: todayOffset * dayWidth }}
                     >
-                      <span className="absolute top-0.5 left-1 text-[9px] font-bold px-1 py-0.2 rounded bg-danger text-white uppercase tracking-wider shadow-xs">
+                      <span className="absolute top-0.5 left-1 text-xs font-bold px-1 py-0.2 rounded bg-danger text-white uppercase tracking-wider shadow-xs">
                         Today
                       </span>
                     </div>
@@ -825,25 +825,25 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                     >
                       <div className="flex items-center gap-1.5">
                         <span
-                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider ${trackInfo.badgeCls}`}
+                          className={`px-1.5 py-0.2 rounded text-xs font-bold uppercase tracking-wider ${trackInfo.badgeCls}`}
                         >
                           {trackInfo.label}
                         </span>
-                        <span className={`px-1.5 py-0.2 rounded text-[9px] ${countdown.cls}`}>
+                        <span className={`px-1.5 py-0.2 rounded text-xs ${countdown.cls}`}>
                           {countdown.label}
                         </span>
                       </div>
                       <span
-                        className={`text-[11px] truncate block mt-0.5 ${
+                        className={`text-xs truncate block mt-0.5 ${
                           isSelected
-                            ? 'font-bold text-accent'
+                            ? 'font-bold text-accent-strong dark:text-accent-soft'
                             : 'font-semibold text-theme-text-primary group-hover:text-accent'
                         }`}
                         title={event.title}
                       >
                         {event.title}
                       </span>
-                      <span className="text-[10px] text-theme-text-secondary truncate flex items-center gap-1 mt-0.5">
+                      <span className="text-xs text-theme-text-secondary truncate flex items-center gap-1 mt-0.5">
                         <MapPin className="h-2.5 w-2.5 shrink-0" />
                         <span className="truncate">{event.location || 'RTBI Hub'}</span>
                       </span>
@@ -890,7 +890,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                         title={`${event.title} (${event.startDate} to ${event.endDate}) · ${effective}`}
                       >
                         {width >= 70 && (
-                          <span className="text-[9px] font-bold text-white px-2 truncate block drop-shadow-xs">
+                          <span className="text-xs font-bold text-white px-2 truncate block drop-shadow-xs">
                             {event.title}
                           </span>
                         )}
@@ -940,20 +940,20 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                       style={{ width: STICKY_LABEL_WIDTH }}
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+                        <span className="px-1.5 py-0.2 rounded text-xs font-bold uppercase tracking-wider bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
                           {booking.roomName}
                         </span>
-                        <span className={`px-1.5 py-0.2 rounded text-[9px] ${countdown.cls}`}>
+                        <span className={`px-1.5 py-0.2 rounded text-xs ${countdown.cls}`}>
                           {countdown.label}
                         </span>
                       </div>
                       <span
-                        className="text-[11px] font-semibold text-theme-text-primary group-hover:text-blue-400 transition-all truncate block mt-0.5"
+                        className="text-xs font-semibold text-theme-text-primary group-hover:text-blue-400 transition-all truncate block mt-0.5"
                         title={booking.title}
                       >
                         {booking.title}
                       </span>
-                      <span className="text-[10px] text-theme-text-secondary truncate flex items-center gap-1 mt-0.5">
+                      <span className="text-xs text-theme-text-secondary truncate flex items-center gap-1 mt-0.5">
                         <DoorOpen className="h-2.5 w-2.5 shrink-0" />
                         <span className="truncate">{booking.organisation || booking.bookedByName}</span>
                       </span>
@@ -982,7 +982,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                         title={`${booking.roomName}: ${booking.title} (${booking.organisation || booking.bookedByName})`}
                       >
                         {width >= 60 && (
-                          <span className="text-[9px] font-bold text-white px-2 truncate block drop-shadow-xs">
+                          <span className="text-xs font-bold text-white px-2 truncate block drop-shadow-xs">
                             {booking.roomName}: {booking.title}
                           </span>
                         )}
@@ -1000,16 +1000,16 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
                     style={{ width: STICKY_LABEL_WIDTH }}
                   >
                     <div className="flex items-center gap-1.5">
-                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                      <span className="px-1.5 py-0.2 rounded text-xs font-bold uppercase tracking-wider bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
                         Milestones
                       </span>
-                      <span className="text-[9px] text-theme-text-secondary">
+                      <span className="text-xs text-theme-text-secondary">
                         {standaloneTasks.length} checkpoints
                       </span>
                     </div>
                     <Link
                       href="/dashboard/tasks"
-                      className="text-[11px] font-semibold text-theme-text-secondary hover:text-accent transition-all truncate block mt-0.5"
+                      className="text-xs font-semibold text-theme-text-secondary hover:text-accent transition-all truncate block mt-0.5"
                     >
                       General TBI Deliverables
                     </Link>
@@ -1046,7 +1046,7 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
 
           {/* Bottom Bar: Schedule Legend */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
-            <span className="text-[11px] text-theme-text-secondary">
+            <span className="text-xs text-theme-text-secondary">
               Showing {rowCount} upcoming schedule track{rowCount === 1 ? '' : 's'} across {totalDays} days
             </span>
 
@@ -1054,16 +1054,16 @@ export function GanttTimeline({ events, tasks, bookings = [], maxRows = 10 }: Ga
               <button
                 type="button"
                 onClick={() => setIsLegendOpen((v) => !v)}
-                className="flex items-center gap-1.5 text-[11px] font-semibold text-theme-text-secondary hover:text-theme-text-primary transition-all cursor-pointer"
+                className="flex items-center gap-1.5 text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary transition-all cursor-pointer"
               >
                 <Info className="h-3.5 w-3.5" />
                 Schedule Legend
               </button>
 
               {isLegendOpen && (
-                <div className="absolute bottom-7 right-0 z-30 p-3.5 rounded-2xl bg-theme-card border border-theme-border/30 shadow-2xl text-[11px] space-y-2 min-w-[240px] backdrop-blur-md">
+                <div className="absolute bottom-7 right-0 z-30 p-3.5 rounded-2xl bg-theme-card border border-theme-border/30 shadow-2xl text-xs space-y-2 min-w-[240px] backdrop-blur-md">
                   <p className="font-bold text-theme-text-primary pb-1 border-b border-theme-border/20 flex items-center gap-1.5">
-                    <Flag className="h-3.5 w-3.5 text-accent" />
+                    <Flag className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                     TBI Schedule Tracks
                   </p>
                   <div className="flex items-center gap-2">

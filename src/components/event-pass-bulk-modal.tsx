@@ -310,7 +310,7 @@ export function EventPassBulkModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+            <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
@@ -332,14 +332,14 @@ export function EventPassBulkModal({
 
         {/* Feedback Banners */}
         {importSuccess && (
-          <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/30 rounded-2xl text-success text-xs">
-            <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/30 rounded-2xl text-success dark:text-success-soft text-xs">
+            <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
             <span className="font-semibold">{importSuccess}</span>
           </div>
         )}
         {errorMessage && (
-          <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger text-xs">
-            <AlertTriangle className="h-5 w-5 text-danger shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger dark:text-danger-soft text-xs">
+            <AlertTriangle className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -347,7 +347,7 @@ export function EventPassBulkModal({
         <div className="space-y-4 overflow-y-auto flex-1 pr-1 text-xs">
           {/* 1. Target Event Selection */}
           <div className="space-y-1.5">
-            <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+            <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
               Select Event for Bulk Pass Issuance *
             </label>
             <SearchableSelect
@@ -360,15 +360,15 @@ export function EventPassBulkModal({
           {/* 2. Download Template Action */}
           <div className="p-4 rounded-2xl bg-accent/10 border border-accent/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="font-extrabold text-accent text-xs">Step 1: Download Event Template</div>
-              <div className="text-[11px] text-theme-text-secondary dark:text-theme-text-secondary">
+              <div className="font-extrabold text-accent-strong dark:text-accent-soft text-xs">Step 1: Download Event Template</div>
+              <div className="text-xs text-theme-text-secondary dark:text-theme-text-secondary">
                 Pre-configured with event dates, room allocation headers, and sample VIP/Speaker tiers.
               </div>
             </div>
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent border border-accent/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
+              className="px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent-strong dark:text-accent-soft border border-accent/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
             >
               <Download className="h-4 w-4" /> Download CSV Template
             </button>
@@ -394,11 +394,11 @@ export function EventPassBulkModal({
               accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel,text/plain"
               className="hidden"
             />
-            <Upload className="h-8 w-8 text-accent mb-2 animate-bounce" />
+            <Upload className="h-8 w-8 text-accent-strong dark:text-accent-soft mb-2 animate-bounce" />
             <div className="font-extrabold text-theme-text-primary dark:text-white text-xs">
               {isDragOver ? 'Drop CSV file here' : 'Click to Upload or Drag & Drop CSV'}
             </div>
-            <div className="text-[10px] text-theme-text-secondary mt-1">
+            <div className="text-xs text-theme-text-secondary mt-1">
               Supports .csv files with AttendeeName, GuestCategory, PassType, RoomOrVenue
             </div>
           </div>
@@ -408,20 +408,20 @@ export function EventPassBulkModal({
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-theme-text-primary dark:text-white text-xs flex items-center gap-1.5">
-                  <Users className="h-4 w-4 text-accent" />
+                  <Users className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Parsed {parsedRows.length} Attendee Records Ready to Issue
                 </span>
                 <button
                   type="button"
                   onClick={() => setParsedRows([])}
-                  className="text-[11px] text-theme-text-secondary hover:text-danger cursor-pointer"
+                  className="text-xs text-theme-text-secondary hover:text-danger cursor-pointer"
                 >
                   Clear Table
                 </button>
               </div>
 
               <div className="max-h-48 overflow-y-auto border border-theme-card-border dark:border-white/10 rounded-xl">
-                <table className="w-full text-left text-[11px]">
+                <table className="w-full text-left text-xs">
                   <thead className="bg-theme-border/15 dark:bg-white/5 text-theme-text-secondary uppercase tracking-wider sticky top-0">
                     <tr>
                       <th className="py-2 px-3">Attendee</th>
@@ -438,18 +438,18 @@ export function EventPassBulkModal({
                           {row.attendeeName}
                         </td>
                         <td className="py-2 px-3">
-                          <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[9.5px] font-bold">
+                          <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft text-[9.5px] font-bold">
                             {row.guestCategory}
                           </span>
                         </td>
                         <td className="py-2 px-3 text-theme-text-primary dark:text-theme-text-secondary">
                           {row.passType}
                         </td>
-                        <td className="py-2 px-3 text-accent font-semibold">
+                        <td className="py-2 px-3 text-accent-strong dark:text-accent-soft font-semibold">
                           📍 {row.roomOrVenue}
                         </td>
-                        <td className="py-2 px-3 text-theme-text-secondary text-[10px]">
-                          {row.isValid ? row.email : <span className="text-danger font-bold">⚠ {row.error} — skipped</span>}
+                        <td className="py-2 px-3 text-theme-text-secondary text-xs">
+                          {row.isValid ? row.email : <span className="text-danger dark:text-danger-soft font-bold">⚠ {row.error} — skipped</span>}
                         </td>
                       </tr>
                     ))}

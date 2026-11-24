@@ -80,7 +80,7 @@ export default function StartupWorkspacePage() {
         <ul className="grid md:grid-cols-2 gap-x-6 gap-y-1">
           {items.map(i => (
             <li key={i.key} className="flex items-start gap-2 min-h-9 text-sm">
-              {done[i.key] ? <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" aria-hidden="true" /> : <Circle className="h-5 w-5 text-theme-text-secondary shrink-0" aria-hidden="true" />}
+              {done[i.key] ? <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0" aria-hidden="true" /> : <Circle className="h-5 w-5 text-theme-text-secondary shrink-0" aria-hidden="true" />}
               <span><span className="font-medium">{i.label}</span><span className="sr-only">{done[i.key] ? ' (done)' : ' (pending)'}</span></span>
             </li>
           ))}

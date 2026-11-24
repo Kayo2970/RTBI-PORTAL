@@ -5,7 +5,6 @@ export * from './chip';
 export * from './confirm-modal';
 export * from './empty-state';
 export * from './file-dropzone';
-export * from './ghost-fibers';
 export * from './magic-bento';
 export * from './progress';
 export * from './ripple-button';

@@ -59,7 +59,7 @@ export function ToastViewport() {
   const list = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   useEffect(() => () => { timers.forEach(clearTimeout); timers.clear(); }, []);
   return (
-    <div className="fixed z-[300] bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-96 flex flex-col gap-2 pointer-events-none" aria-label="Notifications">
+    <div className="fixed z-[300] bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-96 flex flex-col gap-2 pointer-events-none" role="region" aria-label="Notifications">
       {list.map((t) => {
         const { icon: Icon, cls } = TONES[t.tone];
         return (

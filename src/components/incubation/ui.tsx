@@ -59,7 +59,7 @@ export function FieldInput({ f, value, onChange, startups, members, records, dis
     <div className={`space-y-1.5 ${wide ? 'md:col-span-2' : ''}`}>
       <label htmlFor={id} className="block text-sm font-semibold text-theme-text-primary">
         {f.label}{f.managerOnly ? ' (manager)' : ''}
-        {f.required && <><span className="text-rose-600 dark:text-rose-300 ml-1" aria-hidden="true">*</span><span className="sr-only"> (required)</span></>}
+        {f.required && <><span className="text-rose-700 dark:text-rose-300 ml-1" aria-hidden="true">*</span><span className="sr-only"> (required)</span></>}
       </label>
       {control}
       {f.hint && <p id={hintId} className="text-sm text-theme-text-secondary">{f.hint}</p>}

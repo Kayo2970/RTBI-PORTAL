@@ -29,7 +29,7 @@ export function BackgroundTaskTray({ offsetClass = 'md:left-4' }: { offsetClass?
   return (
     <div className={`fixed bottom-4 left-3 ${offsetClass} z-[60] w-[min(22rem,calc(100vw-1.5rem))] space-y-2 pointer-events-none`} aria-live="polite" role="status">
       {tasks.length > shown.length && (
-        <div className="pointer-events-auto text-[10px] font-bold text-theme-text-secondary px-2">+{tasks.length - shown.length} more running or finished</div>
+        <div className="pointer-events-auto text-xs font-bold text-theme-text-secondary px-2">+{tasks.length - shown.length} more running or finished</div>
       )}
       {shown.map((t) => {
         const pct = t.total > 0 ? Math.min(100, Math.round((t.done / t.total) * 100)) : 0;
@@ -38,14 +38,14 @@ export function BackgroundTaskTray({ offsetClass = 'md:left-4' }: { offsetClass?
           <div key={t.id} className={`pointer-events-auto glass-panel rounded-2xl p-3 border ${tone} bg-white/95 dark:bg-[#0B1B2E]/95 backdrop-blur-xl shadow-2xl shadow-black/30 text-theme-text-primary animate-in slide-in-from-bottom-3 fade-in duration-200`}>
             <div className="flex items-start gap-2.5">
               <span className="mt-0.5 shrink-0">
-                {t.state === 'running' ? <Loader2 className="h-4 w-4 text-accent animate-spin" /> : t.state === 'failed' ? <XCircle className="h-4 w-4 text-rose-500" /> : t.warn ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                {t.state === 'running' ? <Loader2 className="h-4 w-4 text-accent-strong dark:text-accent-soft animate-spin" /> : t.state === 'failed' ? <XCircle className="h-4 w-4 text-rose-500" /> : t.warn ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold truncate">{t.label}</span>
-                  {t.total > 0 && t.state === 'running' && <span className="text-[10px] font-mono text-theme-text-secondary shrink-0">{t.done}/{t.total}</span>}
+                  {t.total > 0 && t.state === 'running' && <span className="text-xs font-mono text-theme-text-secondary shrink-0">{t.done}/{t.total}</span>}
                 </div>
-                <p className="text-[11px] text-theme-text-secondary break-words">
+                <p className="text-xs text-theme-text-secondary break-words">
                   {t.state === 'running' ? t.detail || (t.total > 0 ? 'Working…' : 'In progress — you can keep using other modules.') : t.message || (t.state === 'failed' ? 'Failed.' : 'Done.')}
                 </p>
                 {t.state === 'running' && (
@@ -54,7 +54,7 @@ export function BackgroundTaskTray({ offsetClass = 'md:left-4' }: { offsetClass?
                   </div>
                 )}
                 {t.state === 'running' && t.cancel && !t.stopping && (
-                  <button type="button" onClick={t.cancel} className="mt-1.5 text-[10px] font-bold text-rose-500 hover:underline cursor-pointer flex items-center gap-1"><Square className="h-2.5 w-2.5" /> Stop after this one</button>
+                  <button type="button" onClick={t.cancel} className="mt-1.5 text-xs font-bold text-rose-500 hover:underline cursor-pointer flex items-center gap-1"><Square className="h-2.5 w-2.5" /> Stop after this one</button>
                 )}
               </div>
               {t.state !== 'running' && (

@@ -20,7 +20,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className="glass-panel rounded-2xl py-12 px-6 text-center space-y-4 my-4 flex flex-col items-center justify-center">
-      <div className="p-4 bg-accent/10 border border-accent/30 rounded-2xl text-accent dark:text-accent-soft">
+      <div className="p-4 bg-accent/10 border border-accent/30 rounded-2xl text-accent-strong dark:text-accent-soft">
         <Icon className="h-7 w-7" />
       </div>
       <div className="max-w-md space-y-1.5">

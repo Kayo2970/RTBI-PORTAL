@@ -8,10 +8,6 @@ import { StartupActivationWizard, type StartupActivationPayload } from '@/compon
 import { InteractiveKeycardHolder } from '@/components/interactive-keycard-holder';
 import dynamic from 'next/dynamic';
 
-const AcidSquaresBackground = dynamic(
-  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
-  { ssr: false }
-);
 
 function ActivateAccountForm() {
   const searchParams = useSearchParams();
@@ -112,7 +108,7 @@ function ActivateAccountForm() {
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 py-10 relative z-0 overflow-x-hidden">
         {/* Top Celebration Header */}
         <div className="w-full max-w-2xl text-center space-y-3 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-[11px] font-bold tracking-wider uppercase">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent-strong dark:text-accent-soft text-xs font-bold tracking-wider uppercase">
             <Sparkles className="h-3.5 w-3.5" /> Official Induction & Credentials Issued
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
@@ -166,19 +162,7 @@ function ActivateAccountForm() {
   return (
     <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8 relative z-0 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
-        <AcidSquaresBackground
-          tileSize={1}
-          gap={0.12}
-          roundness={0.25}
-          rotation={35}
-          waves={1}
-          pulse={1}
-          lighting="split"
-          tilt={0.7}
-          grain={0.08}
-          intro={true}
-          mouseInteraction={true}
-        />
+        
       </div>
       <div className={`w-full ${isStartup && status === 'ready' ? 'max-w-xl' : 'max-w-md'} glass-panel rounded-3xl p-6 md:p-8 flex flex-col space-y-6 relative z-10 border border-white/15 shadow-2xl`}>
         {/* Brand Header */}
@@ -213,7 +197,7 @@ function ActivateAccountForm() {
 
         {status === 'invalid' && (
           <div className="space-y-4">
-            <div className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger text-xs leading-relaxed">
+            <div className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger dark:text-danger-soft text-xs leading-relaxed">
               <ShieldAlert className="h-4.5 w-4.5 shrink-0" />
               <span>{validationError}</span>
             </div>
@@ -234,15 +218,15 @@ function ActivateAccountForm() {
         {status === 'ready' && !isStartup && (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="flex items-center gap-2.5 p-3.5 bg-accent/10 border border-accent/20 rounded-2xl">
-              <Sparkles className="h-4 w-4 text-accent shrink-0" />
+              <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
               <div>
                 <p className="font-bold text-theme-text-primary">Welcome, {name}!</p>
-                <p className="text-[11px] text-theme-text-secondary">{email}</p>
+                <p className="text-xs text-theme-text-secondary">{email}</p>
               </div>
             </div>
 
             {submitError && (
-              <div className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger text-xs leading-relaxed">
+              <div className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger dark:text-danger-soft text-xs leading-relaxed">
                 <ShieldAlert className="h-4.5 w-4.5 shrink-0" />
                 <span>{submitError}</span>
               </div>
@@ -305,12 +289,12 @@ function ActivateAccountForm() {
                   className="w-full pl-10 pr-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary placeholder-theme-text-secondary focus:outline-none focus:border-accent text-xs transition-all"
                 />
               </div>
-              <p className="text-[11px] text-theme-text-secondary/70">Stored in the Members Directory so the Centre can reach you.</p>
+              <p className="text-xs text-theme-text-secondary">Stored in the Members Directory so the Centre can reach you.</p>
             </div>
 
             <div className="space-y-1.5">
               <label className="block font-semibold text-theme-text-secondary uppercase tracking-wider">
-                Date of Birth <span className="normal-case font-medium text-theme-text-secondary/70">(optional)</span>
+                Date of Birth <span className="normal-case font-medium text-theme-text-secondary">(optional)</span>
               </label>
               <div className="relative">
                 <Cake className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />
@@ -322,7 +306,7 @@ function ActivateAccountForm() {
                   className="w-full pl-10 pr-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary placeholder-theme-text-secondary focus:outline-none focus:border-accent text-xs transition-all"
                 />
               </div>
-              <p className="text-[11px] text-theme-text-secondary/70">We&apos;ll send you a birthday surprise from the Centre — you can also add this later from Settings.</p>
+              <p className="text-xs text-theme-text-secondary">We&apos;ll send you a birthday surprise from the Centre — you can also add this later from Settings.</p>
             </div>
 
             <button

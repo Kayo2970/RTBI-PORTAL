@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, FileDown, FolderOpen, Plus, Search } from 'lucide-react';
 import { downloadCsv, toCsvRow } from '@/lib/csv';
 import { KINDS, kindFields, type KindDef } from '@/lib/incubation/kinds';
@@ -44,6 +44,7 @@ export default function RecordsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [refRecords, setRefRecords] = useState<Record<string, { id: string; label: string }[]>>({});
 
+  const search = useSearchParams();
   const manager = isManagerUi(user);
   const canWrite = !!def && (def.write === 'managers' ? manager : isStaffUi(user));
 
@@ -57,13 +58,21 @@ export default function RecordsPage() {
     setLoading(false);
   }, [def, kind]);
 
-  useEffect(() => { setQuery(''); setStatusFilter(''); setStartupFilter(''); setSort(null); setPage(0); setSelected(new Set()); setRows([]); load(); }, [load]);
+  useEffect(() => { setQuery(''); setStatusFilter(''); setStartupFilter(search.get('startup') || ''); setSort(null); setPage(0); setSelected(new Set()); setRows([]); load(); }, [load]);
   useEffect(() => {
     if (!def || !settings) return;
     const refs = kindFields(def, settings).filter(f => f.type === 'record' && f.refKind);
     refs.forEach(f => fetchRecords(f.refKind!).then(list => setRefRecords(p => ({ ...p, [f.refKind!]: list.map(r => ({ id: r.id, label: String(r[f.refLabel || 'name'] ?? r.id) })) }))).catch(() => {}));
   }, [def, settings]);
   useEffect(() => { if (isStaffUi(user)) fetchMembersLite().then(setMembers).catch(() => setMembers([])); }, [user]);
+
+  const openId = search.get('open');
+  const openedRef = React.useRef<string | null>(null);
+  useEffect(() => {
+    if (!openId || openedRef.current === openId || !rows.length) return;
+    const r = rows.find(x => x.id === openId);
+    if (r) { openedRef.current = openId; setEditing(r); }
+  }, [openId, rows]);
 
   const memberName = useCallback((id?: string) => members.find(m => m.id === id)?.name || id || '—', [members]);
   const startupName = useCallback((id?: string) => startups.find(s => s.id === id)?.name || id || '—', [startups]);
@@ -178,7 +187,7 @@ export default function RecordsPage() {
             <option value="">All {label(statusCol).toLowerCase()}</option>{statusOptions.map(o => <option key={o}>{o}</option>)}
           </select>
         )}
-        {filtersActive && <button className="min-h-11 px-3 text-sm font-semibold text-accent dark:text-accent-soft underline" onClick={() => { setQuery(''); setStatusFilter(''); setStartupFilter(''); }}>Clear filters</button>}
+        {filtersActive && <button className="min-h-11 px-3 text-sm font-semibold text-accent-strong dark:text-accent-soft underline" onClick={() => { setQuery(''); setStatusFilter(''); setStartupFilter(''); }}>Clear filters</button>}
         <p className="text-sm text-theme-text-secondary ml-auto" role="status">{visible.length} of {rows.length}</p>
       </div>
 
@@ -225,8 +234,8 @@ export default function RecordsPage() {
                     <td className="p-3"><input type="checkbox" className="h-5 w-5 accent-[var(--color-primary)]" aria-label={`Select ${title}`} checked={selected.has(r.id)} onChange={() => setSelected(s => { const n = new Set(s); n.has(r.id) ? n.delete(r.id) : n.add(r.id); return n; })} /></td>
                     {def.columns.map(c => <td key={c} className="p-3 align-middle">{cell(r, c)}</td>)}
                     <td className="p-2 text-right whitespace-nowrap">
-                      {pdf && <button onClick={pdf} aria-label={`Download PDF for ${title}`} className="inline-flex items-center gap-1.5 min-h-11 px-3 rounded-lg text-sm font-semibold text-accent dark:text-accent-soft hover:bg-theme-border/20"><FileDown className="h-4 w-4" aria-hidden="true" /> PDF</button>}
-                      <button onClick={() => setEditing(r)} aria-label={`${canWrite ? 'Open and edit' : 'View'} ${title}`} className="inline-flex items-center min-h-11 px-3 rounded-lg text-sm font-semibold text-accent dark:text-accent-soft hover:bg-theme-border/20">{canWrite ? 'Open / edit' : 'View'}</button>
+                      {pdf && <button onClick={pdf} aria-label={`Download PDF for ${title}`} className="inline-flex items-center gap-1.5 min-h-11 px-3 rounded-lg text-sm font-semibold text-accent-strong dark:text-accent-soft hover:bg-theme-border/20"><FileDown className="h-4 w-4" aria-hidden="true" /> PDF</button>}
+                      <button onClick={() => setEditing(r)} aria-label={`${canWrite ? 'Open and edit' : 'View'} ${title}`} className="inline-flex items-center min-h-11 px-3 rounded-lg text-sm font-semibold text-accent-strong dark:text-accent-soft hover:bg-theme-border/20">{canWrite ? 'Open / edit' : 'View'}</button>
                     </td>
                   </tr>
                 );
@@ -347,7 +356,7 @@ function RecordEditor({ def, fields, record, startups, members, records, canWrit
                 <li key={s.id}>
                   <button type="button" onClick={() => setStep(i)} aria-current={i === step ? 'step' : undefined}
                     className={`min-h-10 px-3.5 rounded-full border text-sm font-semibold ${i === step ? 'bg-primary text-white border-primary dark:bg-white/15 dark:border-white/30' : 'border-theme-border hover:bg-theme-border/20'}`}>
-                    {s.title}{sectionDone(i) ? <span className="sr-only"> (complete)</span> : null}{canWrite && !sectionDone(i) ? <span className="ml-1 text-rose-600 dark:text-rose-300" aria-label="has required fields">*</span> : null}
+                    {s.title}{sectionDone(i) ? <span className="sr-only"> (complete)</span> : null}{canWrite && !sectionDone(i) ? <span className="ml-1 text-rose-700 dark:text-rose-300" aria-label="has required fields">*</span> : null}
                   </button>
                 </li>
               ))}
