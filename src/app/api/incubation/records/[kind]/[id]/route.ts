@@ -5,7 +5,7 @@ import { apiError } from '@/lib/api-error';
 import { canManageStartupsServer } from '@/lib/permissions-server';
 import { incubationAudit } from '@/lib/incubation/audit-server';
 import { KINDS } from '@/lib/incubation/kinds';
-import { buildRecord, canWriteKind, applyStartupStatusEffects } from '@/lib/incubation/records-server';
+import { buildRecord, canWriteRecord, applyStartupStatusEffects } from '@/lib/incubation/records-server';
 
 export const maxDuration = 60;
 
@@ -16,14 +16,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ki
     const { kind, id } = await params;
     const def = KINDS[kind];
     if (!def) return NextResponse.json({ error: 'Unknown register.' }, { status: 404 });
-    if (!(await canWriteKind(def, actor))) throw new ForbiddenError(`You do not have permission to edit ${def.plural.toLowerCase()}.`);
     const isManager = await canManageStartupsServer(actor);
     const existing = (await readCollection<any>('incubationRecords')).find(r => r.id === id && r.kind === kind);
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!(await canWriteRecord(def, actor, existing.startupId))) throw new ForbiddenError(`You do not have permission to edit ${def.plural.toLowerCase()}.`);
     if (def.restricted && !isManager && existing.createdBy !== actor.id) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (existing.finalised && !isManager) throw new ForbiddenError('A finalised decision can only be changed by a manager.');
 
-    const { rec, error } = await buildRecord({ def, body: await request.json(), existing, actor, isManager });
+    const { rec, error } = await buildRecord({ def, body: { ...(await request.json()), ...(existing.startupId ? { startupId: existing.startupId } : {}) }, existing, actor, isManager });
     if (error || !rec) return NextResponse.json({ error: error || 'Invalid record.' }, { status: 400 });
     rec.updatedBy = actor.id;
     // Optimistic concurrency: refuse if someone saved this record after we read it (their change-log entries would be lost).

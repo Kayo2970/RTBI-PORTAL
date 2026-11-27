@@ -16,11 +16,11 @@ export default function IncubationLayout({ children }: { children: React.ReactNo
 
   // External reviewers and startups get a reduced menu; everything else is gated by the same flags as before.
   if (user && (external || startupUser)) {
-    const only = external ? [{ id: 'apps', label: 'Applications', href: '/dashboard/incubation/applications' }] : [{ id: 'ws', label: 'My programme', href: '/dashboard/incubation/workspace' }];
+    const only = external ? [{ id: 'apps', label: 'Applications', href: '/dashboard/incubation/applications' }] : [{ id: 'ws', label: 'My programme', href: '/dashboard/incubation/workspace' }, { id: 'progress', label: 'Progress submission', href: '/dashboard/incubation/records/progress' }];
     return (
       <>
         <nav aria-label="Incubation" className="px-6 md:px-8 pt-4 border-b border-theme-border bg-theme-card">
-          <ul className="flex gap-1">{only.map((s) => <li key={s.id}><Link href={s.href} aria-current="page" className="inline-flex items-center min-h-11 px-4 text-sm font-semibold border-b-2 border-accent -mb-px">{s.label}</Link></li>)}</ul>
+          <ul className="flex gap-1">{only.map((s) => <li key={s.id}><Link href={s.href} aria-current={pathname === s.href || pathname.startsWith(s.href + '/') ? 'page' : undefined} className={`inline-flex items-center min-h-11 px-4 text-sm font-semibold border-b-2 -mb-px ${pathname === s.href || pathname.startsWith(s.href + '/') ? 'border-accent' : 'border-transparent text-theme-text-secondary'}`}>{s.label}</Link></li>)}</ul>
         </nav>
         {children}
       </>

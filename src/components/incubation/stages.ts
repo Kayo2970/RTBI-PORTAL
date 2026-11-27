@@ -13,9 +13,10 @@ export const STAGES: Stage[] = [
     { label: 'Onboarding', href: '/dashboard/incubation/onboarding', staffOnly: true },
   ] },
   { id: 'startups', label: 'Startups', href: '/dashboard/incubation', links: [] },
-  { id: 'programme', label: 'Programme', href: '/dashboard/incubation/records/cohort', links: ['cohort', 'milestone', 'programEvent', 'mentor', 'mentorSession', 'partnership', 'meeting'].map(rec) },
+  { id: 'programme', label: 'Programme', href: '/dashboard/incubation/records/cohort', links: ['cohort', 'milestone', 'progress', 'programEvent', 'mentor', 'mentorSession', 'partnership', 'meeting'].map(rec) },
   { id: 'compliance', label: 'Compliance', href: '/dashboard/incubation/records/review', links: ['review', 'trl', 'agreement', 'evidence', 'renewal', 'incident'].map(rec) },
   { id: 'exit', label: 'Graduation & exit', href: '/dashboard/incubation/records/graduation', links: ['graduation', 'exit'].map(rec) },
+  { id: 'reports', label: 'Reports', href: '/dashboard/incubation/reports', staffOnly: true, links: [] },
   { id: 'kpi', label: 'KPIs', href: '/dashboard/incubation/kpi', staffOnly: true, links: [] },
   { id: 'settings', label: 'Settings', href: '/dashboard/incubation/settings', staffOnly: true, links: [] },
 ];

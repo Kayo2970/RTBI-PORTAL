@@ -5,7 +5,7 @@ import { apiError } from '@/lib/api-error';
 import { canManageStartupsServer } from '@/lib/permissions-server';
 import { incubationAudit } from '@/lib/incubation/audit-server';
 import { KINDS } from '@/lib/incubation/kinds';
-import { buildRecord, canWriteKind, readableRecords, applyStartupStatusEffects } from '@/lib/incubation/records-server';
+import { buildRecord, canWriteRecord, readableRecords, applyStartupStatusEffects } from '@/lib/incubation/records-server';
 
 export const maxDuration = 60;
 
@@ -26,9 +26,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ kin
     const { kind } = await params;
     const def = KINDS[kind];
     if (!def) return NextResponse.json({ error: 'Unknown register.' }, { status: 404 });
-    if (!(await canWriteKind(def, actor))) throw new ForbiddenError(`You do not have permission to add ${def.plural.toLowerCase()}.`);
+    const body = await request.json();
+    if (!(await canWriteRecord(def, actor, body?.startupId))) throw new ForbiddenError(`You do not have permission to add ${def.plural.toLowerCase()}.`);
     const isManager = await canManageStartupsServer(actor);
-    const { rec, error } = await buildRecord({ def, body: await request.json(), actor, isManager });
+    const { rec, error } = await buildRecord({ def, body, actor, isManager });
     if (error || !rec) return NextResponse.json({ error: error || 'Invalid record.' }, { status: 400 });
     // Closed startups only accept their exit paperwork and evidence — no new reviews, sessions or agreements.
     if (rec.startupId && !['exit', 'evidence', 'incident'].includes(kind)) {

@@ -47,6 +47,8 @@ export interface KindDef {
   startupCanRead: boolean;
   /** 'managers' = tier 1-2 / granted; 'staff' = tier 1-3. */
   write: 'managers' | 'staff';
+  /** Tier-4 founders may also create/edit records of their own linked startup (e.g. progress submissions). */
+  startupCanWrite?: boolean;
   /** Read access limited to managers (and the record's creator). */
   restricted?: boolean;
   fields: FieldDef[] | ((s: IncubationSettings) => FieldDef[]);
@@ -316,6 +318,28 @@ export const KINDS: Record<string, KindDef> = {
       const due = addWorkingDays(new Date(r.sessionDate), ctx.settings.timers.mentorSessionLogWorkingDays);
       return { ...r, timeliness: r.loggedOn && new Date(r.loggedOn) > due ? 'Logged late' : 'On time' };
     },
+  },
+
+  progress: {
+    kind: 'progress', label: 'Progress Submission', plural: 'Startup Progress Submissions', startupScoped: true, startupCanRead: true, startupCanWrite: true, write: 'staff',
+    description: 'Startup progress submission: outreach, milestones, awards, grants, funding, competitions and an overall growth overview. Founders submit for their own startup; RTBI staff verify against evidence.',
+    fields: [
+      startup(), text('period', 'Reporting period (e.g. FY2026-27 Q2)', { required: true, section: 'Period' }), date('submittedOn', 'Submitted on', { section: 'Period' }),
+      area('growthOverview', 'Overall growth overview', { required: true, section: 'Growth overview' }),
+      num('revenue', 'Revenue in period (₹)', { min: 0, section: 'Growth overview' }), num('customers', 'Customers / users (total)', { min: 0, section: 'Growth overview' }),
+      num('teamSize', 'Team size', { min: 0, section: 'Growth overview' }), num('jobsCreated', 'Jobs created in period', { min: 0, section: 'Growth overview' }),
+      area('outreachPrograms', 'Outreach programs participated in (name, date, role)', { section: 'Outreach & milestones' }),
+      area('milestones', 'Milestones achieved', { section: 'Outreach & milestones' }),
+      area('awards', 'Awards and recognitions', { section: 'Awards, grants & funding' }),
+      area('grants', 'Grants received (scheme, amount, date)', { section: 'Awards, grants & funding' }),
+      num('fundingReceived', 'Funding received in period (₹)', { min: 0, section: 'Awards, grants & funding' }), text('fundingSource', 'Funding source / investor', { section: 'Awards, grants & funding' }),
+      area('competitionsWon', 'Competitions won / shortlisted', { section: 'Awards, grants & funding' }),
+      area('ipFiled', 'Patents / IP filed or granted', { section: 'Awards, grants & funding' }),
+      area('challenges', 'Challenges and support needed from RTBI', { section: 'Next steps' }), area('nextPlans', 'Plans for next period', { section: 'Next steps' }),
+      { key: 'supportingDoc', label: 'Supporting document (certificates, letters, sanction orders)', type: 'file' },
+      chk('verified', 'Verified by RTBI against evidence', { managerOnly: true, section: 'RTBI verification' }), area('staffRemarks', 'RTBI remarks', { managerOnly: true, section: 'RTBI verification' }),
+    ],
+    columns: ['startupId', 'period', 'revenue', 'fundingReceived', 'verified'],
   },
 
   cohort: {

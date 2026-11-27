@@ -46,7 +46,7 @@ export default function RecordsPage() {
 
   const search = useSearchParams();
   const manager = isManagerUi(user);
-  const canWrite = !!def && (def.write === 'managers' ? manager : isStaffUi(user));
+  const canWrite = !!def && (def.write === 'managers' ? manager : isStaffUi(user)) || (!!def?.startupCanWrite && user?.tier === 4);
 
   const load = useCallback(async () => {
     if (!def) return;
