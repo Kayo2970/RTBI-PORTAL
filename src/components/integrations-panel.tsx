@@ -101,14 +101,14 @@ export function IntegrationsPanel() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-accent" /> WalletWallet API key
+              <KeyRound className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> WalletWallet API key
             </h3>
             <p className="text-xs text-theme-text-secondary">
               Apple &amp; Google Wallet passes (visiting cards and event passes) are issued through{' '}
-              <a href="https://walletwallet.dev" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">WalletWallet</a>. Event-pass backgrounds, logos and footer fields need a Pro key. The key is encrypted at rest and never shown again.
+              <a href="https://walletwallet.dev" target="_blank" rel="noopener noreferrer" className="text-accent-strong dark:text-accent-soft hover:underline">WalletWallet</a>. Event-pass backgrounds, logos and footer fields need a Pro key. The key is encrypted at rest and never shown again.
             </p>
           </div>
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${configured ? 'bg-success/15 text-success' : 'bg-theme-border/30 text-theme-text-secondary'}`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${configured ? 'bg-success/15 text-success dark:text-success-soft' : 'bg-theme-border/30 text-theme-text-secondary'}`}>
             {configured === null ? '…' : configured ? 'Configured' : 'Not configured'}
           </span>
         </div>
@@ -121,13 +121,13 @@ export function IntegrationsPanel() {
             <CheckCircle2 className="h-4 w-4" /> {testing ? 'Checking…' : 'Check key'}
           </button>
         </div>
-        {keyMsg && <p className="text-xs font-semibold text-accent">{keyMsg}</p>}
+        {keyMsg && <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft">{keyMsg}</p>}
       </div>
 
       <div className="glass-panel rounded-2xl p-6 space-y-4">
         <div>
           <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-            <Share2 className="h-4 w-4 text-accent" /> Centre social accounts
+            <Share2 className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Centre social accounts
           </h3>
           <p className="text-xs text-theme-text-secondary">
             Shown on the &ldquo;Thank you for being part of our event&rdquo; page that event-pass links switch to 30 days after an event ends.
@@ -144,7 +144,7 @@ export function IntegrationsPanel() {
         <button type="button" onClick={saveSocials} disabled={savingSocials} className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl cursor-pointer disabled:opacity-50">
           <Save className="h-4 w-4" /> {savingSocials ? 'Saving…' : 'Save social links'}
         </button>
-        {socialMsg && <p className="text-xs font-semibold text-accent">{socialMsg}</p>}
+        {socialMsg && <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft">{socialMsg}</p>}
       </div>
     </div>
   );

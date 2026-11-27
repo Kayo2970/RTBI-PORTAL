@@ -378,7 +378,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
 
         {/* Modal Header */}
         <div className="flex flex-col items-center space-y-1.5 pt-2">
-          <div className="h-12 w-12 bg-accent/15 border border-accent/30 rounded-2xl flex items-center justify-center text-accent shadow-inner">
+          <div className="h-12 w-12 bg-accent/15 border border-accent/30 rounded-2xl flex items-center justify-center text-accent-strong dark:text-accent-soft shadow-inner">
             <QrCode className="h-6 w-6" />
           </div>
           <h2 className="text-base font-bold text-theme-text-primary">Form QR Code Preview</h2>
@@ -390,12 +390,12 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
         {/* Canvas Display Frame */}
         <div className="p-4 bg-white rounded-2xl shadow-xl border border-slate-200/80 flex flex-col items-center justify-center space-y-2">
           <canvas ref={canvasRef} className="rounded-lg shadow-inner max-w-full" />
-          <span className="text-[10px] text-slate-500 font-mono tracking-tight break-all px-2 max-w-[260px]">
+          <span className="text-xs text-slate-500 font-mono tracking-tight break-all px-2 max-w-[260px]">
             {fullUrl}
           </span>
         </div>
 
-        <p className="text-[11px] text-theme-text-secondary max-w-xs">
+        <p className="text-xs text-theme-text-secondary max-w-xs">
           Scan this QR code with any smartphone camera to open and complete the {formTypeLabel.toLowerCase()}.
         </p>
 
@@ -425,7 +425,7 @@ export function FormQrModal({ isOpen, onClose, form, templates = [] }: FormQrMod
               onClick={handleCopyLink}
               className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-theme-border/20 hover:bg-theme-border/40 text-theme-text-secondary hover:text-theme-text-primary text-xs font-medium rounded-xl transition-all cursor-pointer"
             >
-              {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-success dark:text-success-soft" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Link Copied!' : 'Copy Form URL'}
             </button>
 

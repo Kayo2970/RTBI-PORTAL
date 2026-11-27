@@ -54,10 +54,14 @@ import {
   GraduationCap,
   Library,
   Users,
+  ChevronDown,
+  MoreHorizontal,
 } from 'lucide-react';
 import { fetchAlerts } from '@/lib/incubation/client';
 import { getAnnouncements, getTasks, getMembers, getInvoices, getEvents, getApprovalRequests, logAuditEvent, Member, syncWithServer, getSystemSettings, signOutClient, getSessionToken, setSessionToken, authHeaders, clearAllLocalMemory } from '@/lib/local-data';
 import { canViewTaskExtended, getAnnouncementScopeMatch, isCentreHead, isEventsHeadGgCampus, isFinanceHead, canAccessGuestDirectory, canVerifyInvoicePayment, canAccessEventPassesModule, canAccessGroupPolicies } from '@/lib/permissions';
+import { askConfirm } from '@/components/ui/confirm-dialog';
+import { toast } from '@/components/ui/toast';
 import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import { IosInstallPrompt } from '@/components/ios-install-prompt';
@@ -70,76 +74,11 @@ const OnboardingTour = dynamic(() => import('@/components/onboarding-tour').then
 import { PromotionModal, PromotionData } from '@/components/promotion-modal';
 import { SyncStatusPill } from '@/components/ui/sync-status-pill';
 import { Avatar } from '@/components/ui/avatar';
-const AcidSquaresBackground = dynamic(
-  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
-  { ssr: false }
-);
+import { CommandPalette } from '@/components/shell/command-palette';
+import { NAV_GROUPS, ALL_NAV_ITEMS, isNavItemVisible, findActiveItem } from '@/components/shell/nav-config';
 
-interface SidebarItem {
-  name: string;
-  href: string;
-  icon: React.ComponentType<any>;
-  superUserOnly?: boolean;
-  eventPassesOnly?: boolean;
-  staffOnly?: boolean; // tiers 1–3 (Super User, CEO, Employee)
-  groupPoliciesOnly?: boolean;
-}
-
-interface NavSection {
-  title: string;
-  items: SidebarItem[];
-}
-
-const navSections: NavSection[] = [
-  {
-    title: 'Workspace',
-    items: [
-      { name: 'Dashboard', href: '/dashboard/home', icon: LayoutDashboard },
-      { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
-      { name: 'Events', href: '/dashboard/events', icon: Calendar },
-      { name: 'Event Passes', href: '/dashboard/event-passes', icon: Ticket, eventPassesOnly: true },
-      { name: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
-      { name: 'Approvals', href: '/dashboard/approvals', icon: FileCheck2 },
-      { name: 'Proposals', href: '/dashboard/proposals', icon: Lightbulb },
-      { name: 'Ratings', href: '/dashboard/ratings', icon: Star },
-      { name: 'Design Portal', href: '/dashboard/designs', icon: Palette },
-      { name: 'Visiting Card', href: '/dashboard/visiting-card', icon: IdCard },
-      { name: 'Bookings', href: '/dashboard/bookings', icon: DoorOpen },
-    ],
-  },
-  {
-    title: 'Incubation',
-    items: [
-      { name: 'Startup Registry', href: '/dashboard/incubation', icon: Rocket },
-      { name: 'Applications', href: '/dashboard/incubation/applications', icon: FileText, staffOnly: true },
-      { name: 'Onboarding', href: '/dashboard/incubation/onboarding', icon: ClipboardCheck, staffOnly: true },
-      { name: 'Quarterly Reviews', href: '/dashboard/incubation/records/review', icon: Gauge },
-      { name: 'TRL Assessments', href: '/dashboard/incubation/records/trl', icon: FlaskConical },
-      { name: 'Renewal & Graduation', href: '/dashboard/incubation/records/graduation', icon: GraduationCap },
-      { name: 'Registers & Evidence', href: '/dashboard/incubation/records/evidence', icon: Library, staffOnly: true },
-      { name: 'KPI Dashboard', href: '/dashboard/incubation/kpi', icon: BarChart3, staffOnly: true },
-    ],
-  },
-  {
-    title: 'Administration',
-    items: [
-      { name: 'Finance', href: '/dashboard/budget', icon: Wallet },
-      { name: 'Expenses', href: '/dashboard/expenses', icon: ReceiptText, staffOnly: true },
-      { name: 'Invoices', href: '/dashboard/invoices', icon: Receipt },
-      { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes, staffOnly: true },
-      { name: 'Public Forums', href: '/dashboard/forms', icon: FileText },
-      { name: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
-      { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
-      { name: 'Users', href: '/dashboard/users', icon: Users, superUserOnly: true },
-      { name: 'Group Policies', href: '/dashboard/policies', icon: ShieldCheck, groupPoliciesOnly: true },
-      { name: 'Mail Broadcaster', href: '/dashboard/broadcaster', icon: Send, superUserOnly: true },
-      { name: 'Email Management', href: '/dashboard/email', icon: Mail, superUserOnly: true },
-      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-    ],
-  },
-];
-
-const allSidebarItems = navSections.flatMap(s => s.items);
+const navSections = NAV_GROUPS;
+const allSidebarItems = ALL_NAV_ITEMS;
 
 const INACTIVITY_LOGOUT_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -225,7 +164,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const isExternalReviewerUser = user.tier === 3 && (user as any).externalReviewer === true;
   const externalAllowed = (href: string) => href.startsWith('/dashboard/incubation/applications') || href.startsWith('/dashboard/settings') || href.startsWith('/dashboard/approvals');
   const visibleNav = navSections
-    .map(section => ({ ...section, items: section.items.filter(item => !isExternalReviewerUser || externalAllowed(item.href)) }))
+    .map(section => ({ ...section, items: section.items
+      .filter(item => !isExternalReviewerUser || externalAllowed(item.href) || !!item.externalHref)
+      .map(item => (isExternalReviewerUser && item.externalHref ? { ...item, href: item.externalHref } : item)) }))
     .filter(section => section.items.length > 0);
   useEffect(() => {
     if (isExternalReviewerUser && isAuthenticated && !externalAllowed(pathname)) router.replace('/dashboard/incubation/applications');
@@ -858,7 +799,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   );
 
   const handleWipeLocalhostData = async () => {
-    if (!window.confirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
+    if (!await askConfirm('WARNING: Are you sure you want to completely wipe all application memory and database collections?\n\nThis will permanently delete all members, events, tasks, uploads, and sessions so you can start fresh with new organization structure.\n\nYou will be redirected to the Initial Setup Wizard.')) {
       return;
     }
     try {
@@ -868,7 +809,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       });
       const data = await res.json();
       clearAllLocalMemory();
-      alert(data.message || 'Application data and memory wiped clean.');
+      toast.info(data.message || 'Application data and memory wiped clean.');
       window.location.href = '/setup';
     } catch {
       clearAllLocalMemory();
@@ -887,46 +828,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     localStorage.setItem('sidebarCollapsed', String(next));
   };
 
-  // MagicBento Global Dynamic Cursor Tracker for all module cards and boxes
-  useEffect(() => {
-    let frame = 0;
-    let lastX = 0;
-    let lastY = 0;
-    let lit = new Set<HTMLElement>();
-    const update = () => {
-      frame = 0;
-      const cards = document.querySelectorAll<HTMLElement>(
-        '.glass-panel:not(header):not(aside):not(.no-magic), .magic-bento-card, .dashboard-card'
-      );
-      const next = new Set<HTMLElement>();
-      cards.forEach((card) => {
-        const rect = card.getBoundingClientRect();
-        if (lastX >= rect.left && lastX <= rect.right && lastY >= rect.top && lastY <= rect.bottom) {
-          next.add(card);
-          card.style.setProperty('--glow-x', `${((lastX - rect.left) / rect.width) * 100}%`);
-          card.style.setProperty('--glow-y', `${((lastY - rect.top) / rect.height) * 100}%`);
-          if (!lit.has(card)) card.style.setProperty('--glow-intensity', '1');
-        }
-      });
-      lit.forEach((card) => {
-        if (!next.has(card)) card.style.setProperty('--glow-intensity', '0');
-      });
-      lit = next;
-    };
-    // At most one layout pass per frame instead of one per mouse event.
-    const handleMouseMove = (e: MouseEvent) => {
-      lastX = e.clientX;
-      lastY = e.clientY;
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, [pathname]);
-
   const toggleTheme = () => {
     const newTheme = !isDarkTheme;
     setIsDarkTheme(newTheme);
@@ -939,10 +840,85 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     }
   };
 
-  // Match active item using longest prefix match for detail sub-routes
-  const activeItem = allSidebarItems
-    .filter(item => pathname === item.href || pathname.startsWith(item.href + '/'))
-    .sort((a, b) => b.href.length - a.href.length)[0] || allSidebarItems[0];
+  // Exactly one nav item is active: the longest matching prefix.
+  const activeItem = findActiveItem(pathname) || allSidebarItems[0];
+
+  // Command palette (Ctrl/Cmd+K) and the collapsed "More" nav group.
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setIsPaletteOpen(o => !o); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsMobileMenuOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isMobileMenuOpen]);
+
+  // One renderer for desktop sidebar and mobile drawer so both stay identical.
+  const renderNav = (showLabels: boolean, onNavigate?: () => void) => (
+    <nav aria-label="Main" className="flex-1 overflow-y-auto p-3 space-y-5">
+      {visibleNav.map((section) => {
+        const items = section.items.filter(item => isNavItemVisible(item, user));
+        if (items.length === 0) return null;
+        const hasActive = items.some(i => i.name === activeItem.name);
+        const expanded = !section.collapsible || isMoreOpen || hasActive;
+        const headingId = `nav-${section.id}`;
+        return (
+          <div key={section.id} className="space-y-1">
+            {section.collapsible ? (
+              <button
+                type="button"
+                onClick={() => setIsMoreOpen(o => !o)}
+                aria-expanded={expanded}
+                aria-controls={headingId}
+                title={showLabels ? undefined : `${section.title} modules`}
+                className={`flex w-full items-center min-h-11 rounded-xl text-xs font-bold uppercase tracking-wider text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/20 ${showLabels ? 'px-3.5 justify-between' : 'justify-center'}`}
+              >
+                {showLabels ? <><span>{section.title}</span><ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" /></> : <MoreHorizontal className="h-5 w-5" aria-hidden="true" />}
+              </button>
+            ) : showLabels ? (
+              <h3 className="px-3.5 text-xs font-bold text-theme-text-secondary uppercase tracking-wider mb-1">{section.title}</h3>
+            ) : (
+              <div className="mx-3 border-t border-theme-border/60 first:hidden" role="separator" />
+            )}
+            {expanded && (
+              <ul id={headingId} className="space-y-1">
+                {items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.name === activeItem.name;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={showLabels ? undefined : item.name}
+                        className={`relative flex items-center gap-3 min-h-11 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${showLabels ? 'px-3.5' : 'justify-center'} ${
+                          isActive
+                            ? 'bg-primary text-white dark:bg-white/15'
+                            : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/20'
+                        }`}
+                      >
+                        {isActive && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-accent-soft" aria-hidden="true" />}
+                        <Icon className="h-5 w-5 shrink-0" />
+                        {showLabels ? item.name : <span className="sr-only">{item.name}</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
 
   const handleLogout = () => {
     signOutClient();
@@ -1014,15 +990,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <div className="relative inline-flex items-center justify-center shrink-0" ref={wrapperRef}>
       <button
         onClick={handleToggleNotifications}
-        className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-xl hover:bg-theme-border/20 transition-all cursor-pointer relative shrink-0"
+        className="h-11 w-11 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-xl hover:bg-theme-border/20 transition-all cursor-pointer relative shrink-0"
         title="Notifications"
+        aria-label={unseenActionCount > 0 ? `Notifications, ${unseenActionCount} need your attention` : 'Notifications'}
+        aria-haspopup="true"
+        aria-expanded={isNotificationsOpen}
       >
         <Bell className="h-4.5 w-4.5" />
         {unseenActionCount > 0 && (
           unseenActionCount === 1 ? (
             <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-danger rounded-full ring-2 ring-theme-sidebar" />
           ) : (
-            <span className="absolute -top-1.5 -right-1.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded-full bg-danger text-white text-[9px] font-bold leading-none ring-2 ring-theme-sidebar">
+            <span className="absolute -top-1.5 -right-1.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center rounded-full bg-danger text-white text-xs font-bold leading-none ring-2 ring-theme-sidebar">
               {unseenActionCount > 99 ? '99+' : unseenActionCount}
             </span>
           )
@@ -1038,12 +1017,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           />
 
           {/* Floating Dropdown Popover */}
-          <div className="fixed md:absolute top-16 md:top-full right-3 md:right-0 left-3 md:left-auto mt-0 md:mt-2 w-[calc(100vw-24px)] md:w-96 glass-panel rounded-3xl p-4 shadow-2xl border border-white/20 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl bg-white/95 dark:bg-[#0B1B2E]/95 text-theme-text-primary">
+          <div className="fixed md:absolute top-16 md:top-full right-3 md:right-0 left-3 md:left-auto mt-0 md:mt-2 w-[calc(100vw-24px)] md:w-96 glass-panel rounded-3xl p-4 shadow-2xl border border-theme-border z-50 animate-in fade-in zoom-in-95 duration-150 bg-theme-card text-theme-text-primary">
             <div className="flex items-center justify-between pb-2.5 border-b border-theme-border/30 gap-2">
               <div className="flex items-center gap-1.5">
-                <h4 className="text-xs font-bold text-theme-text-primary">Notifications</h4>
+                <h4 className="text-sm font-bold text-theme-text-primary">Notifications</h4>
                 {notifications.length > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-theme-text-secondary font-mono">
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/10 text-theme-text-secondary font-mono">
                     {notifications.length}
                   </span>
                 )}
@@ -1053,7 +1032,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {notifications.some(n => !n.read) && (
                   <button
                     onClick={markAllNotificationsAsRead}
-                    className="text-[10px] text-accent hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                     title="Mark all notifications as read"
                   >
                     <Check className="h-3 w-3" />
@@ -1064,7 +1043,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAllNotifications}
-                    className="text-[10px] text-danger hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-danger dark:text-danger-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                     title="Clear all received notifications"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -1076,24 +1055,24 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
             <div className="divide-y divide-theme-border/20 max-h-64 overflow-y-auto pt-1 space-y-1">
               {notifications.length === 0 ? (
-                <div className="text-center py-6 text-theme-text-secondary text-xs">
+                <div className="text-center py-6 text-theme-text-secondary text-sm">
                   No notifications at this time.
                 </div>
               ) : (
                 notifications.map(notif => (
                   <div
                     key={notif.id}
-                    className={`group relative flex items-start justify-between gap-2 p-2.5 rounded-xl text-xs transition-all hover:bg-accent/10 ${notif.read ? 'opacity-60' : 'bg-accent/5'}`}
+                    className={`group relative flex items-start justify-between gap-2 p-2.5 rounded-xl text-sm transition-all hover:bg-accent/10 ${notif.read ? 'opacity-60' : 'bg-accent/5'}`}
                   >
                     <button
                       type="button"
                       onClick={() => handleNotifClick(notif)}
                       className="flex-1 text-left flex items-start gap-2.5 cursor-pointer min-w-0"
                     >
-                      <Info className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${notif.actionNeeded ? 'text-danger' : 'text-accent'}`} />
+                      <Info className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${notif.actionNeeded ? 'text-danger dark:text-danger-soft' : 'text-accent-strong dark:text-accent-soft'}`} />
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-theme-text-primary text-xs leading-snug">{notif.title}</p>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5">{notif.time}</p>
+                        <p className="font-medium text-theme-text-primary text-sm leading-snug">{notif.title}</p>
+                        <p className="text-xs text-theme-text-secondary mt-0.5">{notif.time}</p>
                       </div>
                     </button>
 
@@ -1128,35 +1107,35 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           setAllMembers(getMembers());
           setIsQuickSwitchOpen(!isQuickSwitchOpen);
         }}
-        className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-xl hover:bg-theme-border/20 transition-all cursor-pointer"
+        className="h-11 w-11 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-xl hover:bg-theme-border/20 transition-all cursor-pointer"
         title="Quick Switch: view as any account (Super User only)"
       >
         <UserCog className="h-4.5 w-4.5" />
       </button>
 
       {isQuickSwitchOpen && (
-        <div className="absolute right-0 top-full mt-3 w-88 md:w-96 max-w-[calc(100vw-2rem)] max-h-[70vh] flex flex-col glass-panel rounded-3xl p-3.5 shadow-2xl border border-white/20 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl bg-space-theme/95">
+        <div className="absolute right-0 top-full mt-3 w-88 md:w-96 max-w-[calc(100vw-2rem)] max-h-[70vh] flex flex-col glass-panel rounded-3xl p-3.5 shadow-2xl border border-theme-border z-50 animate-in fade-in zoom-in-95 duration-150 bg-theme-card">
           {/* ListBox Header */}
           <div className="flex items-center justify-between px-1.5 pt-1 pb-2.5 border-b border-theme-border/40 mb-2.5">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-accent/20 text-accent">
+              <div className="p-1.5 rounded-xl bg-accent/20 text-accent-strong dark:text-accent-soft">
                 <UserCog className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-theme-text-primary flex items-center gap-1.5">
+                <h4 className="text-sm font-bold text-theme-text-primary flex items-center gap-1.5">
                   Account Switcher
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-accent bg-accent/15 px-1.5 py-0.2 rounded-full border border-accent/20">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-accent-strong dark:text-accent-soft bg-accent/15 px-1.5 py-0.2 rounded-full border border-accent/20">
                     Super User
                   </span>
                 </h4>
-                <p className="text-[10px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Instantly switch view & permissions
                 </p>
               </div>
             </div>
             <button
               onClick={() => setIsQuickSwitchOpen(false)}
-              className="text-theme-text-secondary hover:text-theme-text-primary p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer text-xs"
+              className="text-theme-text-secondary hover:text-theme-text-primary p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer text-sm"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -1172,12 +1151,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 value={quickSwitchSearch}
                 onChange={(e) => setQuickSwitchSearch(e.target.value)}
                 placeholder="Search by name, email, or role..."
-                className="w-full bg-transparent border-0 focus:outline-none text-xs text-theme-text-primary placeholder-theme-text-secondary"
+                className="w-full bg-transparent border-0 focus:outline-none text-sm text-theme-text-primary placeholder-theme-text-secondary"
               />
               {quickSwitchSearch && (
                 <button
                   onClick={() => setQuickSwitchSearch('')}
-                  className="text-theme-text-secondary hover:text-theme-text-primary text-[10px] p-0.5 rounded cursor-pointer"
+                  className="text-theme-text-secondary hover:text-theme-text-primary text-xs p-0.5 rounded cursor-pointer"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -1189,15 +1168,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {isImpersonating && originalUser && (
             <div className="mb-2.5 p-2.5 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <Undo2 className="h-3.5 w-3.5 text-accent shrink-0" />
+                <Undo2 className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold text-theme-text-primary truncate">Currently Impersonating</p>
-                  <p className="text-[10px] text-theme-text-secondary truncate">Original: {originalUser.name}</p>
+                  <p className="text-xs font-semibold text-theme-text-primary truncate">Currently Impersonating</p>
+                  <p className="text-xs text-theme-text-secondary truncate">Original: {originalUser.name}</p>
                 </div>
               </div>
               <button
                 onClick={handleReturnToSelf}
-                className="px-2.5 py-1 bg-accent text-white rounded-lg text-[10px] font-bold hover:bg-primary-light transition-all shrink-0 cursor-pointer shadow-sm"
+                className="px-2.5 py-1 bg-accent text-white rounded-lg text-xs font-bold hover:bg-primary-light transition-all shrink-0 cursor-pointer shadow-sm"
               >
                 Return
               </button>
@@ -1208,8 +1187,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <div className="max-h-64 flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-0.5">
             {quickSwitchResults.length === 0 ? (
               <div className="text-center py-8 text-theme-text-secondary space-y-1">
-                <p className="text-xs font-semibold">No matching members found</p>
-                <p className="text-[10px]">Try searching by name, role, or division</p>
+                <p className="text-sm font-semibold">No matching members found</p>
+                <p className="text-xs">Try searching by name, role, or division</p>
               </div>
             ) : (
               quickSwitchResults.map(m => {
@@ -1244,19 +1223,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                       {/* Label + Description */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-theme-text-primary group-hover:text-accent transition-colors truncate">
+                          <span className="text-sm font-bold text-theme-text-primary group-hover:text-accent transition-colors truncate">
                             {m.name}
                           </span>
                           {isSelected && (
-                            <span className="text-[9px] font-semibold text-accent bg-accent/10 px-1.5 py-0.2 rounded-md border border-accent/20 shrink-0">
+                            <span className="text-xs font-semibold text-accent-strong dark:text-accent-soft bg-accent/10 px-1.5 py-0.2 rounded-md border border-accent/20 shrink-0">
                               Active
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1.5 text-[10px] text-theme-text-secondary mt-0.5 truncate">
+                        <div className="flex items-center gap-1.5 text-xs text-theme-text-secondary mt-0.5 truncate">
                           <span className="truncate">{m.email}</span>
                           <span className="shrink-0">•</span>
-                          <span className="font-medium text-theme-text-secondary/80 shrink-0">{m.role}</span>
+                          <span className="font-medium text-theme-text-secondary shrink-0">{m.role}</span>
                         </div>
                       </div>
                     </div>
@@ -1280,9 +1259,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
 
           {/* ListBox Footer Info */}
-          <div className="pt-2 mt-2 border-t border-theme-border/30 flex items-center justify-between text-[10px] text-theme-text-secondary px-1 shrink-0">
+          <div className="pt-2 mt-2 border-t border-theme-border/30 flex items-center justify-between text-xs text-theme-text-secondary px-1 shrink-0">
             <span>{allMembers.length} Available {allMembers.length === 1 ? 'Account' : 'Accounts'}</span>
-            <span className="text-[9px] opacity-75">Click to switch</span>
+            <span className="text-xs opacity-75">Click to switch</span>
           </div>
         </div>
       )}
@@ -1306,41 +1285,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   return (
     <div className="min-h-screen bg-space-theme flex flex-col md:flex-row transition-all duration-300 relative z-0">
-      {/* Background Animated GhostFibers WebGL Canvas.
-          -z-10 on the canvas (not z-0): z-0 on the CANVAS itself would create
-          a positioned stacking context that paints AFTER normal non-positioned
-          in-flow content (CSS stacking order groups positioned z-index:0 boxes
-          above plain in-flow boxes, regardless of DOM order) — that's what was
-          washing out every bare page heading/subtitle that isn't inside a
-          .glass-panel card (cards escaped it because backdrop-filter gives
-          them their own stacking context). A negative z-index guarantees this
-          canvas paints strictly behind ALL normal content, everywhere.
-          The OUTER wrapper here also needs its own explicit z-0 (not just
-          `relative`, which alone never creates a stacking context) — without
-          it, this div's own opaque bg-space-theme background paints in the
-          root stacking context's normal-flow layer, which comes AFTER the
-          canvas's negative-z-index layer there, hiding the canvas completely
-          behind a flat color. With z-0 here, this div becomes its own
-          stacking-context root: its background paints first/backmost inside
-          THAT context, the canvas paints just above it, and everything else
-          still paints above the canvas exactly as before. */}
-      {/* Background Animated AcidSquares WebGL2 Canvas */}
-      <div className="fixed inset-0 pointer-events-none -z-10 opacity-60 dark:opacity-90 transition-opacity duration-500 overflow-hidden">
-        <AcidSquaresBackground
-          isDark={isDarkTheme}
-          tileSize={1}
-          gap={0.12}
-          roundness={0.25}
-          rotation={35}
-          waves={1}
-          pulse={1}
-          lighting="split"
-          tilt={0.7}
-          grain={0.08}
-          intro={true}
-          mouseInteraction={true}
-        />
-      </div>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
 
       {isModuleTransitioning && (
         <LoadingScreen
@@ -1359,7 +1304,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <div
           onMouseEnter={() => { if (isSidebarCollapsed) setIsSidebarHovering(true); }}
           onMouseLeave={() => setIsSidebarHovering(false)}
-          className={`absolute inset-y-0 left-0 flex flex-col glass-panel bg-theme-sidebar/95 border-r border-theme-sidebar-border overflow-hidden transition-[width] duration-200 ${
+          className={`absolute inset-y-0 left-0 flex flex-col bg-theme-sidebar border-r border-theme-sidebar-border overflow-hidden transition-[width] duration-200 ${
             showSidebarLabels ? 'w-64' : 'w-20'
           } ${isSidebarCollapsed && isSidebarHovering ? 'shadow-2xl' : ''}`}
         >
@@ -1371,7 +1316,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               showSidebarLabels ? 'px-4' : 'justify-center px-0'
             }`}
           >
-            <div className="h-9 w-9 flex items-center justify-center shrink-0">
+            <div className="h-11 w-11 flex items-center justify-center shrink-0">
               <img
                 src="/images/rtbi-icon.png"
                 alt="RTBI Logo"
@@ -1380,49 +1325,17 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             </div>
             {showSidebarLabels && (
               <div className="flex flex-col min-w-0">
-                <span className="font-extrabold text-[10px] leading-tight tracking-wider uppercase text-theme-text-primary">
-                  Ramaiah Technology Business Incubator Portal
+                <span className="font-extrabold text-base leading-tight text-theme-text-primary">
+                  RTBI Portal
                 </span>
-                <span className="text-[10px] text-theme-text-secondary font-medium">
-                  RTBI · MSRUAS
+                <span className="text-sm text-theme-text-secondary font-medium">
+                  Ramaiah Technology Business Incubator
                 </span>
               </div>
             )}
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="flex-1 overflow-y-auto p-3 space-y-6">
-            {visibleNav.map((section) => (
-              <div key={section.title} className="space-y-1">
-                {showSidebarLabels && (
-                  <h4 className="px-3 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-2">
-                    {section.title}
-                  </h4>
-                )}
-                <div className="space-y-1">
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        title={showSidebarLabels ? undefined : item.name}
-                        className={`flex items-center gap-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 whitespace-nowrap ${showSidebarLabels ? 'px-3.5' : 'justify-center px-0'} ${
-                          isActive
-                            ? 'bg-accent text-white shadow-md shadow-accent/20'
-                            : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/20'
-                        }`}
-                      >
-                        <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-white' : 'text-theme-text-secondary'}`} />
-                        {showSidebarLabels && item.name}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
+          {renderNav(showSidebarLabels)}
 
           {/* User Info & Logout */}
           <div className="p-4 border-t border-theme-border/30 flex flex-col gap-3 shrink-0">
@@ -1431,13 +1344,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {user.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
                 ) : (
-                  <User className="h-4.5 w-4.5 text-accent" />
+                  <User className="h-4.5 w-4.5 text-accent-strong dark:text-accent-soft" />
                 )}
               </div>
               {showSidebarLabels && (
                 <div className="overflow-hidden">
-                  <h4 className="font-semibold text-xs text-theme-text-primary truncate">{user.name}</h4>
-                  <p className="text-[11px] text-theme-text-secondary truncate">{user.role || 'Member'}</p>
+                  <h4 className="font-semibold text-sm text-theme-text-primary truncate">{user.name}</h4>
+                  <p className="text-xs text-theme-text-secondary truncate">{user.role || 'Member'}</p>
                 </div>
               )}
             </div>
@@ -1445,7 +1358,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <button
               onClick={handleLogout}
               title={showSidebarLabels ? undefined : 'Sign Out'}
-              className={`flex items-center gap-2.5 w-full py-2 text-xs font-semibold text-danger hover:bg-danger/10 rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap ${showSidebarLabels ? 'px-3.5' : 'justify-center px-0'}`}
+              className={`flex items-center gap-2.5 w-full py-2 text-sm font-semibold text-danger dark:text-danger-soft hover:bg-danger/10 rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap ${showSidebarLabels ? 'px-3.5' : 'justify-center px-0'}`}
             >
               <LogOut className="h-4 w-4 shrink-0" />
               {showSidebarLabels && 'Sign Out'}
@@ -1457,6 +1370,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <button
           onClick={toggleSidebarCollapsed}
           title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="absolute top-20 -right-3 h-6 w-6 flex items-center justify-center rounded-full bg-theme-sidebar border border-theme-sidebar-border shadow-md text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/30 transition-all z-50 cursor-pointer"
         >
           {isSidebarCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
@@ -1464,7 +1378,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       </aside>
 
       {/* Mobile Header / Nav */}
-      <header className="md:hidden flex items-center justify-between h-16 px-3 sm:px-4 glass-panel bg-theme-sidebar/95 border-b border-theme-sidebar-border sticky top-0 z-[60] w-full gap-2">
+      <header className="md:hidden flex items-center justify-between h-16 px-3 sm:px-4 bg-theme-sidebar border-b border-theme-sidebar-border sticky top-0 z-[60] w-full gap-2">
         <Link 
           href="/dashboard/home" 
           className="flex items-center gap-2 hover:opacity-90 transition-all cursor-pointer select-none min-w-0 max-w-[65%]"
@@ -1477,14 +1391,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               className="h-full w-full object-contain"
             />
           </div>
-          <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase text-theme-text-primary truncate">Ramaiah Technology Business Incubator Portal</span>
+          <span className="font-extrabold text-base text-theme-text-primary truncate">RTBI Portal</span>
         </Link>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {isLocalhost && (
             <button
               onClick={handleWipeLocalhostData}
-              className="h-8 w-8 flex items-center justify-center text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
+              className="h-8 w-8 flex items-center justify-center text-rose-700 dark:text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all cursor-pointer"
               title="Wipe data (Localhost)"
             >
               <Trash2 className="h-4 w-4" />
@@ -1492,9 +1406,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           )}
 
           <button
+            type="button"
+            onClick={() => setIsPaletteOpen(true)}
+            className="h-11 w-11 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20"
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" aria-hidden="true" />
+          </button>
+
+          <button
             onClick={toggleTheme}
-            className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
+            className="h-11 w-11 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
             title="Toggle Theme"
+            aria-label={isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme'}
           >
             {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
@@ -1503,7 +1427,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileMenuOpen}
+            className="h-11 w-11 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-lg hover:bg-theme-border/20 transition-all cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -1513,61 +1439,37 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 top-16 z-[55] md:hidden bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 top-16 z-[55] md:hidden bg-black/60 animate-in fade-in duration-200"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div 
-            className="absolute top-0 left-0 right-0 glass-panel bg-theme-sidebar/98 border-b border-theme-sidebar-border max-h-[calc(100vh-4rem)] overflow-y-auto p-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-2 duration-200"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Main menu"
+            className="absolute top-0 left-0 bottom-0 w-[88%] max-w-sm bg-theme-sidebar border-r border-theme-sidebar-border overflow-y-auto flex flex-col shadow-2xl animate-in slide-in-from-left duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <nav className="flex flex-col gap-4">
-              {visibleNav.map((section) => (
-                <div key={section.title} className="space-y-1">
-                  <h4 className="px-2 text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
-                    {section.title}
-                  </h4>
-                  {section.items.filter(item => (!item.superUserOnly || user.tier === 1) && (!item.staffOnly || user.tier <= 3) && (!item.eventPassesOnly || canAccessEventPassesModule(user)) && (!item.groupPoliciesOnly || canAccessGroupPolicies(user))).map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                          isActive
-                            ? 'bg-accent text-white'
-                            : 'text-theme-text-secondary hover:text-theme-text-primary'
-                        }`}
-                      >
-                        <Icon className="h-4.5 w-4.5" />
-                        {item.name}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ))}
-            </nav>
-            
+            {renderNav(true, () => setIsMobileMenuOpen(false))}
+
             <div className="border-t border-theme-border/30 pt-3 flex flex-col gap-2">
               <div className="flex items-center gap-3 px-2">
                 <div className="h-9 w-9 bg-accent/15 rounded-xl flex items-center justify-center border border-accent/20 overflow-hidden">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
                   ) : (
-                    <User className="h-4.5 w-4.5 text-accent" />
+                    <User className="h-4.5 w-4.5 text-accent-strong dark:text-accent-soft" />
                   )}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-xs text-theme-text-primary">{user.name}</h4>
-                  <p className="text-[11px] text-theme-text-secondary font-medium">{user.role || 'Member'}</p>
+                  <h4 className="font-semibold text-sm text-theme-text-primary">{user.name}</h4>
+                  <p className="text-xs text-theme-text-secondary font-medium">{user.role || 'Member'}</p>
                 </div>
               </div>
 
               {isImpersonating && (
                 <button
                   onClick={() => { setIsMobileMenuOpen(false); handleReturnToSelf(); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 mx-2 bg-warning/15 border border-warning/40 text-warning text-[11px] font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 mx-2 bg-warning/15 border border-warning/40 text-warning dark:text-warning-soft text-xs font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer"
                   title={`Return to ${originalUser?.name || 'your account'}`}
                 >
                   <Undo2 className="h-3.5 w-3.5 shrink-0" />
@@ -1578,7 +1480,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
               {canQuickSwitch && (
                 <div className="flex items-center justify-between gap-2 px-2">
-                  <span className="text-xs font-semibold text-theme-text-secondary">Quick Switch</span>
+                  <span className="text-sm font-semibold text-theme-text-secondary">Quick Switch</span>
                   {renderQuickSwitch(quickSwitchRefMobile)}
                 </div>
               )}
@@ -1588,7 +1490,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   setIsMobileMenuOpen(false);
                   handleLogout();
                 }}
-                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-xs font-semibold text-danger hover:bg-danger/10 rounded-xl transition-all"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-semibold text-danger dark:text-danger-soft hover:bg-danger/10 rounded-xl transition-all"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
@@ -1601,17 +1503,28 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Navbar */}
-        <header className="hidden md:flex items-center justify-between h-16 px-8 gap-4 glass-panel bg-theme-sidebar/50 border-b border-theme-sidebar-border sticky top-0 z-30">
+        <header className="hidden md:flex items-center justify-between h-16 px-8 gap-4 bg-theme-sidebar border-b border-theme-sidebar-border sticky top-0 z-30">
           <div className="flex items-center gap-3 shrink-0">
-            <h2 className="text-base font-bold text-theme-text-primary">{activeItem.name}</h2>
+            <h2 className="text-lg font-bold text-theme-text-primary">{activeItem.name}</h2>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setIsPaletteOpen(true)}
+            className="hidden lg:flex flex-1 max-w-md min-h-11 items-center gap-3 px-4 rounded-xl border border-theme-border bg-theme-card text-sm text-theme-text-secondary hover:border-primary"
+            aria-label="Search pages, startups and people (Ctrl+K)"
+          >
+            <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-left">Search…</span>
+            <kbd className="text-xs border border-theme-border rounded px-1.5 py-0.5">Ctrl K</kbd>
+          </button>
 
           <div className="flex items-center gap-3 justify-end shrink-0">
             {/* Localhost Data Wipe button */}
             {isLocalhost && (
               <button
                 onClick={handleWipeLocalhostData}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/25 text-sm font-bold rounded-xl transition-all cursor-pointer shrink-0"
                 title="Wipe all data and reset memory (Localhost only)"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -1622,7 +1535,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {/* Interactive Guided Tour button */}
             <button
               onClick={() => setIsTourOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 border border-accent/30 text-accent hover:bg-accent/25 text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 border border-accent/30 text-accent-strong dark:text-accent-soft hover:bg-accent/25 text-sm font-bold rounded-xl transition-all cursor-pointer shrink-0"
               title="Interactive Tour of Modules & Permissions"
             >
               <Compass className="h-4 w-4" />
@@ -1632,8 +1545,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {/* Theme switcher */}
             <button
               onClick={toggleTheme}
-              className="h-9 w-9 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-xl hover:bg-theme-border/20 transition-all cursor-pointer shrink-0"
+              className="h-11 w-11 flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary rounded-xl hover:bg-theme-border/20 transition-all cursor-pointer shrink-0"
               title="Toggle Light/Dark Theme"
+              aria-label={isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme'}
             >
               {isDarkTheme ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
@@ -1645,7 +1559,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {isImpersonating && (
               <button
                 onClick={handleReturnToSelf}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-warning/15 border border-warning/40 text-warning text-[11px] font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer shrink-0 max-w-[220px]"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-warning/15 border border-warning/40 text-warning dark:text-warning-soft text-xs font-semibold rounded-xl hover:bg-warning/25 transition-all cursor-pointer shrink-0 max-w-[220px]"
                 title={`Return to ${originalUser?.name || 'your account'}`}
               >
                 <Undo2 className="h-3.5 w-3.5 shrink-0" />
@@ -1660,11 +1574,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <div className="relative shrink-0" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(v => !v)}
+                aria-label={`Account menu for ${user.name}`}
+                aria-haspopup="true"
+                aria-expanded={isUserMenuOpen}
                 className="flex items-center gap-3 min-w-0 rounded-xl px-1.5 py-1 hover:bg-theme-border/20 transition-all cursor-pointer"
               >
                 <div className="text-right min-w-0 max-w-[110px] lg:max-w-[180px]">
-                  <h4 className="font-bold text-xs text-theme-text-primary truncate" title={user.name}>{user.name}</h4>
-                  <p className="text-[10px] text-theme-text-secondary font-medium tracking-wide truncate" title={user.role}>{user.role}</p>
+                  <h4 className="font-bold text-sm text-theme-text-primary truncate" title={user.name}>{user.name}</h4>
+                  <p className="text-xs text-theme-text-secondary font-medium tracking-wide truncate" title={user.role}>{user.role}</p>
                 </div>
                 <Avatar
                   size="sm"
@@ -1676,10 +1593,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 max-w-[calc(100vw-2rem)] glass-panel rounded-2xl p-1.5 shadow-2xl border border-white/20 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 top-full mt-2 w-48 max-w-[calc(100vw-2rem)] glass-panel rounded-2xl p-1.5 shadow-2xl border border-theme-border z-50 animate-in fade-in zoom-in-95 duration-150">
                   <button
                     onClick={() => { setIsUserMenuOpen(false); setIsTourOpen(true); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs font-semibold text-accent hover:bg-accent/15 rounded-xl transition-all cursor-pointer"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-accent-strong dark:text-accent-soft hover:bg-accent/15 rounded-xl transition-all cursor-pointer"
                   >
                     <Compass className="h-4 w-4" />
                     Guided Tour
@@ -1687,14 +1604,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   <Link
                     href="/dashboard/settings"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs font-semibold text-theme-text-primary hover:bg-theme-border/20 rounded-xl transition-all cursor-pointer"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-theme-text-primary hover:bg-theme-border/20 rounded-xl transition-all cursor-pointer"
                   >
                     <Settings className="h-4 w-4 text-theme-text-secondary" />
                     Settings
                   </Link>
                   <button
                     onClick={() => { setIsUserMenuOpen(false); handleLogout(); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger/10 rounded-xl transition-all cursor-pointer"
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-danger dark:text-danger-soft hover:bg-danger/10 rounded-xl transition-all cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign Out
@@ -1708,18 +1625,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <BackgroundTaskTray offsetClass={isSidebarCollapsed ? 'md:left-24' : 'md:left-[17rem]'} />
 
         {/* Dashboard Pages Content */}
-        <main className="flex-1 overflow-x-hidden">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-x-hidden outline-none">
           {children}
         </main>
 
         {/* Global Footer */}
-        <footer className="mt-auto border-t border-theme-border/20 py-4 px-6 md:px-8 bg-theme-background/40 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-theme-text-secondary">
+        <footer className="mt-auto border-t border-theme-border/20 py-4 px-6 md:px-8 bg-theme-background flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-theme-text-secondary">
           <div className="flex flex-col sm:flex-row items-center gap-2 text-center md:text-left">
             <span>By visiting or using this portal, you agree to our</span>
             <button
               type="button"
               onClick={() => setIsTermsOpen(true)}
-              className="font-semibold text-accent underline hover:text-primary-light transition-colors cursor-pointer"
+              className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-primary-light transition-colors cursor-pointer"
             >
               Terms & Conditions
             </button>
@@ -1727,17 +1644,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <button
               type="button"
               onClick={() => setIsPrivacyOpen(true)}
-              className="font-semibold text-accent underline hover:text-primary-light transition-colors cursor-pointer"
+              className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-primary-light transition-colors cursor-pointer"
             >
               Privacy Policy
             </button>
             <span className="hidden sm:inline">&middot;</span>
-            <span className="text-[11px]">All Intellectual Property, Copyrights & Development Licensing belong exclusively to <strong>Kayomarz Pavri</strong>.</span>
+            <span className="text-xs">All Intellectual Property, Copyrights & Development Licensing belong exclusively to <strong>Kayomarz Pavri</strong>.</span>
           </div>
-          <div className="text-[11px] font-medium text-theme-text-secondary">
+          <div className="text-xs font-medium text-theme-text-secondary">
             &copy; 2026 Ramaiah Technology Business Incubator Portal. All rights reserved.
           </div>
         </footer>
+
+        <CommandPalette open={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} user={user} />
 
         {/* Terms & Conditions Modal */}
         <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />

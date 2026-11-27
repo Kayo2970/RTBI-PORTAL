@@ -34,12 +34,12 @@ import type { Startup } from '@/lib/incubation/types';
 import { Badge, PageHeader, Panel, btnGhost, btnPrimary, inputCls, isManagerUi, isStaffUi, useCurrentUser } from '@/components/incubation/ui';
 
 const DOC_ICONS: Record<string, React.ReactNode> = {
-  logo: <ImageIcon className="h-5 w-5 text-accent" />,
+  logo: <ImageIcon className="h-5 w-5 text-accent-strong dark:text-accent-soft" />,
   entityDocs: <FileText className="h-5 w-5 text-purple-400" />,
-  agreement: <FileCheck2 className="h-5 w-5 text-emerald-400" />,
-  portfolio: <Briefcase className="h-5 w-5 text-blue-400" />,
-  patents: <Award className="h-5 w-5 text-amber-400" />,
-  rentalAgreement: <Building2 className="h-5 w-5 text-rose-400" />,
+  agreement: <FileCheck2 className="h-5 w-5 text-emerald-800 dark:text-emerald-300" />,
+  portfolio: <Briefcase className="h-5 w-5 text-blue-700 dark:text-blue-300" />,
+  patents: <Award className="h-5 w-5 text-amber-800 dark:text-amber-300" />,
+  rentalAgreement: <Building2 className="h-5 w-5 text-rose-700 dark:text-rose-300" />,
 };
 
 function OnboardingPageInner() {
@@ -223,11 +223,11 @@ function OnboardingPageInner() {
         )}
       </div>
 
-      {err && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-400 whitespace-pre-line">{err}</div>}
-      {msg && <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-400">{msg}</div>}
+      {err && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-rose-700 dark:text-rose-300 whitespace-pre-line">{err}</div>}
+      {msg && <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-sm text-emerald-800 dark:text-emerald-300">{msg}</div>}
       {!data && startupId && (
-        <div className="text-xs flex gap-2 items-center text-theme-text-secondary py-6">
-          <Loader2 size={16} className="animate-spin text-accent" /> Loading onboarding records…
+        <div className="text-sm flex gap-2 items-center text-theme-text-secondary py-6">
+          <Loader2 size={16} className="animate-spin text-accent-strong dark:text-accent-soft" /> Loading onboarding records…
         </div>
       )}
 
@@ -235,7 +235,7 @@ function OnboardingPageInner() {
         <>
           {/* Official RTBI Header Banner from Flyer */}
           <div className="rounded-3xl border border-accent/20 bg-gradient-to-r from-primary/30 via-theme-card to-accent/10 p-6 space-y-4 shadow-xl relative overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-wider text-accent border-b border-white/10 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-accent-strong dark:text-accent-soft border-b border-white/10 pb-3">
               <span>RAMAIAH-GoK TECHNOLOGY BUSINESS INCUBATOR</span>
               <span className="flex items-center gap-2">
                 <span>GOVERNMENT OF KARNATAKA</span> · <span>K-TECH</span> · <span>STARTUP KARNATAKA</span>
@@ -243,13 +243,13 @@ function OnboardingPageInner() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-mono tracking-widest text-theme-text-secondary uppercase">
+              <span className="text-xs font-mono tracking-widest text-theme-text-secondary uppercase">
                 BUILD · INNOVATE · SCALE TOGETHER
               </span>
               <h2 className="text-lg md:text-xl font-extrabold text-theme-text-primary">
                 RTBI INCUBATED STARTUPS — DATA COLLECTION &amp; DOCUMENT SUBMISSION
               </h2>
-              <p className="text-xs text-theme-text-secondary leading-relaxed max-w-3xl">
+              <p className="text-sm text-theme-text-secondary leading-relaxed max-w-3xl">
                 To maintain an updated and comprehensive database of our incubated startups, we request you to fill in the
                 data collection form and upload the required documents. This will help RTBI in providing better support,
                 showcasing your progress, and creating more opportunities for your growth.
@@ -257,16 +257,16 @@ function OnboardingPageInner() {
             </div>
 
             {/* Folder Naming Format Card */}
-            <div className="rounded-2xl bg-theme-sidebar/80 border border-theme-border/40 p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="rounded-2xl bg-theme-sidebar/80 border border-theme-border p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-                  <FolderArchive className="h-5 w-5 text-amber-400" />
+                  <FolderArchive className="h-5 w-5 text-amber-800 dark:text-amber-300" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider block">
                     Folder Naming Format
                   </span>
-                  <div className="font-mono text-xs font-bold text-theme-text-primary">
+                  <div className="font-mono text-sm font-bold text-theme-text-primary">
                     {folderName}
                   </div>
                 </div>
@@ -274,9 +274,9 @@ function OnboardingPageInner() {
               <button
                 type="button"
                 onClick={copyFolderFormat}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs text-theme-text-primary font-semibold transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-sm text-theme-text-primary font-semibold transition-all cursor-pointer"
               >
-                {copiedFolder ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                {copiedFolder ? <Check size={14} className="text-emerald-800 dark:text-emerald-300" /> : <Copy size={14} />}
                 <span>{copiedFolder ? 'Copied Format!' : 'Copy Folder Name'}</span>
               </button>
             </div>
@@ -302,36 +302,36 @@ function OnboardingPageInner() {
                         ? 'border-emerald-500/30 bg-emerald-500/5'
                         : it.required
                         ? 'border-accent/30 bg-accent/5'
-                        : 'border-theme-border/30 bg-theme-background/30'
+                        : 'border-theme-border bg-theme-background/30'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-theme-sidebar flex items-center justify-center shrink-0 border border-theme-border/30">
+                        <div className="h-8 w-8 rounded-lg bg-theme-sidebar flex items-center justify-center shrink-0 border border-theme-border">
                           {DOC_ICONS[it.key] || <FileText size={16} />}
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-theme-text-primary">
+                            <span className="text-sm font-bold text-theme-text-primary">
                               {docDef?.num || it.docNum}. {docDef?.label || it.label}
                             </span>
                             {it.required ? (
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent">
+                              <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-accent/20 text-accent-strong dark:text-accent-soft">
                                 Mandatory
                               </span>
                             ) : (
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-white/10 text-theme-text-secondary">
+                              <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-white/10 text-theme-text-secondary">
                                 Conditional
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-theme-text-secondary mt-0.5">
+                          <p className="text-xs text-theme-text-secondary mt-0.5">
                             {docDef?.description || it.evidence}
                           </p>
                         </div>
                       </div>
 
-                      <label className="flex items-center gap-1 text-[11px] font-semibold text-theme-text-secondary cursor-pointer shrink-0">
+                      <label className="flex items-center gap-1 text-xs font-semibold text-theme-text-secondary cursor-pointer shrink-0">
                         <input
                           type="checkbox"
                           disabled={!staff}
@@ -378,7 +378,7 @@ function OnboardingPageInner() {
                         onChange={e => patch(it.key, { evidenceRef: e.target.value })}
                       />
                       {docDef?.formats && (
-                        <p className="text-[10px] text-theme-text-secondary/70">
+                        <p className="text-xs text-theme-text-secondary">
                           Accepted Formats: <span className="font-mono">{docDef.formats}</span>
                         </p>
                       )}
@@ -390,10 +390,10 @@ function OnboardingPageInner() {
 
             {/* Important Points Banner from Flyer */}
             <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 space-y-2 mt-4">
-              <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm uppercase tracking-wider">
                 <AlertCircle size={16} /> Important Points
               </div>
-              <ul className="text-xs text-theme-text-secondary space-y-1 list-disc pl-5">
+              <ul className="text-sm text-theme-text-secondary space-y-1 list-disc pl-5">
                 <li>Please ensure all documents are clear, current and appropriately named.</li>
                 <li>Upload only relevant and authorised documents.</li>
                 <li>If a document is not applicable, you may upload a note mentioning <b>"Not Applicable"</b>.</li>
@@ -408,8 +408,8 @@ function OnboardingPageInner() {
               {governanceItems.map(it => {
                 const st = items[it.key] || { done: false };
                 return (
-                  <div key={it.key} className="rounded-xl border border-theme-border/30 p-3 space-y-2">
-                    <label className="flex items-start gap-2 text-xs">
+                  <div key={it.key} className="rounded-xl border border-theme-border p-3 space-y-2">
+                    <label className="flex items-start gap-2 text-sm">
                       <input
                         type="checkbox"
                         className="mt-0.5 accent-accent"
@@ -501,17 +501,17 @@ function OnboardingPageInner() {
           {/* SECTION 4: Activation Gate */}
           <Panel title="Activation gate">
             {data.gate.ok ? (
-              <p className="text-xs text-emerald-400 flex items-center gap-1.5">
+              <p className="text-sm text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
                 <CheckCircle2 size={14} /> Ready to activate on a <b>{data.gate.basis}</b> basis.
                 {data.gate.basis === 'conditional' && data.gate.missing.length ? ' Outstanding items remain:' : ''}
               </p>
             ) : (
-              <p className="text-xs text-amber-400 flex items-center gap-1.5">
+              <p className="text-sm text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
                 <AlertCircle size={14} /> Onboarding incomplete. Still needed before full activation:
               </p>
             )}
             {data.gate.missing.length > 0 && (
-              <ul className="text-xs list-disc pl-5 text-theme-text-secondary space-y-0.5">
+              <ul className="text-sm list-disc pl-5 text-theme-text-secondary space-y-0.5">
                 {data.gate.missing.map(m => (
                   <li key={m}>{m}</li>
                 ))}

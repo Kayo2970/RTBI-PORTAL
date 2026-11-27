@@ -51,15 +51,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ star
     const now = new Date().toISOString();
     const items = { ...(ob?.items || {}) };
     const replacedFiles: string[] = [];
+    const changes: { at: string; by: string; field: string; from: unknown; to: unknown }[] = [];
     for (const it of ONBOARDING_ITEMS) {
       const v = body.items?.[it.key];
       if (!v) continue;
       const prev = items[it.key];
       let done = !!v.done;
-      // A newly uploaded file replaces the old one and must be re-verified; otherwise the stored file is kept untouched.
+      // After activation a completed item cannot be quietly un-ticked: the startup was activated on the strength of it.
+      if (startup.activatedAt && prev?.done && !done) return NextResponse.json({ error: `"${it.label}" was relied on to activate this startup and cannot be un-ticked.` }, { status: 409 });
       const uploaded = await storeOnboardingFile(actor.id, startupId, it.key, v.file);
-      if (uploaded) { done = false; if (prev?.file?.storageKey) replacedFiles.push(prev.file.storageKey); }
+      if (uploaded) { if (!(startup.activatedAt && prev?.done)) done = false; if (prev?.file?.storageKey) replacedFiles.push(prev.file.storageKey); }
       const file = uploaded || prev?.file;
+      if (!!prev?.done !== done) changes.push({ at: now, by: actor.id, field: it.key, from: !!prev?.done, to: done });
       const feeBasis = (FEE_BASES as readonly string[]).includes(v.feeBasis) ? v.feeBasis : undefined;
       items[it.key] = { done, evidenceRef: String(v.evidenceRef || '').trim().slice(0, 300) || undefined, file, feeBasis,
         doneAt: done ? (prev?.done ? prev.doneAt : now) : undefined, doneBy: done ? (prev?.done ? prev.doneBy : actor.id) : undefined };
@@ -72,8 +75,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ star
         ? { ref: String(c.ref).trim().slice(0, 300), scope: String(c.scope).trim().slice(0, 1000), endsOn: /^\d{4}-\d{2}-\d{2}$/.test(c.endsOn || '') ? c.endsOn : undefined, recordedBy: actor.id, recordedAt: now }
         : undefined;
     }
-    const record = { ...(ob || { id: `onboarding_${startupId}`, kind: 'onboarding', createdAt: now, createdBy: actor.id, changeLog: [] }), startupId, items, conditionalApproval, updatedAt: now };
-    await mutateCollection<any>('incubationRecords', cur => (cur.some(r => r.id === record.id) ? cur.map(r => (r.id === record.id ? record : r)) : [record, ...cur]));
+    const base: any = ob || { id: `onboarding_${startupId}`, kind: 'onboarding', createdAt: now, createdBy: actor.id, changeLog: [] };
+    const record = { ...base, startupId, items, conditionalApproval, updatedAt: now, changeLog: [...(base.changeLog || []), ...changes] };
+    // Re-merge inside the write lock so two staff ticking different items do not overwrite each other.
+    await mutateCollection<any>('incubationRecords', cur => {
+      const live = cur.find(r => r.id === record.id);
+      if (!live) return [record, ...cur];
+      const merged = { ...record, items: { ...live.items, ...Object.fromEntries(Object.keys(record.items).filter(k => JSON.stringify(record.items[k]) !== JSON.stringify(ob?.items?.[k])).map(k => [k, record.items[k]])) }, changeLog: [...(live.changeLog || []), ...changes] };
+      return cur.map(r => (r.id === record.id ? merged : r));
+    });
+    // First saved item moves a Selected startup into Onboarding (Active stays gated by activation).
+    if (startup.status === 'Selected' && changes.length) {
+      await mutateCollection<any>('startups', cur => cur.map(x => (x.id === startupId && x.status === 'Selected' ? { ...x, status: 'Onboarding', updatedAt: now, changeLog: [...(x.changeLog || []), { at: now, by: actor.id, field: 'status', from: 'Selected', to: 'Onboarding' }] } : x)));
+    }
     await Promise.all(replacedFiles.map(deleteStoredFile));
     await incubationAudit(actor, 'ONBOARDING_UPDATED', startupId, 'Onboarding checklist updated.');
     return NextResponse.json((await load(startupId)).gate);

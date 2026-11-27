@@ -56,6 +56,7 @@ import {
 } from '@/lib/local-data';
 import { canViewAllDesigns, isCentreHead, canManageCanvaLibrary, hasCapability } from '@/lib/permissions';
 import { parseCsvLine, splitCsvLines, toCsvRow, downloadCsv } from '@/lib/csv';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 export default function DesignPortalPage() {
   const [designs, setDesigns] = useState<DesignSubmissionItem[]>([]);
@@ -484,8 +485,8 @@ export default function DesignPortalPage() {
     }
   }, [designs, tasks, hasHandledTaskRedirect]);
 
-  const handleDelete = (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
+  const handleDelete = async (id: string, name: string) => {
+    if (await askConfirm(`Are you sure you want to delete "${name}"?`)) {
       deleteDesign(id, user?.name || 'User');
       refreshData();
       if (selectedDesign?.id === id) {
@@ -677,7 +678,7 @@ export default function DesignPortalPage() {
     <div className="p-6 md:p-8 space-y-6">
       {approvalRequestSuccessMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <UserCheck className="h-5 w-5 text-success shrink-0" />
+          <UserCheck className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{approvalRequestSuccessMsg}</span>
         </div>
       )}
@@ -685,7 +686,7 @@ export default function DesignPortalPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 glass-panel border border-white/30 p-6 md:p-8 rounded-3xl shadow-xl bg-gradient-to-r from-accent/15 via-primary/10 to-transparent">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-accent/20 border border-accent/30 text-accent">
+            <div className="p-2.5 rounded-2xl bg-accent/20 border border-accent/30 text-accent-strong dark:text-accent-soft">
               <Palette className="h-6 w-6" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-theme-text-primary">Design Portal</h1>
@@ -708,10 +709,10 @@ export default function DesignPortalPage() {
         <div className="glass-panel p-4 rounded-2xl space-y-1 border border-white/20">
           <div className="flex items-center justify-between text-xs text-theme-text-secondary">
             <span className="font-semibold">Total Submissions</span>
-            <FileText className="h-4 w-4 text-accent" />
+            <FileText className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
           </div>
           <p className="text-2xl font-black text-theme-text-primary">{totalSubmissions}</p>
-          <p className="text-[11px] text-theme-text-secondary">Active in portal</p>
+          <p className="text-xs text-theme-text-secondary">Active in portal</p>
         </div>
 
         <div className="glass-panel p-4 rounded-2xl space-y-1 border border-white/20">
@@ -719,8 +720,8 @@ export default function DesignPortalPage() {
             <span className="font-semibold">Pending Review</span>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{pendingReviews}</p>
-          <p className="text-[11px] text-theme-text-secondary">{assignedToMeCount} assigned to you</p>
+          <p className="text-2xl font-black text-amber-700 dark:text-amber-400">{pendingReviews}</p>
+          <p className="text-xs text-theme-text-secondary">{assignedToMeCount} assigned to you</p>
         </div>
 
         <div className="glass-panel p-4 rounded-2xl space-y-1 border border-white/20">
@@ -728,8 +729,8 @@ export default function DesignPortalPage() {
             <span className="font-semibold">Approved</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </div>
-          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{approvedDesigns}</p>
-          <p className="text-[11px] text-theme-text-secondary">Ready for print & pub</p>
+          <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">{approvedDesigns}</p>
+          <p className="text-xs text-theme-text-secondary">Ready for print & pub</p>
         </div>
 
         <div className="glass-panel p-4 rounded-2xl space-y-1 border border-white/20">
@@ -738,7 +739,7 @@ export default function DesignPortalPage() {
             <ShieldAlert className="h-4 w-4 text-rose-500" />
           </div>
           <p className="text-2xl font-black text-theme-text-secondary">{expiredCount}</p>
-          <p className="text-[11px] text-theme-text-secondary">Files purged & archived</p>
+          <p className="text-xs text-theme-text-secondary">Files purged & archived</p>
         </div>
       </div>
 
@@ -747,12 +748,12 @@ export default function DesignPortalPage() {
       {designTaskRequests.length > 0 && (
         <div className="glass-panel p-5 rounded-3xl border border-accent/25 space-y-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-accent/15 text-accent border border-accent/25">
+            <div className="p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
               <Palette className="h-4 w-4" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-theme-text-primary">Design Task Requests</h2>
-              <p className="text-[11px] text-muted-foreground">Design briefs assigned to you, awaiting a submission.</p>
+              <p className="text-xs text-muted-foreground">Design briefs assigned to you, awaiting a submission.</p>
             </div>
           </div>
 
@@ -764,18 +765,18 @@ export default function DesignPortalPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-bold text-xs text-foreground leading-snug">{task.title}</p>
-                      <p className="text-[11px] text-muted-foreground">Assignee: {task.assignee} · Due {task.dueDate}</p>
+                      <p className="text-xs text-muted-foreground">Assignee: {task.assignee} · Due {task.dueDate}</p>
                     </div>
                     <button
                       onClick={() => handleOpenSubmitForTask(task)}
-                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent hover:bg-primary-light text-white text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap"
+                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent hover:bg-primary-light text-white text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
                     >
                       <UploadCloud className="h-3.5 w-3.5" />
                       Submit Design
                     </button>
                   </div>
                   {task.briefDescription && (
-                    <p className="text-[11px] text-muted-foreground whitespace-pre-wrap line-clamp-2">{task.briefDescription}</p>
+                    <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-2">{task.briefDescription}</p>
                   )}
                   {task.canvaLink && (
                     <a
@@ -783,7 +784,7 @@ export default function DesignPortalPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={e => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded-lg transition-all"
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent-strong dark:text-accent-soft text-xs font-medium rounded-lg transition-all"
                     >
                       <ExternalLink className="h-3 w-3 shrink-0" />
                       Canva Reference
@@ -798,7 +799,7 @@ export default function DesignPortalPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded-lg transition-all max-w-full"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent-strong dark:text-accent-soft text-xs font-medium rounded-lg transition-all max-w-full"
                           title={f.name}
                         >
                           <FileText className="h-3 w-3 shrink-0" />
@@ -813,15 +814,15 @@ export default function DesignPortalPage() {
                         <button
                           key={d.id}
                           onClick={() => openInspector(d)}
-                          className="w-full flex items-center justify-between gap-2 text-[11px] text-left hover:text-accent cursor-pointer"
+                          className="w-full flex items-center justify-between gap-2 text-xs text-left hover:text-accent cursor-pointer"
                         >
                           <span className="truncate">{d.fileName}</span>
-                          <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-xs font-bold ${
                             d.styleStatus === 'Style Approved'
-                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
                               : d.styleStatus === 'Style Rejected'
-                              ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                              ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                              : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
                           }`}>
                             {d.styleStatus === 'Style Approved' ? 'Approved' : d.styleStatus === 'Style Rejected' ? 'Rejected' : 'Pending Review'}
                           </span>
@@ -872,7 +873,7 @@ export default function DesignPortalPage() {
           >
             Review Queue
             {assignedToMeCount > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500 text-slate-950 font-black">
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs bg-amber-500 text-slate-950 font-black">
                 {assignedToMeCount}
               </span>
             )}
@@ -944,10 +945,10 @@ export default function DesignPortalPage() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-accent" />
+                <Link2 className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Canva Link Library
               </h2>
-              <p className="text-[11px] text-theme-text-secondary max-w-md">
+              <p className="text-xs text-theme-text-secondary max-w-md">
                 Every design-brief task's Canva reference link in one place — restricted to the Design Head, Centre Head, Advisor, and Super User.
                 Editing a link here updates the same task shown in the Tasks module, and vice versa.
               </p>
@@ -979,7 +980,7 @@ export default function DesignPortalPage() {
 
           {canvaImportSummary && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 border border-accent/25 text-xs text-theme-text-primary">
-              <FileCheck className="h-3.5 w-3.5 text-accent shrink-0" />
+              <FileCheck className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft shrink-0" />
               {canvaImportSummary}
             </div>
           )}
@@ -1008,7 +1009,7 @@ export default function DesignPortalPage() {
             <div className="overflow-x-auto -mx-1">
               <table className="w-full text-xs min-w-[720px]">
                 <thead>
-                  <tr className="text-left text-[10px] uppercase tracking-wide text-theme-text-secondary border-b border-theme-border/20">
+                  <tr className="text-left text-xs uppercase tracking-wide text-theme-text-secondary border-b border-theme-border/20">
                     <th className="px-1.5 py-2 font-bold">Title</th>
                     <th className="px-1.5 py-2 font-bold">Event</th>
                     <th className="px-1.5 py-2 font-bold">Assignee</th>
@@ -1026,7 +1027,7 @@ export default function DesignPortalPage() {
                         <td className="px-1.5 py-2.5 font-semibold text-theme-text-primary max-w-[220px]">
                           <div className="truncate" title={task.title}>{task.title}</div>
                           {linkedSubmission && (
-                            <div className="text-[10px] text-theme-text-secondary font-normal">
+                            <div className="text-xs text-theme-text-secondary font-normal">
                               Submission: {linkedSubmission.styleStatus === 'Style Approved' ? 'Approved' : linkedSubmission.styleStatus === 'Style Rejected' ? 'Rejected' : 'Pending Review'}
                             </div>
                           )}
@@ -1035,7 +1036,7 @@ export default function DesignPortalPage() {
                         <td className="px-1.5 py-2.5 text-theme-text-secondary">{task.assignee || '—'}</td>
                         <td className="px-1.5 py-2.5 text-theme-text-secondary whitespace-nowrap">{task.dueDate || '—'}</td>
                         <td className="px-1.5 py-2.5">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/40 dark:bg-white/5 border border-theme-border/30 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/40 dark:bg-white/5 border border-theme-border/30 whitespace-nowrap">
                             {task.status}
                           </span>
                         </td>
@@ -1048,7 +1049,7 @@ export default function DesignPortalPage() {
                                 value={editingCanvaValue}
                                 onChange={(e) => setEditingCanvaValue(e.target.value)}
                                 placeholder="https://canva.com/design/..."
-                                className="w-full min-w-[160px] px-2 py-1 text-[11px] rounded-lg bg-white/60 dark:bg-white/10 border border-accent/40 text-theme-text-primary focus:outline-none focus:border-accent"
+                                className="w-full min-w-[160px] px-2 py-1 text-xs rounded-lg bg-white/60 dark:bg-white/10 border border-accent/40 text-theme-text-primary focus:outline-none focus:border-accent"
                               />
                               <button
                                 onClick={() => handleSaveCanvaLink(task.id)}
@@ -1071,7 +1072,7 @@ export default function DesignPortalPage() {
                                 href={task.canvaLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded-lg transition-all truncate max-w-[160px]"
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent-strong dark:text-accent-soft text-xs font-medium rounded-lg transition-all truncate max-w-[160px]"
                                 title={task.canvaLink}
                               >
                                 <ExternalLink className="h-3 w-3 shrink-0" />
@@ -1088,7 +1089,7 @@ export default function DesignPortalPage() {
                           ) : (
                             <button
                               onClick={() => handleStartEditCanvaLink(task)}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-theme-border/40 text-theme-text-secondary hover:text-accent hover:border-accent/50 text-[10px] font-medium transition-all cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-theme-border/40 text-theme-text-secondary hover:text-accent hover:border-accent/50 text-xs font-medium transition-all cursor-pointer"
                             >
                               <Plus className="h-3 w-3" />
                               Add link
@@ -1097,7 +1098,7 @@ export default function DesignPortalPage() {
                         </td>
                         <td className="px-1.5 py-2.5 text-right">
                           {task.attachments && task.attachments.length > 0 && (
-                            <span className="text-[10px] text-theme-text-secondary">{task.attachments.length} file{task.attachments.length === 1 ? '' : 's'}</span>
+                            <span className="text-xs text-theme-text-secondary">{task.attachments.length} file{task.attachments.length === 1 ? '' : 's'}</span>
                           )}
                         </td>
                       </tr>
@@ -1110,7 +1111,7 @@ export default function DesignPortalPage() {
         </div>
       ) : filteredDesigns.length === 0 ? (
         <div className="glass-panel rounded-3xl p-12 text-center space-y-4 border border-white/20">
-          <div className="mx-auto w-12 h-12 rounded-full bg-accent/15 flex items-center justify-center text-accent">
+          <div className="mx-auto w-12 h-12 rounded-full bg-accent/15 flex items-center justify-center text-accent-strong dark:text-accent-soft">
             <Palette className="h-6 w-6" />
           </div>
           <h3 className="text-base font-bold text-theme-text-primary">No design submissions found</h3>
@@ -1155,18 +1156,18 @@ export default function DesignPortalPage() {
                     )}
 
                     {/* Category Pill */}
-                    <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-slate-900/90 backdrop-blur border border-theme-border/30 text-theme-text-primary">
+                    <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/90 dark:bg-slate-900/90 backdrop-blur border border-theme-border/30 text-theme-text-primary">
                       {design.category}
                     </span>
 
                     {/* 30-Day Retention Badge */}
                     <span
-                      className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur border ${
+                      className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-xs font-bold backdrop-blur border ${
                         design.isExpired || daysRemaining <= 0
-                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/40'
+                          ? 'bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/40'
                           : daysRemaining <= 5
-                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40'
-                          : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
+                          ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40'
+                          : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
                       }`}
                     >
                       {design.isExpired || daysRemaining <= 0
@@ -1189,13 +1190,13 @@ export default function DesignPortalPage() {
                     </div>
 
                     {/* Metadata Specs */}
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-theme-text-secondary">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-theme-text-secondary">
                       <span className="font-mono bg-white/50 dark:bg-white/5 px-2 py-0.5 rounded border border-theme-border/30 font-semibold">
                         {(design.fileSize / (1024 * 1024)).toFixed(2)} MB / 25 MB
                       </span>
 
                       {design.eventName && (
-                        <span className="flex items-center gap-1 text-accent truncate max-w-[160px] font-semibold">
+                        <span className="flex items-center gap-1 text-accent-strong dark:text-accent-soft truncate max-w-[160px] font-semibold">
                           <Calendar className="h-3 w-3 shrink-0" />
                           {design.eventName}
                         </span>
@@ -1204,21 +1205,21 @@ export default function DesignPortalPage() {
 
                     {/* Review Status */}
                     <div className="pt-2 border-t border-theme-border/30">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary block">
                         Review Status
                       </span>
                       {design.styleStatus === 'Style Approved' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           Approved
                         </span>
                       ) : design.styleStatus === 'Style Rejected' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 dark:text-rose-400">
                           <AlertCircle className="h-3.5 w-3.5" />
                           Rejected
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400">
                           <Clock className="h-3.5 w-3.5" />
                           Pending Review
                         </span>
@@ -1229,13 +1230,13 @@ export default function DesignPortalPage() {
 
                 {/* Footer Buttons */}
                 <div className="p-4 pt-0 flex items-center justify-between gap-2 border-t border-theme-border/20 mt-2">
-                  <div className="text-[11px] text-theme-text-secondary">
+                  <div className="text-xs text-theme-text-secondary">
                     By <span className="font-bold text-theme-text-primary">{design.designerName}</span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
                     {isAssignedToMe && (design.styleStatus || 'Pending') === 'Pending' && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500 text-slate-950 animate-pulse">
+                      <span className="px-2 py-0.5 rounded text-xs font-black bg-amber-500 text-slate-950 animate-pulse">
                         Action Required
                       </span>
                     )}
@@ -1288,7 +1289,7 @@ export default function DesignPortalPage() {
 
             <div className="space-y-1">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <UploadCloud className="h-5 w-5 text-accent" />
+                <UploadCloud className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
                 Submit Design Asset
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -1302,11 +1303,11 @@ export default function DesignPortalPage() {
               return (
                 <div className="p-3.5 bg-accent/10 border border-accent/30 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 font-semibold text-foreground">
-                    <FileText className="h-4 w-4 text-accent" />
+                    <FileText className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                     Fulfilling Task: {sourceTask.title}
                   </div>
                   {sourceTask.briefDescription && (
-                    <p className="text-[11px] text-muted-foreground whitespace-pre-wrap">{sourceTask.briefDescription}</p>
+                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{sourceTask.briefDescription}</p>
                   )}
                   {sourceTask.attachments && sourceTask.attachments.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
@@ -1316,7 +1317,7 @@ export default function DesignPortalPage() {
                           href={f.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-accent/15 hover:bg-accent/25 border border-accent/30 text-accent text-[10px] font-medium rounded-lg transition-all max-w-full"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-accent/15 hover:bg-accent/25 border border-accent/30 text-accent-strong dark:text-accent-soft text-xs font-medium rounded-lg transition-all max-w-full"
                           title={f.name}
                         >
                           <FileText className="h-3 w-3 shrink-0" />
@@ -1325,7 +1326,7 @@ export default function DesignPortalPage() {
                       ))}
                     </div>
                   )}
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     This task will be marked <span className="font-semibold text-foreground">Completed</span> automatically once your submission is approved.
                   </p>
                 </div>
@@ -1374,7 +1375,7 @@ export default function DesignPortalPage() {
                         setQuickEventError('');
                         setShowQuickEventModal(true);
                       }}
-                      className="text-[11px] text-accent hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                      className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                     >
                       <Plus className="h-3 w-3" />
                       Create Event on Spot
@@ -1431,7 +1432,7 @@ export default function DesignPortalPage() {
 
                 {isReadingFile && (
                   <div className="space-y-1 pt-1">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Preparing file...</span>
                       <span className="font-mono">{readProgress}%</span>
                     </div>
@@ -1445,7 +1446,7 @@ export default function DesignPortalPage() {
                 )}
 
                 {fileError && (
-                  <p className="text-rose-500 font-medium text-[11px] flex items-center gap-1 pt-1">
+                  <p className="text-rose-500 font-medium text-xs flex items-center gap-1 pt-1">
                     <AlertCircle className="h-3.5 w-3.5" />
                     {fileError}
                   </p>
@@ -1453,7 +1454,7 @@ export default function DesignPortalPage() {
 
               </div>
 
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Your submission is sent to the default approvers for review.
               </p>
 
@@ -1495,7 +1496,7 @@ export default function DesignPortalPage() {
 
             <div className="space-y-1">
               <h3 className="text-base font-bold flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
+                <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Create Event on the Spot
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -1519,12 +1520,12 @@ export default function DesignPortalPage() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="font-medium text-foreground">Dates</label>
-                  <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-muted-foreground">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground">
                     <input
                       type="checkbox"
                       checked={newEventDatesTBD}
                       onChange={e => setNewEventDatesTBD(e.target.checked)}
-                      className="rounded border-border text-accent focus:ring-accent"
+                      className="rounded border-border text-accent-strong dark:text-accent-soft focus:ring-accent"
                     />
                     Dates TBD
                   </label>
@@ -1570,7 +1571,7 @@ export default function DesignPortalPage() {
               </div>
 
               {quickEventError && (
-                <p className="text-rose-500 font-medium text-[11px] flex items-center gap-1">
+                <p className="text-rose-500 font-medium text-xs flex items-center gap-1">
                   <AlertCircle className="h-3.5 w-3.5" />
                   {quickEventError}
                 </p>
@@ -1614,7 +1615,7 @@ export default function DesignPortalPage() {
             <div className="sticky -top-6 -mx-6 -mt-6 p-6 bg-slate-900/95 dark:bg-[#0B1B2E]/95 bg-white/95 border-b border-border z-30 flex items-start justify-between gap-4 rounded-t-2xl">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent/10 text-accent-strong dark:text-accent-soft border border-accent/20">
                     {selectedDesign.category}
                   </span>
                   <h2 className="text-lg font-bold">{selectedDesign.title}</h2>
@@ -1626,10 +1627,10 @@ export default function DesignPortalPage() {
 
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-right hidden sm:block">
-                  <span className="text-[11px] font-mono bg-muted px-2 py-0.5 rounded border border-border inline-block">
+                  <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded border border-border inline-block">
                     {(selectedDesign.fileSize / (1024 * 1024)).toFixed(2)} MB / 25 MB
                   </span>
-                  <span className="text-[10px] text-muted-foreground block">
+                  <span className="text-xs text-muted-foreground block">
                     Exp: {selectedDesign.expiresAt.split('T')[0]}
                   </span>
                 </div>
@@ -1665,7 +1666,7 @@ export default function DesignPortalPage() {
                     onClick={() => setInspectorTab(tab.id)}
                     className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-t-lg text-xs font-semibold transition-all cursor-pointer border-b-2 ${
                       isActive
-                        ? 'border-accent text-accent bg-accent/5'
+                        ? 'border-accent text-accent-strong dark:text-accent-soft bg-accent/5'
                         : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40'
                     }`}
                   >
@@ -1692,7 +1693,7 @@ export default function DesignPortalPage() {
                   />
                 </div>
               ) : selectedDesign.isExpired ? (
-                <div className="py-8 space-y-2 text-rose-400">
+                <div className="py-8 space-y-2 text-rose-700 dark:text-rose-300">
                   <ShieldAlert className="h-10 w-10 mx-auto" />
                   <p className="font-bold text-sm">File Payload Purged under 30-Day Retention Policy</p>
                   <p className="text-xs text-muted-foreground">
@@ -1701,7 +1702,7 @@ export default function DesignPortalPage() {
                 </div>
               ) : (
                 <div className="py-8 space-y-2 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto text-accent" />
+                  <FileText className="h-12 w-12 mx-auto text-accent-strong dark:text-accent-soft" />
                   <p className="font-medium text-sm text-foreground">{selectedDesign.fileName}</p>
                   <p className="text-xs">{selectedDesign.fileType}</p>
                 </div>
@@ -1722,7 +1723,7 @@ export default function DesignPortalPage() {
             {(selectedDesign.designerEmail === user?.email || canViewAllDesigns(user)) && (
               <form onSubmit={handleReplaceFileSubmit} className="border-t border-border pt-4 space-y-3">
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  <UploadCloud className="h-4 w-4 text-accent" />
+                  <UploadCloud className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Replace Uploaded File
                 </h3>
                 <p className="text-xs text-muted-foreground">
@@ -1758,7 +1759,7 @@ export default function DesignPortalPage() {
                 </button>
                 {isReadingReplaceFile && (
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Preparing file...</span>
                       <span className="font-mono">{replaceReadProgress}%</span>
                     </div>
@@ -1778,26 +1779,26 @@ export default function DesignPortalPage() {
               <div className="bg-accent/10 border border-accent/20 p-3.5 rounded-xl space-y-1 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-foreground flex items-center gap-1.5">
-                    <CheckSquare className="h-4 w-4 text-accent" />
+                    <CheckSquare className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                     Task & Rating Workflow Integration
                   </span>
                   {(() => {
                     const linkedTask = tasks.find(t => t.id === selectedDesign.linkedTaskId);
                     if (linkedTask?.ratingScore) {
                       return (
-                        <span className="flex items-center gap-1 font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full text-[10px]">
+                        <span className="flex items-center gap-1 font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full text-xs">
                           <Star className="h-3 w-3 fill-amber-500" /> Rated {linkedTask.ratingScore.toFixed(1)}/5.0
                         </span>
                       );
                     }
                     return (
-                      <span className="font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px]">
+                      <span className="font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full text-xs">
                         Task Registered — Ready for Rating
                       </span>
                     );
                   })()}
                 </div>
-                <p className="text-muted-foreground text-[11px]">
+                <p className="text-muted-foreground text-xs">
                   This finalized design deliverable is active as a task assigned to <strong className="text-foreground">{selectedDesign.designerName}</strong>
                   {selectedDesign.eventName ? ` for event "${selectedDesign.eventName}"` : ' (Standalone Deliverable)'}. Evaluators can score performance under the <strong>Ratings</strong> tab.
                 </p>
@@ -1822,7 +1823,7 @@ export default function DesignPortalPage() {
             <div className="pt-1 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
-                  <Sparkles className="h-4 w-4 text-accent" />
+                  <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   Design Review
                 </h3>
                 {selectedDesign.styleStatus && (
@@ -1842,7 +1843,7 @@ export default function DesignPortalPage() {
                 <div className="bg-muted/30 p-3 rounded-lg border border-border space-y-1 text-xs">
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span className="font-semibold text-foreground">Reviewer Notes:</span>
-                    <span className="font-mono text-[10px]">{selectedDesign.styleDecidedAt?.split('T')[0]} ({selectedDesign.styleDecidedBy})</span>
+                    <span className="font-mono text-xs">{selectedDesign.styleDecidedAt?.split('T')[0]} ({selectedDesign.styleDecidedBy})</span>
                   </div>
                   <p className="text-muted-foreground italic">"{selectedDesign.styleFeedback}"</p>
                 </div>
@@ -1859,7 +1860,7 @@ export default function DesignPortalPage() {
                         name="styleStatus"
                         checked={styleStatus === 'Style Approved'}
                         onChange={() => setStyleStatus('Style Approved')}
-                        className="text-accent focus:ring-accent"
+                        className="text-accent-strong dark:text-accent-soft focus:ring-accent"
                       />
                       <span className="text-emerald-500 font-semibold flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Approve Style
@@ -1872,7 +1873,7 @@ export default function DesignPortalPage() {
                         name="styleStatus"
                         checked={styleStatus === 'Style Rejected'}
                         onChange={() => setStyleStatus('Style Rejected')}
-                        className="text-accent focus:ring-accent"
+                        className="text-accent-strong dark:text-accent-soft focus:ring-accent"
                       />
                       <span className="text-rose-500 font-semibold flex items-center gap-1">
                         <AlertCircle className="h-3.5 w-3.5" /> Reject Style

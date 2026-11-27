@@ -8,10 +8,6 @@ import { TermsModal } from '@/components/terms-modal';
 import { PrivacyPolicyModal } from '@/components/privacy-policy-modal';
 import dynamic from 'next/dynamic';
 
-const AcidSquaresBackground = dynamic(
-  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
-  { ssr: false }
-);
 import { DEFAULT_HEADER_FRAMING, headerImageStyle } from '@/components/form-header-framing';
 
 export default function PublicFormPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -204,19 +200,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="absolute top-1/3 -right-24 h-[28rem] w-[28rem] rounded-full bg-cyan-400/50 blur-3xl" />
       <div className="absolute -bottom-24 left-1/4 h-96 w-96 rounded-full bg-amber-400/50 blur-3xl" />
       <div className="absolute bottom-1/4 -left-16 h-72 w-72 rounded-full bg-emerald-400/40 blur-3xl" />
-      <AcidSquaresBackground
-        tileSize={1}
-        gap={0.12}
-        roundness={0.25}
-        rotation={35}
-        waves={1}
-        pulse={1}
-        lighting="split"
-        tilt={0.7}
-        grain={0.08}
-        intro={true}
-        mouseInteraction={true}
-      />
+      
     </div>
   );
 
@@ -237,11 +221,11 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 relative z-0 overflow-hidden select-none">
         {backgroundShader}
         <div className="glass-panel w-full max-w-md rounded-3xl p-8 flex flex-col items-center text-center space-y-5 border border-white/20 dark:border-white/15 shadow-2xl backdrop-blur-2xl bg-theme-card/90">
-          <div className="h-14 w-14 bg-amber-500/15 rounded-2xl flex items-center justify-center border border-amber-500/30 text-amber-400">
+          <div className="h-14 w-14 bg-amber-500/15 rounded-2xl flex items-center justify-center border border-amber-500/30 text-amber-700 dark:text-amber-300">
             <AlertTriangle className="h-7 w-7" />
           </div>
           <div className="space-y-1.5">
-            {form?.title && <p className="text-[11px] font-semibold uppercase tracking-wide text-theme-text-secondary">{form.title}</p>}
+            {form?.title && <p className="text-xs font-semibold uppercase tracking-wide text-theme-text-secondary">{form.title}</p>}
             <h1 className="text-lg font-bold text-theme-text-primary">Form Closed</h1>
             <p className="text-xs text-theme-text-secondary leading-relaxed">
               Sorry, this form is currently closed. Please contact the administrator.
@@ -257,13 +241,13 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       <div className="min-h-screen bg-space-theme text-theme-text-primary flex flex-col items-center justify-center p-4 relative z-0 overflow-hidden select-none">
         {backgroundShader}
         <div className="glass-panel w-full max-w-md rounded-3xl p-8 flex flex-col items-center text-center space-y-5 border border-white/20 dark:border-white/15 shadow-2xl backdrop-blur-2xl bg-theme-card/90">
-          <div className="h-14 w-14 bg-amber-500/15 rounded-2xl flex items-center justify-center border border-amber-500/30 text-amber-400">
+          <div className="h-14 w-14 bg-amber-500/15 rounded-2xl flex items-center justify-center border border-amber-500/30 text-amber-700 dark:text-amber-300">
             <AlertTriangle className="h-7 w-7" />
           </div>
           <div className="space-y-1.5">
             <h1 className="text-lg font-bold text-theme-text-primary">Form Not Found</h1>
             <p className="text-xs text-theme-text-secondary leading-relaxed">
-              The public form at <code className="text-accent font-mono">/forms/{slug}</code> does not exist, has expired, or the link has changed.
+              The public form at <code className="text-accent-strong dark:text-accent-soft font-mono">/forms/{slug}</code> does not exist, has expired, or the link has changed.
             </p>
           </div>
           <Link
@@ -285,7 +269,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
         // Submission Success View
         <div className="glass-panel w-full max-w-md rounded-3xl p-8 flex flex-col items-center text-center space-y-6 border border-emerald-500/30 shadow-2xl backdrop-blur-2xl bg-theme-card/90 animate-in zoom-in-95 duration-300">
           <div className="h-16 w-16 bg-emerald-500/15 rounded-full flex items-center justify-center border border-emerald-500/30">
-            <CheckCircle2 className="h-9 w-9 text-emerald-400" />
+            <CheckCircle2 className="h-9 w-9 text-emerald-700 dark:text-emerald-300" />
           </div>
           
           <div className="space-y-2">
@@ -298,7 +282,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
           <div className="border-t border-theme-border/40 pt-4 w-full text-center">
             <Link 
               href="/"
-              className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-semibold"
+              className="inline-flex items-center gap-1.5 text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold"
             >
               <ChevronLeft className="h-4 w-4" />
               Return to Ramaiah Technology Business Incubator Portal
@@ -340,16 +324,16 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
           {/* Form Header */}
           <div className="flex flex-col items-center text-center space-y-2 pt-1">
             {form?.headerText && (
-              <p className="w-full text-[11px] font-bold uppercase tracking-widest text-accent border-b border-theme-border/40 pb-2">{form.headerText}</p>
+              <p className="w-full text-xs font-bold uppercase tracking-widest text-accent-strong dark:text-accent-soft border-b border-theme-border/40 pb-2">{form.headerText}</p>
             )}
-            <div className="h-11 w-11 bg-accent/15 border border-accent/30 rounded-2xl flex items-center justify-center shadow-lg text-accent">
+            <div className="h-11 w-11 bg-accent/15 border border-accent/30 rounded-2xl flex items-center justify-center shadow-lg text-accent-strong dark:text-accent-soft">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-xl font-extrabold text-theme-text-primary tracking-tight leading-tight">{form?.title}</h1>
               <p className="text-xs text-theme-text-secondary mt-1">{form?.description || 'Please complete the requested information below.'}</p>
               {form?.eventName && (
-                <p className="text-xs text-accent font-semibold mt-1 flex items-center justify-center gap-1">
+                <p className="text-xs text-accent-strong dark:text-accent-soft font-semibold mt-1 flex items-center justify-center gap-1">
                   <span>For event:</span>
                   <span className="underline">{form.eventName}</span>
                 </p>
@@ -384,8 +368,8 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
               return (
               <div key={field.id} className="space-y-1.5">
                 <label className="block font-semibold text-theme-text-primary">
-                  {field.label} {field.required && <span className="text-danger">*</span>}
-                  {locked && <span className="ml-1.5 text-[10px] font-medium text-theme-text-secondary">🔒 pre-filled</span>}
+                  {field.label} {field.required && <span className="text-danger dark:text-danger-soft">*</span>}
+                  {locked && <span className="ml-1.5 text-xs font-medium text-theme-text-secondary">🔒 pre-filled</span>}
                 </label>
 
                 {field.type === 'scale' ? (
@@ -414,7 +398,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
                         </label>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between text-[10px] text-theme-text-secondary px-0.5">
+                    <div className="flex items-center justify-between text-xs text-theme-text-secondary px-0.5">
                       <span>1 = Low</span>
                       <span>5 = High</span>
                     </div>
@@ -427,7 +411,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
                     rows={3}
                     readOnly={locked}
                     placeholder="Enter your response..."
-                    className={`w-full px-4 py-3 bg-theme-background/60 border border-theme-border/60 rounded-xl text-theme-text-primary placeholder:text-theme-text-secondary/60 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all text-xs${lockedCls}`}
+                    className={`w-full px-4 py-3 bg-theme-background/60 border border-theme-border/60 rounded-xl text-theme-text-primary placeholder:text-theme-text-secondary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all text-xs${lockedCls}`}
                   />
                 ) : field.type === 'select' && field.options ? (
                   <select
@@ -449,7 +433,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
                       checked={Boolean(formData[field.id])}
                       disabled={locked}
                       onChange={(e) => handleInputChange(field.id, e.target.checked)}
-                      className="h-4 w-4 rounded border-theme-border/80 bg-theme-background text-accent focus:ring-accent"
+                      className="h-4 w-4 rounded border-theme-border/80 bg-theme-background text-accent-strong dark:text-accent-soft focus:ring-accent"
                     />
                     <span className="text-xs font-medium">Yes</span>
                   </label>
@@ -472,7 +456,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
                             checked={checked}
                             disabled={locked}
                             onChange={() => handleMultiselectToggle(field.id, opt)}
-                            className="h-4 w-4 rounded border-theme-border/80 bg-theme-background text-accent focus:ring-accent"
+                            className="h-4 w-4 rounded border-theme-border/80 bg-theme-background text-accent-strong dark:text-accent-soft focus:ring-accent"
                           />
                           {opt}
                         </label>
@@ -487,7 +471,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
                     readOnly={locked}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
                     placeholder={`Enter ${field.label.toLowerCase()}...`}
-                    className={`w-full px-4 py-3 bg-theme-background/60 border border-theme-border/60 rounded-xl text-theme-text-primary placeholder:text-theme-text-secondary/60 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all text-xs${lockedCls}`}
+                    className={`w-full px-4 py-3 bg-theme-background/60 border border-theme-border/60 rounded-xl text-theme-text-primary placeholder:text-theme-text-secondary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all text-xs${lockedCls}`}
                   />
                 )}
               </div>
@@ -495,7 +479,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
             })}
 
             {submitError && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-danger/40 bg-danger/10 text-danger text-xs">
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-danger/40 bg-danger/10 text-danger dark:text-danger-soft text-xs">
                 <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                 <span>We couldn&apos;t confirm your submission reached the server. Please try again.</span>
               </div>
@@ -512,8 +496,8 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
               </button>
             </div>
 
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-theme-text-secondary pt-2">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <div className="flex items-center justify-center gap-1.5 text-xs text-theme-text-secondary pt-2">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
               <span>Encrypted & Verified &bull; Ramaiah Technology Business Incubator Portal</span>
             </div>
           </form>
@@ -523,35 +507,35 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
       {!isSubmitted && (
         <div className="fixed bottom-4 right-4 z-20 flex items-center gap-1 p-1 rounded-xl border border-white/30 bg-white/25 dark:bg-white/10 backdrop-blur-xl shadow-lg">
           <button type="button" onClick={() => setZoom((z) => clampZoom(z - 0.1))} title="Zoom out" className="p-2 rounded-lg text-theme-text-primary hover:bg-white/30 cursor-pointer"><ZoomOut className="h-4 w-4" /></button>
-          <button type="button" onClick={fitToScreen} title="Zoom to fit the screen" className="flex items-center gap-1 px-2 py-2 rounded-lg text-[11px] font-semibold text-theme-text-primary hover:bg-white/30 cursor-pointer"><Maximize className="h-4 w-4" />Fit</button>
+          <button type="button" onClick={fitToScreen} title="Zoom to fit the screen" className="flex items-center gap-1 px-2 py-2 rounded-lg text-xs font-semibold text-theme-text-primary hover:bg-white/30 cursor-pointer"><Maximize className="h-4 w-4" />Fit</button>
           <button type="button" onClick={() => setZoom((z) => clampZoom(z + 0.1))} title="Zoom in" className="p-2 rounded-lg text-theme-text-primary hover:bg-white/30 cursor-pointer"><ZoomIn className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setZoom(1)} title="Reset zoom" className="px-2 py-2 rounded-lg text-[11px] font-semibold text-theme-text-secondary hover:bg-white/30 cursor-pointer">{Math.round(zoom * 100)}%</button>
+          <button type="button" onClick={() => setZoom(1)} title="Reset zoom" className="px-2 py-2 rounded-lg text-xs font-semibold text-theme-text-secondary hover:bg-white/30 cursor-pointer">{Math.round(zoom * 100)}%</button>
         </div>
       )}
 
       {/* Footer Info */}
-      <footer className="mt-8 text-center text-[11px] text-theme-text-secondary space-y-1 max-w-lg px-4 pb-6">
+      <footer className="mt-8 text-center text-xs text-theme-text-secondary space-y-1 max-w-lg px-4 pb-6">
         <p>
           By visiting or using this portal, you agree to our{' '}
           <button
             type="button"
             onClick={() => setIsTermsOpen(true)}
-            className="font-semibold text-accent underline hover:text-accent/80 transition-colors cursor-pointer"
+            className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-accent/80 transition-colors cursor-pointer"
           >
             Terms & Conditions
           </button>{' '}and{' '}
           <button
             type="button"
             onClick={() => setIsPrivacyOpen(true)}
-            className="font-semibold text-accent underline hover:text-accent/80 transition-colors cursor-pointer"
+            className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-accent/80 transition-colors cursor-pointer"
           >
             Privacy Policy
           </button>.
         </p>
-        <p className="text-[10px]">
+        <p className="text-xs">
           All Intellectual Property, Copyrights & Development Licensing belong exclusively to <strong>Kayomarz Pavri</strong>.
         </p>
-        <p className="text-[10px] opacity-75">&copy; 2026 Ramaiah Technology Business Incubator Portal &middot; MSRUAS Internal Operations Portal</p>
+        <p className="text-xs opacity-75">&copy; 2026 Ramaiah Technology Business Incubator Portal &middot; MSRUAS Internal Operations Portal</p>
       </footer>
 
       {/* Terms & Conditions Modal */}

@@ -32,7 +32,7 @@ function ErrorDetailsModal({ entry, onClose }: { entry: SyncEntry; onClose: () =
       >
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-danger shrink-0" />
+            <AlertCircle className="h-4 w-4 text-danger dark:text-danger-soft shrink-0" />
             <h3 className="text-sm font-bold text-theme-text-primary">
               Failed to save {entry.label}
             </h3>
@@ -111,7 +111,7 @@ export function SyncStatusPill() {
           key={entry.id}
           className="pointer-events-auto flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl glass-panel border border-danger/30 shadow-lg text-xs animate-in fade-in slide-in-from-bottom-2 duration-200"
         >
-          <AlertCircle className="h-3.5 w-3.5 text-danger shrink-0" />
+          <AlertCircle className="h-3.5 w-3.5 text-danger dark:text-danger-soft shrink-0" />
           <span className="text-theme-text-primary font-medium">{entry.message || `Failed to save ${entry.label}.`}</span>
           <button
             type="button"
@@ -143,7 +143,7 @@ export function SyncStatusPill() {
 
       {successFlash && errors.length === 0 && (
         <div className="pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl glass-panel border border-success/30 shadow-lg text-xs animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+          <CheckCircle2 className="h-3.5 w-3.5 text-success dark:text-success-soft shrink-0" />
           <span className="text-theme-text-primary font-medium">Saved</span>
         </div>
       )}

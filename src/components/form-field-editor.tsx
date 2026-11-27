@@ -56,18 +56,18 @@ export function FormFieldEditor({ field, onChange, onRemove, canRemove, allowChe
             {allowCheckbox && <option value="checkbox">Checkbox (Yes toggle)</option>}
           </select>
         </div>
-        <label className="flex items-center gap-1 text-[11px] text-theme-text-secondary cursor-pointer shrink-0">
+        <label className="flex items-center gap-1 text-xs text-theme-text-secondary cursor-pointer shrink-0">
           <input type="checkbox" checked={field.required} onChange={(e) => onChange('required', e.target.checked)} className="accent-accent" />
           Required
         </label>
-        <button type="button" onClick={onRemove} disabled={!canRemove} className="p-1.5 hover:bg-danger/10 rounded-lg text-danger transition-all cursor-pointer disabled:opacity-30 shrink-0" title="Remove Question">
+        <button type="button" onClick={onRemove} disabled={!canRemove} className="p-1.5 hover:bg-danger/10 rounded-lg text-danger dark:text-danger-soft transition-all cursor-pointer disabled:opacity-30 shrink-0" title="Remove Question">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
 
       {(field.type === 'select' || field.type === 'multiselect') && (
         <div className="pl-0.5 space-y-1">
-          <label className="block text-[10px] font-medium text-theme-text-secondary">
+          <label className="block text-xs font-medium text-theme-text-secondary">
             {field.type === 'multiselect' ? 'Choices (respondent can pick one or more)' : 'Choices (respondent picks exactly one)'}
           </label>
           <input
@@ -84,7 +84,7 @@ export function FormFieldEditor({ field, onChange, onRemove, canRemove, allowChe
 
       {/* Default value */}
       <div className="pl-0.5 space-y-1.5">
-        <label className="flex items-center gap-1.5 text-[11px] font-semibold text-theme-text-secondary cursor-pointer w-fit">
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-theme-text-secondary cursor-pointer w-fit">
           <input type="checkbox" checked={hasDefault} onChange={(e) => setDefaultOn(e.target.checked)} className="accent-accent" />
           Set a default value
         </label>
@@ -93,7 +93,7 @@ export function FormFieldEditor({ field, onChange, onRemove, canRemove, allowChe
           <div className="space-y-1.5 rounded-lg border border-accent/20 bg-accent/5 p-2.5">
             {eventCapable && (
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-medium text-theme-text-secondary shrink-0">Fill with</span>
+                <span className="text-xs font-medium text-theme-text-secondary shrink-0">Fill with</span>
                 <select
                   value={field.defaultSource || 'typed'}
                   onChange={(e) => onChange('defaultSource', e.target.value === 'typed' ? undefined : e.target.value)}
@@ -105,7 +105,7 @@ export function FormFieldEditor({ field, onChange, onRemove, canRemove, allowChe
                   <option value="event_venue">The linked event&apos;s venue</option>
                 </select>
                 {field.defaultSource && !eventLinked && (
-                  <span className="text-[10px] text-amber-400 font-semibold">Link this form to an event above for this to fill in.</span>
+                  <span className="text-xs text-amber-700 dark:text-amber-300 font-semibold">Link this form to an event above for this to fill in.</span>
                 )}
               </div>
             )}
@@ -140,11 +140,11 @@ export function FormFieldEditor({ field, onChange, onRemove, canRemove, allowChe
 
             {field.type === 'multiselect' && (
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                {(field.options || []).length === 0 && <span className="text-[10px] text-theme-text-secondary">Add choices above first.</span>}
+                {(field.options || []).length === 0 && <span className="text-xs text-theme-text-secondary">Add choices above first.</span>}
                 {(field.options || []).map((o) => {
                   const cur = Array.isArray(field.defaultValue) ? field.defaultValue : [];
                   return (
-                    <label key={o} className="flex items-center gap-1 text-[11px] text-theme-text-primary cursor-pointer">
+                    <label key={o} className="flex items-center gap-1 text-xs text-theme-text-primary cursor-pointer">
                       <input type="checkbox" checked={cur.includes(o)} onChange={(e) => onChange('defaultValue', e.target.checked ? [...cur, o] : cur.filter((x) => x !== o))} className="accent-accent" />
                       {o}
                     </label>
@@ -169,13 +169,13 @@ export function FormFieldEditor({ field, onChange, onRemove, canRemove, allowChe
             )}
 
             {field.type === 'checkbox' && (
-              <label className="flex items-center gap-1.5 text-[11px] text-theme-text-primary cursor-pointer">
+              <label className="flex items-center gap-1.5 text-xs text-theme-text-primary cursor-pointer">
                 <input type="checkbox" checked={field.defaultValue === true} onChange={(e) => onChange('defaultValue', e.target.checked)} className="accent-accent" />
                 Ticked by default
               </label>
             )}
 
-            <label className="flex items-center gap-1.5 text-[11px] text-theme-text-primary cursor-pointer w-fit">
+            <label className="flex items-center gap-1.5 text-xs text-theme-text-primary cursor-pointer w-fit">
               <input type="checkbox" checked={field.lockDefault !== false} onChange={(e) => onChange('lockDefault', e.target.checked ? undefined : false)} className="accent-accent" />
               Lock it — respondents see it but can&apos;t edit it
             </label>

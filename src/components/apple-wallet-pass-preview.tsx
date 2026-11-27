@@ -97,7 +97,7 @@ export function AppleWalletPassPreview({
           altText={altText}
           qr={qr}
         />
-        <p className="text-[10px] text-[#8A7BA3] text-center max-w-[300px] mx-auto mt-2">
+        <p className="text-xs text-[#8A7BA3] text-center max-w-[300px] mx-auto mt-2">
           iOS 27 poster layout. Apple draws the logo, barcode panel and field row in white over the artwork — the base colour we send is always dark so the text stays white.
         </p>
       </div>
@@ -202,7 +202,7 @@ export function AppleWalletPassPreview({
             </div>
             <div className={styles.backItem}>
               <span className={styles.backItemLabel}>Pass Serial Number</span>
-              <span className="font-mono text-[10px] font-bold text-accent">
+              <span className="font-mono text-xs font-bold text-accent-strong dark:text-accent-soft">
                 {displaySerial}
               </span>
             </div>

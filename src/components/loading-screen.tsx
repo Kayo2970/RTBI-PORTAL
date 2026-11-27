@@ -3,10 +3,6 @@
 import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-const AcidSquaresBackground = dynamic(
-  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
-  { ssr: false }
-);
 
 interface LoadingScreenProps {
   /** How long the splash stays on screen before onComplete fires, in ms. */
@@ -30,19 +26,7 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-space-theme overflow-hidden select-none">
       {/* Background Animated AcidSquares WebGL2 Canvas */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-80 dark:opacity-95">
-        <AcidSquaresBackground
-          tileSize={1}
-          gap={0.12}
-          roundness={0.25}
-          rotation={35}
-          waves={1}
-          pulse={1}
-          lighting="split"
-          tilt={0.7}
-          grain={0.08}
-          intro={true}
-          mouseInteraction={true}
-        />
+        
       </div>
 
       {/* Subtle Frosted Radial Glass Layer */}
@@ -63,7 +47,7 @@ export function LoadingScreen({ duration = 500, subtitle, onComplete }: LoadingS
             RTBI PORTAL
           </h1>
           {subtitle && (
-            <p className="text-[11px] text-theme-text-secondary mt-1">{subtitle}</p>
+            <p className="text-xs text-theme-text-secondary mt-1">{subtitle}</p>
           )}
         </div>
       </div>
