@@ -69,6 +69,7 @@ export default function RecordsPage() {
     if (col === 'rag' && v) return <span className={`inline-block px-2 py-0.5 rounded-full border text-[11px] font-semibold ${ragClass[v] || ''}`}>{v}</span>;
     if (typeof v === 'boolean') return v ? '✓' : '—';
     if (f?.type === 'record') return refRecords[f.refKind || '']?.find(r => r.id === v)?.label || v || '—';
+    if (f?.type === 'startup') return startups.find(s => s.id === v) ? `${v} — ${startups.find(s => s.id === v)!.name}` : v || '—';
     if (f?.type === 'member' || col.endsWith('Id') && col !== 'startupId' && col !== 'assessmentId') return name(v);
     if (['state', 'status', 'band', 'timeliness'].includes(col) && v) return <Badge tone={/final|executed|confirmed|eligible|on time|closed|done/i.test(v) ? 'green' : /pending|provisional|late|conditional|draft|open/i.test(v) ? 'amber' : 'default'}>{v}</Badge>;
     return v === undefined || v === '' ? '—' : String(v);

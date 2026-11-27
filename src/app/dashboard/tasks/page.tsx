@@ -66,6 +66,7 @@ import {
   DesignSubmissionItem,
   authHeaders,
 } from '@/lib/local-data';
+import { TASK_VERTICALS } from '@/lib/local-data';
 import { canViewTaskExtended, canManageTasks, canCreateTask, canEditTask, canDeleteTask, canRequestTaskExtension, canDecideTaskExtension, canChangeTaskStatus, isHeadRole, getTaskApprovalRequirement, canApprovePendingTask, canViewTaskDelegationTrail, canViewAllDesigns, canSendTaskAllotmentEmail } from '@/lib/permissions';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -105,6 +106,8 @@ export default function TasksPage() {
   // Form State
   const [title, setTitle] = useState('');
   const [selectedEventId, setSelectedEventId] = useState('standalone');
+  const [vertical, setVertical] = useState('');
+  const [externalLink, setExternalLink] = useState('');
   const [assigneeType, setAssigneeType] = useState<'individual' | 'group'>('individual');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState('');
   // Ad-hoc "group" assignment — a task delegated to several individually
@@ -271,6 +274,8 @@ export default function TasksPage() {
   const handleOpenCreate = () => {
     setTitle('');
     setSelectedEventId('standalone');
+    setVertical('');
+    setExternalLink('');
     setAssigneeType('individual');
     if (members.length > 0) setSelectedAssigneeId(members[0].id);
     setSelectedGroupMemberIds([]);
@@ -293,6 +298,8 @@ export default function TasksPage() {
     setEditingTask(task);
     setTitle(task.title);
     setSelectedEventId(task.eventId || 'standalone');
+    setVertical(task.vertical || '');
+    setExternalLink(task.externalLink || '');
     setAssigneeType(task.assigneeType);
     if (task.assigneeType === 'individual') {
       const match = members.find(m => m.name === task.assignee || m.email === task.assigneeEmail);
@@ -343,10 +350,6 @@ export default function TasksPage() {
     e.preventDefault();
     setFormError('');
     if (!title || !dueDate) return;
-    if (taskCategory === 'design' && !briefDescription.trim()) {
-      setFormError('Describe what you want from this design deliverable — the designer needs a real brief, not just a title.');
-      return;
-    }
 
     // Upload any newly attached reference files first (awaited) so the task
     // record only ever stores real url/storageKey values, never inline
@@ -371,6 +374,15 @@ export default function TasksPage() {
         return;
       }
       setIsUploadingAttachments(false);
+    }
+
+    if (selectedEventId === 'standalone' && !vertical) {
+      setFormError('This task is not linked to an event — pick the vertical it belongs to.');
+      return;
+    }
+    if (externalLink.trim() && !/^https?:\/\//i.test(externalLink.trim())) {
+      setFormError('The Monday / Jira link must start with http:// or https://');
+      return;
     }
 
     let eventTitle = 'Standalone';
@@ -413,6 +425,8 @@ export default function TasksPage() {
         title,
         event: eventTitle,
         eventId: eventIdVal,
+        vertical: eventIdVal ? undefined : vertical,
+        externalLink: externalLink.trim() || undefined,
         assignee: assigneeName,
         assigneeId: assigneeIdVal,
         assigneeEmail: assigneeEmailVal,
@@ -445,6 +459,8 @@ export default function TasksPage() {
         title,
         event: eventTitle,
         eventId: eventIdVal,
+        vertical: eventIdVal ? undefined : vertical,
+        externalLink: externalLink.trim() || undefined,
         assignee: assigneeName,
         assigneeId: assigneeIdVal,
         assigneeEmail: assigneeEmailVal,
@@ -704,10 +720,10 @@ export default function TasksPage() {
   // tasks are pushed to the end since they have no event to group under.
   const taskGroups: { key: string; label: string; tasks: TaskItem[] }[] = [];
   sortedTasks.forEach(task => {
-    const key = task.eventId || 'standalone';
+    const key = task.eventId || (task.vertical ? `vertical:${task.vertical}` : 'standalone');
     let group = taskGroups.find(g => g.key === key);
     if (!group) {
-      group = { key, label: task.event || 'Standalone', tasks: [] };
+      group = { key, label: task.eventId ? (task.event || 'Standalone') : task.vertical ? `${task.vertical} (vertical)` : 'Standalone', tasks: [] };
       taskGroups.push(group);
     }
     group.tasks.push(task);
@@ -715,6 +731,7 @@ export default function TasksPage() {
   taskGroups.sort((a, b) => {
     if (a.key === 'standalone') return 1;
     if (b.key === 'standalone') return -1;
+    if (a.key.startsWith('vertical:') !== b.key.startsWith('vertical:')) return a.key.startsWith('vertical:') ? 1 : -1;
     return a.label.localeCompare(b.label);
   });
 
@@ -1132,8 +1149,11 @@ export default function TasksPage() {
                   <h3 className="font-bold text-sm text-theme-text-primary leading-snug">{task.title}</h3>
                   <p className="text-[11px] text-theme-text-secondary flex items-center gap-1">
                     <Briefcase className="h-3 w-3" />
-                    Event: <span className="font-medium text-theme-text-primary">{task.event || 'Standalone'}</span>
+                    {task.eventId || !task.vertical ? 'Event: ' : 'Vertical: '}<span className="font-medium text-theme-text-primary">{task.eventId ? task.event : task.vertical || task.event || 'Standalone'}</span>
                   </p>
+                  {task.externalLink && (
+                    <a href={task.externalLink} target="_blank" rel="noopener noreferrer" className="text-[11px] text-accent hover:underline">Open in Monday / Jira ↗</a>
+                  )}
                   <p className="text-[11px] text-theme-text-secondary flex items-center gap-1">
                     {task.assigneeType === 'individual' ? <User className="h-3 w-3 text-accent" /> : <Users className="h-3 w-3 text-warning" />}
                     {task.assigneeType === 'group' ? 'Group' : 'Assignee'}:{' '}
@@ -1586,135 +1606,6 @@ export default function TasksPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block font-medium text-theme-text-secondary">Task Type</label>
-                <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-theme-text-primary">
-                    <input
-                      type="radio"
-                      name="taskCategory"
-                      checked={taskCategory === 'general'}
-                      onChange={() => setTaskCategory('general')}
-                      className="accent-accent"
-                    />
-                    General Task
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-theme-text-primary">
-                    <input
-                      type="radio"
-                      name="taskCategory"
-                      checked={taskCategory === 'design'}
-                      onChange={() => setTaskCategory('design')}
-                      className="accent-accent"
-                    />
-                    <Palette className="h-3.5 w-3.5 text-accent" />
-                    Design Task
-                  </label>
-                </div>
-              </div>
-
-              {taskCategory === 'design' && (
-                <div className="space-y-3 p-3 bg-accent/5 border border-accent/20 rounded-xl">
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">
-                      Design Category / Type *
-                    </label>
-                    <select
-                      value={designCategory}
-                      onChange={(e) => {
-                        const cat = e.target.value as DesignSubmissionItem['category'];
-                        setDesignCategory(cat);
-                      }}
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent text-xs"
-                    >
-                      <option value="Poster">Poster</option>
-                      <option value="Postage">Postage</option>
-                      <option value="Banner">Banner</option>
-                      <option value="Social Media">Social Media</option>
-                      <option value="Brochure">Brochure</option>
-                      <option value="Certificates">Certificates</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">
-                      Design Brief — what do you want from this project? *
-                    </label>
-                    <textarea
-                      required={taskCategory === 'design'}
-                      value={briefDescription}
-                      onChange={(e) => setBriefDescription(e.target.value)}
-                      placeholder="Describe the deliverable in detail: purpose, dimensions/format, colors/theme, text/copy to include, deadline context, examples to follow..."
-                      rows={4}
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent resize-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                      <Paperclip className="h-3.5 w-3.5" />
-                      Reference Attachments ({existingAttachments.length + attachedFiles.length}/5)
-                    </label>
-                    <FileDropzone
-                      onFilesSelected={handleAttachmentFilesSelected}
-                      multiple
-                      compact
-                      disabled={existingAttachments.length + attachedFiles.length >= 5}
-                      label="Click to upload or drag and drop reference files"
-                      hint="Mockups, logos, style guides, briefs — up to 5 files, 15 MB each"
-                    />
-
-                    {existingAttachments.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        {existingAttachments.map((f, i) => (
-                          <div key={f.storageKey || f.url || i} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-theme-border/30 bg-theme-background/20 text-[11px]">
-                            <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-accent hover:underline truncate">
-                              <Download className="h-3 w-3 shrink-0" />
-                              <span className="truncate">{f.name}</span>
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => removeExistingAttachment(i)}
-                              className="h-5 w-5 flex items-center justify-center rounded-md text-theme-text-secondary hover:text-danger hover:bg-danger/10 transition-all cursor-pointer shrink-0"
-                              title="Remove attachment"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {attachedFiles.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        {attachedFiles.map((file, i) => (
-                          <FilePreviewRow
-                            key={`${file.name}-${i}`}
-                            file={file}
-                            status={isUploadingAttachments ? 'uploading' : 'idle'}
-                            onRemove={() => removeAttachedFile(i)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">
-                      Canva Link (optional)
-                    </label>
-                    <input
-                      type="url"
-                      value={canvaLink}
-                      onChange={(e) => setCanvaLink(e.target.value)}
-                      placeholder="https://www.canva.com/design/..."
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-                    />
-                  </div>
-                </div>
-              )}
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block font-medium text-theme-text-secondary">Linked Event</label>
@@ -1737,6 +1628,31 @@ export default function TasksPage() {
                     className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                   />
                 </div>
+              </div>
+
+              {selectedEventId === 'standalone' && (
+                <div className="space-y-1.5">
+                  <label className="block font-medium text-theme-text-secondary">Vertical * <span className="font-normal">(task not linked to an event)</span></label>
+                  <select
+                    value={vertical}
+                    onChange={(e) => setVertical(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
+                  >
+                    <option value="">Select vertical…</option>
+                    {TASK_VERTICALS.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="block font-medium text-theme-text-secondary">Monday / Jira link (optional)</label>
+                <input
+                  type="url"
+                  value={externalLink}
+                  onChange={(e) => setExternalLink(e.target.value)}
+                  placeholder="https://… link to the matching Monday item or Jira issue"
+                  className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
+                />
               </div>
 
               {/* Assignee Selection */}

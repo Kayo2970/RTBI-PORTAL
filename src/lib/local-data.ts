@@ -572,11 +572,17 @@ export interface EventPassItem {
   passViewCount?: number;
 }
 
+export const TASK_VERTICALS = ['Program', 'Marketing', 'Admin', 'Incubation', 'Accounts'] as const;
+
 export interface TaskItem {
   id: string;
   title: string;
   event?: string;
   eventId?: string;
+  /** Set instead of eventId for tasks not linked to an event. */
+  vertical?: string;
+  /** Optional link to the matching Monday item / Jira issue (no sync — a reference only). */
+  externalLink?: string;
   assignee: string;
   assigneeId?: string;
   assigneeEmail?: string;
@@ -843,6 +849,9 @@ export interface AnnouncementItem {
   title: string;
   content: string;
   scope: string; // 'All Members' | 'Advisory Board' | 'Core Committee' | 'Training Associate' | 'Alumni'
+  /** Defaults to 'Announcement' when absent (older records). */
+  docType?: 'Announcement' | 'Office Order';
+  orderNo?: string; // Office order reference number
   authorName: string;
   publishedAt: string;
   editedAt?: string;

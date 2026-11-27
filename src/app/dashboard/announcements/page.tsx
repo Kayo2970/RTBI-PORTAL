@@ -55,6 +55,8 @@ export default function AnnouncementsPage() {
   // Form State
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [docType, setDocType] = useState<'Announcement' | 'Office Order'>('Announcement');
+  const [orderNo, setOrderNo] = useState('');
   const [targetCategory, setTargetCategory] = useState<string>('All Members');
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -136,6 +138,8 @@ export default function AnnouncementsPage() {
   const handleOpenCreate = () => {
     setTitle('');
     setContent('');
+    setDocType('Announcement');
+    setOrderNo('');
     setTargetCategory('All Members');
     if (events.length > 0) {
       setSelectedEventId(events[0].id);
@@ -149,6 +153,8 @@ export default function AnnouncementsPage() {
     setEditingAnnouncement(ann);
     setTitle(ann.title);
     setContent(ann.content);
+    setDocType(ann.docType || 'Announcement');
+    setOrderNo(ann.orderNo || '');
     setTargetCategory('All Members');
   };
 
@@ -266,6 +272,8 @@ export default function AnnouncementsPage() {
         title,
         content,
         scope: scopeLabel,
+        docType,
+        orderNo: docType === 'Office Order' ? orderNo.trim() || undefined : undefined,
       }, user.name);
       triggerSuccess('Announcement updated.');
       setEditingAnnouncement(null);
@@ -276,6 +284,8 @@ export default function AnnouncementsPage() {
         title,
         content,
         scope: scopeLabel,
+        docType,
+        orderNo: docType === 'Office Order' ? orderNo.trim() || undefined : undefined,
         authorName: user.name,
         status: isApproved ? 'Approved' : 'Pending Approval',
       });
@@ -376,6 +386,9 @@ export default function AnnouncementsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center flex-wrap gap-2.5">
                   <h3 className="font-bold text-sm text-theme-text-primary">{ann.title}</h3>
+                  {ann.docType === 'Office Order' && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Office Order{ann.orderNo ? ` · ${ann.orderNo}` : ''}</span>
+                  )}
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
                     {ann.scope}
                   </span>
@@ -509,8 +522,25 @@ export default function AnnouncementsPage() {
             </div>
 
             <form onSubmit={handleSaveAnnouncement} className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block font-medium text-theme-text-secondary">Type</label>
+                  <select value={docType} onChange={(e) => setDocType(e.target.value as 'Announcement' | 'Office Order')}
+                    className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold">
+                    <option value="Announcement">Announcement</option>
+                    <option value="Office Order">Office Order</option>
+                  </select>
+                </div>
+                {docType === 'Office Order' && (
+                  <div className="space-y-1.5">
+                    <label className="block font-medium text-theme-text-secondary">Order No.</label>
+                    <input type="text" value={orderNo} onChange={(e) => setOrderNo(e.target.value)} placeholder="e.g. RTBI/OO/2026/012"
+                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent" />
+                  </div>
+                )}
+              </div>
               <div className="space-y-1.5">
-                <label className="block font-medium text-theme-text-secondary">Announcement Subject *</label>
+                <label className="block font-medium text-theme-text-secondary">{docType === 'Office Order' ? 'Office Order Subject' : 'Announcement Subject'} *</label>
                 <input
                   type="text"
                   required
@@ -529,7 +559,7 @@ export default function AnnouncementsPage() {
                   onChange={(e) => setTargetCategory(e.target.value)}
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-semibold"
                 >
-                  <option value="All Members">All Center Members</option>
+                  <option value="All Members">All TBI Members</option>
                   <option value="Super User">Super Users (Tier 1)</option>
                   <option value="CEO">CEOs (Tier 2)</option>
                   <option value="Employee">Employees (Tier 3)</option>

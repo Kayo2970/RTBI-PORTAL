@@ -70,6 +70,8 @@ export const GRADUATION_OUTCOMES = ['Graduate', 'Conditional graduation', 'Time-
 export const ADVERSE_OUTCOMES: string[] = ['Non-renewal', 'Proposed termination', 'Non-renewal/exit'];
 export const EXTENSION_OUTCOMES: string[] = ['Time-bound extension', 'Exception-approved continuation'];
 export const GRADUATED_OUTCOMES: string[] = ['Graduate', 'Early graduation'];
+export const MENTOR_TYPES = ['Technical', 'Non-technical'];
+export const COLLAB_AREAS = ['Funding / Investment', 'Technology / R&D', 'Market access', 'Mentoring', 'Training / Skilling', 'Infrastructure / Labs', 'Academic / Research', 'Government / Policy', 'Industry / Corporate', 'Other'];
 export const COMMITTEE_NAME = 'Project Management Committee'; // SOP 09's "Monitoring" wording is not used (matches the Office Order)
 
 const OFFICIAL_ADVERSE = (r: any): string | null => {
@@ -288,11 +290,14 @@ export const KINDS: Record<string, KindDef> = {
     kind: 'mentor', label: 'Mentor', plural: 'Mentor Register', startupScoped: false, startupCanRead: false, write: 'managers',
     description: 'Mentor register (SOP 06). Directory only — mentors have no portal login.',
     fields: [
-      text('name', 'Name', { required: true }), text('email', 'Email'), text('phone', 'Phone'), text('organisation', 'Organisation'), text('expertise', 'Expertise'),
+      text('name', 'Name', { required: true }), text('email', 'Email'), text('phone', 'Phone'), text('organisation', 'Organisation'), text('expertise', 'Domain expertise'),
+      sel('mentorType', 'Technical / Non-technical', MENTOR_TYPES), startup({ key: 'menteeStartupId', label: 'Startup mentee associated', required: false }),
       chk('coiDeclared', 'Conflict-of-interest declaration filed'), area('coiDetails', 'COI details / safeguards'),
-      area('engagementPlan', 'Engagement plan'), sel('status', 'Status', ['Registered', 'Active', 'Closed']), chk('closureChecklistDone', 'Closure checklist done'),
+      area('engagementPlan', 'Engagement plan'),
+      area('menteeReport', 'Mentor-mentee report (progress, outcomes, next steps)'), date('menteeReportDate', 'Mentor-mentee report date'), { key: 'menteeReportFile', label: 'Mentor-mentee report (file)', type: 'file' },
+      sel('status', 'Status', ['Registered', 'Active', 'Closed']), chk('closureChecklistDone', 'Closure checklist done'),
     ],
-    columns: ['name', 'organisation', 'expertise', 'status', 'coiDeclared'],
+    columns: ['name', 'mentorType', 'expertise', 'menteeStartupId', 'status', 'coiDeclared'],
     validate: (r) => (r.status === 'Active' && !r.coiDeclared ? 'A mentor needs a conflict-of-interest declaration before becoming Active.' : r.status === 'Closed' && !r.closureChecklistDone ? 'Complete the closure checklist before closing a mentor.' : null),
   },
 
@@ -342,12 +347,14 @@ export const KINDS: Record<string, KindDef> = {
     kind: 'partnership', label: 'Partnership', plural: 'Partnerships', startupScoped: false, startupCanRead: false, write: 'managers',
     description: 'Collaboration and partnerships (SOP 03): opportunity → due diligence → approval → performance review → closure.',
     fields: [
-      text('partner', 'Partner', { required: true }), area('opportunityNote', 'Opportunity note'),
+      text('partner', 'Partner', { required: true }),
+      text('partnerSpoc', 'SPOC from partner'), text('partnerSpocContact', 'Partner SPOC email / phone'), member('tbiSpoc', 'SPOC from TBI'),
+      sel('collabArea', 'Area of collaboration', COLLAB_AREAS), area('opportunityNote', 'Opportunity note'),
       sel('status', 'Status', ['Opportunity', 'Due diligence', 'Approval pending', 'Active', 'Under review', 'Closed']),
       chk('dueDiligenceDone', 'Due-diligence checklist complete'), area('dueDiligenceNotes', 'Due-diligence notes'),
       text('approvalRef', 'Approval reference', { managerOnly: true }), area('performanceReview', 'Performance review'), chk('closureChecklistDone', 'Closure checklist done'),
     ],
-    columns: ['partner', 'status', 'dueDiligenceDone', 'approvalRef'],
+    columns: ['partner', 'collabArea', 'partnerSpoc', 'tbiSpoc', 'status', 'approvalRef'],
     validate: (r) => ((r.status === 'Active') && !(r.dueDiligenceDone && r.approvalRef?.trim()) ? 'A partnership becomes Active only after due diligence and an approval reference.' : r.status === 'Closed' && !r.closureChecklistDone ? 'Complete the closure checklist before closing.' : null),
   },
 
@@ -355,11 +362,15 @@ export const KINDS: Record<string, KindDef> = {
     kind: 'meeting', label: 'Meeting', plural: 'PMC / BoG Meetings', startupScoped: false, startupCanRead: false, write: 'managers',
     description: `${COMMITTEE_NAME} and Board meetings. Minutes cannot be finalised without the KITS nominee present (verify the exact MoA clause).`,
     fields: [
-      sel('body', 'Body', [COMMITTEE_NAME, 'Board of Governors'], { required: true }), date('date', 'Date', { required: true }), area('attendees', 'Attendees'),
-      chk('kitsNomineePresent', 'KITS nominee present'), text('minutesRef', 'Minutes reference'), chk('minutesFinalised', 'Minutes finalised'),
+      sel('body', 'Body', [COMMITTEE_NAME, 'Board of Governors'], { required: true }), date('date', 'Date', { required: true }), text('time', 'Time'), text('venue', 'Venue / mode'),
+      area('attendees', 'Attendance — present (name, designation)'), area('absentees', 'Attendance — absent / leave of absence'), num('attendanceCount', 'Members present (count)', { min: 0 }),
+      chk('kitsNomineePresent', 'KITS nominee present'), chk('quorumMet', 'Quorum met'),
+      area('momAgenda', 'MOM: agenda items'), area('momDiscussion', 'MOM: discussion'), area('momDecisions', 'MOM: decisions / resolutions'),
+      area('momActions', 'MOM: action items (item — owner — due date)'), date('nextMeeting', 'MOM: next meeting date'),
+      text('minutesRef', 'Minutes reference'), chk('minutesFinalised', 'Minutes finalised'),
       area('risksReviewed', 'Risk register reviewed / KPI shortfall corrective actions'),
     ],
-    columns: ['body', 'date', 'kitsNomineePresent', 'minutesFinalised'],
+    columns: ['body', 'date', 'attendanceCount', 'kitsNomineePresent', 'minutesFinalised'],
     validate: (r) => (r.minutesFinalised && !r.kitsNomineePresent ? 'Meeting may not be valid: the KITS nominee was not recorded as present. Resolve before finalising the minutes.' : null),
   },
 

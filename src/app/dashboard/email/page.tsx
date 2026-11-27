@@ -610,7 +610,7 @@ export default function EmailManagementPage() {
 
   const isSuperUser = user && (user.tier === 1 || user.role === 'Super User' || user.id === 'm1' || user.email?.toLowerCase() === 'kayo2970@gmail.com');
 
-  // Access Guard — Centre Head / Super User, or an explicit Group Policy grant
+  // Access Guard — CEO / Super User, or an explicit Group Policy grant
   const isAuthorized = user && canManageEmailSettings(user);
 
   if (user && !isAuthorized) {
@@ -620,9 +620,9 @@ export default function EmailManagementPage() {
           <div className="h-16 w-16 bg-danger/15 rounded-2xl flex items-center justify-center mx-auto text-danger border border-danger/25">
             <Lock className="h-8 w-8" />
           </div>
-          <h2 className="text-xl font-bold text-theme-text-primary">Centre Head Access Only</h2>
+          <h2 className="text-xl font-bold text-theme-text-primary">CEO Access Only</h2>
           <p className="text-xs text-theme-text-secondary leading-relaxed">
-            The Mailroom Audit Portal handles global SMTP server configurations, outbox delivery logs, dispatch queues, and system transmission histories. Access is strictly restricted to the Centre Head.
+            The Mailroom Audit Portal handles global SMTP server configurations, outbox delivery logs, dispatch queues, and system transmission histories. Access is strictly restricted to the CEO.
           </p>
         </div>
       </div>
@@ -651,7 +651,7 @@ export default function EmailManagementPage() {
             <div className="p-2 rounded-xl bg-accent/15 text-accent border border-accent/20">
               <Mail className="h-5 w-5" />
             </div>
-            <h1 className="text-xl font-bold text-theme-text-primary">Centre Head Operational Mailbox & Audit Desk</h1>
+            <h1 className="text-xl font-bold text-theme-text-primary">CEO Ramaiah TBI Mailbox & Audit Desk</h1>
           </div>
           <p className="text-xs text-theme-text-secondary">
             View outbox dispatch histories, inspect pending email queues, compose broadcasts, and monitor operational delivery.
