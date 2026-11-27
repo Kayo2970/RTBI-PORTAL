@@ -12,10 +12,6 @@ import { IosInstallPrompt } from '@/components/ios-install-prompt';
 import { LoadingScreen } from '@/components/loading-screen';
 import { SetupWizard } from '@/components/setup-wizard';
 import dynamic from 'next/dynamic';
-const AcidSquaresBackground = dynamic(
-  () => import('@/components/acid-squares-background').then((m) => m.AcidSquaresBackground),
-  { ssr: false }
-);
 
 interface QuoteItem {
   quote: string;
@@ -482,7 +478,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-space-theme flex flex-col items-center justify-center p-4 md:p-8 relative z-0 overflow-hidden">
-      {/* Background Animated GhostFibers WebGL Canvas with RTBI Theme.
+      {/* Background (animated canvas removed in redesign).
           -z-10 on the canvas keeps it behind all page content, same as
           dashboard-shell.tsx. The outer wrapper's `z-0` (added alongside
           `relative`) is the actual fix for this canvas being invisible: without
@@ -498,19 +494,7 @@ export default function LoginPage() {
           was treating a symptom; this is the real fix, so vignette is
           restored to the originally requested 0.8.) */}
       <div className="absolute inset-0 pointer-events-none -z-10 opacity-70 dark:opacity-85">
-        <AcidSquaresBackground
-          tileSize={1}
-          gap={0.12}
-          roundness={0.25}
-          rotation={35}
-          waves={1}
-          pulse={1}
-          lighting="split"
-          tilt={0.7}
-          grain={0.08}
-          intro={true}
-          mouseInteraction={true}
-        />
+        
       </div>
 
       {/* Grid Layout Container */}
@@ -525,10 +509,10 @@ export default function LoginPage() {
           {/* Quotes Header */}
           <div className="flex items-center justify-between z-10">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-accent/15 rounded-xl border border-accent/20 text-accent">
+              <div className="p-2 bg-accent/15 rounded-xl border border-accent/20 text-accent-strong dark:text-accent-soft">
                 <Quote className="h-5 w-5" />
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-accent">Words of Wisdom</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-accent-strong dark:text-accent-soft">Words of Wisdom</span>
             </div>
           </div>
 
@@ -544,7 +528,7 @@ export default function LoginPage() {
                   <h4 className="text-sm font-bold text-theme-text-primary">
                     {INSPIRATIONAL_QUOTES[quoteIndex].author}
                   </h4>
-                  <p className="text-[11px] text-theme-text-secondary font-medium mt-0.5">
+                  <p className="text-xs text-theme-text-secondary font-medium mt-0.5">
                     {INSPIRATIONAL_QUOTES[quoteIndex].title}
                   </p>
                 </div>
@@ -592,7 +576,7 @@ export default function LoginPage() {
 
             {/* Error Alert Box */}
             {error && (
-              <div className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger text-xs leading-relaxed animate-in fade-in duration-200">
+              <div className="flex gap-3 p-3.5 bg-danger/10 border border-danger/25 rounded-2xl text-danger dark:text-danger-soft text-xs leading-relaxed animate-in fade-in duration-200">
                 <ShieldAlert className="h-4.5 w-4.5 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -631,7 +615,7 @@ export default function LoginPage() {
                       setForgotStep('REQUEST');
                       setShowForgotModal(true);
                     }}
-                    className="text-[11px] text-accent hover:underline cursor-pointer font-medium"
+                    className="text-xs text-accent-strong dark:text-accent-soft hover:underline cursor-pointer font-medium"
                   >
                     Forgot Password?
                   </button>
@@ -682,14 +666,14 @@ export default function LoginPage() {
           <div className="glass-panel w-full max-w-md rounded-3xl p-7 flex flex-col space-y-5 border border-white/20 shadow-2xl relative">
             <div className="flex items-center justify-between border-b border-theme-card-border/60 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-accent/15 rounded-xl text-accent">
+                <div className="p-2 bg-accent/15 rounded-xl text-accent-strong dark:text-accent-soft">
                   <KeyRound className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary">
                     {forgotStep === 'REQUEST' ? 'Reset Account Password' : 'Verify OTP Code'}
                   </h3>
-                  <p className="text-[11px] text-theme-text-secondary">
+                  <p className="text-xs text-theme-text-secondary">
                     {forgotStep === 'REQUEST' ? 'Enter your registered MSRUAS email address' : 'Enter the 5-minute code sent to your email'}
                   </p>
                 </div>
@@ -703,14 +687,14 @@ export default function LoginPage() {
             </div>
 
             {forgotError && (
-              <div className="flex gap-2.5 p-3 bg-danger/15 border border-danger/30 rounded-xl text-danger text-xs leading-relaxed animate-in fade-in duration-150">
+              <div className="flex gap-2.5 p-3 bg-danger/15 border border-danger/30 rounded-xl text-danger dark:text-danger-soft text-xs leading-relaxed animate-in fade-in duration-150">
                 <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{forgotError}</span>
               </div>
             )}
 
             {forgotSuccess && (
-              <div className="flex gap-2.5 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs leading-relaxed animate-in fade-in duration-150">
+              <div className="flex gap-2.5 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs leading-relaxed animate-in fade-in duration-150">
                 <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{forgotSuccess}</span>
               </div>
@@ -762,11 +746,11 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handleResetSubmit} className="space-y-4 text-xs">
                 <div className="p-3 bg-theme-background/50 border border-theme-card-border/80 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary">
-                    <Clock className="h-3.5 w-3.5 text-accent animate-pulse" />
+                  <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
+                    <Clock className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft animate-pulse" />
                     <span>OTP Expiry Timer:</span>
                   </div>
-                  <span className="font-mono font-bold text-accent text-sm tracking-wider bg-accent/10 px-2.5 py-0.5 rounded-lg border border-accent/20">
+                  <span className="font-mono font-bold text-accent-strong dark:text-accent-soft text-sm tracking-wider bg-accent/10 px-2.5 py-0.5 rounded-lg border border-accent/20">
                     {timeLeftStr}
                   </span>
                 </div>
@@ -859,14 +843,14 @@ export default function LoginPage() {
           <div className="glass-panel w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl p-5 sm:p-7 flex flex-col space-y-5 border border-amber-500/30 shadow-2xl relative">
             <div className="flex items-center justify-between border-b border-theme-card-border/60 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-500/20 rounded-xl text-amber-400 border border-amber-500/30">
+                <div className="p-2 bg-amber-500/20 rounded-xl text-amber-700 dark:text-amber-300 border border-amber-500/30">
                   <KeyRound className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary">
                     Admin Override — Set Up New Password
                   </h3>
-                  <p className="text-[11px] text-theme-text-secondary">
+                  <p className="text-xs text-theme-text-secondary">
                     Super User requested password setup for {overrideName || overrideEmail}
                   </p>
                 </div>
@@ -879,19 +863,19 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-[11px] text-amber-300 leading-relaxed">
+            <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-xs text-amber-300 leading-relaxed">
               Super User has enabled an admin override for your account. You can set up your new password directly below without an OTP code.
             </div>
 
             {overrideError && (
-              <div className="flex gap-2.5 p-3 bg-danger/15 border border-danger/30 rounded-xl text-danger text-xs leading-relaxed animate-in fade-in duration-150">
+              <div className="flex gap-2.5 p-3 bg-danger/15 border border-danger/30 rounded-xl text-danger dark:text-danger-soft text-xs leading-relaxed animate-in fade-in duration-150">
                 <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{overrideError}</span>
               </div>
             )}
 
             {overrideSuccess && (
-              <div className="flex gap-2.5 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs leading-relaxed animate-in fade-in duration-150">
+              <div className="flex gap-2.5 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs leading-relaxed animate-in fade-in duration-150">
                 <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{overrideSuccess}</span>
               </div>
@@ -970,28 +954,28 @@ export default function LoginPage() {
       )}
 
       {/* Footer Info */}
-      <footer className="mt-6 text-center text-[11px] text-theme-text-secondary space-y-1 max-w-lg px-4">
+      <footer className="mt-6 text-center text-xs text-theme-text-secondary space-y-1 max-w-lg px-4">
         <p>
           By visiting or using this portal, you agree to our{' '}
           <button
             type="button"
             onClick={() => setIsTermsOpen(true)}
-            className="font-semibold text-accent underline hover:text-primary-light transition-colors cursor-pointer"
+            className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-primary-light transition-colors cursor-pointer"
           >
             Terms & Conditions
           </button>{' '}and{' '}
           <button
             type="button"
             onClick={() => setIsPrivacyOpen(true)}
-            className="font-semibold text-accent underline hover:text-primary-light transition-colors cursor-pointer"
+            className="font-semibold text-accent-strong dark:text-accent-soft underline hover:text-primary-light transition-colors cursor-pointer"
           >
             Privacy Policy
           </button>.
         </p>
-        <p className="text-[10px]">
+        <p className="text-xs">
           All Intellectual Property, Copyrights & Development Licensing belong exclusively to <strong>Kayomarz Pavri</strong>.
         </p>
-        <p className="text-[10px] opacity-75">&copy; 2026 Ramaiah Technology Business Incubator Portal &middot; MSRUAS Internal Operations Portal</p>
+        <p className="text-xs opacity-75">&copy; 2026 Ramaiah Technology Business Incubator Portal &middot; MSRUAS Internal Operations Portal</p>
       </footer>
 
       {/* Terms & Conditions Modal */}

@@ -32,12 +32,12 @@ export default function KpiPage() {
     <div className="p-6 md:p-8 space-y-6">
       <PageHeader icon={<BarChart3 size={20} />} title="KPI Dashboard" subtitle="Annexure F targets with year-to-date, cumulative, variance and evidence. Startups are counted once; patents count when filed; funding stages are never added together. Only startup IDs are shown."
         actions={<><button className={btnGhost} onClick={csv} disabled={!r}><Download size={12} /> CSV</button><button className={btnGhost} onClick={pdf} disabled={!r}><FileDown size={12} /> PDF</button></>} />
-      {err && <div className="text-xs text-red-400">{err}</div>}
-      {!r ? !err && <div className="text-xs flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : (
+      {err && <div className="text-sm text-rose-700 dark:text-rose-300">{err}</div>}
+      {!r ? !err && <div className="text-sm flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : (
         <>
-          <div className="flex items-center gap-3"><select className={inputCls + ' !w-auto'} value={fy} onChange={e => load(e.target.value)}>{r.fyOptions.map(o => <option key={o}>{o}</option>)}</select>
+          <div className="flex items-center gap-3"><select aria-label="Financial year" className={inputCls + ' !w-auto'} value={fy} onChange={e => load(e.target.value)}>{r.fyOptions.map(o => <option key={o}>{o}</option>)}</select>
             {r.settingsStatus !== 'approved' && <Badge tone="amber">Targets are Proposed — confirm against the signed Annexure F</Badge>}</div>
-          <div className="glass-panel rounded-2xl overflow-x-auto"><table className="w-full text-xs"><thead><tr className="text-left text-theme-text-secondary border-b border-theme-border/30">
+          <div className="glass-panel rounded-2xl overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary border-b border-theme-border">
             <th className="p-3">Indicator</th><th className="p-3">Annual</th><th className="p-3">YTD</th><th className="p-3">Variance</th><th className="p-3">Status</th><th className="p-3">Cumulative / 5-yr</th><th className="p-3">Evidenced</th></tr></thead>
             <tbody>{r.rows.map(k => <tr key={k.key} className="border-b border-theme-border/20" title={k.evidenceRequired}>
               <td className="p-3">{k.label}</td><td className="p-3">{k.annualTarget}</td><td className="p-3 font-semibold">{k.ytd}</td><td className="p-3">{k.variance >= 0 ? '+' : ''}{k.variance}</td>
@@ -46,9 +46,9 @@ export default function KpiPage() {
             <Panel title="MoA Clause 8.4 minimum" hint="Tracked separately from the Annexure F target.">
               <p className="text-sm"><b>{r.clause84.incubatedThisFy}</b> / {r.clause84.min} startups this financial year — <Badge tone={r.clause84.met ? 'green' : 'amber'}>{r.clause84.met ? 'Met' : 'Not yet met'}</Badge></p></Panel>
             <Panel title="Funding (never combined)" hint="Applied, recommended, sanctioned and received are reported separately.">
-              <ul className="text-xs space-y-0.5">{Object.entries(r.funding).map(([k, v]) => <li key={k}>{k}: ₹{v.toLocaleString('en-IN')}</li>)}</ul></Panel>
+              <ul className="text-sm space-y-0.5">{Object.entries(r.funding).map(([k, v]) => <li key={k}>{k}: ₹{v.toLocaleString('en-IN')}</li>)}</ul></Panel>
           </div>
-          {r.shortfalls.length > 0 && <Panel title="Corrective action plan required" hint="Record the plan in the PMC / BoG meeting register."><ul className="text-xs list-disc pl-5">{r.shortfalls.map(s => <li key={s}>{s}</li>)}</ul></Panel>}
+          {r.shortfalls.length > 0 && <Panel title="Corrective action plan required" hint="Record the plan in the PMC / BoG meeting register."><ul className="text-sm list-disc pl-5">{r.shortfalls.map(s => <li key={s}>{s}</li>)}</ul></Panel>}
         </>
       )}
     </div>

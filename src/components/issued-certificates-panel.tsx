@@ -164,10 +164,10 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-theme-text-primary uppercase tracking-wider flex items-center gap-2">
-            <Award className="h-4 w-4 text-accent" />
+            <Award className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
             Issued Certificates ({total})
           </h3>
-          <p className="text-[11px] text-theme-text-secondary">Every certificate issued, grouped by event, with its delivery status.</p>
+          <p className="text-xs text-theme-text-secondary">Every certificate issued, grouped by event, with its delivery status.</p>
         </div>
         <div className="flex items-center gap-2">
         {canSend && picked.size > 0 && (
@@ -211,7 +211,7 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
         </div>
       )}
 
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {error && <p className="text-xs text-danger dark:text-danger-soft">{error}</p>}
       {!error && !loading && groups.length === 0 && (
         <div className="text-center py-8 text-theme-text-secondary text-xs bg-theme-border/5 rounded-xl border border-theme-border/20">
           No certificates have been issued{filter !== 'ALL' || statusFilter !== 'ALL' || search ? ' for this filter' : ' yet'}.
@@ -225,10 +225,10 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
           return (
             <div key={g.eventId} className="rounded-2xl border border-theme-card-border dark:border-white/10 overflow-hidden">
               <button type="button" onClick={() => toggle(g.eventId)} disabled={compact} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-theme-border/10 cursor-pointer disabled:cursor-default">
-                {!compact && (isOpen ? <ChevronDown className="h-4 w-4 text-accent shrink-0" /> : <ChevronRight className="h-4 w-4 text-accent shrink-0" />)}
+                {!compact && (isOpen ? <ChevronDown className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" /> : <ChevronRight className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />)}
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-theme-text-primary truncate">{g.eventName}</p>
-                  <p className="text-[10px] text-theme-text-secondary">{g.event ? getEffectiveEventStatus(g.event) : 'event removed'} · {g.rows.length} certificate{g.rows.length === 1 ? '' : 's'} · {sent} sent</p>
+                  <p className="text-xs text-theme-text-secondary">{g.event ? getEffectiveEventStatus(g.event) : 'event removed'} · {g.rows.length} certificate{g.rows.length === 1 ? '' : 's'} · {sent} sent</p>
                 </div>
               </button>
               {isOpen && (
@@ -257,13 +257,13 @@ export function IssuedCertificatesPanel({ eventId, compact = false, canDelete = 
                           )}
                           <td className="py-2 px-4">
                             <span className="font-semibold text-theme-text-primary">{r.attendeeName}</span>
-                            <span className="block text-[10px] text-theme-text-secondary">{r.attendeeEmail}{r.organisation ? ` · ${r.organisation}` : ''}{r.manual ? ' · added manually' : ''}{r.archivedAt ? ' · thumbnail only (30+ days after event)' : ''}</span>
+                            <span className="block text-xs text-theme-text-secondary">{r.attendeeEmail}{r.organisation ? ` · ${r.organisation}` : ''}{r.manual ? ' · added manually' : ''}{r.archivedAt ? ' · thumbnail only (30+ days after event)' : ''}</span>
                           </td>
                           <td className="py-2 px-4 text-theme-text-secondary">{r.typeName || 'Participation'}</td>
-                          <td className="py-2 px-4 font-mono text-[10px] text-theme-text-secondary">{r.code ? <a href={`/certificate/${r.code}`} target="_blank" rel="noreferrer" className="hover:text-accent underline">{r.code}</a> : '—'}</td>
+                          <td className="py-2 px-4 font-mono text-xs text-theme-text-secondary">{r.code ? <a href={`/certificate/${r.code}`} target="_blank" rel="noreferrer" className="hover:text-accent underline">{r.code}</a> : '—'}</td>
                           <td className="py-2 px-4"><CertificateStatusBadge status={r.status} sentAt={r.sentAt} issuedAt={r.issuedAt} error={r.error} sentBy={r.sentBy} /></td>
-                          <td className="py-2 px-4 text-[11px] text-theme-text-secondary whitespace-nowrap">{fmtDateTime(r.issuedAt)}</td>
-                          <td className="py-2 px-4 text-[11px] text-theme-text-secondary whitespace-nowrap">{fmtDateTime(r.sentAt)}</td>
+                          <td className="py-2 px-4 text-xs text-theme-text-secondary whitespace-nowrap">{fmtDateTime(r.issuedAt)}</td>
+                          <td className="py-2 px-4 text-xs text-theme-text-secondary whitespace-nowrap">{fmtDateTime(r.sentAt)}</td>
                         </tr>
                       ))}
                     </tbody>

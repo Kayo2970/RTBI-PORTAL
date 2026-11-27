@@ -23,6 +23,7 @@ import { passEmailOptsFromTemplate } from '@/lib/pass-email-template';
 import { EmailBackgroundPicker, DEFAULT_BACKGROUND_PICK, backgroundChoiceFor, type EmailBackgroundPick } from '@/components/email-background-picker';
 import { EmailHtmlPreview } from '@/components/email-html-preview';
 import { FALLBACK_ORIGIN } from '@/lib/app-origin';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface EventPassEmailModalProps {
   isOpen: boolean;
@@ -108,7 +109,7 @@ export function EventPassEmailModal({
       return;
     }
 
-    if (!window.confirm(`Send ${targets.length} email${targets.length === 1 ? '' : 's'}?\n\n${targets.slice(0, 8).map((t) => `• ${t.attendeeName} <${t.attendeeEmail}>`).join('\n')}${targets.length > 8 ? `\n…and ${targets.length - 8} more` : ''}`)) return;
+    if (!await askConfirm(`Send ${targets.length} email${targets.length === 1 ? '' : 's'}?\n\n${targets.slice(0, 8).map((t) => `• ${t.attendeeName} <${t.attendeeEmail}>`).join('\n')}${targets.length > 8 ? `\n…and ${targets.length - 8} more` : ''}`)) return;
 
     setIsSending(true);
     setErrorMessage('');
@@ -164,7 +165,7 @@ export function EventPassEmailModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+            <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
               <Mail className="h-5 w-5" />
             </div>
             <div>
@@ -186,14 +187,14 @@ export function EventPassEmailModal({
 
         {/* Feedback Messages */}
         {successToast && (
-          <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/30 rounded-2xl text-success text-xs">
-            <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/30 rounded-2xl text-success dark:text-success-soft text-xs">
+            <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
             <span className="font-semibold">{successToast}</span>
           </div>
         )}
         {errorMessage && (
-          <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger text-xs">
-            <AlertCircle className="h-5 w-5 text-danger shrink-0" />
+          <div className="flex items-center gap-3 p-4 bg-danger/15 border border-danger/30 rounded-2xl text-danger dark:text-danger-soft text-xs">
+            <AlertCircle className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -203,7 +204,7 @@ export function EventPassEmailModal({
           <div className="space-y-4 min-w-0">
             {/* Event Filter */}
             <div className="space-y-1.5">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                 Target Event
               </label>
               <select
@@ -231,13 +232,13 @@ export function EventPassEmailModal({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-theme-text-primary dark:text-white text-xs flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5 text-accent" />
+                  <Users className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                   Recipients ({selectedPassIds.length}/{eventPasses.length})
                 </span>
                 <button
                   type="button"
                   onClick={toggleSelectAll}
-                  className="text-[11px] font-bold text-accent hover:underline cursor-pointer"
+                  className="text-xs font-bold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                 >
                   {selectedPassIds.length === eventPasses.length ? 'Deselect All' : 'Select All'}
                 </button>
@@ -245,7 +246,7 @@ export function EventPassEmailModal({
 
               <div className="max-h-36 overflow-y-auto border border-theme-card-border dark:border-white/10 rounded-xl divide-y divide-theme-card-border dark:divide-white/5 bg-theme-background/50 dark:bg-white/5 p-1">
                 {eventPasses.length === 0 ? (
-                  <div className="py-4 text-center text-theme-text-secondary text-[11px]">
+                  <div className="py-4 text-center text-theme-text-secondary text-xs">
                     No issued passes with email addresses found.
                   </div>
                 ) : (
@@ -254,12 +255,12 @@ export function EventPassEmailModal({
                     return (
                       <div
                         key={pass.id}
-                        className="flex items-center justify-between p-1.5 hover:bg-white/10 rounded-lg cursor-pointer text-[11px]"
+                        className="flex items-center justify-between p-1.5 hover:bg-white/10 rounded-lg cursor-pointer text-xs"
                         onClick={() => togglePassSelect(pass.id)}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           {isChecked ? (
-                            <CheckSquare className="h-4 w-4 text-accent shrink-0" />
+                            <CheckSquare className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
                           ) : (
                             <Square className="h-4 w-4 text-theme-text-secondary shrink-0" />
                           )}
@@ -267,7 +268,7 @@ export function EventPassEmailModal({
                             <span className="font-bold text-theme-text-primary dark:text-white block truncate">
                               {pass.attendeeName}
                             </span>
-                            <span className="text-[10px] text-theme-text-secondary block truncate">
+                            <span className="text-xs text-theme-text-secondary block truncate">
                               {pass.attendeeEmail}
                             </span>
                           </div>
@@ -278,7 +279,7 @@ export function EventPassEmailModal({
                             e.stopPropagation();
                             setPreviewPassId(pass.id);
                           }}
-                          className={`text-[10px] px-2 py-0.5 rounded-md font-bold transition-all ${
+                          className={`text-xs px-2 py-0.5 rounded-md font-bold transition-all ${
                             previewPass?.id === pass.id
                               ? 'bg-accent text-white'
                               : 'text-theme-text-secondary hover:text-white'
@@ -295,17 +296,17 @@ export function EventPassEmailModal({
 
             {/* Live Rendered Email Preview */}
             <div className="space-y-1.5 flex-1 flex flex-col">
-              <div className="flex items-center justify-between text-[11px] font-bold text-theme-text-secondary dark:text-theme-text-secondary">
+              <div className="flex items-center justify-between text-xs font-bold text-theme-text-secondary dark:text-theme-text-secondary">
                 <span className="flex items-center gap-1">
-                  <Eye className="h-3 w-3 text-accent" /> Live email preview (exactly what is sent)
+                  <Eye className="h-3 w-3 text-accent-strong dark:text-accent-soft" /> Live email preview (exactly what is sent)
                 </span>
-                <span className="text-[10px] text-accent font-semibold truncate max-w-[160px]">
+                <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold truncate max-w-[160px]">
                   {previewPass?.attendeeName || 'No recipient'}
                 </span>
               </div>
 
-              <div className="rounded-xl bg-theme-border/15 dark:bg-white/5 border border-theme-card-border dark:border-white/10 px-3 py-2 text-[11px]">
-                <span className="text-[9px] text-theme-text-secondary uppercase font-bold mr-2">Subject</span>
+              <div className="rounded-xl bg-theme-border/15 dark:bg-white/5 border border-theme-card-border dark:border-white/10 px-3 py-2 text-xs">
+                <span className="text-xs text-theme-text-secondary uppercase font-bold mr-2">Subject</span>
                 <span className="font-bold text-theme-text-primary dark:text-white">{previewEmail?.subject || '—'}</span>
               </div>
               {previewEmail ? (
@@ -322,7 +323,7 @@ export function EventPassEmailModal({
                   className="w-full h-[560px] rounded-2xl border border-theme-card-border dark:border-white/15 bg-theme-border/25"
                 />
               ) : (
-                <div className="flex-1 min-h-[200px] rounded-2xl border border-dashed border-theme-card-border dark:border-white/15 flex items-center justify-center text-theme-text-secondary text-[11px]">Select a recipient to preview</div>
+                <div className="flex-1 min-h-[200px] rounded-2xl border border-dashed border-theme-card-border dark:border-white/15 flex items-center justify-center text-theme-text-secondary text-xs">Select a recipient to preview</div>
               )}
             </div>
           </div>

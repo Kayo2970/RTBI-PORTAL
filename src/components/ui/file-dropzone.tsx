@@ -310,7 +310,7 @@ export function FilePreviewRow({ file, status = 'idle', progress = 0, etaSeconds
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-medium text-theme-text-primary truncate">{file.name}</p>
-          {status === 'done' && <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />}
+          {status === 'done' && <CheckCircle2 className="h-3.5 w-3.5 text-success dark:text-success-soft shrink-0" />}
           {onRemove && status !== 'uploading' && (
             <button
               type="button"
@@ -340,7 +340,7 @@ export function FilePreviewRow({ file, status = 'idle', progress = 0, etaSeconds
 
         {status === 'error' && (
           <div className="flex items-center justify-between gap-2 pt-0.5">
-            <span className="flex items-center gap-1 text-[10px] text-danger">
+            <span className="flex items-center gap-1 text-[10px] text-danger dark:text-danger-soft">
               <AlertCircle className="h-3 w-3 shrink-0" />
               {error || 'Upload failed.'}
             </span>

@@ -511,7 +511,7 @@ export default function GroupPoliciesPage() {
     <div className="p-6 md:p-8 space-y-6">
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -519,7 +519,7 @@ export default function GroupPoliciesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-accent" />
+            <ShieldCheck className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
             Group Policy Management
           </h1>
           <p className="text-xs text-theme-text-secondary">
@@ -541,7 +541,7 @@ export default function GroupPoliciesPage() {
           onClick={() => setActiveTab('policies')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             activeTab === 'policies'
-              ? 'bg-accent/15 text-accent border border-accent/30'
+              ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30'
               : 'text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -552,7 +552,7 @@ export default function GroupPoliciesPage() {
           onClick={() => setActiveTab('matrix')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             activeTab === 'matrix'
-              ? 'bg-accent/15 text-accent border border-accent/30'
+              ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30'
               : 'text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -586,28 +586,28 @@ export default function GroupPoliciesPage() {
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-sm font-bold text-theme-text-primary">{policy.name}</h3>
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-accent/15 text-accent rounded-md border border-accent/20">
+                      <span className="text-xs font-mono px-2 py-0.5 bg-accent/15 text-accent-strong dark:text-accent-soft rounded-md border border-accent/20">
                         {policy.tag}
                       </span>
                       {!isEnabled && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 bg-theme-border/30 text-theme-text-secondary rounded-md">
+                        <span className="text-xs font-semibold px-2 py-0.5 bg-theme-border/30 text-theme-text-secondary rounded-md">
                           Disabled
                         </span>
                       )}
                       {policy.expiresAt && (
                         policy.expiresAt <= new Date().toISOString() ? (
-                          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 bg-danger/10 text-danger rounded-md border border-danger/20">
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-danger/10 text-danger dark:text-danger-soft rounded-md border border-danger/20">
                             <Clock className="h-3 w-3" /> Expired {policy.expiresAt.split('T')[0]}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 bg-warning/10 text-warning rounded-md border border-warning/20">
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-warning/10 text-warning dark:text-warning-soft rounded-md border border-warning/20">
                             <Clock className="h-3 w-3" /> Expires {policy.expiresAt.split('T')[0]}
                           </span>
                         )
                       )}
                     </div>
                     {policy.description && (
-                      <p className="text-[11px] text-theme-text-secondary">{policy.description}</p>
+                      <p className="text-xs text-theme-text-secondary">{policy.description}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -616,19 +616,19 @@ export default function GroupPoliciesPage() {
                       title={isEnabled ? 'Disable tag' : 'Enable tag'}
                       className="p-1.5 hover:bg-theme-border/30 rounded-lg text-theme-text-secondary hover:text-theme-text-primary transition-all cursor-pointer"
                     >
-                      {isEnabled ? <ToggleRight className="h-4.5 w-4.5 text-success" /> : <ToggleLeft className="h-4.5 w-4.5" />}
+                      {isEnabled ? <ToggleRight className="h-4.5 w-4.5 text-success dark:text-success-soft" /> : <ToggleLeft className="h-4.5 w-4.5" />}
                     </button>
                     <button
                       onClick={() => handleOpenEdit(policy)}
                       title="Edit tag"
-                      className="p-1.5 hover:bg-accent/10 rounded-lg text-accent transition-all cursor-pointer"
+                      className="p-1.5 hover:bg-accent/10 rounded-lg text-accent-strong dark:text-accent-soft transition-all cursor-pointer"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => setDeletingId(policy.id)}
                       title="Delete tag"
-                      className="p-1.5 hover:bg-danger/10 rounded-lg text-danger transition-all cursor-pointer"
+                      className="p-1.5 hover:bg-danger/10 rounded-lg text-danger dark:text-danger-soft transition-all cursor-pointer"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -642,14 +642,14 @@ export default function GroupPoliciesPage() {
                       <span
                         key={capKey}
                         title={cap?.description}
-                        className="text-[10px] font-semibold px-2 py-0.5 bg-primary/10 text-primary-light rounded-md border border-primary/20"
+                        className="text-xs font-semibold px-2 py-0.5 bg-primary/10 text-primary-light rounded-md border border-primary/20"
                       >
                         {cap?.label || capKey}
                       </span>
                     );
                   })}
                   {policy.eventVisibilityScope === 'OWN_ONLY' && !policy.moduleAccess?.EVENTS?.view && (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 bg-warning/10 text-warning rounded-md border border-warning/20">
+                    <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-warning/10 text-warning dark:text-warning-soft rounded-md border border-warning/20">
                       <Eye className="h-3 w-3" /> Own/Listed Events Only
                     </span>
                   )}
@@ -663,20 +663,20 @@ export default function GroupPoliciesPage() {
                     return (
                       <span
                         key={key}
-                        className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 bg-warning/10 text-warning rounded-md border border-warning/20"
+                        className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-warning/10 text-warning dark:text-warning-soft rounded-md border border-warning/20"
                       >
                         <Eye className="h-3 w-3" /> {mod?.label || key} — {parts}
                       </span>
                     );
                   })}
                   {policy.requiresApproval && (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 bg-accent/10 text-accent rounded-md border border-accent/20">
+                    <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-accent/10 text-accent-strong dark:text-accent-soft rounded-md border border-accent/20">
                       <ClipboardCheck className="h-3 w-3" /> Approval Required &rarr; {describeApprover(policy)}
                     </span>
                   )}
                 </div>
 
-                <div className="text-[11px] text-theme-text-secondary space-y-0.5">
+                <div className="text-xs text-theme-text-secondary space-y-0.5">
                   {summarizeTargets(policy).map((line, i) => (
                     <p key={i}>{line}</p>
                   ))}
@@ -684,7 +684,7 @@ export default function GroupPoliciesPage() {
 
                 <button
                   onClick={() => setExpandedMembersId(isExpanded ? null : policy.id)}
-                  className="flex items-center gap-1.5 text-[11px] font-semibold text-accent hover:underline cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                 >
                   <Users className="h-3.5 w-3.5" />
                   Applies to {matches.length} member{matches.length === 1 ? '' : 's'} right now
@@ -693,21 +693,21 @@ export default function GroupPoliciesPage() {
                 {isExpanded && (
                   <div className="max-h-40 overflow-y-auto space-y-1 pt-1 border-t border-theme-border/20">
                     {matches.length === 0 ? (
-                      <p className="text-[11px] text-theme-text-secondary py-2">No members currently match this tag.</p>
+                      <p className="text-xs text-theme-text-secondary py-2">No members currently match this tag.</p>
                     ) : (
                       matches.map(m => (
-                        <div key={m.id} className="flex items-center justify-between text-[11px] py-1 border-b border-theme-border/10 last:border-0">
+                        <div key={m.id} className="flex items-center justify-between text-xs py-1 border-b border-theme-border/10 last:border-0">
                           <div className="flex items-center gap-2 min-w-0">
                             {m.employeeId ? (
-                              <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/25 shrink-0">
+                              <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25 shrink-0">
                                 {m.employeeId}
                               </span>
                             ) : (
-                              <span className="text-[9px] text-theme-text-secondary italic">No ID</span>
+                              <span className="text-xs text-theme-text-secondary italic">No ID</span>
                             )}
                             <span className="text-theme-text-primary font-medium truncate">{m.name}</span>
                           </div>
-                          <span className="text-theme-text-secondary text-[10px] shrink-0 ml-2">{m.role || m.division}</span>
+                          <span className="text-theme-text-secondary text-xs shrink-0 ml-2">{m.role || m.division}</span>
                         </div>
                       ))
                     )}
@@ -733,15 +733,15 @@ export default function GroupPoliciesPage() {
             <BookLock className="h-4.5 w-4.5 text-theme-text-secondary" />
             <div>
               <h3 className="text-sm font-bold text-theme-text-primary">Built-in Access Rules</h3>
-              <p className="text-[11px] text-theme-text-secondary">The tier/role rules that exist even with zero policy tags — editable here.</p>
+              <p className="text-xs text-theme-text-secondary">The tier/role rules that exist even with zero policy tags — editable here.</p>
             </div>
           </div>
-          <span className="text-[11px] font-semibold text-accent shrink-0">{isBuiltInRulesOpen ? 'Hide' : 'Show'}</span>
+          <span className="text-xs font-semibold text-accent-strong dark:text-accent-soft shrink-0">{isBuiltInRulesOpen ? 'Hide' : 'Show'}</span>
         </button>
         {isBuiltInRulesOpen && (
           <div className="px-5 pb-5 space-y-3 border-t border-theme-border/20 pt-4 text-xs">
-            <div className="flex items-start gap-2 p-3 bg-danger/5 border border-danger/25 rounded-xl text-[11px] text-theme-text-secondary">
-              <ShieldAlert className="h-3.5 w-3.5 text-danger shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 p-3 bg-danger/5 border border-danger/25 rounded-xl text-xs text-theme-text-secondary">
+              <ShieldAlert className="h-3.5 w-3.5 text-danger dark:text-danger-soft shrink-0 mt-0.5" />
               <span>
                 Changing these values changes who has elevated access across the entire platform, for every account,
                 the moment you save — not just for new logins. Tier 1 (the real Super User) is the one rule that can
@@ -750,8 +750,8 @@ export default function GroupPoliciesPage() {
             </div>
 
             {accessSettingsMsg && (
-              <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/20 rounded-xl text-[11px] text-theme-text-primary">
-                <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+              <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/20 rounded-xl text-xs text-theme-text-primary">
+                <CheckCircle2 className="h-4 w-4 text-success dark:text-success-soft shrink-0" />
                 <span>{accessSettingsMsg}</span>
               </div>
             )}
@@ -759,16 +759,16 @@ export default function GroupPoliciesPage() {
             {/* Super User — permanently hardcoded */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
               <h4 className="text-xs font-bold text-theme-text-primary">{SUPER_USER_RULE.name}</h4>
-              <p className="text-[11px] text-theme-text-secondary mt-0.5 leading-relaxed">{SUPER_USER_RULE.description}</p>
+              <p className="text-xs text-theme-text-secondary mt-0.5 leading-relaxed">{SUPER_USER_RULE.description}</p>
             </div>
 
             {/* Base Leadership */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Base Leadership</h4>
-              <p className="text-[11px] text-theme-text-secondary leading-relaxed">
+              <p className="text-xs text-theme-text-secondary leading-relaxed">
                 Create/edit/delete events and tasks, edit the directory, view the full directory, publish announcements, and view every Design Portal submission.
               </p>
-              <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary">
+              <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
                 <span>Tier 1 through</span>
                 <select
                   value={accessSettings.baseLeadershipMaxTier}
@@ -783,8 +783,8 @@ export default function GroupPoliciesPage() {
             {/* Core Committee */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Core Committee</h4>
-              <p className="text-[11px] text-theme-text-secondary leading-relaxed">Create/edit events and tasks, and publish announcements.</p>
-              <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary leading-relaxed">Create/edit events and tasks, and publish announcements.</p>
+              <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
                 <span>Tier equals</span>
                 <select
                   value={accessSettings.coreCommitteeTier}
@@ -799,10 +799,10 @@ export default function GroupPoliciesPage() {
             {/* Head role */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Any &quot;Head&quot; Role</h4>
-              <p className="text-[11px] text-theme-text-secondary leading-relaxed">
+              <p className="text-xs text-theme-text-secondary leading-relaxed">
                 Create/edit events and tasks, build public forms, publish announcements, view all designs, and see their own department&apos;s tasks and ratings regardless of tier.
               </p>
-              <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary">
+              <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
                 <span>Job title contains the word</span>
                 <input
                   type="text"
@@ -816,10 +816,10 @@ export default function GroupPoliciesPage() {
             {/* Leadership / CEO */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Leadership / CEO</h4>
-              <p className="text-[11px] text-theme-text-secondary leading-relaxed">
+              <p className="text-xs text-theme-text-secondary leading-relaxed">
                 Also the built-in &quot;CEO&quot; approver for any policy that requires approval without naming a specific person or tag.
               </p>
-              <div className="flex flex-col gap-1.5 text-[11px] text-theme-text-secondary">
+              <div className="flex flex-col gap-1.5 text-xs text-theme-text-secondary">
                 <div className="flex items-center gap-2">
                   <span>Title contains any of</span>
                   <input
@@ -846,8 +846,8 @@ export default function GroupPoliciesPage() {
             {/* Finance Head */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl space-y-1.5">
               <h4 className="text-xs font-bold text-theme-text-primary">Finance Head</h4>
-              <p className="text-[11px] text-theme-text-secondary leading-relaxed">Finance authority label.</p>
-              <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary leading-relaxed">Finance authority label.</p>
+              <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
                 <span>Title or department contains</span>
                 <input
                   type="text"
@@ -861,11 +861,11 @@ export default function GroupPoliciesPage() {
             {/* Everyone else — static */}
             <div className="p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
               <h4 className="text-xs font-bold text-theme-text-primary">{EVERYONE_ELSE_RULE.name}</h4>
-              <p className="text-[11px] text-theme-text-secondary mt-0.5 leading-relaxed">{EVERYONE_ELSE_RULE.description}</p>
+              <p className="text-xs text-theme-text-secondary mt-0.5 leading-relaxed">{EVERYONE_ELSE_RULE.description}</p>
             </div>
 
             {accessSettings.updatedAt && (
-              <p className="text-[10px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary">
                 Last changed {new Date(accessSettings.updatedAt).toLocaleString()} by {accessSettings.updatedBy || 'unknown'}
               </p>
             )}
@@ -906,12 +906,12 @@ export default function GroupPoliciesPage() {
               />
             </div>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] text-theme-text-secondary mr-1">Filter by Tier:</span>
+              <span className="text-xs text-theme-text-secondary mr-1">Filter by Tier:</span>
               {(['all', 1, 2, 3, 4] as const).map(t => (
                 <button
                   key={t}
                   onClick={() => setMatrixTierFilter(t)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                     matrixTierFilter === t
                       ? 'bg-accent text-white border-accent'
                       : 'bg-theme-background/30 border-theme-border/30 text-theme-text-secondary hover:text-theme-text-primary'
@@ -926,7 +926,7 @@ export default function GroupPoliciesPage() {
           <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+                <tr className="text-left text-xs uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
                   <th className="px-4 py-3">Employee ID</th>
                   <th className="px-4 py-3">Employee &amp; Role</th>
                   <th className="px-4 py-3">Tier</th>
@@ -958,26 +958,26 @@ export default function GroupPoliciesPage() {
                       <tr key={m.id} className="border-b border-theme-border/10">
                         <td className="px-4 py-3">
                           {m.employeeId ? (
-                            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/25">
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
                               {m.employeeId}
                             </span>
                           ) : (
-                            <span className="text-[11px] text-theme-text-secondary italic">Not assigned</span>
+                            <span className="text-xs text-theme-text-secondary italic">Not assigned</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-semibold text-theme-text-primary">{m.name}</div>
-                          <div className="text-theme-text-secondary text-[11px]">{m.role || m.division}</div>
+                          <div className="text-theme-text-secondary text-xs">{m.role || m.division}</div>
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
                               m.tier === 1
-                                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
                                 : m.tier === 2
-                                ? 'bg-accent/15 text-accent border-accent/30'
+                                ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border-accent/30'
                                 : m.tier === 3
-                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                                 : 'bg-purple-500/15 text-purple-400 border-purple-500/30'
                             }`}
                           >
@@ -991,21 +991,21 @@ export default function GroupPoliciesPage() {
                                 <span
                                   key={p.id}
                                   title={p.name}
-                                  className="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
+                                  className="font-mono text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
                                 >
                                   {p.tag}
                                 </span>
                               ))}
                             </div>
                           ) : (
-                            <span className="text-[11px] text-theme-text-secondary">Default Tier Rules</span>
+                            <span className="text-xs text-theme-text-secondary">Default Tier Rules</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           {isRoot ? (
-                            <span className="text-amber-400 font-semibold text-[11px]">Unrestricted Access</span>
+                            <span className="text-amber-700 dark:text-amber-300 font-semibold text-xs">Unrestricted Access</span>
                           ) : (
-                            <span className="text-theme-text-primary font-medium text-[11px]">
+                            <span className="text-theme-text-primary font-medium text-xs">
                               {capabilitiesSet.size} granted capabilities
                             </span>
                           )}
@@ -1013,7 +1013,7 @@ export default function GroupPoliciesPage() {
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => openMemberAccess(m)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer text-[11px]"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer text-xs"
                           >
                             <Shield className="h-3.5 w-3.5" /> Manage Policies
                           </button>
@@ -1094,15 +1094,15 @@ export default function GroupPoliciesPage() {
                     <button
                       type="button"
                       onClick={() => setCapabilities(CAPABILITY_CATALOG.map(c => c.key))}
-                      className="text-[11px] font-semibold text-accent hover:underline cursor-pointer"
+                      className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                     >
                       Select All
                     </button>
-                    <span className="text-theme-text-secondary text-[11px]">•</span>
+                    <span className="text-theme-text-secondary text-xs">•</span>
                     <button
                       type="button"
                       onClick={() => setCapabilities([])}
-                      className="text-[11px] font-semibold text-theme-text-secondary hover:text-theme-text-primary hover:underline cursor-pointer"
+                      className="text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary hover:underline cursor-pointer"
                     >
                       Select None
                     </button>
@@ -1111,7 +1111,7 @@ export default function GroupPoliciesPage() {
                 <div className="space-y-3">
                   {Array.from(new Set(CAPABILITY_CATALOG.map(c => c.module))).map(moduleLabel => (
                     <div key={moduleLabel} className="space-y-1.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary/70">{moduleLabel}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary">{moduleLabel}</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {CAPABILITY_CATALOG.filter(c => c.module === moduleLabel).map(cap => (
                           <label
@@ -1142,11 +1142,11 @@ export default function GroupPoliciesPage() {
                 <label className="block font-medium text-theme-text-secondary pt-2">
                   Module Access <span className="font-normal">(optional — leave "Inherit" to change nothing about that module's default behavior)</span>
                 </label>
-                <p className="text-[11px] text-theme-text-secondary leading-relaxed">
+                <p className="text-xs text-theme-text-secondary leading-relaxed">
                   View controls whether members matched by this tag see every record in a module or only ones they created (never removes access an explicit capability above already grants). Edit is a hard override: <span className="font-semibold text-theme-text-primary">All</span> grants unrestricted edit, <span className="font-semibold text-theme-text-primary">None</span> revokes edit outright — even for a tier/role that would otherwise qualify — and <span className="font-semibold text-theme-text-primary">Own</span> limits edit to records they created (one-time, within 24 hours, for Members/Guest Directory).
                 </p>
                 <div className="rounded-2xl border border-theme-card-border overflow-hidden">
-                  <div className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[1fr_140px_140px] items-center gap-2 px-3 py-2 bg-theme-background/40 text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary/70">
+                  <div className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[1fr_140px_140px] items-center gap-2 px-3 py-2 bg-theme-background/40 text-xs font-bold uppercase tracking-wider text-theme-text-secondary">
                     <span>Module</span>
                     <span>View</span>
                     <span>Edit</span>
@@ -1163,7 +1163,7 @@ export default function GroupPoliciesPage() {
                         <select
                           value={grant.view || ''}
                           onChange={(e) => setModuleViewOverride(mod.key, e.target.value as 'OWN' | 'ALL' | '')}
-                          className="px-2 py-1.5 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary text-[11px] focus:outline-none focus:border-accent cursor-pointer"
+                          className="px-2 py-1.5 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary text-xs focus:outline-none focus:border-accent cursor-pointer"
                         >
                           <option value="">Inherit</option>
                           <option value="OWN">Own Only</option>
@@ -1172,7 +1172,7 @@ export default function GroupPoliciesPage() {
                         <select
                           value={grant.edit || ''}
                           onChange={(e) => setModuleEditOverride(mod.key, e.target.value as 'OWN' | 'ALL' | 'NONE' | '')}
-                          className="px-2 py-1.5 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary text-[11px] focus:outline-none focus:border-accent cursor-pointer"
+                          className="px-2 py-1.5 bg-theme-background/30 border border-theme-card-border rounded-lg text-theme-text-primary text-xs focus:outline-none focus:border-accent cursor-pointer"
                         >
                           <option value="">Inherit</option>
                           <option value="OWN">Own Only</option>
@@ -1192,20 +1192,20 @@ export default function GroupPoliciesPage() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="block text-[11px] font-medium text-theme-text-secondary">By Division</span>
+                    <span className="block text-xs font-medium text-theme-text-secondary">By Division</span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setTargetDivisions([...ALL_DIVISIONS])}
-                        className="text-[10px] font-semibold text-accent hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                       >
                         Select All
                       </button>
-                      <span className="text-theme-text-secondary text-[10px]">•</span>
+                      <span className="text-theme-text-secondary text-xs">•</span>
                       <button
                         type="button"
                         onClick={() => setTargetDivisions([])}
-                        className="text-[10px] font-semibold text-theme-text-secondary hover:text-theme-text-primary hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary hover:underline cursor-pointer"
                       >
                         Select None
                       </button>
@@ -1217,7 +1217,7 @@ export default function GroupPoliciesPage() {
                         key={division}
                         type="button"
                         onClick={() => toggleDivision(division)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                           targetDivisions.includes(division)
                             ? 'bg-accent text-white border-accent'
                             : 'bg-theme-background/30 border-theme-card-border text-theme-text-secondary hover:text-theme-text-primary'
@@ -1231,20 +1231,20 @@ export default function GroupPoliciesPage() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="block text-[11px] font-medium text-theme-text-secondary">By Tier</span>
+                    <span className="block text-xs font-medium text-theme-text-secondary">By Tier</span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setTargetTiers([...ALL_TIERS])}
-                        className="text-[10px] font-semibold text-accent hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                       >
                         Select All
                       </button>
-                      <span className="text-theme-text-secondary text-[10px]">•</span>
+                      <span className="text-theme-text-secondary text-xs">•</span>
                       <button
                         type="button"
                         onClick={() => setTargetTiers([])}
-                        className="text-[10px] font-semibold text-theme-text-secondary hover:text-theme-text-primary hover:underline cursor-pointer"
+                        className="text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary hover:underline cursor-pointer"
                       >
                         Select None
                       </button>
@@ -1256,7 +1256,7 @@ export default function GroupPoliciesPage() {
                         key={tierNum}
                         type="button"
                         onClick={() => toggleTier(tierNum)}
-                        className={`h-7 w-7 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                        className={`h-7 w-7 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                           targetTiers.includes(tierNum)
                             ? 'bg-accent text-white border-accent'
                             : 'bg-theme-background/30 border-theme-card-border text-theme-text-secondary hover:text-theme-text-primary'
@@ -1269,7 +1269,7 @@ export default function GroupPoliciesPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-medium text-theme-text-secondary">By Designation (role contains)</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">By Designation (role contains)</label>
                   <input
                     type="text"
                     value={targetDesignationKeyword}
@@ -1280,7 +1280,7 @@ export default function GroupPoliciesPage() {
                 </div>
 
                 <div className="space-y-1.5" ref={memberDropdownRef}>
-                  <label className="block text-[11px] font-medium text-theme-text-secondary">By Specific Person</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">By Specific Person</label>
                   <div className="relative">
                     <div className="flex items-center gap-2 px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl focus-within:border-accent">
                       <Search className="h-3.5 w-3.5 text-theme-text-secondary shrink-0" />
@@ -1313,13 +1313,13 @@ export default function GroupPoliciesPage() {
                             >
                               <div className="flex items-center gap-2 min-w-0">
                                 {m.employeeId && (
-                                  <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/25 shrink-0">
+                                  <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25 shrink-0">
                                     {m.employeeId}
                                   </span>
                                 )}
                                 <span className="font-medium text-theme-text-primary truncate">{m.name}</span>
                               </div>
-                              <span className="text-theme-text-secondary text-[11px] shrink-0">{m.role || m.division}</span>
+                              <span className="text-theme-text-secondary text-xs shrink-0">{m.role || m.division}</span>
                             </button>
                           ))
                         )}
@@ -1335,7 +1335,7 @@ export default function GroupPoliciesPage() {
                         return (
                           <span
                             key={id}
-                            className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-accent/10 text-accent text-[11px] font-semibold rounded-lg border border-accent/20"
+                            className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-accent/10 text-accent-strong dark:text-accent-soft text-xs font-semibold rounded-lg border border-accent/20"
                           >
                             {m.employeeId ? `[${m.employeeId}] ${m.name}` : m.name}
                             <button
@@ -1353,8 +1353,8 @@ export default function GroupPoliciesPage() {
                 </div>
 
                 <div className="flex items-center gap-2 p-3 bg-theme-border/10 border border-theme-border/20 rounded-xl">
-                  <Users className="h-4 w-4 text-accent shrink-0" />
-                  <span className="text-[11px] text-theme-text-primary font-semibold">
+                  <Users className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
+                  <span className="text-xs text-theme-text-primary font-semibold">
                     This tag currently matches {draftMatches.length} member{draftMatches.length === 1 ? '' : 's'}.
                   </span>
                 </div>
@@ -1373,7 +1373,7 @@ export default function GroupPoliciesPage() {
                     className="accent-accent mt-0.5"
                   />
                   <span className="flex items-center gap-1.5 font-medium text-theme-text-primary leading-tight">
-                    <ClipboardCheck className="h-3.5 w-3.5 text-accent shrink-0" />
+                    <ClipboardCheck className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft shrink-0" />
                     Require approval before these capabilities take effect
                   </span>
                 </label>
@@ -1390,7 +1390,7 @@ export default function GroupPoliciesPage() {
                           key={opt.value}
                           type="button"
                           onClick={() => setApproverType(opt.value)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                             approverType === opt.value
                               ? 'bg-accent text-white border-accent'
                               : 'bg-theme-background/30 border-theme-card-border text-theme-text-secondary hover:text-theme-text-primary'
@@ -1472,7 +1472,7 @@ export default function GroupPoliciesPage() {
                   onChange={(e) => setExpiresAt(e.target.value)}
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                 />
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Once this date passes, the policy stops granting anything automatically — no need to come back and disable it. The record itself stays, so it's easy to see it expired and re-enable it later with a new date.
                 </p>
               </div>
@@ -1501,13 +1501,13 @@ export default function GroupPoliciesPage() {
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
               <div>
                 <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-accent" />
+                  <ShieldCheck className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
                   Assign Group Policies
                 </h2>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Grant or revoke policy tags for {managingMemberAccess.name} (
                   {managingMemberAccess.employeeId ? (
-                    <span className="font-mono text-accent font-semibold">{managingMemberAccess.employeeId}</span>
+                    <span className="font-mono text-accent-strong dark:text-accent-soft font-semibold">{managingMemberAccess.employeeId}</span>
                   ) : (
                     'No ID'
                   )}
@@ -1550,14 +1550,14 @@ export default function GroupPoliciesPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
-                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
+                        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent-strong dark:text-accent-soft font-bold">
                           {p.tag}
                         </span>
                       </div>
                       {p.description && (
-                        <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
+                        <p className="text-xs text-theme-text-secondary line-clamp-1">{p.description}</p>
                       )}
-                      <div className="text-[9px] text-theme-text-secondary/80 mt-0.5">
+                      <div className="text-xs text-theme-text-secondary mt-0.5">
                         {p.capabilities?.length || 0} capabilities granted
                       </div>
                     </div>

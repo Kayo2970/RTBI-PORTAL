@@ -3,13 +3,14 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileText, Loader2, FileDown, Archive } from 'lucide-react';
-import { actOnApplication, createRecord, fetchApplications, fetchIncubationSettings, fetchMembersLite, type ApplicationView } from '@/lib/incubation/client';
+import { actOnApplication, createRecord, fetchApplications, fetchIncubationSettings, fetchMembersLite, readFileAsDataUrl, type ApplicationView } from '@/lib/incubation/client';
 import { buildPdf, downloadPdf, type PdfSection } from '@/lib/incubation/pdf';
 import { weightsValid } from '@/lib/incubation/rules';
 import { APPLICATION_SECTIONS, DECISION_OPTIONS, SCREENING_AREAS, type IncubationSettings } from '@/lib/incubation/types';
 import { Badge, Modal, PageHeader, Panel, btnGhost, btnPrimary, inputCls, isManagerUi, isStaffUi, useCurrentUser } from '@/components/incubation/ui';
+import { toast } from '@/components/ui/toast';
 
-const statusTone = (s?: string) => (s === 'Decision final' ? 'green' : s === 'Ineligible' ? 'red' : s === 'Clarification required' || s === 'Decision recorded' ? 'amber' : 'blue') as 'green' | 'red' | 'amber' | 'blue';
+const statusTone = (s?: string) => (s === 'Decision final' ? 'green' : s === 'Ineligible' || s === 'Withdrawn' ? 'red' : s === 'Clarification required' || s === 'Decision recorded' ? 'amber' : 'blue') as 'green' | 'red' | 'amber' | 'blue';
 
 function ApplicationsPageInner() {
   const user = useCurrentUser();
@@ -37,15 +38,15 @@ function ApplicationsPageInner() {
     <div className="p-6 md:p-8 space-y-6">
       <PageHeader icon={<FileText size={20} />} title="Applications & Selection"
         subtitle="Public applications (/apply) are screened, scored independently by assigned evaluators behind a conflict-of-interest gate, then decided and finally approved by the configured authority." />
-      {manager && <p className="text-xs">Public application link: <span className="font-mono">/apply</span></p>}
-      {settings?.scorecard.status !== 'approved' && <div className="text-xs rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 p-3">Scorecard weights are still <b>Proposed</b>. Decisions can be recorded but not finalised until they are approved in Incubation Settings.</div>}
-      {error && <div className="text-xs text-red-400">{error}</div>}
-      {loading ? <div className="text-xs flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : apps.length === 0 ? (
-        <div className="glass-panel rounded-2xl p-8 text-center text-xs text-theme-text-secondary">No applications {manager ? 'yet' : 'assigned to you'}.</div>
+      {manager && <p className="text-sm">Public application link: <span className="font-mono">/apply</span></p>}
+      {settings?.scorecard.status !== 'approved' && <div className="text-sm rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300 p-3">Scorecard weights are still <b>Proposed</b>. Decisions can be recorded but not finalised until they are approved in Incubation Settings.</div>}
+      {error && <div className="text-sm text-rose-700 dark:text-rose-300">{error}</div>}
+      {loading ? <div className="text-sm flex gap-2 items-center"><Loader2 size={14} className="animate-spin" /> Loading…</div> : apps.length === 0 ? (
+        <div className="glass-panel rounded-2xl p-8 text-center text-sm text-theme-text-secondary">No applications {manager ? 'yet' : 'assigned to you'}.</div>
       ) : (
         <div className="glass-panel rounded-2xl overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead><tr className="text-left text-theme-text-secondary border-b border-theme-border/30"><th className="p-3">ID</th><th className="p-3">Startup</th><th className="p-3">Received</th><th className="p-3">Status</th><th className="p-3">Scorecards</th><th /></tr></thead>
+          <table className="w-full text-sm">
+            <thead><tr className="text-left text-theme-text-secondary border-b border-theme-border"><th className="p-3">ID</th><th className="p-3">Startup</th><th className="p-3">Received</th><th className="p-3">Status</th><th className="p-3">Scorecards</th><th /></tr></thead>
             <tbody>{apps.map(a => (
               <tr key={a.id} className="border-b border-theme-border/20">
                 <td className="p-3 font-mono">{a.id}</td>
@@ -53,7 +54,7 @@ function ApplicationsPageInner() {
                 <td className="p-3">{a.receivedAt?.slice(0, 10)}</td>
                 <td className="p-3"><Badge tone={statusTone(a.status)}>{a.status}</Badge></td>
                 <td className="p-3">{(a.scorecards?.length ?? 0)}/{a.assigned?.length ?? 0}</td>
-                <td className="p-3 text-right"><button className="text-accent font-semibold" onClick={() => setOpenId(a.id)}>Open</button></td>
+                <td className="p-3 text-right"><button className="text-accent-strong dark:text-accent-soft font-semibold" onClick={() => setOpenId(a.id)}>Open</button></td>
               </tr>))}</tbody>
           </table>
         </div>
@@ -74,7 +75,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
   };
 
   // --- screening state
-  const [checks, setChecks] = useState<Record<string, { result: string; evidence: string }>>(() => Object.fromEntries(SCREENING_AREAS.map(a => [a, { result: app.screening?.checks?.[a]?.result || 'yes', evidence: app.screening?.checks?.[a]?.evidence || '' }])));
+  const [checks, setChecks] = useState<Record<string, { result: string; evidence: string; file?: { name: string; type: string; dataUrl: string } }>>(() => Object.fromEntries(SCREENING_AREAS.map(a => [a, { result: app.screening?.checks?.[a]?.result || 'yes', evidence: app.screening?.checks?.[a]?.evidence || '' }])));
   const [outcome, setOutcome] = useState('eligible');
   const [criterion, setCriterion] = useState('');
   const [items, setItems] = useState('');
@@ -88,6 +89,9 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
   const [scores, setScores] = useState<Record<string, number>>({});
   const [recommendation, setRecommendation] = useState('');
   const [comments, setComments] = useState('');
+  const [evFiles, setEvFiles] = useState<{ name: string; type: string; dataUrl: string }[]>([]);
+  const [fileErr, setFileErr] = useState('');
+  const toDoc = async (f: File) => { if (f.size > 15 * 1024 * 1024) { setFileErr(`"${f.name}" exceeds the 15 MB limit.`); return null; } setFileErr(''); return { name: f.name, type: f.type, dataUrl: await readFileAsDataUrl(f) }; };
   // --- decision
   const [dec, setDec] = useState({ option: DECISION_OPTIONS[0] as string, authority: '', minutesRef: '', conditions: '', owner: '', dueDate: '', notes: '', overrideReason: '', reasonCategory: '' });
   const [approvalRef, setApprovalRef] = useState('');
@@ -115,7 +119,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
       const title = kind === 'decision' ? `Selection decision note — ${app.id}` : d.title;
       const { dataUrl } = buildPdf(title, d.sub, sections);
       await createRecord('evidence', { startupId: app.startupId, kpiKey: 'general', title, docRef: app.id, evidenceDate: new Date().toISOString().slice(0, 10), responsibleId: user.id, verifierId: members.find(m => m.id !== user.id)?.id, file: { name: `${kind}-${app.id}.pdf`, type: 'application/pdf', dataUrl } });
-      alert('Filed in the evidence index.');
+      toast.info('Filed in the evidence index.');
     } catch (e: any) { setErr(e.message + (e.message.includes('Verified') ? '' : '')); }
     setBusy(false);
   };
@@ -129,14 +133,14 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
           <button className={btnGhost} disabled={busy} onClick={() => filePdf('dossier')}><Archive size={12} /> File dossier</button>
           {app.decision && <button className={btnGhost} disabled={busy} onClick={() => filePdf('decision')}><Archive size={12} /> File decision note</button>}</>}
       </div>
-      {err && <div className="text-xs text-red-400">{err}</div>}
+      {err && <div className="text-sm text-rose-700 dark:text-rose-300">{err}</div>}
 
       {app.gated && (
         <Panel title="Conflict-of-interest declaration (required before you can see this application)">
-          <label className="text-xs flex items-center gap-2"><input type="checkbox" checked={conflict} onChange={e => setConflict(e.target.checked)} /> I have a conflict of interest</label>
+          <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={conflict} onChange={e => setConflict(e.target.checked)} /> I have a conflict of interest</label>
           {conflict && <textarea className={inputCls} rows={2} placeholder="Describe the conflict and safeguards" value={mitigation} onChange={e => setMitigation(e.target.value)} />}
           <select className={inputCls + ' max-w-xs'} value={coiAction} onChange={e => setCoiAction(e.target.value)}><option value="participate">Participate</option><option value="recuse">Recuse</option></select>
-          {myCoi?.action === 'recuse' ? <p className="text-xs">You recused yourself from this application.</p> : <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'coi', conflict, mitigation, coiAction })}>Submit declaration</button>}
+          {myCoi?.action === 'recuse' ? <p className="text-sm">You recused yourself from this application.</p> : <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'coi', conflict, mitigation, coiAction })}>Submit declaration</button>}
         </Panel>
       )}
 
@@ -144,24 +148,26 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
         <>
           <Panel title="Application">
             {APPLICATION_SECTIONS.map(s => { const fs = s.fields.filter(f => app.sections?.[f.key]); return fs.length ? (
-              <div key={s.key} className="text-xs"><div className="font-semibold">{s.key}. {s.label}</div>{fs.map(f => <div key={f.key} className="text-theme-text-secondary"><b>{f.label}:</b> {app.sections![f.key]}</div>)}</div>) : null; })}
-            <div className="text-xs"><b>Applicant:</b> {app.applicantName} ({app.applicantEmail}) · declaration signed by {app.declaration?.signedName} on {app.declaration?.signedDate}</div>
-            {(app.files?.length ?? 0) > 0 && <ul className="text-xs list-disc pl-4">{app.files!.map((f, i) => <li key={i}><a className="text-accent" href={f.url} target="_blank">{f.label ? `${f.label}: ` : ''}{f.name}</a></li>)}</ul>}
+              <div key={s.key} className="text-sm"><div className="font-semibold">{s.key}. {s.label}</div>{fs.map(f => <div key={f.key} className="text-theme-text-secondary"><b>{f.label}:</b> {app.sections![f.key]}</div>)}</div>) : null; })}
+            <div className="text-sm"><b>Applicant:</b> {app.applicantName} ({app.applicantEmail}) · declaration signed by {app.declaration?.signedName} on {app.declaration?.signedDate}</div>
+            {(app.files?.length ?? 0) > 0 && <ul className="text-sm list-disc pl-4">{app.files!.map((f, i) => <li key={i}><a className="text-accent-strong dark:text-accent-soft" href={f.url} target="_blank">{f.label ? `${f.label}: ` : ''}{f.name}</a></li>)}</ul>}
           </Panel>
 
           {manager && (
             <Panel title="Screening (administrative — does not replace merit evaluation)">
               {!app.acknowledgedAt && <button className={btnGhost} disabled={busy} onClick={() => run({ action: 'acknowledge' })}>Mark acknowledged</button>}
-              {app.screening && <p className="text-xs">Last screened {app.screening.at.slice(0, 10)}: <b>{app.screening.outcome}</b>{app.screening.criterion ? ` — ${app.screening.criterion}` : ''}</p>}
-              {(app.missingDocs?.length ?? 0) > 0 && <ul className="text-xs space-y-1">{app.missingDocs!.map((m, i) => <li key={i} className="flex justify-between"><span>{m.item} — due {m.dueBy.slice(0, 10)} {m.resolvedAt ? '(received)' : ''}</span>{!m.resolvedAt && <button className="text-accent" onClick={() => run({ action: 'resolveMissing', index: i })}>mark received</button>}</li>)}</ul>}
-              {!['Decision recorded', 'Decision final', 'Evaluation'].includes(app.status!) && (<>
+              {app.screening && <p className="text-sm">Last screened {app.screening.at.slice(0, 10)}: <b>{app.screening.outcome}</b>{app.screening.criterion ? ` — ${app.screening.criterion}` : ''}</p>}
+              {(app.missingDocs?.length ?? 0) > 0 && <ul className="text-sm space-y-1">{app.missingDocs!.map((m, i) => <li key={i} className="flex justify-between"><span>{m.item} — due {m.dueBy.slice(0, 10)} {m.resolvedAt ? '(received)' : ''}</span>{!m.resolvedAt && <button className="text-accent-strong dark:text-accent-soft" onClick={() => run({ action: 'resolveMissing', index: i })}>mark received</button>}</li>)}</ul>}
+              {!['Decision recorded', 'Decision final', 'Evaluation', 'Withdrawn'].includes(app.status!) && (<>
                 <div className="grid md:grid-cols-2 gap-2">{SCREENING_AREAS.map(a => (
-                  <div key={a} className="text-xs space-y-1"><div>{a}</div><div className="flex gap-1"><select className={inputCls + ' !w-20'} value={checks[a].result} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], result: e.target.value } }))}><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select>
-                    <input className={inputCls} placeholder="Evidence / reason" value={checks[a].evidence} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], evidence: e.target.value } }))} /></div></div>))}</div>
+                  <div key={a} className="text-sm space-y-1"><div>{a}</div><div className="flex gap-1"><select className={inputCls + ' !w-20'} value={checks[a].result} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], result: e.target.value } }))}><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select>
+                    <input className={inputCls} placeholder="Evidence / reason" value={checks[a].evidence} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], evidence: e.target.value } }))} /></div>
+                    <div className="text-xs">{checks[a].file ? <span className="text-amber-400">{checks[a].file!.name} — will upload on save</span> : app.screening?.checks?.[a]?.file ? <a className="text-accent underline" href={app.screening.checks[a].file!.url} target="_blank" rel="noreferrer">{app.screening.checks[a].file!.name}</a> : null}
+                      <input type="file" className={inputCls} onChange={async e => { const d = e.target.files?.[0] && await toDoc(e.target.files[0]); if (d) setChecks(p => ({ ...p, [a]: { ...p[a], file: d } })); e.target.value = ''; }} /></div></div>))}</div>
                 <select className={inputCls + ' max-w-xs'} value={outcome} onChange={e => setOutcome(e.target.value)}><option value="eligible">Eligible</option><option value="clarification">Clarification required</option><option value="ineligible">Ineligible</option></select>
                 {outcome === 'ineligible' && <input className={inputCls} placeholder="Published criterion not met" value={criterion} onChange={e => setCriterion(e.target.value)} />}
                 {outcome === 'clarification' && <><textarea className={inputCls} rows={3} placeholder="One missing item per line" value={items} onChange={e => setItems(e.target.value)} />
-                  <label className="text-xs">Response deadline (working days {settings.timers.clarificationWorkingDays.min}-{settings.timers.clarificationWorkingDays.max})<input type="number" className={inputCls + ' !w-24'} value={days} onChange={e => setDays(Number(e.target.value))} /></label></>}
+                  <label className="text-sm">Response deadline (working days {settings.timers.clarificationWorkingDays.min}-{settings.timers.clarificationWorkingDays.max})<input type="number" className={inputCls + ' !w-24'} value={days} onChange={e => setDays(Number(e.target.value))} /></label></>}
                 <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'screen', checks, outcome, criterion, items: items.split('\n'), deadlineWorkingDays: days })}>Record screening</button></>)}
             </Panel>
           )}
@@ -169,7 +175,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
           {manager && ['Eligible', 'Evaluation'].includes(app.status!) && (
             <Panel title="Evaluators" hint="Tier 1-3 members. Tick “specialist” for deep-tech / healthcare / biotech reviewers.">
               <div className="max-h-40 overflow-y-auto space-y-1">{members.map(m => (
-                <label key={m.id} className="text-xs flex items-center gap-2"><input type="checkbox" checked={!!picked[m.id]?.on} onChange={e => setPicked(p => ({ ...p, [m.id]: { on: e.target.checked, specialist: p[m.id]?.specialist || false } }))} /> {m.name}
+                <label key={m.id} className="text-sm flex items-center gap-2"><input type="checkbox" checked={!!picked[m.id]?.on} onChange={e => setPicked(p => ({ ...p, [m.id]: { on: e.target.checked, specialist: p[m.id]?.specialist || false } }))} /> {m.name}
                   <label className="ml-2 flex items-center gap-1 text-theme-text-secondary"><input type="checkbox" checked={!!picked[m.id]?.specialist} onChange={e => setPicked(p => ({ ...p, [m.id]: { on: p[m.id]?.on || false, specialist: e.target.checked } }))} /> specialist</label></label>))}</div>
               <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'assign', evaluators: Object.entries(picked).filter(([, v]) => v.on).map(([memberId, v]) => ({ memberId, specialist: v.specialist })) })}>Save assignment</button>
             </Panel>
@@ -177,22 +183,26 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
 
           {app.viewer.assigned && app.status === 'Evaluation' && (
             <Panel title="Your scorecard" hint="Score each criterion 1-5 (1 = very weak or no evidence, 5 = excellent). Weighted = score ÷ 5 × weight. Submitted scorecards cannot be changed.">
-              {!myCoi ? <p className="text-xs">File your conflict-of-interest declaration first (use the gate shown when you open an application you have not declared on).</p>
-                : myCard ? <p className="text-xs">Submitted: <b>{myCard.weighted}/100</b>.</p>
-                : !weightsValid(criteria) ? <p className="text-xs text-red-400">Scorecard weights do not total 100 — fix in Settings.</p>
+              {!myCoi ? <p className="text-sm">File your conflict-of-interest declaration first (use the gate shown when you open an application you have not declared on).</p>
+                : myCard ? <p className="text-sm">Submitted: <b>{myCard.weighted}/100</b>.</p>
+                : !weightsValid(criteria) ? <p className="text-sm text-rose-700 dark:text-rose-300">Scorecard weights do not total 100 — fix in Settings.</p>
                 : (<>{criteria.map(c => (
-                  <div key={c.key} className="text-xs flex items-center gap-2"><span className="flex-1">{c.label} <span className="text-theme-text-secondary">(weight {c.weight})</span></span>
+                  <div key={c.key} className="text-sm flex items-center gap-2"><span className="flex-1">{c.label} <span className="text-theme-text-secondary">(weight {c.weight})</span></span>
                     <select className={inputCls + ' !w-20'} value={scores[c.key] || ''} onChange={e => setScores(p => ({ ...p, [c.key]: Number(e.target.value) }))}><option value="">—</option>{[1, 2, 3, 4, 5].map(n => <option key={n}>{n}</option>)}</select></div>))}
                   <input className={inputCls} placeholder="Recommendation" value={recommendation} onChange={e => setRecommendation(e.target.value)} />
                   <textarea className={inputCls} rows={2} placeholder="Comments" value={comments} onChange={e => setComments(e.target.value)} />
-                  <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'score', scores, recommendation, comments })}>Submit scorecard</button></>)}
+                  <label className="text-xs block">Supporting evaluation documents (up to 5, 15 MB each)
+                    <input type="file" multiple className={inputCls} onChange={async e => { const list = Array.from(e.target.files || []); const docs = (await Promise.all(list.map(toDoc))).filter(Boolean) as any[]; setEvFiles(p => [...p, ...docs].slice(0, 5)); e.target.value = ''; }} /></label>
+                  {evFiles.length > 0 && <ul className="text-xs space-y-1">{evFiles.map((f, i) => <li key={i} className="flex justify-between"><span>{f.name}</span><button className="text-red-400" onClick={() => setEvFiles(p => p.filter((_, j) => j !== i))}>Remove</button></li>)}</ul>}
+                  {fileErr && <p className="text-xs text-red-400">{fileErr}</p>}
+                  <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'score', scores, recommendation, comments, evidenceFiles: evFiles })}>Submit scorecard</button></>)}
             </Panel>
           )}
 
           {(app.scorecards?.length ?? 0) > 0 && (
             <Panel title="Scorecards" hint={manager ? 'Visible to managers once submitted.' : 'Peer scorecards are shown only after you submit your own.'}>
-              <table className="w-full text-xs"><thead><tr className="text-left text-theme-text-secondary"><th>Evaluator</th><th>Weighted /100</th><th>Recommendation</th></tr></thead>
-                <tbody>{app.scorecards!.map(s => <tr key={s.memberId}><td>{s.memberName}{s.specialist ? ' (specialist)' : ''}</td><td>{s.weighted}</td><td>{s.recommendation || '—'}</td></tr>)}</tbody></table>
+              <table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary"><th>Evaluator</th><th>Weighted /100</th><th>Recommendation</th><th>Documents</th></tr></thead>
+                <tbody>{app.scorecards!.map(s => <tr key={s.memberId}><td>{s.memberName}{s.specialist ? ' (specialist)' : ''}</td><td>{s.weighted}</td><td>{s.recommendation || '—'}</td><td>{s.evidenceFiles?.length ? s.evidenceFiles.map((f, i) => <a key={i} className="block text-accent underline" href={f.url} target="_blank" rel="noreferrer">{f.name}</a>) : '—'}</td></tr>)}</tbody></table>
             </Panel>
           )}
 
@@ -215,11 +225,15 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
           {app.decision && !app.decision.finalisedAt && isApprover && (
             <Panel title="Final approval" hint="Only a configured selection approver can finalise. This notifies the applicant and, for a selection, creates the Startup record.">
               <input className={inputCls} placeholder="Approval reference (minutes / order no.) *" value={approvalRef} onChange={e => setApprovalRef(e.target.value)} />
-              <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'finalise', approvalRef })}>Finalise decision</button>
+              <div className="flex flex-wrap gap-2">
+                <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'finalise', approvalRef })}>Finalise decision</button>
+                <button className={btnGhost} disabled={busy} onClick={async () => { const reason = window.prompt('Why is this decision being rejected? The application returns to evaluation.'); if (reason && reason.trim()) await run({ action: 'rejectDecision', reason }); }}>Reject decision</button>
+              </div>
             </Panel>
           )}
-          {app.startupId && <p className="text-xs">Startup record: <b className="font-mono">{app.startupId}</b> — continue under Onboarding.</p>}
-          {manager && (app.log?.length ?? 0) > 0 && <details className="text-[11px]"><summary className="cursor-pointer font-semibold">Activity log</summary><ul className="mt-1 text-theme-text-secondary">{app.log!.slice().reverse().map((l, i) => <li key={i}>{l.at.slice(0, 16).replace('T', ' ')} — {l.action}{l.detail ? `: ${l.detail}` : ''}</li>)}</ul></details>}
+          {manager && !['Decision final', 'Withdrawn'].includes(app.status!) && <button className={btnGhost} disabled={busy} onClick={async () => { const reason = window.prompt('Why is this application being withdrawn? (for example, the applicant asked in writing)'); if (reason && reason.trim()) await run({ action: 'withdraw', reason }); }}>Withdraw application</button>}
+          {app.startupId && <p className="text-sm">Startup record: <b className="font-mono">{app.startupId}</b> — continue under Onboarding.</p>}
+          {manager && (app.log?.length ?? 0) > 0 && <details className="text-xs"><summary className="cursor-pointer font-semibold">Activity log</summary><ul className="mt-1 text-theme-text-secondary">{app.log!.slice().reverse().map((l, i) => <li key={i}>{l.at.slice(0, 16).replace('T', ' ')} — {l.action}{l.detail ? `: ${l.detail}` : ''}</li>)}</ul></details>}
         </>
       )}
     </Modal>

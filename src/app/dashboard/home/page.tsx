@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { IncubationSnapshot } from '@/components/incubation/home-snapshot';
 import {
   Calendar,
   CheckSquare,
@@ -285,7 +286,7 @@ export default function DashboardHome() {
               )}
             </p>
           </div>
-          <span className="text-xs font-semibold text-accent px-3.5 py-1.5 bg-accent/15 rounded-xl border border-accent/20">
+          <span className="text-xs font-semibold text-accent-strong dark:text-accent-soft px-3.5 py-1.5 bg-accent/15 rounded-xl border border-accent/20">
             {user.role || user.division || 'RTBI Member'}
           </span>
         </div>
@@ -295,7 +296,7 @@ export default function DashboardHome() {
       {pendingAckCount > 0 && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/30 dark:border-amber-400/40 rounded-2xl shadow-lg backdrop-blur-xl animate-in fade-in duration-300">
           <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-300 shrink-0" />
+            <AlertCircle className="h-5 w-5 text-amber-700 dark:text-amber-300 shrink-0" />
             <span className="text-xs font-bold text-slate-900 dark:text-white">
               You have {pendingAckCount} task(s) awaiting your acknowledgment.
             </span>
@@ -321,12 +322,12 @@ export default function DashboardHome() {
           <div className="space-y-1.5">
             <span className="text-xs font-semibold text-theme-text-secondary uppercase tracking-wider">Active Events</span>
             <h3 className="text-2xl font-bold text-theme-text-primary">{activeEventsCount}</h3>
-            <span className="text-[11px] text-theme-text-secondary font-medium">
+            <span className="text-xs text-theme-text-secondary font-medium">
               {visibleEvents.length} total planned / active
             </span>
           </div>
           <div className="h-11 w-11 bg-accent/15 rounded-xl flex items-center justify-center border border-accent/15">
-            <Calendar className="h-5 w-5 text-accent" />
+            <Calendar className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
           </div>
         </Link>
 
@@ -339,14 +340,14 @@ export default function DashboardHome() {
           <div className="space-y-1.5">
             <span className="text-xs font-semibold text-theme-text-secondary uppercase tracking-wider">Assigned Tasks</span>
             <h3 className="text-2xl font-bold text-theme-text-primary">{activeTasksCount}</h3>
-            <span className="text-[11px] font-semibold flex items-center gap-1.5">
-              <span className="text-warning">{activeTasksCount} pending</span>
+            <span className="text-xs font-semibold flex items-center gap-1.5">
+              <span className="text-warning dark:text-warning-soft">{activeTasksCount} pending</span>
               <span className="text-theme-text-secondary font-normal">&middot;</span>
-              <span className="text-success">{completedTasksCount} completed this year</span>
+              <span className="text-success dark:text-success-soft">{completedTasksCount} completed this year</span>
             </span>
           </div>
           <div className="h-11 w-11 bg-success/15 rounded-xl flex items-center justify-center border border-success/15">
-            <CheckSquare className="h-5 w-5 text-success" />
+            <CheckSquare className="h-5 w-5 text-success dark:text-success-soft" />
           </div>
         </Link>
 
@@ -359,10 +360,10 @@ export default function DashboardHome() {
           <div className="space-y-1.5">
             <span className="text-xs font-semibold text-theme-text-secondary uppercase tracking-wider">Member Roster</span>
             <h3 className="text-2xl font-bold text-theme-text-primary">{membersCount}</h3>
-            <span className="text-[11px] text-accent font-semibold">Active center members</span>
+            <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold">Active center members</span>
           </div>
           <div className="h-11 w-11 bg-primary/15 rounded-xl flex items-center justify-center border border-primary/15">
-            <Users className="h-5 w-5 text-accent" />
+            <Users className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
           </div>
         </Link>
 
@@ -388,7 +389,7 @@ export default function DashboardHome() {
                 style={{ width: `${hasRatings ? scorePercentage : 0}%` }}
               ></div>
             </div>
-            <span className="text-[10px] text-theme-text-secondary font-medium">
+            <span className="text-xs text-theme-text-secondary font-medium">
               {hasRatings ? `Avg of ${ratingsList.length} evaluation${ratingsList.length === 1 ? '' : 's'}` : 'Hover for details'}
             </span>
           </div>
@@ -399,11 +400,13 @@ export default function DashboardHome() {
 
       </div>
 
+      <IncubationSnapshot user={user} />
+
       {/* Customizable Quick Actions Dock (Permission-Guarded) */}
       <QuickActionsWidget user={user} />
 
       {lastUpdatedAt && (
-        <p className="text-[10px] text-theme-text-secondary font-medium -mt-2 text-right">
+        <p className="text-xs text-theme-text-secondary font-medium -mt-2 text-right">
           Last updated {lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       )}
@@ -422,7 +425,7 @@ export default function DashboardHome() {
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-6 border border-theme-border/30 rounded-2xl bg-theme-background/10">
-            <Calendar className="h-8 w-8 text-accent" />
+            <Calendar className="h-8 w-8 text-accent-strong dark:text-accent-soft" />
             <p className="text-xs text-theme-text-secondary max-w-xs">
               {getEventsOnDate(new Date()).length > 0
                 ? `${getEventsOnDate(new Date()).length} event(s) happening today.`
@@ -453,9 +456,9 @@ export default function DashboardHome() {
             ) : (
               leaderboard.map((perf, index) => {
                 const rankIcons = [
-                  <Crown key="crown" className="h-4 w-4 text-amber-400 shrink-0" />,
+                  <Crown key="crown" className="h-4 w-4 text-amber-700 dark:text-amber-300 shrink-0" />,
                   <Award key="award2" className="h-4 w-4 text-slate-300 shrink-0" />,
-                  <Award key="award3" className="h-4 w-4 text-amber-600 shrink-0" />,
+                  <Award key="award3" className="h-4 w-4 text-amber-700 shrink-0" />,
                 ];
 
                 const colorTokens = getRatingColor(perf.score);
@@ -472,13 +475,13 @@ export default function DashboardHome() {
                         {index < 3 ? rankIcons[index] : <span className="font-bold text-theme-text-secondary">#{index + 1}</span>}
                       </div>
 
-                      <div className="h-8 w-8 rounded-xl flex items-center justify-center border font-bold text-xs bg-accent/15 border-accent/20 text-accent group-hover:scale-105 transition-transform">
+                      <div className="h-8 w-8 rounded-xl flex items-center justify-center border font-bold text-xs bg-accent/15 border-accent/20 text-accent-strong dark:text-accent-soft group-hover:scale-105 transition-transform">
                         {perf.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                       </div>
 
                       <div>
                         <h4 className="font-bold text-theme-text-primary text-xs leading-snug group-hover:text-accent transition-colors">{perf.name}</h4>
-                        <div className="flex items-center gap-1.5 text-[10px] text-theme-text-secondary">
+                        <div className="flex items-center gap-1.5 text-xs text-theme-text-secondary">
                           <span className="font-medium">{perf.division}</span>
                           <span>&middot;</span>
                           <span>{perf.completedTasks} tasks done</span>
@@ -520,7 +523,7 @@ export default function DashboardHome() {
             </div>
             <Link 
               href="/dashboard/tasks" 
-              className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline flex items-center gap-1"
             >
               View All Tasks <ExternalLink className="h-3 w-3" />
             </Link>
@@ -561,7 +564,7 @@ export default function DashboardHome() {
                         <td className="py-3 pr-2 font-medium text-theme-text-primary">
                           <div className="flex items-center gap-2">
                             {isAnimating && (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 animate-bounce shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300 animate-bounce shrink-0" />
                             )}
                             <span className={isAnimating ? 'line-through text-emerald-300 transition-all' : ''}>
                               {task.title}
@@ -571,16 +574,16 @@ export default function DashboardHome() {
                         <td className="py-3 pr-2 text-theme-text-secondary">{task.event || 'Standalone'}</td>
                         <td className="py-3 pr-2 text-theme-text-secondary">{task.dueDate}</td>
                         <td className="py-3 pr-2">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all duration-300 ${
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full transition-all duration-300 ${
                             isAnimating
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm shadow-emerald-500/20'
+                              ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/20'
                               : task.status === 'Assigned' 
-                                 ? 'bg-accent/15 text-accent border border-accent/20' 
+                                 ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20' 
                                  : task.status === 'In Progress' 
-                                   ? 'bg-warning/15 text-warning border border-warning/20' 
+                                   ? 'bg-warning/15 text-warning dark:text-warning-soft border border-warning/20' 
                                    : task.status === 'Completed'
-                                     ? 'bg-success/15 text-success border border-success/20'
-                                     : 'bg-danger/15 text-danger border border-danger/20'
+                                     ? 'bg-success/15 text-success dark:text-success-soft border border-success/20'
+                                     : 'bg-danger/15 text-danger dark:text-danger-soft border border-danger/20'
                           }`}>
                             {isAnimating ? (
                               <>
@@ -602,13 +605,13 @@ export default function DashboardHome() {
                               acknowledgment still prompts this viewer for their
                               own if they haven't given it yet. */}
                           {task.approvalStatus === 'pending_create' || task.approvalStatus === 'pending_edit' ? (
-                            <span className="text-[10px] text-warning font-medium">Pending approval</span>
+                            <span className="text-xs text-warning dark:text-warning-soft font-medium">Pending approval</span>
                           ) : task.approvalStatus === 'rejected' ? (
-                            <span className="text-[10px] text-danger font-medium">Rejected</span>
+                            <span className="text-xs text-danger dark:text-danger-soft font-medium">Rejected</span>
                           ) : task.status !== 'Completed' && isTaskAssignee(task, user) && !hasAcknowledgedTask(task, user) ? (
                             <button
                               onClick={() => handleAcknowledge(task.id)}
-                              className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white text-[10px] font-semibold rounded-lg transition-all cursor-pointer"
+                              className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-lg transition-all cursor-pointer"
                             >
                               Acknowledge
                             </button>
@@ -617,7 +620,7 @@ export default function DashboardHome() {
                               <button
                                 onClick={() => handleComplete(task.id)}
                                 disabled={isAnimating}
-                                className={`px-2.5 py-1 text-white text-[10px] font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                                className={`px-2.5 py-1 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                                   isAnimating 
                                     ? 'bg-emerald-600 scale-95 shadow-md shadow-emerald-500/30' 
                                     : 'bg-success hover:bg-success/90'
@@ -635,7 +638,7 @@ export default function DashboardHome() {
                               {!isAnimating && (
                                 <button
                                   onClick={() => handleRequestExtension(task.id)}
-                                  className="px-2 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary text-[10px] font-semibold rounded-lg transition-all cursor-pointer"
+                                  className="px-2 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary text-xs font-semibold rounded-lg transition-all cursor-pointer"
                                   title="Request Deadline Extension"
                                 >
                                   Extend
@@ -643,9 +646,9 @@ export default function DashboardHome() {
                               )}
                             </div>
                           ) : task.status === 'Assigned' ? (
-                            <span className="text-[10px] text-theme-text-secondary">Awaiting acknowledgment</span>
+                            <span className="text-xs text-theme-text-secondary">Awaiting acknowledgment</span>
                           ) : (
-                            <span className="text-[10px] text-theme-text-secondary">Closed</span>
+                            <span className="text-xs text-theme-text-secondary">Closed</span>
                           )}
                         </td>
                       </tr>
@@ -664,7 +667,7 @@ export default function DashboardHome() {
               onClick={() => setActiveTab('events')}
               className={`pb-1 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'events'
-                  ? 'text-accent border-b-2 border-accent'
+                  ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
                   : 'text-theme-text-secondary hover:text-theme-text-primary'
               }`}
             >
@@ -676,7 +679,7 @@ export default function DashboardHome() {
               onClick={() => setActiveTab('announcements')}
               className={`pb-1 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'announcements'
-                  ? 'text-accent border-b-2 border-accent'
+                  ? 'text-accent-strong dark:text-accent-soft border-b-2 border-accent'
                   : 'text-theme-text-secondary hover:text-theme-text-primary'
               }`}
             >
@@ -699,12 +702,12 @@ export default function DashboardHome() {
                   <div key={ev.id} className="p-3 bg-white/40 dark:bg-white/5 border border-theme-border/20 rounded-xl space-y-1 hover:bg-white/60 dark:hover:bg-white/10 transition-all">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-theme-text-primary text-xs">{ev.title}</h4>
-                      <span className="text-[10px] px-2 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">{getEffectiveEventStatus(ev, tasks)}</span>
+                      <span className="text-xs px-2 py-0.5 bg-accent/15 text-accent-strong dark:text-accent-soft font-semibold rounded-md capitalize">{getEffectiveEventStatus(ev, tasks)}</span>
                     </div>
-                    <p className="text-[10px] text-theme-text-secondary line-clamp-2">{ev.description}</p>
-                    <p className={`text-[10px] font-medium pt-1 ${ev.datesTBD ? 'text-warning' : 'text-theme-text-secondary'}`}>{formatEventDateRange(ev)}</p>
+                    <p className="text-xs text-theme-text-secondary line-clamp-2">{ev.description}</p>
+                    <p className={`text-xs font-medium pt-1 ${ev.datesTBD ? 'text-warning dark:text-warning-soft' : 'text-theme-text-secondary'}`}>{formatEventDateRange(ev)}</p>
                     {formatEventPlanningNote(ev) && (
-                      <p className="text-[10px] font-medium text-accent/90">{formatEventPlanningNote(ev)}</p>
+                      <p className="text-xs font-medium text-accent/90">{formatEventPlanningNote(ev)}</p>
                     )}
                   </div>
                 ));
@@ -717,10 +720,10 @@ export default function DashboardHome() {
                   <div key={ann.id} className="p-3 bg-white/40 dark:bg-white/5 border border-theme-border/20 rounded-xl space-y-1 hover:bg-white/60 dark:hover:bg-white/10 transition-all">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-theme-text-primary text-xs">{ann.title}</h4>
-                      <span className="text-[10px] text-accent font-medium px-2 py-0.5 bg-accent/10 rounded">{ann.scope}</span>
+                      <span className="text-xs text-accent-strong dark:text-accent-soft font-medium px-2 py-0.5 bg-accent/10 rounded">{ann.scope}</span>
                     </div>
-                    <p className="text-[10px] text-theme-text-secondary line-clamp-2">{ann.content}</p>
-                    <p className="text-[10px] text-theme-text-secondary font-medium pt-1">{ann.publishedAt} &middot; by {ann.authorName}</p>
+                    <p className="text-xs text-theme-text-secondary line-clamp-2">{ann.content}</p>
+                    <p className="text-xs text-theme-text-secondary font-medium pt-1">{ann.publishedAt} &middot; by {ann.authorName}</p>
                   </div>
                 ))
               )

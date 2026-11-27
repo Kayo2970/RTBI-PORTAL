@@ -49,6 +49,7 @@ import { canAddExpense, canDeleteExpense, canManageAnnualBudget } from '@/lib/pe
 import { downloadCsv, toCsvRow } from '@/lib/csv';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
 import { EmptyState } from '@/components/ui/empty-state';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 const CURRENT_FY = getCurrentFinancialYear();
 const CURRENT_FY_START = parseInt(CURRENT_FY.split('-')[0], 10);
@@ -70,21 +71,21 @@ const HEAD_METADATA: Record<
 > = {
   manpower: {
     icon: Users,
-    color: 'text-blue-400',
+    color: 'text-blue-700 dark:text-blue-300',
     bgColor: 'bg-blue-500/15',
     borderColor: 'border-blue-500/30',
     shortDesc: 'Staff salaries, stipends, and honorarium',
   },
   travel: {
     icon: Plane,
-    color: 'text-amber-400',
+    color: 'text-amber-700 dark:text-amber-300',
     bgColor: 'bg-amber-500/15',
     borderColor: 'border-amber-500/30',
     shortDesc: 'Flights, conveyance, daily allowances & stay',
   },
   utilities: {
     icon: Zap,
-    color: 'text-emerald-400',
+    color: 'text-emerald-700 dark:text-emerald-300',
     bgColor: 'bg-emerald-500/15',
     borderColor: 'border-emerald-500/30',
     shortDesc: 'Electricity, internet, facility upkeep & repairs',
@@ -112,7 +113,7 @@ const HEAD_METADATA: Record<
   },
   startups: {
     icon: Rocket,
-    color: 'text-rose-400',
+    color: 'text-rose-700 dark:text-rose-300',
     bgColor: 'bg-rose-500/15',
     borderColor: 'border-rose-500/30',
     shortDesc: 'Incubatee micro-grants, prototyping & seed assistance',
@@ -313,8 +314,8 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleDeleteExpense = (exp: ExpenseItem) => {
-    if (!confirm(`Are you sure you want to delete this expense of ${inr(exp.amount)} under ${getExpenseHeadLabel(exp.head)}?`)) {
+  const handleDeleteExpense = async (exp: ExpenseItem) => {
+    if (!await askConfirm(`Are you sure you want to delete this expense of ${inr(exp.amount)} under ${getExpenseHeadLabel(exp.head)}?`)) {
       return;
     }
     const success = deleteExpense(exp.id, user?.name || 'Staff');
@@ -355,7 +356,7 @@ export default function ExpensesPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-            <ReceiptText className="h-6 w-6 text-accent" />
+            <ReceiptText className="h-6 w-6 text-accent-strong dark:text-accent-soft" />
             Expense Management
           </h1>
           <p className="text-xs text-theme-text-secondary mt-0.5">
@@ -366,7 +367,7 @@ export default function ExpensesPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* FY selector */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-theme-sidebar/60 border border-theme-border/40 text-xs">
-            <span className="text-[10px] font-bold text-theme-text-secondary uppercase">FY</span>
+            <span className="text-xs font-bold text-theme-text-secondary uppercase">FY</span>
             <select
               value={fy}
               onChange={e => setFy(e.target.value)}
@@ -400,7 +401,7 @@ export default function ExpensesPage() {
 
       {/* Toast Notice */}
       {toast && (
-        <div className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-xs text-accent flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1">
+        <div className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-xs text-accent-strong dark:text-accent-soft flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             <span>{toast}</span>
@@ -416,12 +417,12 @@ export default function ExpensesPage() {
         <div className="glass-panel rounded-2xl p-4 border border-white/10">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-theme-text-secondary">Total Incurred Spend</span>
-            <div className="p-2 rounded-xl bg-accent/15 text-accent">
+            <div className="p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft">
               <TrendingDown className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-theme-text-primary">{inr(totalSpent)}</div>
-          <div className="text-[11px] text-theme-text-secondary mt-1">Across all 8 heads in FY {fy}</div>
+          <div className="text-xs text-theme-text-secondary mt-1">Across all 8 heads in FY {fy}</div>
         </div>
 
         <div className="glass-panel rounded-2xl p-4 border border-white/10">
@@ -432,20 +433,20 @@ export default function ExpensesPage() {
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-theme-text-primary">{allExpenses.length}</div>
-          <div className="text-[11px] text-theme-text-secondary mt-1">Bill-backed expense claims</div>
+          <div className="text-xs text-theme-text-secondary mt-1">Bill-backed expense claims</div>
         </div>
 
         <div className="glass-panel rounded-2xl p-4 border border-white/10">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-theme-text-secondary">Approved Annual Budget</span>
-            <div className="p-2 rounded-xl bg-blue-500/15 text-blue-400">
+            <div className="p-2 rounded-xl bg-blue-500/15 text-blue-700 dark:text-blue-300">
               <PiggyBank className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-2 text-2xl font-bold text-theme-text-primary">
             {totalAllocated > 0 ? inr(totalAllocated) : 'Not Configured'}
           </div>
-          <div className="text-[11px] text-theme-text-secondary mt-1">
+          <div className="text-xs text-theme-text-secondary mt-1">
             {totalAllocated > 0
               ? `${Math.round((totalSpent / totalAllocated) * 100)}% utilized`
               : 'Configured in Finance Module'}
@@ -455,14 +456,14 @@ export default function ExpensesPage() {
         <div className="glass-panel rounded-2xl p-4 border border-white/10">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-theme-text-secondary">Highest Spend Head</span>
-            <div className="p-2 rounded-xl bg-rose-500/15 text-rose-400">
+            <div className="p-2 rounded-xl bg-rose-500/15 text-rose-700 dark:text-rose-300">
               <ArrowUpRight className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-2 text-lg font-bold text-theme-text-primary truncate">
             {highestSpendHead ? getExpenseHeadLabel(highestSpendHead.head) : 'None'}
           </div>
-          <div className="text-[11px] text-theme-text-secondary mt-1">
+          <div className="text-xs text-theme-text-secondary mt-1">
             {highestSpendHead ? `${inr(highestSpendHead.amount)} incurred` : 'No spend recorded'}
           </div>
         </div>
@@ -473,17 +474,17 @@ export default function ExpensesPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-bold text-theme-text-primary flex items-center gap-1.5">
-              <Building2 className="h-4 w-4 text-accent" />
+              <Building2 className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               Incurred Expenses by Individual Head
             </h2>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               Review what has been incurred under each budget line. Click "+ Add" on any head to record a bill directly.
             </p>
           </div>
           {selectedHeadFilter !== 'all' && (
             <button
               onClick={() => setSelectedHeadFilter('all')}
-              className="text-xs text-accent hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-1 cursor-pointer"
             >
               Reset filter to Show All Heads
             </button>
@@ -521,17 +522,17 @@ export default function ExpensesPage() {
                         <h3 className="font-bold text-xs text-theme-text-primary line-clamp-1" title={head.label}>
                           {head.label}
                         </h3>
-                        <span className="text-[10px] text-theme-text-secondary">{count} claim{count === 1 ? '' : 's'}</span>
+                        <span className="text-xs text-theme-text-secondary">{count} claim{count === 1 ? '' : 's'}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-3">
                     <div className="text-xl font-bold text-theme-text-primary">{inr(spent)}</div>
-                    <div className="flex items-center justify-between text-[10px] text-theme-text-secondary mt-0.5">
+                    <div className="flex items-center justify-between text-xs text-theme-text-secondary mt-0.5">
                       <span>{hasCap ? `Cap: ${inr(allocation)}` : 'Discretionary'}</span>
                       {hasCap && (
-                        <span className={isExceeded ? 'text-danger font-bold' : 'text-emerald-400 font-semibold'}>
+                        <span className={isExceeded ? 'text-danger dark:text-danger-soft font-bold' : 'text-emerald-700 dark:text-emerald-300 font-semibold'}>
                           {isExceeded ? `Over by ${inr(spent - allocation)}` : `${inr(remaining)} left`}
                         </span>
                       )}
@@ -554,9 +555,9 @@ export default function ExpensesPage() {
                 <div className="flex items-center gap-2 mt-4 pt-3 border-t border-theme-border/20">
                   <button
                     onClick={() => setSelectedHeadFilter(selectedHeadFilter === head.key ? 'all' : head.key)}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-semibold text-center transition-all cursor-pointer ${
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-accent/20 text-accent border border-accent/30'
+                        ? 'bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/30'
                         : 'bg-theme-sidebar/50 text-theme-text-secondary hover:text-theme-text-primary hover:bg-white/5'
                     }`}
                   >
@@ -564,7 +565,7 @@ export default function ExpensesPage() {
                   </button>
                   <button
                     onClick={() => openAddExpenseModal(head.key)}
-                    className="py-1.5 px-2.5 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                    className="py-1.5 px-2.5 rounded-lg bg-accent/15 text-accent-strong dark:text-accent-soft hover:bg-accent/25 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
                     title={`Record expense under ${head.label}`}
                   >
                     <Plus className="h-3 w-3" /> Add
@@ -581,7 +582,7 @@ export default function ExpensesPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-sm font-bold text-theme-text-primary">Expense Claims Register</h2>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-theme-text-secondary font-mono">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-theme-text-secondary font-mono">
               {filteredExpenses.length} entries
             </span>
           </div>
@@ -647,7 +648,7 @@ export default function ExpensesPage() {
                 }`}
               >
                 <span>{h.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20' : 'bg-white/10'}`}>
+                <span className={`text-xs px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20' : 'bg-white/10'}`}>
                   {count}
                 </span>
               </button>
@@ -659,7 +660,7 @@ export default function ExpensesPage() {
         <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20 bg-theme-sidebar/30">
+              <tr className="text-left text-xs uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20 bg-theme-sidebar/30">
                 <th className="px-4 py-3">Expense &amp; Submitter</th>
                 <th className="px-4 py-3">Head Line</th>
                 <th className="px-4 py-3">Bill Date &amp; FY</th>
@@ -698,38 +699,38 @@ export default function ExpensesPage() {
                         <div className="font-semibold text-theme-text-primary text-xs line-clamp-1" title={e.description}>
                           {e.description}
                         </div>
-                        <div className="text-[11px] text-theme-text-secondary flex items-center gap-1.5 mt-0.5">
+                        <div className="text-xs text-theme-text-secondary flex items-center gap-1.5 mt-0.5">
                           <span>{e.submittedBy}</span>
                           <span className="opacity-40">·</span>
-                          <span className="font-mono text-[10px] opacity-75">{e.id}</span>
+                          <span className="font-mono text-xs opacity-75">{e.id}</span>
                         </div>
                       </td>
 
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.bgColor} ${meta.color} ${meta.borderColor}`}>
+                        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${meta.bgColor} ${meta.color} ${meta.borderColor}`}>
                           {getExpenseHeadLabel(e.head)}
                         </span>
                       </td>
 
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="font-medium text-theme-text-primary text-xs">{e.expenseDate}</div>
-                        <div className="text-[10px] text-theme-text-secondary font-mono">FY {e.financialYear}</div>
+                        <div className="text-xs text-theme-text-secondary font-mono">FY {e.financialYear}</div>
                       </td>
 
                       <td className="px-4 py-3 max-w-xs">
                         {e.vendor && (
                           <div className="flex items-center gap-1 text-xs text-theme-text-primary">
-                            <Store className="h-3 w-3 text-accent" />
+                            <Store className="h-3 w-3 text-accent-strong dark:text-accent-soft" />
                             <span className="truncate">{e.vendor}</span>
                           </div>
                         )}
                         {e.eventName && (
-                          <div className="flex items-center gap-1 text-[11px] text-theme-text-secondary mt-0.5">
+                          <div className="flex items-center gap-1 text-xs text-theme-text-secondary mt-0.5">
                             <Calendar className="h-3 w-3 text-primary-light" />
                             <span className="truncate">{e.eventName}</span>
                           </div>
                         )}
-                        {!e.vendor && !e.eventName && <span className="text-[11px] text-theme-text-secondary/60 italic">—</span>}
+                        {!e.vendor && !e.eventName && <span className="text-xs text-theme-text-secondary italic">—</span>}
                       </td>
 
                       <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -747,7 +748,7 @@ export default function ExpensesPage() {
                                     setViewingReceipt({ name: b.name, url: b.url, type: b.type });
                                   }
                                 }}
-                                className="px-2 py-1 rounded-lg bg-white/5 hover:bg-accent/20 border border-theme-border/30 text-[10px] text-accent font-semibold transition-all cursor-pointer flex items-center gap-1"
+                                className="px-2 py-1 rounded-lg bg-white/5 hover:bg-accent/20 border border-theme-border/30 text-xs text-accent-strong dark:text-accent-soft font-semibold transition-all cursor-pointer flex items-center gap-1"
                                 title={`View ${b.name}`}
                               >
                                 <FileText className="h-3 w-3" />
@@ -756,7 +757,7 @@ export default function ExpensesPage() {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-[10px] text-amber-400 font-medium">No bill</span>
+                          <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">No bill</span>
                         )}
                       </td>
 
@@ -796,10 +797,10 @@ export default function ExpensesPage() {
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
               <div>
                 <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                  <ReceiptText className="h-5 w-5 text-accent" />
+                  <ReceiptText className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
                   Record Incurred Expense
                 </h2>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Add an expense incurred under any designated head. Syncs immediately with the central Finance module.
                 </p>
               </div>
@@ -830,7 +831,7 @@ export default function ExpensesPage() {
                   ))}
                 </select>
                 {expHead && (
-                  <p className="text-[10px] text-theme-text-secondary">
+                  <p className="text-xs text-theme-text-secondary">
                     {HEAD_METADATA[expHead as ExpenseHeadKey]?.shortDesc}
                   </p>
                 )}
@@ -925,7 +926,7 @@ export default function ExpensesPage() {
                   <span className="text-xs font-semibold text-theme-text-secondary">
                     Bill / Receipt Proof (PDF / Images) *
                   </span>
-                  <span className="text-[10px] text-theme-text-secondary">Max {MAX_BILLS} files (10MB each)</span>
+                  <span className="text-xs text-theme-text-secondary">Max {MAX_BILLS} files (10MB each)</span>
                 </div>
 
                 <FileDropzone
@@ -949,7 +950,7 @@ export default function ExpensesPage() {
 
                 {expSaving && expProgress > 0 && (
                   <div className="space-y-1 mt-2">
-                    <div className="flex justify-between text-[10px] text-theme-text-secondary">
+                    <div className="flex justify-between text-xs text-theme-text-secondary">
                       <span>Uploading receipt files…</span>
                       <span>{expProgress}%</span>
                     </div>
@@ -961,10 +962,10 @@ export default function ExpensesPage() {
               </div>
             </div>
 
-            {expError && <p className="text-xs text-danger">{expError}</p>}
+            {expError && <p className="text-xs text-danger dark:text-danger-soft">{expError}</p>}
 
             <div className="flex items-center justify-between pt-3 border-t border-theme-border/20">
-              <span className="text-[10px] text-theme-text-secondary">
+              <span className="text-xs text-theme-text-secondary">
                 Submitted by <b>{user?.name || 'Staff'}</b>
               </span>
               <div className="flex gap-2">
@@ -1001,7 +1002,7 @@ export default function ExpensesPage() {
           >
             <div className="flex items-center justify-between p-4 border-b border-theme-border/20 bg-theme-sidebar/50">
               <div className="flex items-center gap-2 min-w-0">
-                <FileText className="h-5 w-5 text-accent shrink-0" />
+                <FileText className="h-5 w-5 text-accent-strong dark:text-accent-soft shrink-0" />
                 <h3 className="font-bold text-xs text-theme-text-primary truncate">{viewingReceipt.name}</h3>
               </div>
               <div className="flex items-center gap-2">

@@ -16,7 +16,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-theme-border/20 pb-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-accent/15 text-accent border border-accent/20">
+            <div className="p-2.5 rounded-2xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
@@ -36,19 +36,19 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
         <div className="flex-1 overflow-y-auto space-y-5 text-xs text-theme-text-primary pr-2 leading-relaxed">
           {/* Key Intellectual Property Highlight Box */}
           <div className="p-4 bg-accent/10 border border-accent/30 rounded-2xl space-y-2">
-            <div className="flex items-center gap-2 font-bold text-accent text-sm">
+            <div className="flex items-center gap-2 font-bold text-accent-strong dark:text-accent-soft text-sm">
               <Copyright className="h-4 w-4 shrink-0" />
               <span>Intellectual Property & Licensing Ownership Notice</span>
             </div>
             <p className="text-xs text-theme-text-primary font-medium leading-relaxed">
-              All intellectual property rights, copyrights, trademarks, software source code, database architectures, UI/UX designs, custom modules, algorithms, and development licensing associated with the Ramaiah Technology Business Incubator Portal belong exclusively to <strong className="text-accent underline font-bold">Kayomarz Pavri</strong>.
+              All intellectual property rights, copyrights, trademarks, software source code, database architectures, UI/UX designs, custom modules, algorithms, and development licensing associated with the Ramaiah Technology Business Incubator Portal belong exclusively to <strong className="text-accent-strong dark:text-accent-soft underline font-bold">Kayomarz Pavri</strong>.
             </p>
           </div>
 
           {/* Clause 1: Acceptance of Terms */}
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
+              <CheckCircle2 className="h-4 w-4 text-success dark:text-success-soft" />
               1. Acceptance of Terms & Implied Consent
             </h3>
             <p className="text-theme-text-secondary">
@@ -59,7 +59,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           {/* Clause 2: Proprietary Ownership */}
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Lock className="h-4 w-4 text-warning" />
+              <Lock className="h-4 w-4 text-warning dark:text-warning-soft" />
               2. Intellectual Property Rights & Codebase Ownership
             </h3>
             <p className="text-theme-text-secondary">
@@ -74,7 +74,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           {/* Clause 3: Scoped Access */}
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <FileText className="h-4 w-4 text-accent" />
+              <FileText className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               3. Authorized Scoped Access & Account Conduct
             </h3>
             <p className="text-theme-text-secondary">
@@ -85,7 +85,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           {/* Clause 4: Data Governance & Auditing */}
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-accent" />
+              <ShieldCheck className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               4. System Governance & Audit Trail
             </h3>
             <p className="text-theme-text-secondary">
@@ -96,7 +96,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           {/* Clause 5: Maintenance Term */}
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <Wrench className="h-4 w-4 text-accent" />
+              <Wrench className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
               5. Platform Maintenance, Support & Continuity Term
             </h3>
             <p className="text-theme-text-secondary">
@@ -107,7 +107,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           {/* Clause 6: Exit & Transfer */}
           <div className="space-y-2">
             <h3 className="font-bold text-sm text-theme-text-primary flex items-center gap-2">
-              <LogOut className="h-4 w-4 text-warning" />
+              <LogOut className="h-4 w-4 text-warning dark:text-warning-soft" />
               6. Exit, Discontinuation & Transfer of Maintenance Responsibility
             </h3>
             <p className="text-theme-text-secondary">
@@ -123,7 +123,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           </div>
 
           {/* Contact Box */}
-          <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl text-[11px] text-theme-text-secondary flex items-center justify-between">
+          <div className="p-3.5 bg-theme-border/10 border border-theme-border/20 rounded-2xl text-xs text-theme-text-secondary flex items-center justify-between">
             <span>For licensing queries or IP permissions, contact:</span>
             <span className="font-semibold text-theme-text-primary font-mono">kayo2970@gmail.com</span>
           </div>
@@ -131,7 +131,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-theme-border/20 shrink-0">
-          <span className="text-[11px] text-theme-text-secondary">
+          <span className="text-xs text-theme-text-secondary">
             &copy; 2026 Ramaiah Technology Business Incubator Portal. All rights reserved.
           </span>
           <button

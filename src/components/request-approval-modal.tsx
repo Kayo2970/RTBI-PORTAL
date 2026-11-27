@@ -84,7 +84,7 @@ export function RequestApprovalModal({
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-accent/15 text-accent">
+            <div className="p-2.5 rounded-2xl bg-accent/15 text-accent-strong dark:text-accent-soft">
               <UserCheck className="h-5 w-5" />
             </div>
             <div>
@@ -113,7 +113,7 @@ export function RequestApprovalModal({
                 className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-theme-border/40 bg-theme-background/30 text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
               />
             </div>
-            <p className="text-[10px] text-theme-text-secondary mb-2">Each person you pick gets their own request and an email.</p>
+            <p className="text-xs text-theme-text-secondary mb-2">Each person you pick gets their own request and an email.</p>
             <div className="max-h-44 overflow-y-auto rounded-xl border border-theme-border/30 divide-y divide-theme-border/20">
               {candidates.length === 0 && (
                 <p className="text-xs text-theme-text-secondary p-3 text-center">No matching staff members found.</p>
@@ -123,10 +123,10 @@ export function RequestApprovalModal({
                   key={m.id}
                   type="button"
                   onClick={() => toggle(m.id)}
-                  className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors cursor-pointer ${targetIds.includes(m.id) ? 'bg-accent/15 text-accent font-semibold' : 'text-theme-text-primary hover:bg-theme-border/20'}`}
+                  className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors cursor-pointer ${targetIds.includes(m.id) ? 'bg-accent/15 text-accent-strong dark:text-accent-soft font-semibold' : 'text-theme-text-primary hover:bg-theme-border/20'}`}
                 >
                   <span className="flex items-center gap-2"><input type="checkbox" readOnly checked={targetIds.includes(m.id)} className="accent-[var(--color-accent)] pointer-events-none" />{m.name}</span>
-                  <span className="text-[10px] text-theme-text-secondary">{m.role}</span>
+                  <span className="text-xs text-theme-text-secondary">{m.role}</span>
                 </button>
               ))}
             </div>

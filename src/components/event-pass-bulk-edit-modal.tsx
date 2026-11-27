@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getEventPasses, EventItem, EventPassItem, updateEventPass, updateEventPassStatus, todayIso, PassAttendanceRecord, expandDateRange, formatValidDaysLabel, getPassValidDays } from '@/lib/local-data';
 import { PassValidityPicker } from '@/components/pass-design-controls';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface Props {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
 
   const row = (k: FieldKey, labelText: string, control: React.ReactNode) => (
     <div className="flex items-start gap-3">
-      <label className="flex items-center gap-2 w-40 shrink-0 pt-2 font-bold text-theme-text-primary dark:text-theme-text-secondary text-[11px] uppercase tracking-wider cursor-pointer">
+      <label className="flex items-center gap-2 w-40 shrink-0 pt-2 font-bold text-theme-text-primary dark:text-theme-text-secondary text-xs uppercase tracking-wider cursor-pointer">
         <input type="checkbox" checked={!!apply[k]} onChange={(e) => setApply((p) => ({ ...p, [k]: e.target.checked }))} />
         {labelText}
       </label>
@@ -73,7 +74,7 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
 
   const run = async () => {
     if (chosen.length === 0 || passes.length === 0) return;
-    if (!window.confirm(`Apply ${chosen.length} change${chosen.length === 1 ? '' : 's'} to ${passes.length} pass${passes.length === 1 ? '' : 'es'}?`)) return;
+    if (!await askConfirm(`Apply ${chosen.length} change${chosen.length === 1 ? '' : 's'} to ${passes.length} pass${passes.length === 1 ? '' : 'es'}?`)) return;
     const updates: Partial<EventPassItem> = {};
     for (const k of chosen) {
       const v = values[k];
@@ -172,7 +173,7 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
                   displayValidity={formatValidDaysLabel(effectiveDays)}
                 />
               ) : (
-                <p className="text-[11px] text-theme-text-secondary pt-2">The selected passes have no dated event days to choose from.</p>
+                <p className="text-xs text-theme-text-secondary pt-2">The selected passes have no dated event days to choose from.</p>
               )}
             </div>
           ))}
@@ -184,18 +185,18 @@ export function EventPassBulkEditModal({ isOpen, passes, events, currentUserName
           {row('fontScale', 'Text size', <input type="number" step="0.1" min="0.7" max="1.6" className={input} disabled={!apply.fontScale} value={values.fontScale} onChange={(e) => set('fontScale', e.target.value)} />)}
           {row('status', 'Status', <select className={input} disabled={!apply.status} value={values.status} onChange={(e) => set('status', e.target.value)}><option value="Active" className="bg-accent text-white">Active</option><option value="Cancelled" className="bg-accent text-white">Cancelled</option></select>)}
 
-          {row('admit', 'Bulk admit', <p className={`text-[11px] pt-2 ${apply.admit ? 'text-success font-bold' : 'text-theme-text-secondary'}`}>Check in all {passes.length} selected pass{passes.length === 1 ? '' : 'es'} at once — every valid day up to today is marked attended. Cancelled passes are skipped.</p>)}
+          {row('admit', 'Bulk admit', <p className={`text-xs pt-2 ${apply.admit ? 'text-success dark:text-success-soft font-bold' : 'text-theme-text-secondary'}`}>Check in all {passes.length} selected pass{passes.length === 1 ? '' : 'es'} at once — every valid day up to today is marked attended. Cancelled passes are skipped.</p>)}
 
           {running && (
-            <div className="flex items-center gap-2 text-accent font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Updating {progress} / {passes.length}…</div>
+            <div className="flex items-center gap-2 text-accent-strong dark:text-accent-soft font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Updating {progress} / {passes.length}…</div>
           )}
           {result && (
-            <div className={`p-3 rounded-2xl border space-y-1 ${result.failed.length ? 'bg-warning/10 border-warning/30 text-warning' : 'bg-success/15 border-success/30 text-success'}`}>
+            <div className={`p-3 rounded-2xl border space-y-1 ${result.failed.length ? 'bg-warning/10 border-warning/30 text-warning dark:text-warning-soft' : 'bg-success/15 border-success/30 text-success dark:text-success-soft'}`}>
               <div className="flex items-center gap-2 font-bold">
                 {result.failed.length ? <AlertCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                 {apply.admit ? `${result.admitted} checked in${result.alreadyAdmitted ? `, ${result.alreadyAdmitted} already checked in` : ''}${result.skippedAdmit ? `, ${result.skippedAdmit} skipped (cancelled or awaiting approval)` : ''}; ` : ''}{result.ok} updated{result.pending ? `, ${result.pending} waiting for approval` : ''}{result.failed.length ? `, ${result.failed.length} failed` : ''}.
               </div>
-              {result.failed.slice(0, 8).map((f, i) => <div key={i} className="text-[11px]">• {f.name}: {f.error}</div>)}
+              {result.failed.slice(0, 8).map((f, i) => <div key={i} className="text-xs">• {f.name}: {f.error}</div>)}
             </div>
           )}
         </div>

@@ -342,7 +342,7 @@ export default function AnnouncementsPage() {
       {/* Notifications */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -387,31 +387,31 @@ export default function AnnouncementsPage() {
                 <div className="flex items-center flex-wrap gap-2.5">
                   <h3 className="font-bold text-sm text-theme-text-primary">{ann.title}</h3>
                   {ann.docType === 'Office Order' && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Office Order{ann.orderNo ? ` · ${ann.orderNo}` : ''}</span>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Office Order{ann.orderNo ? ` · ${ann.orderNo}` : ''}</span>
                   )}
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
                     {ann.scope}
                   </span>
                   {ann.status === 'Pending Approval' && (
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
                       <Clock className="h-3 w-3 animate-pulse" />
                       Pending Approval (Centre Head / GG Campus Events Head)
                     </span>
                   )}
                   {ann.status === 'Approved' && (
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" />
                       Approved & Published
                     </span>
                   )}
                   {ann.status === 'Rejected' && (
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-danger/15 text-danger border border-danger/30 flex items-center gap-1">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-danger/15 text-danger dark:text-danger-soft border border-danger/30 flex items-center gap-1">
                       <X className="h-3 w-3" />
                       Rejected
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-theme-text-secondary text-[11px]">
+                <div className="flex items-center gap-3 text-theme-text-secondary text-xs">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {ann.publishedAt}
@@ -426,8 +426,8 @@ export default function AnnouncementsPage() {
 
               {/* Status Indicator Audit Banner: Approved vs Rejected vs Pending */}
               {ann.status === 'Approved' && (
-                <div className="flex items-center gap-2 p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-[11px] text-emerald-400">
-                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-400" />
+                <div className="flex items-center gap-2 p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-xs text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
                   <span>
                     <strong>Approved & Circulated</strong> by <strong className="text-emerald-300">{ann.approvedBy || 'Centre Head'}</strong>
                     {ann.approvedAt && ` on ${ann.approvedAt}`}
@@ -436,8 +436,8 @@ export default function AnnouncementsPage() {
               )}
 
               {ann.status === 'Rejected' && (
-                <div className="flex items-center gap-2 p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-[11px] text-danger">
-                  <X className="h-4 w-4 shrink-0 text-danger" />
+                <div className="flex items-center gap-2 p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-xs text-danger dark:text-danger-soft">
+                  <X className="h-4 w-4 shrink-0 text-danger dark:text-danger-soft" />
                   <span>
                     <strong>Rejected</strong> by <strong className="text-red-300">{ann.rejectedBy || 'Centre Head'}</strong>
                     {ann.rejectedAt && ` on ${ann.rejectedAt}`}
@@ -446,8 +446,8 @@ export default function AnnouncementsPage() {
               )}
 
               {ann.status === 'Pending Approval' && (
-                <div className="flex items-center gap-2 p-2.5 bg-amber-500/10 border border-amber-500/25 rounded-xl text-[11px] text-amber-400">
-                  <Clock className="h-4 w-4 shrink-0 text-amber-400 animate-pulse" />
+                <div className="flex items-center gap-2 p-2.5 bg-amber-500/10 border border-amber-500/25 rounded-xl text-xs text-amber-700 dark:text-amber-300">
+                  <Clock className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300 animate-pulse" />
                   <span>
                     <strong>Pending Approval:</strong> Submitted by <strong>{ann.authorName}</strong>. Awaiting Centre Head review before email circulation.
                   </span>
@@ -455,7 +455,7 @@ export default function AnnouncementsPage() {
               )}
 
               {ann.editedAt && (
-                <span className="text-[10px] text-theme-text-secondary italic">
+                <span className="text-xs text-theme-text-secondary italic">
                   Last edited: {ann.editedAt}
                 </span>
               )}
@@ -482,7 +482,7 @@ export default function AnnouncementsPage() {
                   {canPublish && (
                     <button
                       onClick={() => handleOpenEdit(ann)}
-                      className="p-1 hover:bg-theme-border/30 rounded text-theme-text-secondary hover:text-accent transition-all cursor-pointer flex items-center gap-1 text-[11px]"
+                      className="p-1 hover:bg-theme-border/30 rounded text-theme-text-secondary hover:text-accent transition-all cursor-pointer flex items-center gap-1 text-xs"
                     >
                       <Edit2 className="h-3 w-3" /> Edit
                     </button>
@@ -490,7 +490,7 @@ export default function AnnouncementsPage() {
                   {canDelete && (
                     <button
                       onClick={() => setDeletingAnnouncementId(ann.id)}
-                      className="p-1 hover:bg-danger/10 rounded text-danger transition-all cursor-pointer flex items-center gap-1 text-[11px]"
+                      className="p-1 hover:bg-danger/10 rounded text-danger dark:text-danger-soft transition-all cursor-pointer flex items-center gap-1 text-xs"
                     >
                       <Trash2 className="h-3 w-3" /> Retract
                     </button>
@@ -572,11 +572,11 @@ export default function AnnouncementsPage() {
               {targetCategory === 'Specific Members' && (
                 <div className="p-3.5 bg-accent/5 border border-accent/20 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-1.5 font-semibold text-accent">
+                    <label className="flex items-center gap-1.5 font-semibold text-accent-strong dark:text-accent-soft">
                       <Users className="h-3.5 w-3.5" />
                       Pick Specific Members from Roster Logbook
                     </label>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/20 text-accent">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-accent/20 text-accent-strong dark:text-accent-soft">
                       {selectedMemberIds.length} Selected
                     </span>
                   </div>
@@ -594,11 +594,11 @@ export default function AnnouncementsPage() {
                   </div>
 
                   {/* Quick Select All / Clear */}
-                  <div className="flex items-center justify-between text-[11px] pt-0.5">
+                  <div className="flex items-center justify-between text-xs pt-0.5">
                     <button
                       type="button"
                       onClick={() => setSelectedMemberIds(Array.from(new Set([...selectedMemberIds, ...filteredMembers.map(m => m.id)])))}
-                      className="text-accent hover:underline font-medium cursor-pointer"
+                      className="text-accent-strong dark:text-accent-soft hover:underline font-medium cursor-pointer"
                     >
                       Select All Filtered ({filteredMembers.length})
                     </button>
@@ -628,16 +628,16 @@ export default function AnnouncementsPage() {
                           >
                             <div className="flex items-center gap-2.5">
                               {isChecked ? (
-                                <CheckSquare className="h-4 w-4 text-accent shrink-0" />
+                                <CheckSquare className="h-4 w-4 text-accent-strong dark:text-accent-soft shrink-0" />
                               ) : (
                                 <Square className="h-4 w-4 text-theme-text-secondary shrink-0" />
                               )}
                               <div>
                                 <span className="font-bold text-theme-text-primary block">{m.name}</span>
-                                <span className="text-[10px] text-theme-text-secondary block">{m.email}</span>
+                                <span className="text-xs text-theme-text-secondary block">{m.email}</span>
                               </div>
                             </div>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-border/30 text-theme-text-secondary shrink-0">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-theme-border/30 text-theme-text-secondary shrink-0">
                               {m.role || m.division}
                             </span>
                           </div>
@@ -677,7 +677,7 @@ export default function AnnouncementsPage() {
           <div className="flex items-center justify-between pb-2 border-b border-white/10">
             <div className="flex items-center gap-2">
               {dispatchProgress.completed ? (
-                <CheckCircle className="h-4 w-4 text-emerald-400 shrink-0" />
+                <CheckCircle className="h-4 w-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
               ) : (
                 <div className="h-2.5 w-2.5 rounded-full bg-accent animate-ping shrink-0" />
               )}
@@ -689,7 +689,7 @@ export default function AnnouncementsPage() {
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setDispatchProgress(prev => ({ ...prev, minimized: !prev.minimized }))}
-                className="px-2 py-0.5 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-all cursor-pointer text-[10px] font-medium"
+                className="px-2 py-0.5 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-all cursor-pointer text-xs font-medium"
               >
                 {dispatchProgress.minimized ? 'Expand' : 'Minimize'}
               </button>
@@ -704,13 +704,13 @@ export default function AnnouncementsPage() {
 
           {!dispatchProgress.minimized && (
             <div className="mt-3 space-y-2 text-xs">
-              <div className="flex justify-between items-center text-[11px] text-zinc-300">
+              <div className="flex justify-between items-center text-xs text-zinc-300">
                 <span className="truncate max-w-[210px]">
                   {dispatchProgress.completed
                     ? `Successfully sent ${dispatchProgress.total} emails`
                     : `Sending: ${dispatchProgress.lastSentName}`}
                 </span>
-                <span className="font-mono font-bold text-accent">
+                <span className="font-mono font-bold text-accent-strong dark:text-accent-soft">
                   {dispatchProgress.current}/{dispatchProgress.total}
                 </span>
               </div>
@@ -727,7 +727,7 @@ export default function AnnouncementsPage() {
                 />
               </div>
 
-              <div className="flex justify-between items-center text-[10px] text-zinc-400 pt-0.5">
+              <div className="flex justify-between items-center text-xs text-zinc-400 pt-0.5">
                 <span className="truncate max-w-[220px]">"{dispatchProgress.title}"</span>
                 <span className="font-mono font-semibold">
                   {Math.round((dispatchProgress.current / (dispatchProgress.total || 1)) * 100)}%
