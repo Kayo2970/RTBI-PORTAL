@@ -7,6 +7,8 @@ import { incubationAudit } from '@/lib/incubation/audit-server';
 import { loadSettings } from '@/lib/incubation/records-server';
 import { canSeeStartup } from '@/lib/incubation/startups-server';
 import { ONBOARDING_ITEMS, FEE_BASES, activationGate, type OnboardingRecord } from '@/lib/incubation/onboarding';
+import { storeOnboardingFile } from '@/lib/incubation/onboarding-files-server';
+import { deleteStoredFile } from '@/lib/file-storage';
 import type { Startup } from '@/lib/incubation/types';
 
 async function load(startupId: string) {
@@ -34,7 +36,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ star
   }
 }
 
-/** PUT { items?: {key: {done, evidenceRef, feeBasis}}, conditionalApproval?: {ref, scope, endsOn} | null } */
+/** PUT { items?: {key: {done, evidenceRef, feeBasis, file?: {name,type,dataUrl}}}, conditionalApproval?: {ref, scope, endsOn} | null } */
 export async function PUT(request: Request, { params }: { params: Promise<{ startupId: string }> }) {
   try {
     const actor = await requireSession(request);
@@ -48,13 +50,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ star
 
     const now = new Date().toISOString();
     const items = { ...(ob?.items || {}) };
+    const replacedFiles: string[] = [];
     for (const it of ONBOARDING_ITEMS) {
       const v = body.items?.[it.key];
       if (!v) continue;
       const prev = items[it.key];
-      const done = !!v.done;
+      let done = !!v.done;
+      // A newly uploaded file replaces the old one and must be re-verified; otherwise the stored file is kept untouched.
+      const uploaded = await storeOnboardingFile(actor.id, startupId, it.key, v.file);
+      if (uploaded) { done = false; if (prev?.file?.storageKey) replacedFiles.push(prev.file.storageKey); }
+      const file = uploaded || prev?.file;
       const feeBasis = (FEE_BASES as readonly string[]).includes(v.feeBasis) ? v.feeBasis : undefined;
-      items[it.key] = { done, evidenceRef: String(v.evidenceRef || '').trim().slice(0, 300) || undefined, feeBasis,
+      items[it.key] = { done, evidenceRef: String(v.evidenceRef || '').trim().slice(0, 300) || undefined, file, feeBasis,
         doneAt: done ? (prev?.done ? prev.doneAt : now) : undefined, doneBy: done ? (prev?.done ? prev.doneBy : actor.id) : undefined };
     }
     let conditionalApproval = ob?.conditionalApproval;
@@ -67,6 +74,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ star
     }
     const record = { ...(ob || { id: `onboarding_${startupId}`, kind: 'onboarding', createdAt: now, createdBy: actor.id, changeLog: [] }), startupId, items, conditionalApproval, updatedAt: now };
     await mutateCollection<any>('incubationRecords', cur => (cur.some(r => r.id === record.id) ? cur.map(r => (r.id === record.id ? record : r)) : [record, ...cur]));
+    await Promise.all(replacedFiles.map(deleteStoredFile));
     await incubationAudit(actor, 'ONBOARDING_UPDATED', startupId, 'Onboarding checklist updated.');
     return NextResponse.json((await load(startupId)).gate);
   } catch (err) {

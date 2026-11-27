@@ -21,7 +21,7 @@ import {
   CheckCircle2,
   ExternalLink,
 } from 'lucide-react';
-import { activateStartup, fetchOnboarding, fetchStartups, saveOnboarding } from '@/lib/incubation/client';
+import { activateStartup, fetchOnboarding, fetchStartups, saveOnboarding, uploadOnboardingDocuments, readFileAsDataUrl } from '@/lib/incubation/client';
 import { downloadPdf } from '@/lib/incubation/pdf';
 import {
   FEE_BASES,
@@ -104,6 +104,39 @@ function OnboardingPageInner() {
       setErr(e.message);
     }
     setBusy(false);
+  };
+
+  const MAX_FILE = 15 * 1024 * 1024;
+  /** Staff: queue the file and send it with "Save". Founder: upload straight away (they cannot save the checklist). */
+  const pickFile = async (key: string, file?: File) => {
+    if (!file) return;
+    if (file.size > MAX_FILE) { setErr(`"${file.name}" exceeds the 15 MB limit.`); return; }
+    setErr(''); setMsg('');
+    const doc = { name: file.name, type: file.type, dataUrl: await readFileAsDataUrl(file) };
+    if (staff) { patch(key, { file: doc as any, done: false }); return; }
+    setBusy(true);
+    try { await uploadOnboardingDocuments(startupId, { [key]: doc }); await load(); setMsg(`"${file.name}" uploaded. RTBI staff will verify it.`); }
+    catch (e: any) { setErr(e.message); }
+    setBusy(false);
+  };
+  const fileCell = (key: string) => {
+    const f: any = items[key]?.file;
+    return (
+      <div className="space-y-1">
+        {f && (
+          <div className="text-[11px] flex items-center gap-2">
+            {f.dataUrl
+              ? <span className="text-amber-400">{f.name} — pending upload, click Save</span>
+              : <a href={f.url} target="_blank" rel="noreferrer" className="text-accent underline truncate">{f.name}</a>}
+            {!f.dataUrl && <span className="text-theme-text-secondary shrink-0">uploaded {String(f.uploadedAt || '').slice(0, 10)}</span>}
+          </div>
+        )}
+        {(staff || user?.tier === 4) && (
+          <input type="file" disabled={busy} className={inputCls} onChange={e => { pickFile(key, e.target.files?.[0]); e.target.value = ''; }} />
+        )}
+        {f && !f.dataUrl && !items[key]?.done && <p className="text-[10px] text-theme-text-secondary">Awaiting verification by RTBI staff.</p>}
+      </div>
+    );
   };
 
   const activate = async () => {
@@ -312,7 +345,7 @@ function OnboardingPageInner() {
 
                     <div className="space-y-1.5 pt-2 border-t border-theme-border/20">
                       <div className="flex items-center justify-between text-[10px] text-theme-text-secondary">
-                        <span>Evidence reference / File name / URL:</span>
+                        <span>Upload document (saved securely) — reference optional:</span>
                         {!it.required && (
                           <button
                             type="button"
@@ -324,6 +357,7 @@ function OnboardingPageInner() {
                           </button>
                         )}
                       </div>
+                      {fileCell(it.key)}
                       <input
                         className={inputCls}
                         placeholder={
@@ -392,9 +426,10 @@ function OnboardingPageInner() {
                     </label>
                     {st.done && (
                       <div className="grid md:grid-cols-2 gap-2 pl-6">
+                        <div className="md:col-span-2">{fileCell(it.key)}</div>
                         <input
                           className={inputCls}
-                          placeholder="Evidence reference (document / ID) *"
+                          placeholder="Evidence reference (document / ID) — optional if a file is uploaded"
                           disabled={!staff}
                           value={st.evidenceRef || ''}
                           onChange={e => patch(it.key, { evidenceRef: e.target.value })}

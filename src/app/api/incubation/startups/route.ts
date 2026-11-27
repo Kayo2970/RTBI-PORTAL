@@ -6,6 +6,7 @@ import { canManageStartupsServer } from '@/lib/permissions-server';
 import { nextStartupId } from '@/lib/incubation/rules';
 import { incubationAudit } from '@/lib/incubation/audit-server';
 import { visibleStartupsFor, validFounderIds } from '@/lib/incubation/startups-server';
+import { attachOnboardingDocs } from '@/lib/incubation/onboarding-files-server';
 import { STARTUP_PATHWAYS, STARTUP_MODES, type Startup, type StartupPathway, type StartupMode } from '@/lib/incubation/types';
 
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -69,7 +70,12 @@ export async function POST(request: Request) {
       );
     }
 
-    await incubationAudit(actor, 'STARTUP_CREATED', created.id, `Startup "${created.name}" created.`);
+    // Documents uploaded at creation are saved to disk and queued for verification; the rest can be uploaded later.
+    let documentsUploaded = 0;
+    try { documentsUploaded = await attachOnboardingDocs(actor.id, created.id, body.documents); }
+    catch (e: any) { return NextResponse.json({ ...created, documentError: e?.message || 'A document could not be saved.' }, { status: 201 }); }
+
+    await incubationAudit(actor, 'STARTUP_CREATED', created.id, `Startup "${created.name}" created${documentsUploaded ? ` with ${documentsUploaded} document(s) for verification` : ''}.`);
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     return apiError(err, 'incubation-startups-post', 400);

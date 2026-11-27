@@ -108,7 +108,11 @@ export const ONBOARDING_ITEMS: {
 
 export const FEE_BASES = ['Approved fee schedule', 'Invoice / receipt', 'Approved concession / deferral'] as const;
 
-export interface OnboardingItemState { done: boolean; evidenceRef?: string; doneAt?: string; doneBy?: string; feeBasis?: string }
+/** An uploaded evidence/document file stored on disk (data/uploads/onboarding/...). */
+export interface OnboardingFile { name: string; url: string; storageKey: string; type?: string; size?: number; uploadedAt: string; uploadedBy: string }
+
+/** `done` means verified/scrutinised by staff; an upload alone never marks an item done. */
+export interface OnboardingItemState { done: boolean; evidenceRef?: string; file?: OnboardingFile; doneAt?: string; doneBy?: string; feeBasis?: string }
 
 export interface OnboardingRecord {
   startupId: string;
@@ -135,7 +139,7 @@ export function activationGate(ob: OnboardingRecord | undefined, facts: GateFact
   for (const it of ONBOARDING_ITEMS) {
     const st = ob?.items?.[it.key];
     if (!st?.done) { missing.push(it.label); continue; }
-    if (!st.evidenceRef?.trim()) missing.push(`${it.label} — evidence reference`);
+    if (!st.evidenceRef?.trim() && !st.file) missing.push(`${it.label} — uploaded document or evidence reference`);
     if (it.key === 'agreement' && !facts.agreementExecuted) missing.push('Startup Agreement Deed with RTBI — no Executed agreement on the register');
     if (it.key === 'fees') {
       if (!st.feeBasis) missing.push('Pay-and-use / fee terms — choose the basis');

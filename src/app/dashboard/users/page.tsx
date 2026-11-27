@@ -43,7 +43,8 @@ import {
   type GroupPolicy,
 } from '@/lib/local-data';
 import { TIER_LABELS, tierLabel, isSuperUser, CAPABILITY_CATALOG } from '@/lib/permissions';
-import { fetchStartups, createStartup, type Startup } from '@/lib/incubation/client';
+import { StartupDocumentsPicker } from '@/components/incubation/startup-documents-picker';
+import { fetchStartups, createStartup, type Startup, type DocUpload } from '@/lib/incubation/client';
 import { LockedDevicesPanel } from '@/components/locked-devices-panel';
 
 const TIERS: { tier: 1 | 2 | 3 | 4; label: MemberDivision; blurb: string }[] = [
@@ -83,6 +84,7 @@ export default function UsersPage() {
   const [selectedPolicyIds, setSelectedPolicyIds] = useState<string[]>([]);
   const [selectedStartupId, setSelectedStartupId] = useState('');
   const [newStartupName, setNewStartupName] = useState('');
+  const [newStartupDocs, setNewStartupDocs] = useState<Record<string, DocUpload>>({});
   const [startupLinkMode, setStartupLinkMode] = useState<'existing' | 'new'>('existing');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -160,6 +162,7 @@ export default function UsersPage() {
     setSelectedPolicyIds([]);
     setSelectedStartupId('');
     setNewStartupName('');
+    setNewStartupDocs({});
     setStartupLinkMode('existing');
     setFormError('');
   };
@@ -212,6 +215,7 @@ export default function UsersPage() {
           const createdStartup = await createStartup({
             name: newStartupName.trim(),
             status: 'Applicant',
+            documents: newStartupDocs,
           });
           finalStartupId = createdStartup.id;
         } catch (stErr: any) {
@@ -998,6 +1002,7 @@ export default function UsersPage() {
                     <p className="text-[10px] text-theme-text-secondary">
                       This will initialize a new record in the Startup Registry with ID RTBI-S-XXXX-XXX.
                     </p>
+                    <StartupDocumentsPicker value={newStartupDocs} onChange={setNewStartupDocs} />
                   </div>
                 )}
               </div>

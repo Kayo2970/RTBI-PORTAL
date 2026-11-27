@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Rocket, Plus, X, Search, Settings2, Loader2, Edit3, Globe, MapPin, Users, Calendar, Building2, ExternalLink, Sparkles } from 'lucide-react';
 import { Chip } from '@/components/ui';
 import { Badge, Panel, ragClass } from '@/components/incubation/ui';
+import { StartupDocumentsPicker } from '@/components/incubation/startup-documents-picker';
 import {
   fetchStartups, createStartup, updateStartup, fetchFounderCandidates, fetchRecords, fetchAlerts, type FounderCandidate,
 } from '@/lib/incubation/client';
@@ -142,6 +143,7 @@ function StartupEditor({ startup, candidates, onClose, onSaved }: {
   });
   const [founders, setFounders] = useState<string[]>(startup?.founderMemberIds || []);
   const [consent, setConsent] = useState(startup?.consent || { externalDisclosure: false, photos: false, caseStudies: false });
+  const [documents, setDocuments] = useState<Record<string, import('@/lib/incubation/client').DocUpload>>({});
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
 
@@ -153,7 +155,10 @@ function StartupEditor({ startup, candidates, onClose, onSaved }: {
     try {
       const payload: any = { ...f, mode: f.mode || undefined, founderMemberIds: founders };
       if (startup) { payload.consent = consent; await updateStartup(startup.id, payload); }
-      else await createStartup(payload);
+      else {
+        const created: any = await createStartup({ ...payload, documents });
+        if (created?.documentError) { setErr(`Startup created, but a document was not saved: ${created.documentError} Upload it from Onboarding.`); setSaving(false); return; }
+      }
       onSaved();
     } catch (e: any) { setErr(e.message); setSaving(false); }
   };
@@ -196,6 +201,8 @@ function StartupEditor({ startup, candidates, onClose, onSaved }: {
             </div>
           )}
         </div>
+
+        {!startup && <StartupDocumentsPicker value={documents} onChange={setDocuments} />}
 
         {startup && (
           <div className="space-y-1">
