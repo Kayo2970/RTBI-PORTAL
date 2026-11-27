@@ -187,7 +187,7 @@ export interface ApplicationFile { name: string; url: string; storageKey: string
 
 export interface ScreeningRecord {
   at: string; by: string;
-  checks: Record<string, { result: 'yes' | 'no' | 'na'; evidence?: string }>;
+  checks: Record<string, { result: 'yes' | 'no' | 'na'; evidence?: string; file?: ApplicationFile }>;
   outcome: 'eligible' | 'clarification' | 'ineligible';
   criterion?: string;
 }
@@ -199,7 +199,7 @@ export interface CoiDeclaration { memberId: string; memberName: string; at: stri
 export interface EvaluatorScorecard {
   memberId: string; memberName: string; specialist?: boolean;
   scores: Record<string, number>; weighted: number;
-  recommendation?: string; comments?: string; submittedAt: string;
+  recommendation?: string; comments?: string; evidenceFiles?: ApplicationFile[]; submittedAt: string;
 }
 
 export interface ApplicationDecision {

@@ -3,7 +3,7 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileText, Loader2, FileDown, Archive } from 'lucide-react';
-import { actOnApplication, createRecord, fetchApplications, fetchIncubationSettings, fetchMembersLite, type ApplicationView } from '@/lib/incubation/client';
+import { actOnApplication, createRecord, fetchApplications, fetchIncubationSettings, fetchMembersLite, readFileAsDataUrl, type ApplicationView } from '@/lib/incubation/client';
 import { buildPdf, downloadPdf, type PdfSection } from '@/lib/incubation/pdf';
 import { weightsValid } from '@/lib/incubation/rules';
 import { APPLICATION_SECTIONS, DECISION_OPTIONS, SCREENING_AREAS, type IncubationSettings } from '@/lib/incubation/types';
@@ -75,7 +75,7 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
   };
 
   // --- screening state
-  const [checks, setChecks] = useState<Record<string, { result: string; evidence: string }>>(() => Object.fromEntries(SCREENING_AREAS.map(a => [a, { result: app.screening?.checks?.[a]?.result || 'yes', evidence: app.screening?.checks?.[a]?.evidence || '' }])));
+  const [checks, setChecks] = useState<Record<string, { result: string; evidence: string; file?: { name: string; type: string; dataUrl: string } }>>(() => Object.fromEntries(SCREENING_AREAS.map(a => [a, { result: app.screening?.checks?.[a]?.result || 'yes', evidence: app.screening?.checks?.[a]?.evidence || '' }])));
   const [outcome, setOutcome] = useState('eligible');
   const [criterion, setCriterion] = useState('');
   const [items, setItems] = useState('');
@@ -89,6 +89,9 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
   const [scores, setScores] = useState<Record<string, number>>({});
   const [recommendation, setRecommendation] = useState('');
   const [comments, setComments] = useState('');
+  const [evFiles, setEvFiles] = useState<{ name: string; type: string; dataUrl: string }[]>([]);
+  const [fileErr, setFileErr] = useState('');
+  const toDoc = async (f: File) => { if (f.size > 15 * 1024 * 1024) { setFileErr(`"${f.name}" exceeds the 15 MB limit.`); return null; } setFileErr(''); return { name: f.name, type: f.type, dataUrl: await readFileAsDataUrl(f) }; };
   // --- decision
   const [dec, setDec] = useState({ option: DECISION_OPTIONS[0] as string, authority: '', minutesRef: '', conditions: '', owner: '', dueDate: '', notes: '', overrideReason: '', reasonCategory: '' });
   const [approvalRef, setApprovalRef] = useState('');
@@ -158,7 +161,9 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
               {!['Decision recorded', 'Decision final', 'Evaluation', 'Withdrawn'].includes(app.status!) && (<>
                 <div className="grid md:grid-cols-2 gap-2">{SCREENING_AREAS.map(a => (
                   <div key={a} className="text-sm space-y-1"><div>{a}</div><div className="flex gap-1"><select className={inputCls + ' !w-20'} value={checks[a].result} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], result: e.target.value } }))}><option value="yes">Yes</option><option value="no">No</option><option value="na">N/A</option></select>
-                    <input className={inputCls} placeholder="Evidence / reason" value={checks[a].evidence} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], evidence: e.target.value } }))} /></div></div>))}</div>
+                    <input className={inputCls} placeholder="Evidence / reason" value={checks[a].evidence} onChange={e => setChecks(p => ({ ...p, [a]: { ...p[a], evidence: e.target.value } }))} /></div>
+                    <div className="text-xs">{checks[a].file ? <span className="text-amber-400">{checks[a].file!.name} — will upload on save</span> : app.screening?.checks?.[a]?.file ? <a className="text-accent underline" href={app.screening.checks[a].file!.url} target="_blank" rel="noreferrer">{app.screening.checks[a].file!.name}</a> : null}
+                      <input type="file" className={inputCls} onChange={async e => { const d = e.target.files?.[0] && await toDoc(e.target.files[0]); if (d) setChecks(p => ({ ...p, [a]: { ...p[a], file: d } })); e.target.value = ''; }} /></div></div>))}</div>
                 <select className={inputCls + ' max-w-xs'} value={outcome} onChange={e => setOutcome(e.target.value)}><option value="eligible">Eligible</option><option value="clarification">Clarification required</option><option value="ineligible">Ineligible</option></select>
                 {outcome === 'ineligible' && <input className={inputCls} placeholder="Published criterion not met" value={criterion} onChange={e => setCriterion(e.target.value)} />}
                 {outcome === 'clarification' && <><textarea className={inputCls} rows={3} placeholder="One missing item per line" value={items} onChange={e => setItems(e.target.value)} />
@@ -186,14 +191,18 @@ function Detail({ app, settings, members, user, onClose, onChange }: { app: Appl
                     <select className={inputCls + ' !w-20'} value={scores[c.key] || ''} onChange={e => setScores(p => ({ ...p, [c.key]: Number(e.target.value) }))}><option value="">—</option>{[1, 2, 3, 4, 5].map(n => <option key={n}>{n}</option>)}</select></div>))}
                   <input className={inputCls} placeholder="Recommendation" value={recommendation} onChange={e => setRecommendation(e.target.value)} />
                   <textarea className={inputCls} rows={2} placeholder="Comments" value={comments} onChange={e => setComments(e.target.value)} />
-                  <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'score', scores, recommendation, comments })}>Submit scorecard</button></>)}
+                  <label className="text-xs block">Supporting evaluation documents (up to 5, 15 MB each)
+                    <input type="file" multiple className={inputCls} onChange={async e => { const list = Array.from(e.target.files || []); const docs = (await Promise.all(list.map(toDoc))).filter(Boolean) as any[]; setEvFiles(p => [...p, ...docs].slice(0, 5)); e.target.value = ''; }} /></label>
+                  {evFiles.length > 0 && <ul className="text-xs space-y-1">{evFiles.map((f, i) => <li key={i} className="flex justify-between"><span>{f.name}</span><button className="text-red-400" onClick={() => setEvFiles(p => p.filter((_, j) => j !== i))}>Remove</button></li>)}</ul>}
+                  {fileErr && <p className="text-xs text-red-400">{fileErr}</p>}
+                  <button className={btnPrimary} disabled={busy} onClick={() => run({ action: 'score', scores, recommendation, comments, evidenceFiles: evFiles })}>Submit scorecard</button></>)}
             </Panel>
           )}
 
           {(app.scorecards?.length ?? 0) > 0 && (
             <Panel title="Scorecards" hint={manager ? 'Visible to managers once submitted.' : 'Peer scorecards are shown only after you submit your own.'}>
-              <table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary"><th>Evaluator</th><th>Weighted /100</th><th>Recommendation</th></tr></thead>
-                <tbody>{app.scorecards!.map(s => <tr key={s.memberId}><td>{s.memberName}{s.specialist ? ' (specialist)' : ''}</td><td>{s.weighted}</td><td>{s.recommendation || '—'}</td></tr>)}</tbody></table>
+              <table className="w-full text-sm"><thead><tr className="text-left text-theme-text-secondary"><th>Evaluator</th><th>Weighted /100</th><th>Recommendation</th><th>Documents</th></tr></thead>
+                <tbody>{app.scorecards!.map(s => <tr key={s.memberId}><td>{s.memberName}{s.specialist ? ' (specialist)' : ''}</td><td>{s.weighted}</td><td>{s.recommendation || '—'}</td><td>{s.evidenceFiles?.length ? s.evidenceFiles.map((f, i) => <a key={i} className="block text-accent underline" href={f.url} target="_blank" rel="noreferrer">{f.name}</a>) : '—'}</td></tr>)}</tbody></table>
             </Panel>
           )}
 

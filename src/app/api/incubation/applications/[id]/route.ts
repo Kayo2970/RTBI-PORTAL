@@ -8,6 +8,7 @@ import { isStaffTier, isRouteApprover } from '@/lib/permissions-server';
 import { incubationAudit } from '@/lib/incubation/audit-server';
 import { loadSettings } from '@/lib/incubation/records-server';
 import { viewApplication, isManagerActor } from '@/lib/incubation/applications-server';
+import { storeEvaluationFile } from '@/lib/incubation/evaluation-files-server';
 import { addWorkingDays, nextStartupId, weightedScore, weightsValid } from '@/lib/incubation/rules';
 import {
   DECISION_OPTIONS, SCREENING_AREAS, STARTUP_MODES,
@@ -88,7 +89,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           const c = body.checks?.[area];
           if (!c || !['yes', 'no', 'na'].includes(c.result)) return fail(`Screening: answer "${area}".`);
           if (c.result === 'no' && !str(c.evidence)) return fail(`Screening: add the evidence/reason for "${area}".`);
-          checks[area] = { result: c.result, evidence: str(c.evidence) || undefined };
+          const file = (await storeEvaluationFile(app.id, `screening-${area.replace(/[^a-z0-9]+/gi, '').slice(0, 20)}`, c.file)) || app.screening?.checks?.[area]?.file;
+          checks[area] = { result: c.result, evidence: str(c.evidence) || undefined, file };
         }
         if (outcome === 'ineligible' && !str(body.criterion)) return fail('Ineligible must cite the published criterion that was not met.');
         if (outcome === 'eligible' && Object.values(checks).some((c: any) => c.result === 'no')) return fail('An applicant with a failed check cannot be marked eligible — choose clarification or ineligible.');
@@ -173,8 +175,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           if (!Number.isInteger(v) || v < 1 || v > 5) return fail(`Score "${c.label}" from 1 to 5.`);
           scores[c.key] = v;
         }
+        const incoming = Array.isArray(body.evidenceFiles) ? body.evidenceFiles.slice(0, 5) : [];
+        const evidenceFiles = (await Promise.all(incoming.map((f: any) => storeEvaluationFile(app.id, `score-${actor.id}`, f)))).filter(Boolean) as any[];
         const specialist = app.assigned.find(a => a.memberId === actor.id)?.specialist;
-        next = { ...app, scorecards: [...app.scorecards, { memberId: actor.id, memberName: actor.name, specialist, scores, weighted: weightedScore(settings.scorecard.criteria, scores), recommendation: str(body.recommendation, 100) || undefined, comments: str(body.comments) || undefined, submittedAt: nowIso }],
+        next = { ...app, scorecards: [...app.scorecards, { memberId: actor.id, memberName: actor.name, specialist, scores, weighted: weightedScore(settings.scorecard.criteria, scores), recommendation: str(body.recommendation, 100) || undefined, evidenceFiles: evidenceFiles.length ? evidenceFiles : undefined, comments: str(body.comments) || undefined, submittedAt: nowIso }],
           log: [...app.log, logEntry('Scorecard submitted', actor.name)] };
         break;
       }
