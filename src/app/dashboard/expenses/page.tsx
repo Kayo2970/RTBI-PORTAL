@@ -1054,8 +1054,8 @@ export default function ExpensesPage() {
           onClose={() => setIdnOpen(false)}
           onAttach={(file, total) => {
             setExpIdnFiles(prev => [...prev, file].slice(0, MAX_BILLS));
-            if (!expAmount && total > 0) setExpAmount(String(total));
-            flash('IDN drafted and attached as ① IDN. Download the DOCX from the drafter if you need to edit it.');
+            if (total > 0) setExpAmount(String(total));
+            flash(`IDN attached as ① IDN and Amount set to ${inr(total)}. Download the DOCX from the drafter if you need to edit it.`);
           }}
         />
       )}
