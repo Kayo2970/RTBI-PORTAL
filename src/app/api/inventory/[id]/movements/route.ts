@@ -23,6 +23,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const reason = str(b.reason, 200);
     if (type === 'Adjust' && !reason) bad('Give a reason for the stock adjustment.');
 
+    // Optional event link — used to report how much stock each event consumed.
+    const eventId = type === 'Out' ? str(b.eventId, 80) : '';
+    const eventName = eventId ? str(b.eventName, 160) : '';
+
     let item!: InventoryItem;
     let movement!: InventoryMovement;
     await mutateCollection<InventoryItem>('inventoryItems', (cur) => {
@@ -37,7 +41,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         id: 'mv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
         itemId: it.id, itemName: it.name, type,
         delta: Math.round((item.quantity - it.quantity) * 1000) / 1000,
-        quantityAfter: item.quantity, reason, by: actor.name, at: now,
+        quantityAfter: item.quantity, reason,
+        ...(eventId ? { eventId, eventName } : {}),
+        by: actor.name, at: now,
       };
       const out = [...cur];
       out[idx] = item;

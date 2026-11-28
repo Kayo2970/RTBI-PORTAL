@@ -41,14 +41,23 @@ export async function POST(request: Request) {
     if (files.length > MAX_BILL_FILES) throw new Error(`Maximum ${MAX_BILL_FILES} bill files allowed per expense.`);
 
     const id = 'exp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    const billFiles = [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (typeof f?.dataUrl !== 'string' || !f.dataUrl.startsWith('data:')) throw new Error('A bill file could not be read. Please re-attach it.');
-      if (Math.floor((f.dataUrl.length * 3) / 4) > MAX_BILL_FILE_BYTES) throw new Error(`"${f.name || 'File'}" exceeds the 10 MB per-file limit.`);
-      const stored = await saveBase64File('expenses', id, i, f.name || 'bill', f.dataUrl);
-      billFiles.push({ name: f.name, url: stored.url, storageKey: stored.storageKey, type: f.type });
-    }
+    const idnIn = Array.isArray(body.idnFiles) ? body.idnFiles : [];
+    if (idnIn.length > MAX_BILL_FILES) throw new Error(`Maximum ${MAX_BILL_FILES} IDN files allowed per expense.`);
+
+    // Bills use indexes 0..n, IDN documents 100..n so stored file names never collide.
+    const storeAll = async (list: any[], offset: number, label: string) => {
+      const out = [];
+      for (let i = 0; i < list.length; i++) {
+        const f = list[i];
+        if (typeof f?.dataUrl !== 'string' || !f.dataUrl.startsWith('data:')) throw new Error(`A ${label} file could not be read. Please re-attach it.`);
+        if (Math.floor((f.dataUrl.length * 3) / 4) > MAX_BILL_FILE_BYTES) throw new Error(`"${f.name || 'File'}" exceeds the 10 MB per-file limit.`);
+        const stored = await saveBase64File('expenses', id, offset + i, f.name || label, f.dataUrl);
+        out.push({ name: f.name, url: stored.url, storageKey: stored.storageKey, type: f.type });
+      }
+      return out;
+    };
+    const billFiles = await storeAll(files, 0, 'bill');
+    const idnFiles = await storeAll(idnIn, 100, 'IDN');
 
     const expense = {
       id,
@@ -58,6 +67,7 @@ export async function POST(request: Request) {
       description,
       expenseDate,
       billFiles,
+      idnFiles,
       vendor: typeof body.vendor === 'string' ? body.vendor.trim() || undefined : undefined,
       eventId: body.eventId || undefined,
       eventName: body.eventName || undefined,

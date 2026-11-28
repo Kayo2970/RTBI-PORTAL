@@ -52,6 +52,8 @@ export interface ExpenseItem {
   description: string;
   expenseDate: string; // YYYY-MM-DD, the date on the bill
   billFiles: ReceiptFile[];
+  /** IDN / delivery-note documents (the first upload box); the bill is `billFiles`. */
+  idnFiles?: ReceiptFile[];
   vendor?: string;
   eventId?: string;
   eventName?: string;

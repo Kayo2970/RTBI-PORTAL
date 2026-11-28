@@ -6,6 +6,11 @@ import { apiError } from '@/lib/api-error';
 import { bad, str, num } from '@/lib/billing-server';
 import { generateItemCode, type InventoryItem, type InventoryMovement } from '@/lib/billing';
 
+function dateStr(v: unknown): string | undefined {
+  const s = typeof v === 'string' ? v.trim() : '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : undefined;
+}
+
 export async function GET(request: Request) {
   try {
     const actor = await requireSession(request);
@@ -46,7 +51,9 @@ export async function POST(request: Request) {
         unit: str(b.unit, 20) || 'pcs',
         quantity,
         reorderLevel: Math.max(0, num(b.reorderLevel)),
-        unitCost: Math.max(0, num(b.unitCost)),
+        subCategory: str(b.subCategory, 60) || undefined,
+        procurementDate: dateStr(b.procurementDate),
+        purchaseDate: dateStr(b.purchaseDate),
         location: str(b.location, 120),
         notes: str(b.notes, 300),
         active: true,

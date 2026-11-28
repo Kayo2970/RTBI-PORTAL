@@ -148,6 +148,7 @@ export default function ExpensesPage() {
   const [expVendor, setExpVendor] = useState('');
   const [expEventId, setExpEventId] = useState('');
   const [expFiles, setExpFiles] = useState<File[]>([]);
+  const [expIdnFiles, setExpIdnFiles] = useState<File[]>([]);
   const [expError, setExpError] = useState('');
   const [expSaving, setExpSaving] = useState(false);
   const [expProgress, setExpProgress] = useState(0);
@@ -255,6 +256,7 @@ export default function ExpensesPage() {
     setExpVendor('');
     setExpEventId('');
     setExpFiles([]);
+    setExpIdnFiles([]);
     setExpError('');
     setExpProgress(0);
     setExpenseModalOpen(true);
@@ -284,6 +286,7 @@ export default function ExpensesPage() {
     setExpProgress(0);
     try {
       const billFiles = await filesToReceiptFiles(expFiles);
+      const idnFiles = await filesToReceiptFiles(expIdnFiles);
       const ev = events.find(x => x.id === expEventId);
       const tracker = createProgressTracker(pct => setExpProgress(pct));
 
@@ -294,6 +297,7 @@ export default function ExpensesPage() {
           description: expDesc.trim(),
           expenseDate: expDate,
           billFiles,
+          idnFiles,
           vendor: expVendor.trim() || undefined,
           eventId: ev?.id,
           eventName: ev?.title,
@@ -331,7 +335,7 @@ export default function ExpensesPage() {
       flash('No expenses to export.');
       return;
     }
-    const headers = ['Voucher ID', 'Date', 'Financial Year', 'Expense Head', 'Description', 'Amount (INR)', 'Vendor', 'Event', 'Submitted By', 'Bills Count'];
+    const headers = ['Voucher ID', 'Date', 'Financial Year', 'Expense Head', 'Description', 'Amount (INR)', 'Vendor', 'Event', 'Submitted By', 'Bills Count', 'IDN Count'];
     const rows = filteredExpenses.map(e => [
       e.id,
       e.expenseDate,
@@ -343,6 +347,7 @@ export default function ExpensesPage() {
       e.eventName || '',
       `${e.submittedBy} (${e.submittedByEmail})`,
       e.billFiles?.length || 0,
+      e.idnFiles?.length || 0,
     ]);
     const csvContent = [toCsvRow(headers), ...rows.map(r => toCsvRow(r))].join('\n');
     downloadCsv(`RTBI_Expenses_${fy}_${new Date().toISOString().split('T')[0]}.csv`, csvContent);
@@ -665,7 +670,7 @@ export default function ExpensesPage() {
                 <th className="px-4 py-3">Bill Date &amp; FY</th>
                 <th className="px-4 py-3">Vendor / Context</th>
                 <th className="px-4 py-3 text-right">Incurred Amount</th>
-                <th className="px-4 py-3 text-center">Receipt Bills</th>
+                <th className="px-4 py-3 text-center">IDN &amp; Bill</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -737,27 +742,36 @@ export default function ExpensesPage() {
                       </td>
 
                       <td className="px-4 py-3 text-center whitespace-nowrap">
-                        {billsCount > 0 ? (
-                          <div className="flex items-center justify-center gap-1">
-                            {e.billFiles.map((b, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  if (b.url) {
-                                    setViewingReceipt({ name: b.name, url: b.url, type: b.type });
-                                  }
-                                }}
-                                className="px-2 py-1 rounded-lg bg-white/5 hover:bg-accent/20 border border-theme-border/30 text-[10px] text-accent font-semibold transition-all cursor-pointer flex items-center gap-1"
-                                title={`View ${b.name}`}
-                              >
-                                <FileText className="h-3 w-3" />
-                                <span>Bill {idx + 1}</span>
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-amber-400 font-medium">No bill</span>
-                        )}
+                        <div className="flex items-center justify-center gap-1">
+                          {(e.idnFiles || []).map((b, idx) => (
+                            <button
+                              key={`idn${idx}`}
+                              onClick={() => { if (b.url) setViewingReceipt({ name: b.name, url: b.url, type: b.type }); }}
+                              className="px-2 py-1 rounded-lg bg-white/5 hover:bg-accent/20 border border-theme-border/30 text-[10px] text-primary-light font-semibold transition-all cursor-pointer flex items-center gap-1"
+                              title={`View ${b.name}`}
+                            >
+                              <FileText className="h-3 w-3" />
+                              <span>IDN {idx + 1}</span>
+                            </button>
+                          ))}
+                          {billsCount > 0 ? e.billFiles.map((b, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                if (b.url) {
+                                  setViewingReceipt({ name: b.name, url: b.url, type: b.type });
+                                }
+                              }}
+                              className="px-2 py-1 rounded-lg bg-white/5 hover:bg-accent/20 border border-theme-border/30 text-[10px] text-accent font-semibold transition-all cursor-pointer flex items-center gap-1"
+                              title={`View ${b.name}`}
+                            >
+                              <FileText className="h-3 w-3" />
+                              <span>Bill {idx + 1}</span>
+                            </button>
+                          )) : (
+                            <span className="text-[10px] text-amber-400 font-medium">No bill</span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -919,11 +933,38 @@ export default function ExpensesPage() {
                 </label>
               </div>
 
-              {/* Bill & Receipt Attachment */}
-              <div className="space-y-2 pt-2 border-t border-theme-border/20">
+              {/* Document uploads: ① IDN / delivery note, ② Bill */}
+              <div className="space-y-4 pt-2 border-t border-theme-border/20">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-theme-text-secondary">
+                      ① IDN / Delivery Note (PDF / Images)
+                    </span>
+                    <span className="text-[10px] text-theme-text-secondary">Optional · max {MAX_BILLS} files (10MB each)</span>
+                  </div>
+                  <FileDropzone
+                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    multiple
+                    onFilesSelected={files => setExpIdnFiles(prev => [...prev, ...files].slice(0, MAX_BILLS))}
+                    disabled={expSaving}
+                  />
+                  {expIdnFiles.length > 0 && (
+                    <div className="space-y-1.5 mt-2">
+                      {expIdnFiles.map((f, i) => (
+                        <FilePreviewRow
+                          key={i}
+                          file={f}
+                          onRemove={expSaving ? undefined : () => setExpIdnFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-theme-text-secondary">
-                    Bill / Receipt Proof (PDF / Images) *
+                    ② Bill (PDF / Images) *
                   </span>
                   <span className="text-[10px] text-theme-text-secondary">Max {MAX_BILLS} files (10MB each)</span>
                 </div>
@@ -946,6 +987,7 @@ export default function ExpensesPage() {
                     ))}
                   </div>
                 )}
+                </div>
 
                 {expSaving && expProgress > 0 && (
                   <div className="space-y-1 mt-2">

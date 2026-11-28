@@ -6,6 +6,11 @@ import { apiError } from '@/lib/api-error';
 import { bad, str, num } from '@/lib/billing-server';
 import type { InventoryItem } from '@/lib/billing';
 
+function dateStr(v: unknown): string | undefined {
+  const s = typeof v === 'string' ? v.trim() : '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : undefined;
+}
+
 /** Edit item details. Stock levels change only through /movements so there is always an audit trail. */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,7 +32,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         category: b.category !== undefined ? str(b.category, 60) : it.category,
         unit: b.unit !== undefined ? str(b.unit, 20) || 'pcs' : it.unit,
         reorderLevel: b.reorderLevel !== undefined ? Math.max(0, num(b.reorderLevel)) : it.reorderLevel,
-        unitCost: b.unitCost !== undefined ? Math.max(0, num(b.unitCost)) : it.unitCost,
+        subCategory: b.subCategory !== undefined ? str(b.subCategory, 60) || undefined : it.subCategory,
+        procurementDate: b.procurementDate !== undefined ? dateStr(b.procurementDate) : it.procurementDate,
+        purchaseDate: b.purchaseDate !== undefined ? dateStr(b.purchaseDate) : it.purchaseDate,
         location: b.location !== undefined ? str(b.location, 120) : it.location,
         notes: b.notes !== undefined ? str(b.notes, 300) : it.notes,
         active: b.active !== undefined ? !!b.active : it.active,

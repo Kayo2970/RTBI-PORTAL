@@ -17,7 +17,7 @@ export async function DELETE(
     requirePermission(canDeleteExpense(actor, existing), 'You can only delete expenses you booked yourself.');
 
     await mutateCollection('expenses', (current) => current.filter((e: any) => e.id !== id));
-    for (const f of existing.billFiles || []) {
+    for (const f of [...(existing.billFiles || []), ...(existing.idnFiles || [])]) {
       if (f?.storageKey) await deleteStoredFile(f.storageKey).catch(() => {});
     }
     return NextResponse.json({ success: true });

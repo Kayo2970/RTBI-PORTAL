@@ -150,7 +150,14 @@ export interface InventoryItem {
   unit: string;
   quantity: number;
   reorderLevel: number;
-  unitCost: number;
+  /** @deprecated Unit cost is no longer captured; kept optional so legacy rows still load. */
+  unitCost?: number;
+  /** Optional second-level category under `category`. */
+  subCategory?: string;
+  /** YYYY-MM-DD — when the item was procured (received / acquired). */
+  procurementDate?: string;
+  /** YYYY-MM-DD — when the item was purchased (bill date). */
+  purchaseDate?: string;
   location?: string;
   notes?: string;
   active: boolean;
@@ -190,6 +197,22 @@ export const INVENTORY_UNITS = [
   { value: 'pair', label: 'Pairs (pair)' },
   { value: 'bundle', label: 'Bundles (bundle)' },
 ] as const;
+
+/** Suggested sub-categories per category. Free text is also accepted. */
+export const INVENTORY_SUBCATEGORIES: Record<string, string[]> = {
+  'Lab & Scientific Equipment': ['Measurement & Test', 'Microscopy & Optics', 'Lab Glassware', 'Power Supplies'],
+  'Electronics & Hardware': ['Microcontrollers & Boards', 'Sensors & Modules', 'Components', 'Cables & Connectors'],
+  'Prototyping & 3D Printing': ['3D Printers', 'Filament & Resin', 'Laser / CNC', 'Prototyping Kits'],
+  'IT & Networking Hardware': ['Laptops & Desktops', 'Networking', 'Peripherals', 'Storage'],
+  'Tools & Machinery': ['Hand Tools', 'Power Tools', 'Machines', 'Workshop Accessories'],
+  'Office Supplies & Stationery': ['Paper & Printing', 'Writing & Marking', 'Filing & Binding', 'Pantry'],
+  'Furniture & Fixtures': ['Desks & Tables', 'Chairs', 'Storage & Racks', 'Fixtures'],
+  'Audio / Visual & Events': ['Audio', 'Display & Projection', 'Lighting', 'Event Branding & Decor'],
+  'Consumables & Raw Materials': ['Chemicals & Reagents', 'Metals & Plastics', 'Adhesives & Fasteners', 'Packaging'],
+  'Safety & First Aid': ['First Aid', 'PPE', 'Fire Safety'],
+  'Software & Subscriptions': ['Licences', 'Cloud & Hosting', 'Subscriptions'],
+  'Other': [],
+};
 
 export const CATEGORY_PREFIXES: Record<string, string> = {
   'Lab & Scientific Equipment': 'LAB',
@@ -248,6 +271,9 @@ export interface InventoryMovement {
   delta: number;
   quantityAfter: number;
   reason?: string;
+  /** Event this movement was used for (stock-out for an event). */
+  eventId?: string;
+  eventName?: string;
   by: string;
   at: string;
 }

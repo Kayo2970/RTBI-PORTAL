@@ -4336,7 +4336,7 @@ export function getExpenses(): ExpenseItem[] {
 
 /** Book an expense. The server stores the bill files on disk and rejects it without bill, description and head. */
 export async function addExpense(
-  item: Pick<ExpenseItem, 'head' | 'amount' | 'description' | 'expenseDate' | 'billFiles' | 'vendor' | 'eventId' | 'eventName' | 'submittedBy' | 'submittedByEmail'>,
+  item: Pick<ExpenseItem, 'head' | 'amount' | 'description' | 'expenseDate' | 'billFiles' | 'idnFiles' | 'vendor' | 'eventId' | 'eventName' | 'submittedBy' | 'submittedByEmail'>,
   onProgress?: UploadProgressCallback
 ): Promise<ExpenseItem> {
   const draft: ExpenseItem = {
