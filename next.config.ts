@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
   // contacts, edited pages) while desktop looked fine. Every dynamic API
   // response must be revalidated; only uploaded files (/api/files, which are
   // immutable and set their own caching) are exempt.
+  // Finance and Expenses were merged into one module.
+  async redirects() {
+    return [
+      { source: '/dashboard/budget', destination: '/dashboard/finance', permanent: false },
+      { source: '/dashboard/expenses', destination: '/dashboard/finance', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

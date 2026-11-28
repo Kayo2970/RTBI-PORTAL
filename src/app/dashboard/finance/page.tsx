@@ -30,9 +30,17 @@ import {
   Layers,
   ArrowUpRight,
   FileText,
+  TrendingUp,
+  Edit2,
+  Landmark,
 } from 'lucide-react';
 import {
   getAnnualBudget,
+  saveAnnualBudget,
+  getIncomeSources,
+  addIncomeSource,
+  updateIncomeSource,
+  deleteIncomeSource,
   getExpenses,
   addExpense,
   deleteExpense,
@@ -42,10 +50,11 @@ import {
   filesToReceiptFiles,
   type EventItem,
   type ExpenseItem,
+  type IncomeSourceItem,
   type ReceiptFile,
 } from '@/lib/local-data';
 import { EXPENSE_HEADS, ExpenseHeadKey, getExpenseHeadLabel } from '@/lib/finance';
-import { canAddExpense, canDeleteExpense, canManageAnnualBudget } from '@/lib/permissions';
+import { canAddExpense, canDeleteExpense, canManageAnnualBudget, canManageIncome } from '@/lib/permissions';
 import { downloadCsv, toCsvRow } from '@/lib/csv';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
 import { IdnDrafter } from '@/components/expenses/idn-drafter';
@@ -128,15 +137,53 @@ const HEAD_METADATA: Record<
   },
 };
 
+const INCOME_TYPE_LABEL: Record<string, string> = { sponsor: 'Sponsorship', grant: 'Grant', donation: 'Donation', other: 'Other Income' };
+type Tab = 'expenses' | 'income';
+
+const modalInputCls = 'w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent';
+
+function ModalShell({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className={`bg-theme-card border border-theme-card-border rounded-2xl w-full ${wide ? 'max-w-2xl' : 'max-w-md'} max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl relative`}>
+        <button onClick={onClose} className="absolute top-4 right-4 text-theme-text-secondary hover:text-theme-text-primary cursor-pointer" aria-label="Close">
+          <X className="h-5 w-5" />
+        </button>
+        <h2 className="text-base font-bold text-theme-text-primary pr-8">{title}</h2>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 const inputCls =
   'w-full px-3.5 py-2.5 bg-theme-sidebar/60 border border-theme-border/40 rounded-xl text-xs text-theme-text-primary outline-none focus:border-accent transition-all';
 
-export default function ExpensesPage() {
+export default function FinancePage() {
   const [user, setUser] = useState<any>(null);
   const [, setTick] = useState(0);
   const [fy, setFy] = useState(CURRENT_FY);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [toast, setToast] = useState('');
+  const [tab, setTab] = useState<Tab>('expenses');
+
+  // Annual budget modal
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const [budgetTotal, setBudgetTotal] = useState('');
+  const [budgetAlloc, setBudgetAlloc] = useState<Record<string, string>>({});
+  const [budgetNotes, setBudgetNotes] = useState('');
+  const [budgetError, setBudgetError] = useState('');
+  const [budgetSaving, setBudgetSaving] = useState(false);
+
+  // Income modal (manual entries only; verified invoice payments arrive automatically)
+  const [incomeOpen, setIncomeOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<IncomeSourceItem | null>(null);
+  const [incName, setIncName] = useState('');
+  const [incAmount, setIncAmount] = useState('');
+  const [incType, setIncType] = useState<'sponsor' | 'grant' | 'donation' | 'other'>('sponsor');
+  const [incDate, setIncDate] = useState(todayIso());
+  const [incNotes, setIncNotes] = useState('');
+  const [incError, setIncError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedHeadFilter, setSelectedHeadFilter] = useState<'all' | ExpenseHeadKey>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
@@ -251,6 +298,75 @@ export default function ExpensesPage() {
       });
   }, [allExpenses, selectedHeadFilter, searchQuery, sortBy]);
 
+  const income = getIncomeSources().filter(i => i.financialYear === fy);
+  const sortedIncome = [...income].sort((a, b) => (b.receivedDate || b.createdAt).localeCompare(a.receivedDate || a.createdAt));
+  const totalIncome = income.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  const invoiceIncome = income.filter(i => i.source === 'invoice').reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  const netBalance = totalIncome - totalSpent;
+  const budgetTotalSet = budget?.totalAmount || 0;
+  const budgetRemaining = budgetTotalSet - totalSpent;
+  const canSetBudget = canManageAnnualBudget(user);
+  const canBook = canAddExpense(user);
+  const canEditIncome = canManageIncome(user);
+
+  // ---- Annual budget ----
+  const openBudget = () => {
+    setBudgetTotal(budget ? String(budget.totalAmount) : '');
+    setBudgetAlloc(Object.fromEntries(EXPENSE_HEADS.map(h => [h.key, budget?.allocations?.[h.key] ? String(budget.allocations[h.key]) : ''])));
+    setBudgetNotes(budget?.notes || '');
+    setBudgetError('');
+    setBudgetOpen(true);
+  };
+  const allocSum = EXPENSE_HEADS.reduce((s, h) => s + (parseFloat(budgetAlloc[h.key]) || 0), 0);
+  const budgetTotalNum = parseFloat(budgetTotal) || 0;
+
+  const handleSaveBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBudgetError('');
+    if (budgetTotalNum <= 0) return setBudgetError('Enter the annual budget amount.');
+    if (allocSum > budgetTotalNum + 0.005) return setBudgetError(`The breakup (${inr(allocSum)}) is more than the annual budget (${inr(budgetTotalNum)}).`);
+    setBudgetSaving(true);
+    try {
+      await saveAnnualBudget({
+        financialYear: fy,
+        totalAmount: budgetTotalNum,
+        allocations: Object.fromEntries(EXPENSE_HEADS.map(h => [h.key, parseFloat(budgetAlloc[h.key]) || 0])),
+        notes: budgetNotes.trim() || undefined,
+      }, user?.name || 'Admin');
+      setBudgetOpen(false);
+      setTick(t => t + 1);
+      flash(`Annual budget for FY ${fy} saved.`);
+    } catch (err: any) {
+      setBudgetError(err.message || 'Could not save the budget.');
+    } finally {
+      setBudgetSaving(false);
+    }
+  };
+
+  // ---- Income ----
+  const openIncome = (item?: IncomeSourceItem) => {
+    setEditingIncome(item || null);
+    setIncName(item?.name || ''); setIncAmount(item ? String(item.amount) : ''); setIncType(item?.type || 'sponsor');
+    setIncDate(item?.receivedDate || todayIso()); setIncNotes(item?.notes || ''); setIncError('');
+    setIncomeOpen(true);
+  };
+
+  const handleSaveIncome = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(incAmount);
+    if (!incName.trim()) return setIncError('Enter a title for this income.');
+    if (!(amt > 0)) return setIncError('Enter a valid amount.');
+    const base = { name: incName.trim(), amount: amt, type: incType, receivedDate: incDate, notes: incNotes.trim() || undefined };
+    if (editingIncome) {
+      updateIncomeSource(editingIncome.id, base, user?.name || 'Admin');
+    } else {
+      addIncomeSource({ ...base, source: 'manual', financialYear: fy, submittedBy: user?.name || 'Admin' });
+    }
+    setIncomeOpen(false);
+    setTick(t => t + 1);
+    flash('Income saved.');
+  };
+
   const openAddExpenseModal = (preselectedHead?: ExpenseHeadKey) => {
     setExpHead(preselectedHead || '');
     setExpAmount('');
@@ -363,11 +479,11 @@ export default function ExpensesPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-            <ReceiptText className="h-6 w-6 text-accent-strong dark:text-accent-soft" />
-            Expense Management
+            <Wallet className="h-6 w-6 text-accent-strong dark:text-accent-soft" />
+            Finance
           </h1>
           <p className="text-xs text-theme-text-secondary mt-0.5">
-            Record, allocate, and monitor expenses incurred under each individual head. All claims automatically update the central Finance module.
+            Annual budget by overhead head, bill-backed expenses with IDN, and income — including verified invoice payments.
           </p>
         </div>
 
@@ -388,21 +504,30 @@ export default function ExpensesPage() {
             </select>
           </div>
 
-          {canManageAnnualBudget(user) && (
-            <Link
-              href="/dashboard/budget"
-              className="flex items-center gap-1 px-3 py-2 rounded-xl border border-theme-border/40 hover:bg-white/5 text-xs text-theme-text-secondary hover:text-theme-text-primary font-semibold transition-all"
+          {canSetBudget && (
+            <button
+              onClick={openBudget}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl border border-theme-border/40 hover:bg-white/5 text-xs text-theme-text-secondary hover:text-theme-text-primary font-semibold transition-all cursor-pointer"
             >
-              <Wallet className="h-3.5 w-3.5" /> Finance Module <ExternalLink className="h-3 w-3 opacity-60" />
-            </Link>
+              <Edit2 className="h-3.5 w-3.5" /> {budget ? 'Edit Annual Budget' : 'Set Annual Budget'}
+            </button>
           )}
 
-          <button
-            onClick={() => openAddExpenseModal()}
-            className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl shadow-md shadow-accent/20 transition-all cursor-pointer"
+          <Link
+            href="/dashboard/invoices"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl border border-theme-border/40 hover:bg-white/5 text-xs text-theme-text-secondary hover:text-theme-text-primary font-semibold transition-all"
           >
-            <Plus className="h-4 w-4" /> Record Expense
-          </button>
+            <FileText className="h-3.5 w-3.5" /> Invoices <ExternalLink className="h-3 w-3 opacity-60" />
+          </Link>
+
+          {canBook && (
+            <button
+              onClick={() => openAddExpenseModal()}
+              className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl shadow-md shadow-accent/20 transition-all cursor-pointer"
+            >
+              <Plus className="h-4 w-4" /> Record Expense
+            </button>
+          )}
         </div>
       </div>
 
@@ -421,61 +546,60 @@ export default function ExpensesPage() {
 
       {/* Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="glass-panel rounded-2xl p-4 border border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-theme-text-secondary">Total Incurred Spend</span>
-            <div className="p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft">
-              <TrendingDown className="h-4 w-4" />
+        {[
+          {
+            label: 'Annual Budget',
+            value: budget ? inr(budgetTotalSet) : 'Not set',
+            sub: budget ? `${inr(totalAllocated)} allocated · ${inr(budgetTotalSet - totalAllocated)} unallocated` : 'Set one to begin tracking',
+            icon: Landmark, chip: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+          },
+          {
+            label: 'Total Incurred Spend',
+            value: inr(totalSpent),
+            sub: budget ? `${inr(Math.abs(budgetRemaining))} ${budgetRemaining >= 0 ? 'remaining' : 'over budget'} · ${allExpenses.length} voucher${allExpenses.length === 1 ? '' : 's'}` : `${allExpenses.length} voucher${allExpenses.length === 1 ? '' : 's'}${highestSpendHead ? ` · top: ${getExpenseHeadLabel(highestSpendHead.head)}` : ''}`,
+            icon: TrendingDown, chip: budget && budgetRemaining < 0 ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-accent/15 text-accent-strong dark:text-accent-soft',
+          },
+          {
+            label: 'Income',
+            value: inr(totalIncome),
+            sub: `${inr(invoiceIncome)} from verified invoices`,
+            icon: TrendingUp, chip: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+          },
+          {
+            label: 'Net (Income − Spent)',
+            value: inr(netBalance),
+            sub: netBalance >= 0 ? 'Surplus' : 'Deficit',
+            icon: PiggyBank, chip: netBalance >= 0 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
+          },
+        ].map(k => (
+          <div key={k.label} className="glass-panel rounded-2xl p-4 border border-white/10">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-theme-text-secondary">{k.label}</span>
+              <div className={`p-2 rounded-xl ${k.chip}`}><k.icon className="h-4 w-4" /></div>
             </div>
+            <div className="mt-2 text-2xl font-bold text-theme-text-primary">{k.value}</div>
+            <div className="text-xs text-theme-text-secondary mt-1">{k.sub}</div>
           </div>
-          <div className="mt-2 text-2xl font-bold text-theme-text-primary">{inr(totalSpent)}</div>
-          <div className="text-xs text-theme-text-secondary mt-1">Across all 8 heads in FY {fy}</div>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4 border border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-theme-text-secondary">Processed Vouchers</span>
-            <div className="p-2 rounded-xl bg-purple-500/15 text-purple-400">
-              <ReceiptText className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-2xl font-bold text-theme-text-primary">{allExpenses.length}</div>
-          <div className="text-xs text-theme-text-secondary mt-1">Bill-backed expense claims</div>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4 border border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-theme-text-secondary">Approved Annual Budget</span>
-            <div className="p-2 rounded-xl bg-blue-500/15 text-blue-700 dark:text-blue-300">
-              <PiggyBank className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-2xl font-bold text-theme-text-primary">
-            {totalAllocated > 0 ? inr(totalAllocated) : 'Not Configured'}
-          </div>
-          <div className="text-xs text-theme-text-secondary mt-1">
-            {totalAllocated > 0
-              ? `${Math.round((totalSpent / totalAllocated) * 100)}% utilized`
-              : 'Configured in Finance Module'}
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4 border border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-theme-text-secondary">Highest Spend Head</span>
-            <div className="p-2 rounded-xl bg-rose-500/15 text-rose-700 dark:text-rose-300">
-              <ArrowUpRight className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-lg font-bold text-theme-text-primary truncate">
-            {highestSpendHead ? getExpenseHeadLabel(highestSpendHead.head) : 'None'}
-          </div>
-          <div className="text-xs text-theme-text-secondary mt-1">
-            {highestSpendHead ? `${inr(highestSpendHead.amount)} incurred` : 'No spend recorded'}
-          </div>
-        </div>
+        ))}
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-theme-border/40" role="tablist">
+        {([['expenses', `Expenses (${allExpenses.length})`], ['income', `Income (${income.length})`]] as [Tab, string][]).map(([k, label]) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={tab === k}
+            onClick={() => setTab(k)}
+            className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px cursor-pointer ${tab === k ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'expenses' && (
+      <>
       {/* Head-wise Expense Incurred Section */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -798,6 +922,75 @@ export default function ExpensesPage() {
           </table>
         </div>
       </div>
+      </>
+      )}
+
+      {tab === 'income' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-xs text-theme-text-secondary max-w-xl">Payments on invoices appear here automatically as <strong>Other Income</strong> once a verifier confirms them, with a link back to the invoice they came from.</p>
+            {canEditIncome && (
+              <button onClick={() => openIncome()} className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer">
+                <Plus className="h-4 w-4" /> Add Income
+              </button>
+            )}
+          </div>
+          <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
+            {sortedIncome.length === 0 ? (
+              <div className="px-4 py-12">
+                <EmptyState icon={TrendingUp} title="No income recorded" description="Sponsorships, grants, donations and verified invoice payments show up here." />
+              </div>
+            ) : (
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20 bg-theme-sidebar/30">
+                    <th className="px-4 py-3">Received</th>
+                    <th className="px-4 py-3">Head</th>
+                    <th className="px-4 py-3">Source</th>
+                    <th className="px-4 py-3 text-right">Amount</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedIncome.map(i => (
+                    <tr key={i.id} className="border-b border-theme-border/10 hover:bg-white/[0.02] align-top">
+                      <td className="px-4 py-3 whitespace-nowrap text-theme-text-secondary">{i.receivedDate || i.createdAt}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold">{INCOME_TYPE_LABEL[i.type || 'other']}</span>
+                      </td>
+                      <td className="px-4 py-3 text-theme-text-primary">
+                        {i.source === 'invoice' ? (
+                          <>
+                            <Link href={`/dashboard/invoices?open=${i.invoiceId}`} className="inline-flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline font-semibold">
+                              Invoice {i.invoiceNumber} <ExternalLink className="h-3 w-3" />
+                            </Link>
+                            <div className="text-xs text-theme-text-secondary">{i.clientName} · {i.paymentMode} · Ref {i.paymentReference}</div>
+                          </>
+                        ) : (
+                          <>{i.name}{i.notes && <div className="text-xs text-theme-text-secondary">{i.notes}</div>}</>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-sm text-emerald-700 dark:text-emerald-300">{inr(i.amount)}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {canEditIncome && i.source !== 'invoice' && (
+                          <>
+                            <button onClick={() => openIncome(i)} className="p-1.5 rounded-lg text-theme-text-secondary hover:text-accent cursor-pointer" aria-label="Edit income"><Edit2 className="h-3.5 w-3.5" /></button>
+                            <button
+                              onClick={async () => { if (await askConfirm(`Delete "${i.name}"?`)) { deleteIncomeSource(i.id, user?.name || 'Admin'); setTick(t => t + 1); } }}
+                              className="p-1.5 rounded-lg text-theme-text-secondary hover:text-danger cursor-pointer"
+                              aria-label="Delete income"
+                            ><Trash2 className="h-3.5 w-3.5" /></button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Record Expense Modal */}
       {expenseModalOpen && (
@@ -1058,6 +1251,73 @@ export default function ExpensesPage() {
             flash(`IDN attached as ① IDN and Amount set to ${inr(total)}. Download the DOCX from the drafter if you need to edit it.`);
           }}
         />
+      )}
+
+      {/* Annual budget modal */}
+      {budgetOpen && (
+        <ModalShell title={`Annual Budget — FY ${fy}`} onClose={() => setBudgetOpen(false)} wide>
+          <form onSubmit={handleSaveBudget} className="space-y-4 text-xs">
+            {budgetError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl">{budgetError}</div>}
+            <div className="space-y-1.5">
+              <label className="block font-medium text-theme-text-secondary">Total Annual Budget (₹) *</label>
+              <input type="number" min={1} value={budgetTotal} onChange={e => setBudgetTotal(e.target.value)} className={`${modalInputCls} font-mono`} placeholder="e.g. 5000000" />
+            </div>
+            <div className="space-y-2">
+              <label className="block font-medium text-theme-text-secondary">Breakup by overhead head</label>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {EXPENSE_HEADS.map((h, idx) => (
+                  <div key={h.key} className="space-y-1">
+                    <label className="block text-xs text-theme-text-secondary">{idx + 1}. {h.label}</label>
+                    <input type="number" min={0} value={budgetAlloc[h.key] || ''} onChange={e => setBudgetAlloc({ ...budgetAlloc, [h.key]: e.target.value })} className={`${modalInputCls} font-mono`} placeholder="0" />
+                  </div>
+                ))}
+              </div>
+              <div className={`flex justify-between rounded-xl px-3 py-2 border ${allocSum > budgetTotalNum + 0.005 ? 'border-danger/40 bg-danger/10 text-danger dark:text-danger-soft' : 'border-theme-card-border text-theme-text-secondary'}`}>
+                <span>Allocated {inr(allocSum)} of {inr(budgetTotalNum)}</span>
+                <span className="font-semibold">{allocSum > budgetTotalNum + 0.005 ? `${inr(allocSum - budgetTotalNum)} over` : `${inr(budgetTotalNum - allocSum)} unallocated`}</span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-medium text-theme-text-secondary">Notes</label>
+              <textarea rows={2} value={budgetNotes} onChange={e => setBudgetNotes(e.target.value)} className={modalInputCls} />
+            </div>
+            <button type="submit" disabled={budgetSaving} className="w-full py-2.5 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl disabled:opacity-60 cursor-pointer">{budgetSaving ? 'Saving…' : 'Save Annual Budget'}</button>
+          </form>
+        </ModalShell>
+      )}
+
+      {/* Income modal */}
+      {incomeOpen && (
+        <ModalShell title={editingIncome ? 'Edit Income' : 'Add Income'} onClose={() => setIncomeOpen(false)}>
+          <form onSubmit={handleSaveIncome} className="space-y-4 text-xs">
+            {incError && <div className="p-3 bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft rounded-xl">{incError}</div>}
+            <div className="space-y-1.5">
+              <label className="block font-medium text-theme-text-secondary">Title *</label>
+              <input type="text" value={incName} onChange={e => setIncName(e.target.value)} className={modalInputCls} placeholder="e.g. TCS Innovation Grant" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="block font-medium text-theme-text-secondary">Amount (₹) *</label>
+                <input type="number" min={0} value={incAmount} onChange={e => setIncAmount(e.target.value)} className={`${modalInputCls} font-mono`} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block font-medium text-theme-text-secondary">Head</label>
+                <select value={incType} onChange={e => setIncType(e.target.value as any)} className={modalInputCls}>
+                  {Object.entries(INCOME_TYPE_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-medium text-theme-text-secondary">Date received</label>
+              <input type="date" value={incDate} onChange={e => setIncDate(e.target.value)} className={modalInputCls} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-medium text-theme-text-secondary">Notes</label>
+              <textarea rows={2} value={incNotes} onChange={e => setIncNotes(e.target.value)} className={modalInputCls} />
+            </div>
+            <button type="submit" className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl cursor-pointer">Save Income</button>
+          </form>
+        </ModalShell>
       )}
 
       {/* Bill Viewer Modal */}

@@ -1,6 +1,6 @@
 import type React from 'react';
 import {
-  LayoutDashboard, Calendar, CheckSquare, Star, Receipt, ReceiptText, DoorOpen, Boxes, FileText, BarChart3,
+  LayoutDashboard, Calendar, CheckSquare, Star, Receipt, DoorOpen, Boxes, FileText, BarChart3,
   Megaphone, Settings, FileCheck2, IdCard, Ticket, Lightbulb, Rocket, Palette, Send, Mail,
   Contact, Wallet, ShieldCheck, Users, Sparkles,
 } from 'lucide-react';
@@ -66,7 +66,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'admin',
     title: 'Admin & Finance',
     items: [
-      { name: 'Finance', href: '/dashboard/budget', icon: Wallet, keywords: 'budget money' },
+      { name: 'Finance', href: '/dashboard/finance', icon: Wallet, keywords: 'budget money expenses bills income idn' },
       { name: 'Invoices', href: '/dashboard/invoices', icon: Receipt, keywords: 'billing payments' },
       { name: 'Users', href: '/dashboard/users', icon: Users, superUserOnly: true, keywords: 'members accounts people' },
       { name: 'Group Policies', href: '/dashboard/policies', icon: ShieldCheck, groupPoliciesOnly: true, keywords: 'permissions access' },
@@ -84,7 +84,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { name: 'Design Portal', href: '/dashboard/designs', icon: Palette },
       { name: 'Visiting Card', href: '/dashboard/visiting-card', icon: IdCard },
       { name: 'Bookings', href: '/dashboard/bookings', icon: DoorOpen, keywords: 'rooms' },
-      { name: 'Expenses', href: '/dashboard/expenses', icon: ReceiptText, staffOnly: true },
       { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes, staffOnly: true },
       { name: 'Guest Directory', href: '/dashboard/guest-directory', icon: Contact },
       { name: 'Mail Broadcaster', href: '/dashboard/broadcaster', icon: Send, superUserOnly: true },

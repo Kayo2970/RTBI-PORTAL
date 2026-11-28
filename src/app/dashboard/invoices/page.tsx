@@ -315,7 +315,7 @@ export default function InvoicesPage() {
           <p className="text-xs text-theme-text-secondary mt-1">Generate invoices, bill incubated startups or saved clients, and record verified payments directly into Finance.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/budget" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5">
+          <Link href="/dashboard/finance" className="px-3.5 py-2 bg-theme-card border border-theme-card-border hover:border-accent text-theme-text-primary font-semibold rounded-xl text-xs flex items-center gap-1.5">
             Finance <ExternalLink className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
           </Link>
           <button
@@ -468,7 +468,7 @@ export default function InvoicesPage() {
                 <div className="text-theme-text-secondary">{inr(open.payment.amount)} via {open.payment.mode} on {open.payment.paidOn} · Ref <span className="font-mono">{open.payment.reference}</span></div>
                 <div className="text-theme-text-secondary">Recorded by {open.payment.recordedBy}{open.verifiedBy && ` · Verified by ${open.verifiedBy} on ${open.verifiedAt}`}</div>
                 {open.payment.proofFiles.map((f, i) => <a key={i} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline mr-3"><Paperclip className="h-3 w-3" />{f.name}</a>)}
-                {open.status === 'Paid' && <div className="pt-1"><Link href="/dashboard/budget" className="text-emerald-700 font-semibold hover:underline">Booked to Finance as Other Income →</Link></div>}
+                {open.status === 'Paid' && <div className="pt-1"><Link href="/dashboard/finance" className="text-emerald-700 font-semibold hover:underline">Booked to Finance as Other Income →</Link></div>}
               </div>
             )}
             {open.rejectedPayments?.map((p, i) => (

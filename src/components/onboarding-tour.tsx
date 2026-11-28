@@ -214,7 +214,7 @@ export function OnboardingTour({ user, isOpen, onClose }: OnboardingTourProps) {
       id: 'budget',
       title: 'Finance, Expenses & Invoices',
       moduleName: 'Finance',
-      href: '/dashboard/budget',
+      href: '/dashboard/finance',
       icon: DollarSign,
       color: 'warning',
       summary: 'The annual budget split across eight overhead heads, bill-backed expenses, and income — including invoice payments once verified.',

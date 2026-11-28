@@ -50,7 +50,6 @@ import {
   canAccessGuestDirectory,
   canBuildForms,
   canManageEmailSettings,
-  canAddExpense,
 } from '@/lib/permissions';
 
 export interface QuickActionDef {
@@ -256,29 +255,16 @@ export const ALL_QUICK_ACTIONS: QuickActionDef[] = [
     defaultPinned: false,
   },
   {
-    id: 'budget',
-    title: 'Budget & Funds',
-    shortDesc: 'Track allocations, grants and spend',
-    category: 'Operations',
-    href: '/dashboard/budget',
-    icon: Wallet,
-    accentColor: 'text-blue-700 dark:text-blue-300',
-    bgColor: 'bg-blue-500/15',
-    borderColor: 'border-blue-500/30',
-    isAllowed: (u) => !!u,
-    defaultPinned: false,
-  },
-  {
     id: 'expenses',
-    title: 'Expense Tracker',
-    shortDesc: 'Record expenses under overhead heads',
+    title: 'Finance',
+    shortDesc: 'Budget, expenses with IDN, and income',
     category: 'Operations',
-    href: '/dashboard/expenses',
-    icon: ReceiptText,
+    href: '/dashboard/finance',
+    icon: Wallet,
     accentColor: 'text-amber-700 dark:text-amber-300',
     bgColor: 'bg-amber-500/15',
     borderColor: 'border-amber-500/30',
-    isAllowed: (u) => canAddExpense(u),
+    isAllowed: (u) => !!u,
     defaultPinned: true,
   },
   {

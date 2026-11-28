@@ -252,7 +252,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <div>
                   <h3 className="text-sm font-bold text-theme-text-primary flex items-center gap-2">
                     Event Expenses
-                    <Link href="/dashboard/budget" className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-0.5">
+                    <Link href="/dashboard/finance" className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold flex items-center gap-0.5">
                       View in Finance &rarr;
                     </Link>
                   </h3>
