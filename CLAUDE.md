@@ -48,3 +48,7 @@ server helpers `*-server.ts`, routes `src/app/api/incubation/*` (+ public intake
 - Ratings page has a "Startup scorecards" tab (`components/incubation/scorecards-panel.tsx`); `record` field type (`refKind`) lets a register point at another (e.g. mentor session -> mentor).
 - Daily digest scheduler: `src/lib/incubation/scheduler.ts` (registered in `instrumentation.ts`); bell + Calendar read `/api/incubation/alerts` and `/api/incubation/calendar`.
 - Never hard-code approvers or fees; use settings. Label forms by name + SOP code, not annexure letter. Committee name is "Project Management Committee".
+
+## Razorpay (invoice payment collection)
+Super User sets Key ID / Key Secret / Webhook Secret in Settings → Integrations (`components/razorpay-settings.tsx`, API `/api/payment-gateway`, collection `razorpaySettings`, encrypted at rest, secrets never returned to the client).
+Flow lives in `src/lib/razorpay-server.ts`: `POST /api/invoices/[id]/razorpay/order` (amount from the server-side invoice) → Checkout in the browser (`lib/razorpay-client.ts`) → `.../verify` checks the HMAC signature, the order belongs to the invoice, then re-fetches the payment from Razorpay (captured, full amount) before `settleInvoiceFromRazorpay` marks it Paid and books income. `/api/payments/razorpay/webhook` (public, signature-authenticated, idempotent) settles payments whose browser never returned. Set `RAZORPAY_API_BASE` to point at a stub when testing offline.

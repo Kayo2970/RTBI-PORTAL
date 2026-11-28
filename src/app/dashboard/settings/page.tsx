@@ -34,6 +34,7 @@ import { FileDropzone, useUploadTask, formatFileSize } from '@/components/ui/fil
 import { ImageCropModal } from '@/components/image-crop-modal';
 import DOMPurify from 'isomorphic-dompurify';
 import { IntegrationsPanel } from '@/components/integrations-panel';
+import { RazorpaySettings } from '@/components/razorpay-settings';
 
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 
@@ -1095,7 +1096,12 @@ export default function SettingsPage() {
       )}
 
       {/* Integrations (Super User only): WalletWallet key + centre socials */}
-      {activeTab === 'integrations' && user?.tier === 1 && <IntegrationsPanel />}
+      {activeTab === 'integrations' && user?.tier === 1 && (
+        <>
+          <IntegrationsPanel />
+          <RazorpaySettings />
+        </>
+      )}
 
       {/* Tab 4: Security & Audit Trail */}
       {activeTab === 'audit' && isSuperAdmin && (

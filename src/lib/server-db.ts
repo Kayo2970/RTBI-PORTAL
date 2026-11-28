@@ -97,6 +97,8 @@ export interface DbSchema {
   // emailSettings' SMTP password) rather than only in env vars so a Super
   // User can paste them in from Settings without a redeploy.
   walletSettings: any[];
+  // Razorpay credentials (single row, id 'default') — Super User only, encrypted at rest like every collection.
+  razorpaySettings: any[];
   // Incubation module (RTBI SOPs). incubationSettings is a single versioned row (id 'default') holding
   // scorecard weights, thresholds, timers, KPI targets and fee schedules — each flagged proposed/approved.
   incubationSettings: any[];
@@ -151,6 +153,7 @@ const EMPTY_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  razorpaySettings: [],
   incubationSettings: [],
   startups: [],
   applications: [],
@@ -220,6 +223,7 @@ const SEED_DB: DbSchema = {
   birthdayEmailLog: [],
   sessions: [],
   walletSettings: [],
+  razorpaySettings: [],
   incubationSettings: [defaultIncubationSettings()],
   startups: [],
   applications: [],

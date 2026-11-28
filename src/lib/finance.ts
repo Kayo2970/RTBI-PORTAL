@@ -72,13 +72,15 @@ export interface InvoiceLine {
 
 export interface InvoicePayment {
   amount: number;
-  mode: 'Bank Transfer' | 'UPI' | 'Cheque' | 'Cash' | 'Other';
-  reference: string; // UTR / cheque number / receipt number
+  mode: 'Bank Transfer' | 'UPI' | 'Cheque' | 'Cash' | 'Other' | 'Razorpay';
+  reference: string; // UTR / cheque number / receipt number (Razorpay: the pay_… payment id)
   paidOn: string; // YYYY-MM-DD
   proofFiles: ReceiptFile[];
   recordedBy: string;
   recordedByEmail: string;
   recordedAt: string;
+  /** Set when the payment was collected online and verified against Razorpay by the server. */
+  gateway?: { provider: 'razorpay'; paymentId: string; orderId: string; method?: string; email?: string; contact?: string };
   rejectionNote?: string; // set (and payment cleared) when a verifier sends it back — kept in history on the invoice
 }
 
@@ -122,6 +124,8 @@ export interface InvoiceItem {
   notes?: string;
   status: InvoiceStatus;
   payment?: InvoicePayment;
+  /** Latest Razorpay order opened for this invoice (checked again when the payment is verified). */
+  gatewayOrder?: { orderId: string; amount: number; createdAt: string };
   /** Payments a verifier sent back, kept as a trail. */
   rejectedPayments?: InvoicePayment[];
   verifiedBy?: string;

@@ -14,6 +14,7 @@ import {
 } from '@/lib/local-data';
 import { computeInvoiceTotals, type ClientRecord } from '@/lib/finance';
 import { canManageInvoices, canVerifyInvoicePayment } from '@/lib/permissions';
+import { getGatewayPublic, payInvoiceOnline } from '@/lib/razorpay-client';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
 import { EmptyState } from '@/components/ui/empty-state';
 import { askConfirm } from '@/components/ui/confirm-dialog';
@@ -272,6 +273,14 @@ export default function InvoicesPage() {
   }, [register, regSearch, regTab]);
 
   // ---- payment ----
+  // ---- online payment (Razorpay) ----
+  const [onlinePay, setOnlinePay] = useState<{ enabled: boolean; mode?: 'live' | 'test' }>({ enabled: false });
+  useEffect(() => { getGatewayPublic().then(g => setOnlinePay({ enabled: g.enabled, mode: g.mode })).catch(() => {}); }, []);
+  const handlePayOnline = (inv: InvoiceItem) => run(async () => {
+    const r = await payInvoiceOnline(inv.id);
+    if (r === 'dismissed') throw new Error('Payment window closed — no payment was taken.');
+  }, 'Payment received and verified. The invoice is Paid and booked to income.');
+
   const openPay = () => {
     if (!open) return;
     setPAmount(String(open.totalAmount)); setPMode('Bank Transfer'); setPRef(''); setPDate(todayIso()); setPFiles([]); setPError(''); setPProgress(0);
@@ -466,6 +475,7 @@ export default function InvoicesPage() {
               <div className="rounded-xl border border-theme-card-border p-3 space-y-1 bg-accent/5">
                 <div className="font-semibold text-theme-text-primary flex items-center gap-1.5"><Banknote className="h-4 w-4 text-accent-strong dark:text-accent-soft" />Payment {open.status === 'Paid' ? 'verified' : 'awaiting verification'}</div>
                 <div className="text-theme-text-secondary">{inr(open.payment.amount)} via {open.payment.mode} on {open.payment.paidOn} · Ref <span className="font-mono">{open.payment.reference}</span></div>
+                {open.payment.gateway && <div className="text-theme-text-secondary">Paid online via Razorpay{open.payment.gateway.method ? ` (${open.payment.gateway.method})` : ''} · order <span className="font-mono">{open.payment.gateway.orderId}</span></div>}
                 <div className="text-theme-text-secondary">Recorded by {open.payment.recordedBy}{open.verifiedBy && ` · Verified by ${open.verifiedBy} on ${open.verifiedAt}`}</div>
                 {open.payment.proofFiles.map((f, i) => <a key={i} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent-strong dark:text-accent-soft hover:underline mr-3"><Paperclip className="h-3 w-3" />{f.name}</a>)}
                 {open.status === 'Paid' && <div className="pt-1"><Link href="/dashboard/finance" className="text-emerald-700 font-semibold hover:underline">Booked to Finance as Other Income →</Link></div>}
@@ -479,6 +489,11 @@ export default function InvoicesPage() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2 pt-1">
+              {open.status === 'Issued' && onlinePay.enabled && (
+                <button disabled={busy} onClick={() => handlePayOnline(open)} className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl flex items-center gap-1.5 disabled:opacity-60 cursor-pointer">
+                  <Banknote className="h-4 w-4" />Pay Online{onlinePay.mode === 'test' ? ' (test mode)' : ''}
+                </button>
+              )}
               {open.status === 'Issued' && canIssue && <button onClick={openPay} className="px-3.5 py-2 bg-accent hover:bg-primary-light text-white font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"><Banknote className="h-4 w-4" />Record Payment</button>}
               {open.status === 'Payment Recorded' && canVerify && !rejecting && (
                 <>
