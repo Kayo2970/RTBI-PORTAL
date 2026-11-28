@@ -70,7 +70,7 @@ const PASS_TYPES: {
   {
     type: 'VIP Pass',
     label: 'VIP Pass',
-    colorClass: 'bg-warning/15 border-warning/40 text-warning',
+    colorClass: 'bg-warning/15 border-warning/40 text-warning dark:text-warning-soft',
     badge: 'VIP ACCESS',
   },
   {
@@ -82,13 +82,13 @@ const PASS_TYPES: {
   {
     type: 'Executive Delegate',
     label: 'Executive Delegate',
-    colorClass: 'bg-accent/15 border-accent/40 text-accent',
+    colorClass: 'bg-accent/15 border-accent/40 text-accent-strong dark:text-accent-soft',
     badge: 'EXECUTIVE',
   },
   {
     type: 'Student Delegate',
     label: 'Student Delegate',
-    colorClass: 'bg-success/15 border-success/40 text-success',
+    colorClass: 'bg-success/15 border-success/40 text-success dark:text-success-soft',
     badge: 'STUDENT DELEGATE',
   },
   {
@@ -100,7 +100,7 @@ const PASS_TYPES: {
   {
     type: 'Press / Media',
     label: 'Press / Media',
-    colorClass: 'bg-danger/15 border-danger/40 text-danger',
+    colorClass: 'bg-danger/15 border-danger/40 text-danger dark:text-danger-soft',
     badge: 'PRESS & MEDIA',
   },
   {
@@ -112,7 +112,7 @@ const PASS_TYPES: {
   {
     type: 'Other',
     label: 'Other / Custom',
-    colorClass: 'bg-success/15 border-success/40 text-success',
+    colorClass: 'bg-success/15 border-success/40 text-success dark:text-success-soft',
     badge: 'CUSTOM PASS',
   },
 ];
@@ -398,9 +398,9 @@ export function EventPassStudio({
       <div className="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-lg">
         <div className="flex items-center gap-2.5">
           <span className="text-xs font-black text-theme-text-primary dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-            <Ticket className="h-4 w-4 text-accent" /> Event Pass Actions
+            <Ticket className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Event Pass Actions
           </span>
-          <span className="text-[10px] text-theme-text-secondary font-medium hidden md:inline">
+          <span className="text-xs text-theme-text-secondary font-medium hidden md:inline">
             • Design single pass, import CSV rosters, or email attendees
           </span>
         </div>
@@ -417,14 +417,14 @@ export function EventPassStudio({
           <button
             type="button"
             onClick={() => setIsBulkModalOpen(true)}
-            className="px-3.5 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/35 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            className="px-3.5 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/35 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
             <Upload className="h-3.5 w-3.5" /> Bulk CSV Import
           </button>
           <button
             type="button"
             onClick={() => setIsEmailModalOpen(true)}
-            className="px-3.5 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/35 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            className="px-3.5 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/35 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
             <Send className="h-3.5 w-3.5" /> Mail-Merge Dispatch
           </button>
@@ -432,9 +432,9 @@ export function EventPassStudio({
       </div>
 
       {successToast && (
-        <div className="flex items-center justify-between p-4 bg-success/15 border border-success/30 rounded-2xl text-success text-xs animate-in fade-in duration-300 shadow-lg shadow-success/10">
+        <div className="flex items-center justify-between p-4 bg-success/15 border border-success/30 rounded-2xl text-success dark:text-success-soft text-xs animate-in fade-in duration-300 shadow-lg shadow-success/10">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+            <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
             <span className="font-semibold">{successToast}</span>
           </div>
           {issuedPass && (
@@ -451,7 +451,7 @@ export function EventPassStudio({
               <button
                 type="button"
                 onClick={handleResetForNext}
-                className="px-3 py-1 bg-success/20 hover:bg-success/30 border border-success/30 text-success text-xs font-bold rounded-lg cursor-pointer transition-all"
+                className="px-3 py-1 bg-success/20 hover:bg-success/30 border border-success/30 text-success dark:text-success-soft text-xs font-bold rounded-lg cursor-pointer transition-all"
               >
                 Issue Next Pass →
               </button>
@@ -465,7 +465,7 @@ export function EventPassStudio({
         <div className="lg:col-span-6 glass-panel rounded-3xl p-6 md:p-8 space-y-6 border border-theme-card-border/90 dark:border-white/15 bg-white/95 dark:bg-[#1D0F3A]/95 shadow-2xl backdrop-blur-2xl">
           <div className="flex items-center justify-between border-b border-theme-card-border/80 dark:border-white/10 pb-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+              <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/30 flex items-center justify-center text-accent-strong dark:text-accent-soft">
                 <Ticket className="h-5 w-5" />
               </div>
               <div>
@@ -477,7 +477,7 @@ export function EventPassStudio({
                 </p>
               </div>
             </div>
-            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-success/15 text-success dark:text-success border border-success/30 flex items-center gap-1">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-success/15 text-success dark:text-success border border-success/30 flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-success/30 animate-ping" />
               Live Sync
             </span>
@@ -495,10 +495,10 @@ export function EventPassStudio({
             {/* 1. Target Event / Occasion Selection */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                   Target Event / Occasion *
                 </label>
-                <div className="flex items-center gap-1 bg-theme-border/80 dark:bg-white/10 p-0.5 rounded-lg text-[10px] font-bold">
+                <div className="flex items-center gap-1 bg-theme-border/80 dark:bg-white/10 p-0.5 rounded-lg text-xs font-bold">
                   <button
                     type="button"
                     onClick={() => setEventMode('existing')}
@@ -563,16 +563,16 @@ export function EventPassStudio({
               )}
 
               {eventMode === 'none' && (
-                <div className="p-2.5 rounded-xl bg-theme-border/15 dark:bg-white/5 border border-theme-card-border dark:border-white/10 text-[11px] text-theme-text-secondary dark:text-theme-text-secondary flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-theme-border/15 dark:bg-white/5 border border-theme-card-border dark:border-white/10 text-xs text-theme-text-secondary dark:text-theme-text-secondary flex items-center justify-between">
                   <span>General All-Access Standalone Credential (No event assigned)</span>
-                  <span className="text-[10px] text-success font-bold uppercase">Generic Pass</span>
+                  <span className="text-xs text-success dark:text-success-soft font-bold uppercase">Generic Pass</span>
                 </div>
               )}
             </div>
 
             {/* 2. Guest / Attendee Name */}
             <div className="space-y-1.5">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                 Guest / Attendee Name *
               </label>
               <div className="relative">
@@ -590,7 +590,7 @@ export function EventPassStudio({
 
             {/* 3. Guest Category Selector */}
             <div className="space-y-1.5">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                 Guest Category *
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -601,7 +601,7 @@ export function EventPassStudio({
                       type="button"
                       key={gc.category}
                       onClick={() => setGuestCategory(gc.category)}
-                      className={`px-2.5 py-2 rounded-xl text-[11px] font-bold transition-all border text-left flex items-center justify-between cursor-pointer ${
+                      className={`px-2.5 py-2 rounded-xl text-xs font-bold transition-all border text-left flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? 'bg-accent text-white border-accent shadow-md shadow-accent/25'
                           : 'bg-theme-border/15 dark:bg-white/5 text-theme-text-primary dark:text-theme-text-secondary border-theme-card-border dark:border-white/10 hover:border-accent/40'
@@ -631,7 +631,7 @@ export function EventPassStudio({
 
             {/* 4. Pass Type / Tier Pills */}
             <div className="space-y-1.5">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                 Pass Type / Access Tier *
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -642,7 +642,7 @@ export function EventPassStudio({
                       type="button"
                       key={pt.type}
                       onClick={() => setPassType(pt.type)}
-                      className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border text-left flex items-center justify-between cursor-pointer ${
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border text-left flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? 'bg-accent text-white border-accent shadow-md shadow-accent/30'
                           : 'bg-theme-border/15 dark:bg-white/5 text-theme-text-primary dark:text-theme-text-secondary border-theme-card-border dark:border-white/10 hover:border-accent/40'
@@ -671,9 +671,9 @@ export function EventPassStudio({
 
             {/* 5. Room / Venue / Hall Allocation */}
             <div className="space-y-1.5">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center justify-between">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs flex items-center justify-between">
                 <span>Room / Venue / Hall Allocation *</span>
-                <span className="text-[10px] text-accent font-semibold lowercase">
+                <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold lowercase">
                   (e.g. Auditorium, VIP Box, Hall A)
                 </span>
               </label>
@@ -694,7 +694,7 @@ export function EventPassStudio({
                     type="button"
                     key={preset}
                     onClick={() => setRoomOrVenue(preset)}
-                    className="text-[10px] px-2 py-0.5 rounded-lg bg-theme-border/15 dark:bg-white/5 hover:bg-accent/15 text-theme-text-secondary dark:text-theme-text-secondary hover:text-accent border border-theme-card-border dark:border-white/10 cursor-pointer transition-colors"
+                    className="text-xs px-2 py-0.5 rounded-lg bg-theme-border/15 dark:bg-white/5 hover:bg-accent/15 text-theme-text-secondary dark:text-theme-text-secondary hover:text-accent border border-theme-card-border dark:border-white/10 cursor-pointer transition-colors"
                   >
                     + {preset}
                   </button>
@@ -705,7 +705,7 @@ export function EventPassStudio({
             {/* 6. Contact Details: Org & Structured Date Selection */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                   Affiliation / Org (Optional)
                 </label>
                 <div className="relative">
@@ -737,8 +737,8 @@ export function EventPassStudio({
             {/* 7. Contact Details: Mobile & Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
-                  Email ID <span className="text-danger">*</span> <span className="normal-case font-semibold text-theme-text-secondary">(the pass is sent here)</span>
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
+                  Email ID <span className="text-danger dark:text-danger-soft">*</span> <span className="normal-case font-semibold text-theme-text-secondary">(the pass is sent here)</span>
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-3 h-4 w-4 text-theme-text-secondary" />
@@ -754,7 +754,7 @@ export function EventPassStudio({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px]">
+                <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs">
                   Mobile / WhatsApp (Optional)
                 </label>
                 <div className="relative">
@@ -772,9 +772,9 @@ export function EventPassStudio({
 
             {/* Pass Header Branding Customization */}
             <div className="space-y-1.5">
-              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-[11px] flex items-center justify-between">
+              <label className="block font-bold text-theme-text-primary dark:text-theme-text-secondary uppercase tracking-wider text-xs flex items-center justify-between">
                 <span>Pass Header Title / Organization</span>
-                <span className="text-[10px] text-accent font-semibold lowercase">(branding)</span>
+                <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold lowercase">(branding)</span>
               </label>
               <input
                 type="text"
@@ -823,7 +823,7 @@ export function EventPassStudio({
               {eventMode === 'existing' && selectedEvent ? (
                 <PassThemeEditor eventId={selectedEvent.id} eventName={selectedEvent.title} onThemeChange={setPassTheme} />
               ) : (
-                <p className="text-[11px] text-theme-text-secondary">Pick an event from the Events module in section 1 to set its artwork and logo.</p>
+                <p className="text-xs text-theme-text-secondary">Pick an event from the Events module in section 1 to set its artwork and logo.</p>
               )}
             </PassSection>
 
@@ -932,7 +932,7 @@ export function EventPassStudio({
 
           {/* VIEW 2: 98% PIXEL-ACCURATE NATIVE APPLE WALLET PREVIEW */}
           {previewMode === 'apple-wallet' && (
-            <div className="flex items-center gap-1 rounded-full border border-white/15 p-0.5 text-[10px] font-bold">
+            <div className="flex items-center gap-1 rounded-full border border-white/15 p-0.5 text-xs font-bold">
               {(['poster', 'classic'] as const).map((m) => (
                 <button
                   key={m}
@@ -1009,10 +1009,10 @@ export function EventPassStudio({
               {/* Status Banner */}
               {emailDispatchStatus && (
                 <div
-                  className={`p-2.5 rounded-xl text-[11px] font-bold flex items-center gap-2 border ${
+                  className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border ${
                     emailDispatchStatus.startsWith('Failed')
-                      ? 'bg-danger/15 border-danger/30 text-danger'
-                      : 'bg-success/15 border-success/30 text-success'
+                      ? 'bg-danger/15 border-danger/30 text-danger dark:text-danger-soft'
+                      : 'bg-success/15 border-success/30 text-success dark:text-success-soft'
                   }`}
                 >
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -1069,7 +1069,7 @@ export function EventPassStudio({
                     setCopiedSerial(true);
                     setTimeout(() => setCopiedSerial(false), 2000);
                   }}
-                  className="py-2.5 px-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-accent/30 cursor-pointer shadow-md"
+                  className="py-2.5 px-3 bg-accent/20 hover:bg-accent/30 text-accent-strong dark:text-accent-soft rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-accent/30 cursor-pointer shadow-md"
                 >
                   <Copy className="h-4 w-4" />
                   {copiedSerial ? 'Copied' : 'Copy ID'}
@@ -1079,13 +1079,13 @@ export function EventPassStudio({
               <button
                 type="button"
                 onClick={handleResetForNext}
-                className="w-full py-2.5 px-4 bg-success/20 hover:bg-success/30 text-success border border-success/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-4 bg-success/20 hover:bg-success/30 text-success dark:text-success-soft border border-success/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 + Issue Another Event Pass
               </button>
             </div>
           ) : (
-            <p className="text-[11px] text-theme-text-secondary text-center max-w-[340px]">
+            <p className="text-xs text-theme-text-secondary text-center max-w-[340px]">
               Tip: switch between the Issued Pass and Apple Wallet views above — both are rendered from the same design you are editing.
             </p>
           )}

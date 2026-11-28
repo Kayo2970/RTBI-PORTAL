@@ -44,6 +44,7 @@ import { EmailBackgroundField, EmailBackgroundPicker, DEFAULT_BACKGROUND_PICK, E
 import { ComposedAttachment, filesToAttachments, formatBytes, buildAttachmentNoticeLine, MAX_TOTAL_ATTACHMENT_BYTES } from '@/lib/email-attachments';
 import { AutomaticEmailsPanel } from '@/components/automatic-emails-panel';
 import { MailComposerBroadcaster } from '@/components/mail-composer-broadcaster';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface PendingQueueItem {
   email: string;
@@ -276,7 +277,7 @@ export default function EmailManagementPage() {
   };
 
   const handleCancelPassSchedule = async (id: string) => {
-    if (!window.confirm('Cancel this scheduled pass email send? Nothing will be emailed for it.')) return;
+    if (!await askConfirm('Cancel this scheduled pass email send? Nothing will be emailed for it.')) return;
     setIsCancellingSchedule(id);
     try {
       const res = await fetch(`/api/pass-email-schedules?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: authHeaders() });
@@ -290,7 +291,7 @@ export default function EmailManagementPage() {
   };
 
   const handleCancelSchedule = async (id: string) => {
-    if (!window.confirm('Cancel this scheduled certificate send? Nothing will be emailed for it.')) return;
+    if (!await askConfirm('Cancel this scheduled certificate send? Nothing will be emailed for it.')) return;
     setIsCancellingSchedule(id);
     try {
       const res = await fetch(`/api/email/certificates?scheduleId=${encodeURIComponent(id)}`, { method: 'DELETE', headers: authHeaders() });
@@ -610,19 +611,19 @@ export default function EmailManagementPage() {
 
   const isSuperUser = user && (user.tier === 1 || user.role === 'Super User' || user.id === 'm1' || user.email?.toLowerCase() === 'kayo2970@gmail.com');
 
-  // Access Guard — Centre Head / Super User, or an explicit Group Policy grant
+  // Access Guard — CEO / Super User, or an explicit Group Policy grant
   const isAuthorized = user && canManageEmailSettings(user);
 
   if (user && !isAuthorized) {
     return (
       <div className="p-8 max-w-2xl mx-auto">
         <div className="glass-panel p-8 rounded-3xl border border-danger/30 text-center space-y-4 shadow-2xl">
-          <div className="h-16 w-16 bg-danger/15 rounded-2xl flex items-center justify-center mx-auto text-danger border border-danger/25">
+          <div className="h-16 w-16 bg-danger/15 rounded-2xl flex items-center justify-center mx-auto text-danger dark:text-danger-soft border border-danger/25">
             <Lock className="h-8 w-8" />
           </div>
-          <h2 className="text-xl font-bold text-theme-text-primary">Centre Head Access Only</h2>
+          <h2 className="text-xl font-bold text-theme-text-primary">CEO Access Only</h2>
           <p className="text-xs text-theme-text-secondary leading-relaxed">
-            The Mailroom Audit Portal handles global SMTP server configurations, outbox delivery logs, dispatch queues, and system transmission histories. Access is strictly restricted to the Centre Head.
+            The Mailroom Audit Portal handles global SMTP server configurations, outbox delivery logs, dispatch queues, and system transmission histories. Access is strictly restricted to the CEO.
           </p>
         </div>
       </div>
@@ -639,7 +640,7 @@ export default function EmailManagementPage() {
             ? 'bg-success/15 border-success/30 text-theme-text-primary' 
             : 'bg-danger/15 border-danger/30 text-theme-text-primary'
         }`}>
-          {toastMsg.type === 'success' ? <CheckCircle2 className="h-5 w-5 text-success shrink-0" /> : <AlertCircle className="h-5 w-5 text-danger shrink-0" />}
+          {toastMsg.type === 'success' ? <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" /> : <AlertCircle className="h-5 w-5 text-danger dark:text-danger-soft shrink-0" />}
           <span>{toastMsg.text}</span>
         </div>
       )}
@@ -648,17 +649,17 @@ export default function EmailManagementPage() {
       <div className="glass-panel p-6 rounded-3xl border border-accent/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-accent/10 via-primary/5 to-transparent">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-accent/15 text-accent border border-accent/20">
+            <div className="p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
               <Mail className="h-5 w-5" />
             </div>
-            <h1 className="text-xl font-bold text-theme-text-primary">Centre Head Operational Mailbox & Audit Desk</h1>
+            <h1 className="text-xl font-bold text-theme-text-primary">CEO Ramaiah TBI Mailbox & Audit Desk</h1>
           </div>
           <p className="text-xs text-theme-text-secondary">
             View outbox dispatch histories, inspect pending email queues, compose broadcasts, and monitor operational delivery.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold px-3 py-1 bg-accent/15 text-accent rounded-xl border border-accent/20 flex items-center gap-1.5">
+          <span className="text-xs font-semibold px-3 py-1 bg-accent/15 text-accent-strong dark:text-accent-soft rounded-xl border border-accent/20 flex items-center gap-1.5">
             <Server className="h-3.5 w-3.5" />
             SMTP Relay: {settings.provider.toUpperCase()}
           </span>
@@ -748,7 +749,7 @@ export default function EmailManagementPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <FileText className="h-4 w-4 text-accent" />
+                <FileText className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Sent Email History & Operational Audit Logs
               </h3>
               <p className="text-xs text-theme-text-secondary">Comprehensive history of every email notification, OTP, task digest, and announcement dispatched.</p>
@@ -766,23 +767,23 @@ export default function EmailManagementPage() {
           {/* Outbox Metrics Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 bg-theme-border/10 rounded-2xl border border-theme-border/20 space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">Total Messages</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary">Total Messages</span>
               <h4 className="text-2xl font-bold text-theme-text-primary">{totalLogs}</h4>
             </div>
 
             <div className="p-4 bg-success/10 rounded-2xl border border-success/20 space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-success">Delivered / Sent</span>
-              <h4 className="text-2xl font-bold text-success">{sentCount}</h4>
+              <span className="text-xs font-bold uppercase tracking-wider text-success dark:text-success-soft">Delivered / Sent</span>
+              <h4 className="text-2xl font-bold text-success dark:text-success-soft">{sentCount}</h4>
             </div>
 
             <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">10m Buffered Queue</span>
-              <h4 className="text-2xl font-bold text-amber-400">{bufferedCount}</h4>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">10m Buffered Queue</span>
+              <h4 className="text-2xl font-bold text-amber-700 dark:text-amber-300">{bufferedCount}</h4>
             </div>
 
             <div className="p-4 bg-danger/10 rounded-2xl border border-danger/20 space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-danger">Delivery Failures</span>
-              <h4 className="text-2xl font-bold text-danger">{failedCount}</h4>
+              <span className="text-xs font-bold uppercase tracking-wider text-danger dark:text-danger-soft">Delivery Failures</span>
+              <h4 className="text-2xl font-bold text-danger dark:text-danger-soft">{failedCount}</h4>
             </div>
           </div>
 
@@ -840,7 +841,7 @@ export default function EmailManagementPage() {
           </div>
 
           {logsError && (
-            <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-danger/30 bg-danger/10 text-xs text-danger">
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-danger/30 bg-danger/10 text-xs text-danger dark:text-danger-soft">
               <span>{logsError}</span>
               <button onClick={() => fetchLogs(filteredLogs.length > 0 && logsHasMore ? true : false)} className="px-3 py-1 rounded-lg bg-danger/20 hover:bg-danger/30 font-bold cursor-pointer shrink-0">Retry</button>
             </div>
@@ -856,7 +857,7 @@ export default function EmailManagementPage() {
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-theme-border/20">
               <table className="w-full text-left text-xs text-theme-text-primary">
-                <thead className="bg-theme-border/15 text-[11px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+                <thead className="bg-theme-border/15 text-xs uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
                   <tr>
                     <th className="p-3.5 font-bold">Status</th>
                     <th className="p-3.5 font-bold">Recipient Email</th>
@@ -870,14 +871,14 @@ export default function EmailManagementPage() {
                   {filteredLogs.map(log => (
                     <tr key={log.id} className="hover:bg-theme-border/10 transition-colors">
                       <td className="p-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
                           log.status === 'SENT' 
-                            ? 'bg-success/15 text-success border border-success/20' 
+                            ? 'bg-success/15 text-success dark:text-success-soft border border-success/20' 
                             : log.status === 'BUFFERED'
-                            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
+                            ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25'
                             : log.status === 'CANCELLED'
                             ? 'bg-theme-border/30 text-theme-text-secondary border border-theme-border/40'
-                            : 'bg-danger/15 text-danger border border-danger/20'
+                            : 'bg-danger/15 text-danger dark:text-danger-soft border border-danger/20'
                         }`}>
                           {log.status === 'BUFFERED' && <Clock className="h-2.5 w-2.5 animate-spin" />}
                           {log.status === 'SENT' ? 'DELIVERED / SENT' : log.status === 'BUFFERED' ? 'BUFFERED (10-MIN HOLD)' : log.status === 'CANCELLED' ? 'CANCELLED' : 'FAILED'}
@@ -886,17 +887,17 @@ export default function EmailManagementPage() {
                       <td className="p-3.5 font-semibold text-theme-text-primary">{log.to}</td>
                       <td className="p-3.5 max-w-xs truncate font-medium">{log.subject}</td>
                       <td className="p-3.5">
-                        <span className="px-2 py-0.5 bg-accent/10 text-accent rounded-md font-mono text-[10px]">
+                        <span className="px-2 py-0.5 bg-accent/10 text-accent-strong dark:text-accent-soft rounded-md font-mono text-xs">
                           {log.category}
                         </span>
                       </td>
-                      <td className="p-3.5 text-theme-text-secondary text-[11px] whitespace-nowrap">
+                      <td className="p-3.5 text-theme-text-secondary text-xs whitespace-nowrap">
                         {new Date(log.sentAt).toLocaleString()}
                       </td>
                       <td className="p-3.5 text-right">
                         <button
                           onClick={() => setSelectedLog(log)}
-                          className="px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent text-[11px] font-bold rounded-lg border border-accent/20 transition-all cursor-pointer"
+                          className="px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft text-xs font-bold rounded-lg border border-accent/20 transition-all cursor-pointer"
                         >
                           Inspect Payload
                         </button>
@@ -915,7 +916,7 @@ export default function EmailManagementPage() {
                 <button
                   onClick={() => fetchLogs(true)}
                   disabled={isLoadingMoreLogs}
-                  className="px-4 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent font-bold rounded-xl border border-accent/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="px-4 py-1.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft font-bold rounded-xl border border-accent/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isLoadingMoreLogs ? 'Loading...' : `Load next ${LOG_PAGE_SIZE}`}
                 </button>
@@ -931,7 +932,7 @@ export default function EmailManagementPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Clock className="h-4 w-4 text-accent" />
+                <Clock className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Active Sending Queues & 10-Minute Buffers
               </h3>
               <p className="text-xs text-theme-text-secondary">
@@ -945,7 +946,7 @@ export default function EmailManagementPage() {
                   <button
                     onClick={() => handleCancelQueue()}
                     disabled={Boolean(isCancellingQueue)}
-                    className="px-3 py-1.5 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                    className="px-3 py-1.5 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 disabled:opacity-50"
                   >
                     <X className="h-3.5 w-3.5" />
                     Cancel All Queues
@@ -974,7 +975,7 @@ export default function EmailManagementPage() {
 
           {/* Universal Buffer Explanatory Notice */}
           <div className="p-4 bg-accent/10 border border-accent/20 rounded-2xl flex items-start gap-3">
-            <Clock className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+            <Clock className="h-5 w-5 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
             <div className="text-xs space-y-1">
               <span className="font-bold text-theme-text-primary block">Universal 10-Minute Quiet Buffer Active</span>
               <p className="text-theme-text-secondary leading-relaxed">
@@ -996,10 +997,10 @@ export default function EmailManagementPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-2">
-                      <Mail className="h-3.5 w-3.5 text-accent" />
+                      <Mail className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                       Buffered Outgoing Emails ({otherBuffered.length})
                     </span>
-                    <span className="text-[11px] text-theme-text-secondary">
+                    <span className="text-xs text-theme-text-secondary">
                       Auto-sending when timer reaches 00m:00s
                     </span>
                   </div>
@@ -1011,17 +1012,17 @@ export default function EmailManagementPage() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-theme-text-primary">{b.to}</span>
-                              <span className="px-2 py-0.5 bg-accent/10 text-accent rounded-md font-mono text-[10px]">
+                              <span className="px-2 py-0.5 bg-accent/10 text-accent-strong dark:text-accent-soft rounded-md font-mono text-xs">
                                 {b.category}
                               </span>
                               {b.hasAttachments && (
-                                <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-md text-[10px] font-semibold flex items-center gap-1">
+                                <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-md text-xs font-semibold flex items-center gap-1">
                                   <Paperclip className="h-3 w-3" /> {b.attachmentCount} Attachment{b.attachmentCount === 1 ? '' : 's'}
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary flex-wrap">
-                              <span className="text-amber-400 font-semibold flex items-center gap-1">
+                            <div className="flex items-center gap-2 text-xs text-theme-text-secondary flex-wrap">
+                              <span className="text-amber-700 dark:text-amber-300 font-semibold flex items-center gap-1">
                                 <Clock className="h-3 w-3 animate-spin" />
                                 {formatCountdown(b.remainingSeconds)}
                               </span>
@@ -1036,7 +1037,7 @@ export default function EmailManagementPage() {
                             <button
                               onClick={() => handleCancelBufferedEmail(b.id)}
                               disabled={isCancellingQueue === b.id}
-                              className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0"
+                              className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0"
                             >
                               <X className="h-3.5 w-3.5" />
                               {isCancellingQueue === b.id ? 'Cancelling...' : 'Cancel Queue'}
@@ -1054,7 +1055,7 @@ export default function EmailManagementPage() {
                         </div>
 
                         <div className="p-3 bg-theme-background/60 rounded-xl border border-theme-border/20 text-xs">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary block mb-1">Subject Line</span>
+                          <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary block mb-1">Subject Line</span>
                           <span className="font-semibold text-theme-text-primary block">{b.subject}</span>
                         </div>
                       </div>
@@ -1068,10 +1069,10 @@ export default function EmailManagementPage() {
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-2">
-                      <FileText className="h-3.5 w-3.5 text-accent" />
+                      <FileText className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                       Task Assignment Digest Queues ({pendingQueues.length})
                     </span>
-                    <span className="text-[11px] text-theme-text-secondary">
+                    <span className="text-xs text-theme-text-secondary">
                       Aggregating multiple tasks into single student digests
                     </span>
                   </div>
@@ -1083,9 +1084,9 @@ export default function EmailManagementPage() {
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-sm text-theme-text-primary">{q.assigneeName}</span>
-                              <span className="text-xs text-accent font-mono">({q.email})</span>
+                              <span className="text-xs text-accent-strong dark:text-accent-soft font-mono">({q.email})</span>
                             </div>
-                            <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1 mt-1">
+                            <span className="text-xs text-amber-700 dark:text-amber-300 font-semibold flex items-center gap-1 mt-1">
                               <Clock className="h-3 w-3" /> 10-Minute Buffer Active ({q.taskCount} queued task notifications)
                             </span>
                           </div>
@@ -1094,7 +1095,7 @@ export default function EmailManagementPage() {
                             <button
                               onClick={() => handleCancelQueue(q.email)}
                               disabled={isCancellingQueue === q.email}
-                              className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0"
+                              className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0"
                             >
                               <X className="h-3.5 w-3.5" />
                               {isCancellingQueue === q.email ? 'Cancelling...' : 'Cancel Queue'}
@@ -1112,12 +1113,12 @@ export default function EmailManagementPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <span className="text-[11px] font-bold text-theme-text-secondary block">Queued Tasks in Digest Payload:</span>
+                          <span className="text-xs font-bold text-theme-text-secondary block">Queued Tasks in Digest Payload:</span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {q.tasks.map(t => (
                               <div key={t.id} className="p-2.5 bg-theme-background/60 rounded-xl border border-theme-border/20 text-xs">
                                 <span className="font-bold text-theme-text-primary block">{t.title}</span>
-                                <span className="text-[10px] text-theme-text-secondary block">Context: {t.event || 'RTBI Operations'} &middot; Due: {t.dueDate}</span>
+                                <span className="text-xs text-theme-text-secondary block">Context: {t.event || 'RTBI Operations'} &middot; Due: {t.dueDate}</span>
                               </div>
                             ))}
                           </div>
@@ -1138,7 +1139,7 @@ export default function EmailManagementPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Award className="h-4 w-4 text-accent" />
+                <Award className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Scheduled Certificates & Their 10-Minute Buffer
               </h3>
               <p className="text-xs text-theme-text-secondary">Every certificate send scheduled from the Certificates tab, across all events, plus the certificate emails now waiting to go out.</p>
@@ -1146,7 +1147,7 @@ export default function EmailManagementPage() {
             <div className="flex items-center gap-2 shrink-0 flex-wrap">
               {certBuffered.length > 0 && (
                 <>
-                  <button onClick={() => handleCertBulk('cancel')} disabled={Boolean(isFlushingQueue)} className="px-3 py-1.5 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
+                  <button onClick={() => handleCertBulk('cancel')} disabled={Boolean(isFlushingQueue)} className="px-3 py-1.5 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
                     <X className="h-3.5 w-3.5" /> Cancel All Certificate Emails
                   </button>
                   <button onClick={() => handleCertBulk('flush')} disabled={Boolean(isFlushingQueue)} className="px-3 py-1.5 bg-accent hover:bg-primary-light text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-accent/20 cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
@@ -1161,7 +1162,7 @@ export default function EmailManagementPage() {
           </div>
 
           <div className="p-4 bg-accent/10 border border-accent/20 rounded-2xl flex items-start gap-3">
-            <Clock className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+            <Clock className="h-5 w-5 text-accent-strong dark:text-accent-soft shrink-0 mt-0.5" />
             <div className="text-xs space-y-1">
               <span className="font-bold text-theme-text-primary block">Universal 10-Minute Quiet Buffer Applies</span>
               <p className="text-theme-text-secondary leading-relaxed">
@@ -1174,9 +1175,9 @@ export default function EmailManagementPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-2">
-                <CalendarClock className="h-3.5 w-3.5 text-accent" /> Scheduled Sends ({certSchedules.length})
+                <CalendarClock className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Scheduled Sends ({certSchedules.length})
               </span>
-              <span className="text-[11px] text-theme-text-secondary">Upcoming first, then recent history</span>
+              <span className="text-xs text-theme-text-secondary">Upcoming first, then recent history</span>
             </div>
             {certSchedules.length === 0 ? (
               <EmptyState icon={CalendarClock} title="No scheduled certificates" description="Schedule a send from Event Passes → Certificates and it will appear here." />
@@ -1184,28 +1185,28 @@ export default function EmailManagementPage() {
               <div className="space-y-3">
                 {certSchedules.map(s => {
                   const active = s.status === 'Scheduled' || s.status === 'Running';
-                  const tone = s.status === 'Done' ? 'bg-success/15 text-success border-success/30' : s.status === 'Failed' ? 'bg-danger/15 text-danger border-danger/30' : s.status === 'Cancelled' ? 'bg-theme-border/20 text-theme-text-secondary border-theme-border/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+                  const tone = s.status === 'Done' ? 'bg-success/15 text-success dark:text-success-soft border-success/30' : s.status === 'Failed' ? 'bg-danger/15 text-danger dark:text-danger-soft border-danger/30' : s.status === 'Cancelled' ? 'bg-theme-border/20 text-theme-text-secondary border-theme-border/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30';
                   return (
                     <div key={s.id} className="p-4 bg-theme-background/30 border border-theme-card-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-sm text-theme-text-primary truncate">{s.eventTitle}</span>
-                          <span className="px-2 py-0.5 bg-accent/10 text-accent rounded-md text-[10px] font-semibold">{s.typeName}</span>
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${tone}`}>{s.status === 'Running' ? 'Sending…' : s.status}</span>
+                          <span className="px-2 py-0.5 bg-accent/10 text-accent-strong dark:text-accent-soft rounded-md text-xs font-semibold">{s.typeName}</span>
+                          <span className={`px-2 py-0.5 rounded-md text-xs font-bold border ${tone}`}>{s.status === 'Running' ? 'Sending…' : s.status}</span>
                         </div>
-                        <div className="flex items-center gap-x-2 gap-y-0.5 text-[11px] text-theme-text-secondary flex-wrap">
+                        <div className="flex items-center gap-x-2 gap-y-0.5 text-xs text-theme-text-secondary flex-wrap">
                           <span>{s.recipients} certificate{s.recipients === 1 ? '' : 's'}</span><span>&middot;</span>
                           <span>Scheduled for {new Date(s.sendAt).toLocaleString()}</span><span>&middot;</span>
                           <span>by {s.createdBy}</span>
                         </div>
-                        <div className="text-[11px] flex items-center gap-x-2 flex-wrap">
-                          {active && <span className="text-amber-400 font-semibold">Delivered about {new Date(s.deliverAfter).toLocaleString()} (after the 10-minute buffer)</span>}
+                        <div className="text-xs flex items-center gap-x-2 flex-wrap">
+                          {active && <span className="text-amber-700 dark:text-amber-300 font-semibold">Delivered about {new Date(s.deliverAfter).toLocaleString()} (after the 10-minute buffer)</span>}
                           {s.status === 'Done' && <span className="text-theme-text-secondary">{s.sent} queued{s.failed ? `, ${s.failed} failed` : ''} · released {s.finishedAt ? new Date(s.finishedAt).toLocaleString() : ''} · final delivery about {new Date(s.deliverAfter).toLocaleTimeString()}</span>}
-                          {s.status === 'Failed' && <span className="text-danger">{s.error || 'The scheduled send failed.'}</span>}
+                          {s.status === 'Failed' && <span className="text-danger dark:text-danger-soft">{s.error || 'The scheduled send failed.'}</span>}
                         </div>
                       </div>
                       {s.status === 'Scheduled' && (
-                        <button onClick={() => handleCancelSchedule(s.id)} disabled={isCancellingSchedule === s.id} className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0">
+                        <button onClick={() => handleCancelSchedule(s.id)} disabled={isCancellingSchedule === s.id} className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0">
                           <X className="h-3.5 w-3.5" /> {isCancellingSchedule === s.id ? 'Cancelling...' : 'Cancel Send'}
                         </button>
                       )}
@@ -1220,33 +1221,33 @@ export default function EmailManagementPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-2">
-                <CalendarClock className="h-3.5 w-3.5 text-accent" /> Scheduled Pass Emails ({passSchedules.length})
+                <CalendarClock className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Scheduled Pass Emails ({passSchedules.length})
               </span>
-              <span className="text-[11px] text-theme-text-secondary">Sent by the server at the chosen time, then held 10 minutes like every email</span>
+              <span className="text-xs text-theme-text-secondary">Sent by the server at the chosen time, then held 10 minutes like every email</span>
             </div>
             {passSchedules.length === 0 ? (
               <EmptyState icon={CalendarClock} title="No scheduled pass emails" description="In Event Passes, select passes → Preview & dispatch → Schedule, and the batch appears here." />
             ) : (
               <div className="space-y-3">
                 {passSchedules.map(s => {
-                  const tone = s.status === 'Done' ? 'bg-success/15 text-success border-success/30' : s.status === 'Failed' ? 'bg-danger/15 text-danger border-danger/30' : s.status === 'Cancelled' ? 'bg-theme-border/20 text-theme-text-secondary border-theme-border/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+                  const tone = s.status === 'Done' ? 'bg-success/15 text-success dark:text-success-soft border-success/30' : s.status === 'Failed' ? 'bg-danger/15 text-danger dark:text-danger-soft border-danger/30' : s.status === 'Cancelled' ? 'bg-theme-border/20 text-theme-text-secondary border-theme-border/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30';
                   return (
                     <div key={s.id} className="p-4 bg-theme-background/30 border border-theme-card-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-sm text-theme-text-primary truncate">{s.eventNames.join(', ') || 'Event passes'}</span>
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${tone}`}>{s.status === 'Running' ? 'Sending…' : s.status}</span>
+                          <span className={`px-2 py-0.5 rounded-md text-xs font-bold border ${tone}`}>{s.status === 'Running' ? 'Sending…' : s.status}</span>
                         </div>
-                        <div className="flex items-center gap-x-2 gap-y-0.5 text-[11px] text-theme-text-secondary flex-wrap">
+                        <div className="flex items-center gap-x-2 gap-y-0.5 text-xs text-theme-text-secondary flex-wrap">
                           <span>{s.count} pass email{s.count === 1 ? '' : 's'}</span><span>&middot;</span>
                           <span>Scheduled for {new Date(s.sendAt).toLocaleString()}</span><span>&middot;</span>
                           <span>by {s.createdBy}</span>
                         </div>
-                        {s.status === 'Done' && <div className="text-[11px] text-theme-text-secondary">{s.sent} queued{s.failed ? `, ${s.failed} failed` : ''}{s.skipped ? `, ${s.skipped} skipped (pass deleted, cancelled or awaiting approval)` : ''}{s.finishedAt ? ` · released ${new Date(s.finishedAt).toLocaleString()}` : ''}</div>}
-                        {s.status === 'Failed' && <div className="text-[11px] text-danger">{s.error || 'The scheduled send failed.'}</div>}
+                        {s.status === 'Done' && <div className="text-xs text-theme-text-secondary">{s.sent} queued{s.failed ? `, ${s.failed} failed` : ''}{s.skipped ? `, ${s.skipped} skipped (pass deleted, cancelled or awaiting approval)` : ''}{s.finishedAt ? ` · released ${new Date(s.finishedAt).toLocaleString()}` : ''}</div>}
+                        {s.status === 'Failed' && <div className="text-xs text-danger dark:text-danger-soft">{s.error || 'The scheduled send failed.'}</div>}
                       </div>
                       {s.status === 'Scheduled' && (
-                        <button onClick={() => handleCancelPassSchedule(s.id)} disabled={isCancellingSchedule === s.id} className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0">
+                        <button onClick={() => handleCancelPassSchedule(s.id)} disabled={isCancellingSchedule === s.id} className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0">
                           <X className="h-3.5 w-3.5" /> {isCancellingSchedule === s.id ? 'Cancelling...' : 'Cancel Send'}
                         </button>
                       )}
@@ -1261,9 +1262,9 @@ export default function EmailManagementPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-2">
-                <Mail className="h-3.5 w-3.5 text-accent" /> Certificate Emails in the 10-Minute Buffer ({certBuffered.length})
+                <Mail className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Certificate Emails in the 10-Minute Buffer ({certBuffered.length})
               </span>
-              <span className="text-[11px] text-theme-text-secondary">Auto-sending when timer reaches 00m:00s</span>
+              <span className="text-xs text-theme-text-secondary">Auto-sending when timer reaches 00m:00s</span>
             </div>
             {certBuffered.length === 0 ? (
               <EmptyState icon={CheckCircle2} title="No certificate emails waiting" description="Certificate emails appear here for 10 minutes after they are sent or released from a schedule, before SMTP handoff." />
@@ -1276,18 +1277,18 @@ export default function EmailManagementPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-sm text-theme-text-primary">{b.to}</span>
                           {b.hasAttachments && (
-                            <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-md text-[10px] font-semibold flex items-center gap-1"><Paperclip className="h-3 w-3" /> Certificate PDF attached</span>
+                            <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-md text-xs font-semibold flex items-center gap-1"><Paperclip className="h-3 w-3" /> Certificate PDF attached</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] text-theme-text-secondary flex-wrap">
-                          <span className="text-amber-400 font-semibold flex items-center gap-1"><Clock className="h-3 w-3 animate-spin" />{formatCountdown(b.remainingSeconds)}</span>
+                        <div className="flex items-center gap-2 text-xs text-theme-text-secondary flex-wrap">
+                          <span className="text-amber-700 dark:text-amber-300 font-semibold flex items-center gap-1"><Clock className="h-3 w-3 animate-spin" />{formatCountdown(b.remainingSeconds)}</span>
                           <span>&middot;</span><span>Queued: {new Date(b.queuedAt).toLocaleTimeString()}</span>
                           <span>&middot;</span><span>Dispatch at: {new Date(b.bufferedUntil).toLocaleTimeString()}</span>
                         </div>
                         <span className="text-xs text-theme-text-primary font-semibold block truncate">{b.subject}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={() => handleCancelBufferedEmail(b.id)} disabled={isCancellingQueue === b.id} className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1">
+                        <button onClick={() => handleCancelBufferedEmail(b.id)} disabled={isCancellingQueue === b.id} className="px-3 py-2 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1">
                           <X className="h-3.5 w-3.5" /> {isCancellingQueue === b.id ? 'Cancelling...' : 'Cancel'}
                         </button>
                         <button onClick={() => handleFlushBufferedEmail(b.id)} disabled={isFlushingQueue === b.id} className="px-4 py-2 bg-accent hover:bg-primary-light text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-accent/20 cursor-pointer disabled:opacity-50 flex items-center gap-1.5">
@@ -1329,7 +1330,7 @@ export default function EmailManagementPage() {
           <div className="glass-panel p-6 rounded-3xl xl:col-span-2 space-y-6 border border-theme-card-border">
             <div>
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Key className="h-4 w-4 text-accent" />
+                <Key className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 SMTP Mail Relay Credentials
               </h3>
               <p className="text-xs text-theme-text-secondary mt-0.5">
@@ -1344,7 +1345,7 @@ export default function EmailManagementPage() {
                 onClick={() => handleSelectProvider('gmail')}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   settings.provider === 'gmail'
-                    ? 'bg-accent/15 border-accent text-accent shadow-md shadow-accent/10'
+                    ? 'bg-accent/15 border-accent text-accent-strong dark:text-accent-soft shadow-md shadow-accent/10'
                     : 'bg-theme-border/10 border-theme-border/30 hover:border-theme-border/60 text-theme-text-primary'
                 }`}
               >
@@ -1354,7 +1355,7 @@ export default function EmailManagementPage() {
                 </div>
                 <div>
                   <span className="font-bold text-xs block mt-2">Gmail / Workspace</span>
-                  <span className="text-[10px] opacity-75">smtp.gmail.com:587</span>
+                  <span className="text-xs opacity-75">smtp.gmail.com:587</span>
                 </div>
               </button>
 
@@ -1363,7 +1364,7 @@ export default function EmailManagementPage() {
                 onClick={() => handleSelectProvider('outlook')}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   settings.provider === 'outlook'
-                    ? 'bg-accent/15 border-accent text-accent shadow-md shadow-accent/10'
+                    ? 'bg-accent/15 border-accent text-accent-strong dark:text-accent-soft shadow-md shadow-accent/10'
                     : 'bg-theme-border/10 border-theme-border/30 hover:border-theme-border/60 text-theme-text-primary'
                 }`}
               >
@@ -1373,7 +1374,7 @@ export default function EmailManagementPage() {
                 </div>
                 <div>
                   <span className="font-bold text-xs block mt-2">Outlook 365</span>
-                  <span className="text-[10px] opacity-75">smtp.office365.com:587</span>
+                  <span className="text-xs opacity-75">smtp.office365.com:587</span>
                 </div>
               </button>
 
@@ -1382,7 +1383,7 @@ export default function EmailManagementPage() {
                 onClick={() => handleSelectProvider('custom')}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   settings.provider === 'custom'
-                    ? 'bg-accent/15 border-accent text-accent shadow-md shadow-accent/10'
+                    ? 'bg-accent/15 border-accent text-accent-strong dark:text-accent-soft shadow-md shadow-accent/10'
                     : 'bg-theme-border/10 border-theme-border/30 hover:border-theme-border/60 text-theme-text-primary'
                 }`}
               >
@@ -1392,7 +1393,7 @@ export default function EmailManagementPage() {
                 </div>
                 <div>
                   <span className="font-bold text-xs block mt-2">Custom SMTP</span>
-                  <span className="text-[10px] opacity-75">Host & Port Defined</span>
+                  <span className="text-xs opacity-75">Host & Port Defined</span>
                 </div>
               </button>
 
@@ -1401,7 +1402,7 @@ export default function EmailManagementPage() {
                 onClick={() => handleSelectProvider('local_postfix')}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   settings.provider === 'local_postfix'
-                    ? 'bg-accent/15 border-accent text-accent shadow-md shadow-accent/10'
+                    ? 'bg-accent/15 border-accent text-accent-strong dark:text-accent-soft shadow-md shadow-accent/10'
                     : 'bg-theme-border/10 border-theme-border/30 hover:border-theme-border/60 text-theme-text-primary'
                 }`}
               >
@@ -1411,7 +1412,7 @@ export default function EmailManagementPage() {
                 </div>
                 <div>
                   <span className="font-bold text-xs block mt-2">Local Postfix</span>
-                  <span className="text-[10px] opacity-75">localhost:25</span>
+                  <span className="text-xs opacity-75">localhost:25</span>
                 </div>
               </button>
 
@@ -1420,7 +1421,7 @@ export default function EmailManagementPage() {
                 onClick={() => handleSelectProvider('direct_send')}
                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   settings.provider === 'direct_send'
-                    ? 'bg-accent/15 border-accent text-accent shadow-md shadow-accent/10'
+                    ? 'bg-accent/15 border-accent text-accent-strong dark:text-accent-soft shadow-md shadow-accent/10'
                     : 'bg-theme-border/10 border-theme-border/30 hover:border-theme-border/60 text-theme-text-primary'
                 }`}
               >
@@ -1430,7 +1431,7 @@ export default function EmailManagementPage() {
                 </div>
                 <div>
                   <span className="font-bold text-xs block mt-2">Direct Send (Built-in)</span>
-                  <span className="text-[10px] opacity-75">No relay — MX direct</span>
+                  <span className="text-xs opacity-75">No relay — MX direct</span>
                 </div>
               </button>
             </div>
@@ -1448,9 +1449,9 @@ export default function EmailManagementPage() {
             >
               {settings.provider === 'direct_send' ? (
                 <div className="space-y-3">
-                  <div className="p-4 bg-accent/10 rounded-2xl border border-accent/20 space-y-2 text-[11px] text-theme-text-secondary leading-relaxed">
+                  <div className="p-4 bg-accent/10 rounded-2xl border border-accent/20 space-y-2 text-xs text-theme-text-secondary leading-relaxed">
                     <span className="font-bold text-theme-text-primary flex items-center gap-1.5">
-                      <Rocket className="h-3.5 w-3.5 text-accent" />
+                      <Rocket className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                       Built-in Direct Send
                     </span>
                     <p>The app itself resolves each recipient&apos;s mail server (MX record) and delivers straight to it — no Gmail/Outlook relay, no Postfix, nothing in between.</p>
@@ -1465,7 +1466,7 @@ export default function EmailManagementPage() {
                       placeholder="e.g. mail.rtbi.ac.in"
                       className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                     />
-                    <p className="text-[11px] text-theme-text-secondary">Must match the PTR (reverse-DNS) record on this VPS&apos;s outbound IP, or most receiving mail servers will reject the connection outright.</p>
+                    <p className="text-xs text-theme-text-secondary">Must match the PTR (reverse-DNS) record on this VPS&apos;s outbound IP, or most receiving mail servers will reject the connection outright.</p>
                   </div>
                 </div>
               ) : (
@@ -1530,7 +1531,7 @@ export default function EmailManagementPage() {
                   </div>
 
                   {settings.provider === 'outlook' && (
-                    <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/25 space-y-1.5 text-[11px] text-theme-text-secondary leading-relaxed">
+                    <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/25 space-y-1.5 text-xs text-theme-text-secondary leading-relaxed">
                       <span className="font-bold text-theme-text-primary flex items-center gap-1.5">
                         <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
                         Company email + password not connecting?
@@ -1588,7 +1589,7 @@ export default function EmailManagementPage() {
 
                 {showDkimSection && (
                   <div className="mt-3 space-y-4">
-                    <p className="text-[11px] text-theme-text-secondary leading-relaxed">
+                    <p className="text-xs text-theme-text-secondary leading-relaxed">
                       Optional — Nodemailer signs the message itself before handing it off, independent of the provider above. Requires the matching public key published as a DNS TXT record at <code className="bg-theme-background/40 px-1 py-0.5 rounded">&lt;dkimSelector&gt;._domainkey.&lt;dkimDomain&gt;</code>. Signing is skipped entirely unless all three fields below are filled in.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1620,7 +1621,7 @@ export default function EmailManagementPage() {
                         onChange={e => setSettings(prev => ({ ...prev, dkimPrivateKey: e.target.value }))}
                         placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
                         rows={6}
-                        className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono text-[11px] leading-relaxed"
+                        className="w-full px-4 py-2.5 bg-theme-background/40 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent font-mono text-xs leading-relaxed"
                       />
                     </div>
                   </div>
@@ -1629,7 +1630,7 @@ export default function EmailManagementPage() {
               )}
 
               <div className="flex items-center justify-between pt-4 border-t border-theme-border/20">
-                <span className="text-[11px] text-theme-text-secondary">
+                <span className="text-xs text-theme-text-secondary">
                   Last updated: {settings.updatedAt ? new Date(settings.updatedAt).toLocaleString() : 'Not configured'}
                 </span>
                 <button
@@ -1647,7 +1648,7 @@ export default function EmailManagementPage() {
           <div className="glass-panel p-6 rounded-3xl space-y-5 border border-theme-card-border flex flex-col justify-between">
             <div className="space-y-4">
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
+                <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Connection Diagnostics & Test
               </h3>
               <p className="text-xs text-theme-text-secondary leading-relaxed">
@@ -1669,7 +1670,7 @@ export default function EmailManagementPage() {
                 type="button"
                 onClick={handleTestConnection}
                 disabled={isTestingSmtp}
-                className="w-full py-2.5 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/20 font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 text-xs disabled:opacity-50"
+                className="w-full py-2.5 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/20 font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 text-xs disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 ${isTestingSmtp ? 'animate-spin' : ''}`} />
                 {isTestingSmtp ? 'Verifying SMTP Server...' : 'Test Connection & Send Email'}
@@ -1683,13 +1684,13 @@ export default function EmailManagementPage() {
                 }`}>
                   <div className="flex items-center gap-2 font-bold">
                     {testResult.success ? (
-                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-success dark:text-success-soft shrink-0" />
                     ) : (
-                      <ShieldAlert className="h-4 w-4 text-danger shrink-0" />
+                      <ShieldAlert className="h-4 w-4 text-danger dark:text-danger-soft shrink-0" />
                     )}
                     <span>{testResult.success ? 'SMTP Handshake Verified' : 'SMTP Handshake Error'}</span>
                   </div>
-                  <p className="text-[11px] leading-relaxed opacity-90">{testResult.message}</p>
+                  <p className="text-xs leading-relaxed opacity-90">{testResult.message}</p>
                 </div>
               )}
             </div>
@@ -1698,13 +1699,13 @@ export default function EmailManagementPage() {
           <div className="glass-panel p-6 rounded-3xl xl:col-span-3 space-y-4 border border-theme-card-border">
             <div>
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent" />
+                <Sparkles className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Email Background (blurred picture)
               </h3>
               <p className="text-xs text-theme-text-secondary mt-0.5">
                 A picture shown, blurred, behind every email the system sends: certificates, event passes, guest invites, announcements and the Email composer. Any send can turn it off or use a different picture.
               </p>
-              <p className="text-[11px] text-theme-text-secondary mt-1">
+              <p className="text-xs text-theme-text-secondary mt-1">
                 Emails load their background from this server when they are opened, so the blurred picture is kept for 90 days after the last email that used it, then shrunk to a very small blurred version, and removed after 180 days — older emails then simply show the plain light background. Sending with the picture again rebuilds it.
               </p>
             </div>
@@ -1758,16 +1759,16 @@ export default function EmailManagementPage() {
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-4 bg-theme-border/10 p-3.5 rounded-2xl border border-theme-border/20">
                 <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium">Recipient Address:</span>
+                  <span className="text-xs text-theme-text-secondary block font-medium">Recipient Address:</span>
                   <span className="font-bold text-theme-text-primary">{selectedLog.to}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium">Delivery Status:</span>
+                  <span className="text-xs text-theme-text-secondary block font-medium">Delivery Status:</span>
                   <span className={`font-bold ${
-                    selectedLog.status === 'SENT' ? 'text-success' :
+                    selectedLog.status === 'SENT' ? 'text-success dark:text-success-soft' :
                     selectedLog.status === 'BUFFERED' ? 'text-amber-500' :
                     selectedLog.status === 'CANCELLED' ? 'text-theme-text-secondary line-through' :
-                    'text-danger'
+                    'text-danger dark:text-danger-soft'
                   }`}>
                     {selectedLog.status === 'SENT' ? 'SENT / DELIVERED' :
                      selectedLog.status === 'BUFFERED' ? 'BUFFERED (10-MIN QUIET HOLD)' :
@@ -1775,11 +1776,11 @@ export default function EmailManagementPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium">Category:</span>
-                  <span className="font-semibold text-accent">{selectedLog.category}</span>
+                  <span className="text-xs text-theme-text-secondary block font-medium">Category:</span>
+                  <span className="font-semibold text-accent-strong dark:text-accent-soft">{selectedLog.category}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-theme-text-secondary block font-medium">
+                  <span className="text-xs text-theme-text-secondary block font-medium">
                     {selectedLog.status === 'BUFFERED' ? 'Queued At:' : 'Dispatched At:'}
                   </span>
                   <span className="font-mono text-theme-text-primary">{new Date(selectedLog.sentAt).toLocaleString()}</span>
@@ -1794,7 +1795,7 @@ export default function EmailManagementPage() {
                       <span className="text-xs font-bold text-amber-500 block">
                         Held in 10-Minute Quiet Buffer
                       </span>
-                      <span className="text-[10px] text-theme-text-secondary">
+                      <span className="text-xs text-theme-text-secondary">
                         {selectedLog.bufferedUntil
                           ? `Scheduled for automatic dispatch at ${new Date(selectedLog.bufferedUntil).toLocaleTimeString()}`
                           : 'Waiting in buffer queue before SMTP dispatch'}
@@ -1806,7 +1807,7 @@ export default function EmailManagementPage() {
                       type="button"
                       onClick={() => handleCancelBufferedEmail(selectedLog.id)}
                       disabled={isCancellingQueue === selectedLog.id}
-                      className="px-3 py-1.5 bg-danger/15 hover:bg-danger/25 text-danger border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                      className="px-3 py-1.5 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft border border-danger/30 text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
                     >
                       <X className="h-3.5 w-3.5" />
                       {isCancellingQueue === selectedLog.id ? 'Cancelling...' : 'Cancel Send'}
@@ -1826,15 +1827,15 @@ export default function EmailManagementPage() {
 
               <div>
                 <span className="font-bold text-theme-text-primary block mb-1">Subject:</span>
-                <div className="p-2.5 bg-theme-background/50 rounded-xl border border-theme-border/20 font-semibold text-accent">
+                <div className="p-2.5 bg-theme-background/50 rounded-xl border border-theme-border/20 font-semibold text-accent-strong dark:text-accent-soft">
                   {selectedLog.subject}
                 </div>
               </div>
 
               {selectedLog.errorMessage && (
                 <div>
-                  <span className="font-bold text-danger block mb-1">Error Traceback:</span>
-                  <div className="p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-danger font-mono text-[11px] whitespace-pre-wrap">
+                  <span className="font-bold text-danger dark:text-danger-soft block mb-1">Error Traceback:</span>
+                  <div className="p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-danger dark:text-danger-soft font-mono text-xs whitespace-pre-wrap">
                     {selectedLog.errorMessage}
                   </div>
                 </div>
@@ -1842,7 +1843,7 @@ export default function EmailManagementPage() {
               {selectedLog.smtpResponse && (
                 <div>
                   <span className="font-bold text-theme-text-primary block mb-1">SMTP Server Handshake Response:</span>
-                  <div className="p-2.5 bg-theme-background/50 rounded-xl border border-theme-border/20 font-mono text-[11px] text-theme-text-secondary">
+                  <div className="p-2.5 bg-theme-background/50 rounded-xl border border-theme-border/20 font-mono text-xs text-theme-text-secondary">
                     {selectedLog.smtpResponse}
                   </div>
                 </div>
@@ -1850,7 +1851,7 @@ export default function EmailManagementPage() {
 
               <div>
                 <span className="font-bold text-theme-text-primary block mb-1">Dispatched Body Content:</span>
-                <div className="p-3 bg-slate-900 text-slate-200 rounded-xl border border-slate-800 font-mono text-[11px] max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                <div className="p-3 bg-slate-900 text-slate-200 rounded-xl border border-slate-800 font-mono text-xs max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
                   {selectedLog.bodyText}
                 </div>
               </div>
@@ -1869,7 +1870,7 @@ export default function EmailManagementPage() {
                   setActiveTab('composer');
                   triggerToast('success', `Pre-filled composer with message payload for ${selectedLog.to}`);
                 }}
-                className="px-4 py-2 bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all"
+                className="px-4 py-2 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft border border-accent/30 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 Reuse Payload in Composer

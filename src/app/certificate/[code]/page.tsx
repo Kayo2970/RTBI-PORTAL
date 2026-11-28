@@ -32,14 +32,14 @@ export default function VerifyCertificatePage({ params }: { params: Promise<{ co
         {state === 'loading' && <p className="text-theme-text-secondary text-sm">Checking certificate…</p>}
         {state === 'missing' && (
           <>
-            <AlertTriangle className="h-10 w-10 text-warning mx-auto" />
+            <AlertTriangle className="h-10 w-10 text-warning dark:text-warning-soft mx-auto" />
             <h1 className="text-lg font-bold text-theme-text-primary">Certificate not found</h1>
             <p className="text-sm text-theme-text-secondary">We could not verify certificate ID <span className="font-mono">{code}</span>. Please check the ID and try again.</p>
           </>
         )}
         {state === 'ok' && data && (
           <>
-            <ShieldCheck className="h-10 w-10 text-success mx-auto" />
+            <ShieldCheck className="h-10 w-10 text-success dark:text-success-soft mx-auto" />
             <h1 className="text-lg font-bold text-theme-text-primary">Valid certificate</h1>
             <p className="text-sm text-theme-text-secondary">
               Issued to <strong>{data.attendeeName}</strong> for attending <strong>{data.eventName}</strong>

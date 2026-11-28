@@ -281,7 +281,7 @@ export default function CalendarPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-accent" />
+            <CalendarDays className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
             Calendar &amp; Room Schedule
           </h1>
           <p className="text-xs text-theme-text-secondary">
@@ -304,21 +304,21 @@ export default function CalendarPage() {
       <div className="glass-panel p-4 rounded-3xl border border-theme-border/30 space-y-3 bg-gradient-to-br from-theme-card/60 via-theme-card/30 to-theme-card/10 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-theme-border/20 pb-2.5">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-accent/15 text-accent border border-accent/20">
+            <div className="p-1.5 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20">
               <Filter className="h-4 w-4" />
             </div>
             <div>
               <h2 className="text-xs font-bold text-theme-text-primary uppercase tracking-wide">
                 Calendar View Tick List
               </h2>
-              <p className="text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary">
                 Select the schedule layers you want displayed across the calendar grid and day details
               </p>
             </div>
           </div>
 
           {/* Quick Select All / Clear All */}
-          <div className="flex items-center gap-2 text-[11px]">
+          <div className="flex items-center gap-2 text-xs">
             <button
               type="button"
               onClick={() =>
@@ -330,7 +330,7 @@ export default function CalendarPage() {
                   tasks: true,
                 }))
               }
-              className="px-2.5 py-1 rounded-lg hover:bg-accent/15 text-accent font-semibold transition-colors cursor-pointer border border-accent/20"
+              className="px-2.5 py-1 rounded-lg hover:bg-accent/15 text-accent-strong dark:text-accent-soft font-semibold transition-colors cursor-pointer border border-accent/20"
             >
               Select All (4)
             </button>
@@ -358,7 +358,7 @@ export default function CalendarPage() {
           <label
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
               filters.bookings
-                ? 'bg-sky-500/15 border-sky-500/40 text-sky-400 shadow-sm'
+                ? 'bg-sky-500/15 border-sky-500/40 text-sky-700 dark:text-sky-300 shadow-sm'
                 : 'bg-theme-background/20 border-theme-border/30 text-theme-text-secondary hover:border-theme-border/60 opacity-60'
             }`}
           >
@@ -368,18 +368,18 @@ export default function CalendarPage() {
               onChange={(e) =>
                 updateFilters((prev) => ({ ...prev, bookings: e.target.checked }))
               }
-              className="rounded border-theme-border text-accent focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
+              className="rounded border-theme-border text-accent-strong dark:text-accent-soft focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
             />
             <DoorOpen className="h-3.5 w-3.5 shrink-0" />
             <span>Room Bookings</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-500/20 font-bold text-sky-300">
+            <span className="text-xs px-1.5 py-0.2 rounded-full bg-sky-500/20 font-bold text-sky-300">
               {totalConfirmedBookings}
             </span>
           </label>
 
           {/* Sub-room filter pills when Bookings is checked */}
           {filters.bookings && (
-            <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-theme-background/40 border border-sky-500/25 text-[10px] font-semibold animate-in fade-in duration-150">
+            <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-theme-background/40 border border-sky-500/25 text-xs font-semibold animate-in fade-in duration-150">
               <button
                 type="button"
                 onClick={() => updateFilters((prev) => ({ ...prev, roomFilter: 'ALL' }))}
@@ -420,7 +420,7 @@ export default function CalendarPage() {
           <label
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
               filters.events
-                ? 'bg-accent/15 border-accent/40 text-accent shadow-sm'
+                ? 'bg-accent/15 border-accent/40 text-accent-strong dark:text-accent-soft shadow-sm'
                 : 'bg-theme-background/20 border-theme-border/30 text-theme-text-secondary hover:border-theme-border/60 opacity-60'
             }`}
           >
@@ -430,11 +430,11 @@ export default function CalendarPage() {
               onChange={(e) =>
                 updateFilters((prev) => ({ ...prev, events: e.target.checked }))
               }
-              className="rounded border-theme-border text-accent focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
+              className="rounded border-theme-border text-accent-strong dark:text-accent-soft focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
             />
             <CalendarDays className="h-3.5 w-3.5 shrink-0" />
             <span>Incubator Events</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-accent/20 font-bold text-accent">
+            <span className="text-xs px-1.5 py-0.2 rounded-full bg-accent/20 font-bold text-accent-strong dark:text-accent-soft">
               {visibleEvents.length}
             </span>
           </label>
@@ -443,7 +443,7 @@ export default function CalendarPage() {
           <label
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
               filters.planning
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-sm'
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300 shadow-sm'
                 : 'bg-theme-background/20 border-theme-border/30 text-theme-text-secondary hover:border-theme-border/60 opacity-60'
             }`}
           >
@@ -453,11 +453,11 @@ export default function CalendarPage() {
               onChange={(e) =>
                 updateFilters((prev) => ({ ...prev, planning: e.target.checked }))
               }
-              className="rounded border-theme-border text-accent focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
+              className="rounded border-theme-border text-accent-strong dark:text-accent-soft focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
             />
             <Clock className="h-3.5 w-3.5 shrink-0" />
             <span>Planning Leads</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 font-bold text-amber-300">
+            <span className="text-xs px-1.5 py-0.2 rounded-full bg-amber-500/20 font-bold text-amber-300">
               {totalPlanningPhases}
             </span>
           </label>
@@ -466,7 +466,7 @@ export default function CalendarPage() {
           <label
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
               filters.tasks
-                ? 'bg-rose-500/15 border-rose-500/40 text-rose-400 shadow-sm'
+                ? 'bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-300 shadow-sm'
                 : 'bg-theme-background/20 border-theme-border/30 text-theme-text-secondary hover:border-theme-border/60 opacity-60'
             }`}
           >
@@ -476,11 +476,11 @@ export default function CalendarPage() {
               onChange={(e) =>
                 updateFilters((prev) => ({ ...prev, tasks: e.target.checked }))
               }
-              className="rounded border-theme-border text-accent focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
+              className="rounded border-theme-border text-accent-strong dark:text-accent-soft focus:ring-accent h-3.5 w-3.5 accent-accent cursor-pointer"
             />
             <ClipboardCheck className="h-3.5 w-3.5 shrink-0" />
             <span>Task Deadlines</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 font-bold text-rose-300">
+            <span className="text-xs px-1.5 py-0.2 rounded-full bg-rose-500/20 font-bold text-rose-300">
               {totalTasks}
             </span>
           </label>
@@ -500,7 +500,7 @@ export default function CalendarPage() {
                   tasks: true,
                 }))
               }
-              className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 font-bold text-[11px] text-amber-200 cursor-pointer"
+              className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 font-bold text-xs text-amber-200 cursor-pointer"
             >
               Show All
             </button>
@@ -518,7 +518,7 @@ export default function CalendarPage() {
             <ul className="text-xs space-y-1">
               {mine.map(i => (
                 <li key={i.id} className="flex gap-2"><span className="font-mono text-theme-text-secondary">{i.date.slice(5)}</span>
-                  <Link href={i.link} className="text-accent hover:underline">{i.title}</Link></li>
+                  <Link href={i.link} className="text-accent-strong dark:text-accent-soft hover:underline">{i.title}</Link></li>
               ))}
             </ul>
           </div>
@@ -561,7 +561,7 @@ export default function CalendarPage() {
 
           {/* Calendar Grid */}
           <div className="border border-theme-border/30 rounded-2xl p-4 bg-theme-background/10">
-            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-2">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-theme-text-secondary uppercase tracking-wider mb-2">
               <span>Su</span>
               <span>Mo</span>
               <span>Tu</span>
@@ -613,13 +613,13 @@ export default function CalendarPage() {
                       isSelected
                         ? 'bg-accent text-white shadow-md shadow-accent/25'
                         : hasEvents
-                        ? 'bg-accent/15 border border-accent/30 text-accent hover:bg-accent/25'
+                        ? 'bg-accent/15 border border-accent/30 text-accent-strong dark:text-accent-soft hover:bg-accent/25'
                         : hasBookings
-                        ? 'bg-sky-500/15 border border-sky-500/30 text-sky-400 hover:bg-sky-500/25'
+                        ? 'bg-sky-500/15 border border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/25'
                         : hasPlanning
-                        ? 'bg-warning/10 border border-warning/25 text-warning hover:bg-warning/20'
+                        ? 'bg-warning/10 border border-warning/25 text-warning dark:text-warning-soft hover:bg-warning/20'
                         : hasTasks
-                        ? 'bg-danger/10 border border-danger/25 text-danger hover:bg-danger/20'
+                        ? 'bg-danger/10 border border-danger/25 text-danger dark:text-danger-soft hover:bg-danger/20'
                         : 'hover:bg-theme-border/30 text-theme-text-primary'
                     }`}
                     title={tooltipParts.join(' | ') || undefined}
@@ -648,10 +648,10 @@ export default function CalendarPage() {
           {/* Selected Day Event & Booking Details */}
           <div className="flex-1 space-y-2 max-h-[300px] overflow-y-auto pr-1 text-xs">
             <div className="flex items-center justify-between">
-              <h4 className="text-[11px] font-bold text-theme-text-secondary uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-theme-text-secondary uppercase tracking-wider">
                 Schedule on {monthNames[calMonth]} {selectedDay || '?'}:
               </h4>
-              <span className="text-[10px] text-theme-text-secondary">
+              <span className="text-xs text-theme-text-secondary">
                 Filtered by {activeCategoriesCount} layer{activeCategoriesCount === 1 ? '' : 's'}
               </span>
             </div>
@@ -684,7 +684,7 @@ export default function CalendarPage() {
                               tasks: true,
                             }))
                           }
-                          className="text-[11px] text-accent hover:underline font-semibold cursor-pointer"
+                          className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold cursor-pointer"
                         >
                           Tick all layers to check everything
                         </button>
@@ -703,10 +703,10 @@ export default function CalendarPage() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wider ${
+                            className={`px-2 py-0.5 rounded-md font-bold text-xs uppercase tracking-wider ${
                               b.roomName.toLowerCase().includes('board')
-                                ? 'bg-accent/20 text-accent border border-accent/30'
-                                : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                                ? 'bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/30'
+                                : 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/30'
                             }`}
                           >
                             {b.roomName}
@@ -715,7 +715,7 @@ export default function CalendarPage() {
                             {formatTimeRange(b.start, b.end)}
                           </span>
                         </div>
-                        <span className="text-[10px] px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">
                           In Use / Reserved
                         </span>
                       </div>
@@ -723,7 +723,7 @@ export default function CalendarPage() {
                         <span className="text-theme-text-secondary">Purpose: </span>
                         {b.title}
                       </p>
-                      <p className="text-[11px] text-theme-text-secondary">
+                      <p className="text-xs text-theme-text-secondary">
                         This <strong>{b.roomName}</strong> is reserved from{' '}
                         <span className="text-theme-text-primary font-semibold">
                           {formatTimeRange(b.start, b.end)}
@@ -745,18 +745,18 @@ export default function CalendarPage() {
                       className="p-3 bg-danger/10 border border-danger/25 rounded-xl flex items-center justify-between gap-3 hover:bg-danger/20 transition-all block cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
-                        <ClipboardCheck className="h-3.5 w-3.5 text-danger shrink-0" />
+                        <ClipboardCheck className="h-3.5 w-3.5 text-danger dark:text-danger-soft shrink-0" />
                         <div>
                           <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">
                             {t.title}
                           </h5>
-                          <p className="text-[10px] text-theme-text-secondary mt-0.5">
+                          <p className="text-xs text-theme-text-secondary mt-0.5">
                             {t.assignee}
                             {t.event ? ` · ${t.event}` : ''}
                           </p>
                         </div>
                       </div>
-                      <span className="text-[10px] px-2.5 py-0.5 bg-danger/15 text-danger font-semibold rounded-md shrink-0">
+                      <span className="text-xs px-2.5 py-0.5 bg-danger/15 text-danger dark:text-danger-soft font-semibold rounded-md shrink-0">
                         Task Deadline
                       </span>
                     </Link>
@@ -773,11 +773,11 @@ export default function CalendarPage() {
                         <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">
                           {ev.title}
                         </h5>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5">
+                        <p className="text-xs text-theme-text-secondary mt-0.5">
                           Prep/planning phase — event runs {formatEventDateRange(ev)}
                         </p>
                       </div>
-                      <span className="text-[10px] px-2.5 py-0.5 bg-warning/15 text-warning font-semibold rounded-md shrink-0">
+                      <span className="text-xs px-2.5 py-0.5 bg-warning/15 text-warning dark:text-warning-soft font-semibold rounded-md shrink-0">
                         Planning
                       </span>
                     </Link>
@@ -794,11 +794,11 @@ export default function CalendarPage() {
                         <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">
                           {ev.title}
                         </h5>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5">
+                        <p className="text-xs text-theme-text-secondary mt-0.5">
                           {ev.location || 'Location TBD'}
                         </p>
                       </div>
-                      <span className="text-[10px] px-2.5 py-0.5 bg-accent/15 text-accent font-semibold rounded-md capitalize">
+                      <span className="text-xs px-2.5 py-0.5 bg-accent/15 text-accent-strong dark:text-accent-soft font-semibold rounded-md capitalize">
                         {getEffectiveEventStatus(ev)}
                       </span>
                     </Link>
@@ -820,17 +820,17 @@ export default function CalendarPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
-                  <DoorOpen className="h-4 w-4 text-sky-400" />
+                  <DoorOpen className="h-4 w-4 text-sky-700 dark:text-sky-300" />
                   Room Bookings
                   {filters.roomFilter !== 'ALL' && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold uppercase">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold uppercase">
                       {filters.roomFilter}
                     </span>
                   )}
                 </h3>
                 <Link
                   href="/dashboard/bookings"
-                  className="text-[11px] text-accent hover:underline font-semibold"
+                  className="text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold"
                 >
                   Book a Room &rarr;
                 </Link>
@@ -848,26 +848,26 @@ export default function CalendarPage() {
                     >
                       <div className="flex items-center justify-between gap-1">
                         <span
-                          className={`font-bold text-[11px] px-1.5 py-0.5 rounded ${
+                          className={`font-bold text-xs px-1.5 py-0.5 rounded ${
                             b.roomName.toLowerCase().includes('board')
-                              ? 'bg-accent/20 text-accent'
-                              : 'bg-sky-500/20 text-sky-400'
+                              ? 'bg-accent/20 text-accent-strong dark:text-accent-soft'
+                              : 'bg-sky-500/20 text-sky-700 dark:text-sky-300'
                           }`}
                         >
                           {b.roomName}
                         </span>
-                        <span className="text-[10px] text-theme-text-secondary">
+                        <span className="text-xs text-theme-text-secondary">
                           {new Date(b.start).toLocaleDateString([], { month: 'short', day: 'numeric' })},{' '}
                           {formatTimeRange(b.start, b.end)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-theme-text-primary">
+                      <p className="text-xs text-theme-text-primary">
                         <strong className="text-theme-text-primary">
                           {b.organisation || b.bookedByName}
                         </strong>{' '}
                         is using the {b.roomName}
                       </p>
-                      <p className="text-[10px] text-theme-text-secondary line-clamp-1">
+                      <p className="text-xs text-theme-text-secondary line-clamp-1">
                         Purpose: {b.title}
                       </p>
                     </div>
@@ -881,7 +881,7 @@ export default function CalendarPage() {
           {filters.events && (
             <div className={`space-y-3 ${filters.bookings ? 'pt-2 border-t border-theme-border/20' : ''}`}>
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
-                <CalendarDays className="h-4 w-4 text-accent" />
+                <CalendarDays className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                 Upcoming Events
               </h3>
               <div className="space-y-2 text-xs">
@@ -900,8 +900,8 @@ export default function CalendarPage() {
                         {ev.title}
                       </h5>
                       <p
-                        className={`text-[10px] ${
-                          ev.datesTBD ? 'text-warning font-semibold' : 'text-theme-text-secondary'
+                        className={`text-xs ${
+                          ev.datesTBD ? 'text-warning dark:text-warning-soft font-semibold' : 'text-theme-text-secondary'
                         }`}
                       >
                         {formatEventDateRange(ev)}
@@ -921,7 +921,7 @@ export default function CalendarPage() {
               }`}
             >
               <h3 className="text-base font-bold text-theme-text-primary flex items-center gap-1.5">
-                <ClipboardCheck className="h-4 w-4 text-danger" />
+                <ClipboardCheck className="h-4 w-4 text-danger dark:text-danger-soft" />
                 Upcoming Task Deadlines
               </h3>
               <div className="space-y-2 text-xs">
@@ -940,9 +940,9 @@ export default function CalendarPage() {
                         <h5 className="font-semibold text-theme-text-primary text-xs hover:text-accent transition-colors">
                           {t.title}
                         </h5>
-                        <p className="text-[10px] text-theme-text-secondary mt-0.5">{t.assignee}</p>
+                        <p className="text-xs text-theme-text-secondary mt-0.5">{t.assignee}</p>
                       </div>
-                      <span className="text-[10px] text-danger font-semibold shrink-0">{t.dueDate}</span>
+                      <span className="text-xs text-danger dark:text-danger-soft font-semibold shrink-0">{t.dueDate}</span>
                     </Link>
                   ))
                 )}

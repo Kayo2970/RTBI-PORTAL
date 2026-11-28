@@ -43,7 +43,8 @@ import {
   type GroupPolicy,
 } from '@/lib/local-data';
 import { TIER_LABELS, tierLabel, isSuperUser, CAPABILITY_CATALOG } from '@/lib/permissions';
-import { fetchStartups, createStartup, type Startup } from '@/lib/incubation/client';
+import { StartupDocumentsPicker } from '@/components/incubation/startup-documents-picker';
+import { fetchStartups, createStartup, type Startup, type DocUpload } from '@/lib/incubation/client';
 import { LockedDevicesPanel } from '@/components/locked-devices-panel';
 
 const TIERS: { tier: 1 | 2 | 3 | 4; label: MemberDivision; blurb: string }[] = [
@@ -54,9 +55,9 @@ const TIERS: { tier: 1 | 2 | 3 | 4; label: MemberDivision; blurb: string }[] = [
 ];
 
 const tierBadge: Record<number, string> = {
-  1: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  2: 'bg-accent/15 text-accent border-accent/30',
-  3: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  1: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+  2: 'bg-accent/15 text-accent-strong dark:text-accent-soft border-accent/30',
+  3: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
   4: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
 };
 
@@ -83,6 +84,7 @@ export default function UsersPage() {
   const [selectedPolicyIds, setSelectedPolicyIds] = useState<string[]>([]);
   const [selectedStartupId, setSelectedStartupId] = useState('');
   const [newStartupName, setNewStartupName] = useState('');
+  const [newStartupDocs, setNewStartupDocs] = useState<Record<string, DocUpload>>({});
   const [startupLinkMode, setStartupLinkMode] = useState<'existing' | 'new'>('existing');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -160,6 +162,7 @@ export default function UsersPage() {
     setSelectedPolicyIds([]);
     setSelectedStartupId('');
     setNewStartupName('');
+    setNewStartupDocs({});
     setStartupLinkMode('existing');
     setFormError('');
   };
@@ -212,6 +215,7 @@ export default function UsersPage() {
           const createdStartup = await createStartup({
             name: newStartupName.trim(),
             status: 'Applicant',
+            documents: newStartupDocs,
           });
           finalStartupId = createdStartup.id;
         } catch (stErr: any) {
@@ -368,7 +372,7 @@ export default function UsersPage() {
   if (user && !allowed) {
     return (
       <div className="glass-panel rounded-2xl p-8 text-center border border-white/10">
-        <ShieldCheck className="h-8 w-8 text-accent mx-auto mb-3" />
+        <ShieldCheck className="h-8 w-8 text-accent-strong dark:text-accent-soft mx-auto mb-3" />
         <h1 className="text-lg font-bold text-theme-text-primary">Super User access required</h1>
         <p className="text-xs text-theme-text-secondary mt-1">Only a Super User can manage portal users.</p>
       </div>
@@ -430,13 +434,13 @@ export default function UsersPage() {
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[t.tier]}`}>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${tierBadge[t.tier]}`}>
                   Tier {t.tier}
                 </span>
                 <span className="text-xl font-bold text-theme-text-primary">{counts[t.tier]}</span>
               </div>
               <div className="mt-2 text-sm font-bold text-theme-text-primary">{t.label}</div>
-              <div className="text-[11px] text-theme-text-secondary">{t.blurb}</div>
+              <div className="text-xs text-theme-text-secondary">{t.blurb}</div>
             </button>
           );
         })}
@@ -451,13 +455,13 @@ export default function UsersPage() {
           }}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'employees'
-              ? 'bg-accent/15 text-accent border border-accent/30 shadow-sm'
+              ? 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/30 shadow-sm'
               : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-white/5'
           }`}
         >
           <Users className="h-4 w-4" />
           Employees &amp; Staff Directory
-          <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-white/10 font-mono">
+          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-white/10 font-mono">
             {counts[1] + counts[2] + counts[3]}
           </span>
         </button>
@@ -475,7 +479,7 @@ export default function UsersPage() {
         >
           <Rocket className="h-4 w-4" />
           Startup Auth Credentials
-          <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono">
+          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono">
             {counts[4]}
           </span>
         </button>
@@ -489,7 +493,7 @@ export default function UsersPage() {
               <Rocket className="h-4 w-4 text-purple-400" />
               Startup Credentials Directory
             </div>
-            <p className="text-[11px] text-theme-text-secondary">
+            <p className="text-xs text-theme-text-secondary">
               This directory contains <b>user authentication credentials only</b> for startup founders.
               Comprehensive company profiles, sectors, DPIIT registrations, TRL evaluations, and milestones reside in the <b>Startup Registry</b>.
             </p>
@@ -556,7 +560,7 @@ export default function UsersPage() {
         <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+              <tr className="text-left text-xs uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
                 <th className="px-4 py-3">Employee &amp; Email</th>
                 <th className="px-4 py-3">Employee ID</th>
                 <th className="px-4 py-3">Tier &amp; Role</th>
@@ -584,20 +588,20 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <div className="font-semibold text-theme-text-primary flex items-center gap-1.5">
                         {m.name}
-                        {root && <span className="text-[10px] text-amber-400 font-semibold">(root)</span>}
+                        {root && <span className="text-xs text-amber-700 dark:text-amber-300 font-semibold">(root)</span>}
                       </div>
-                      <div className="text-theme-text-secondary text-[11px]">{m.email}</div>
+                      <div className="text-theme-text-secondary text-xs">{m.email}</div>
                     </td>
                     <td className="px-4 py-3">
                       {m.employeeId ? (
-                        <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent border border-accent/25">
+                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/25">
                           {m.employeeId}
                         </span>
                       ) : (
-                        <span className="text-theme-text-secondary text-[11px] italic">Not assigned</span>
+                        <span className="text-theme-text-secondary text-xs italic">Not assigned</span>
                       )}
                       {m.tier === 3 && !root && (
-                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-theme-text-secondary cursor-pointer" title="External specialist reviewer: sees only the applications assigned to them, nothing else in the portal.">
+                        <label className="mt-1.5 flex items-center gap-1.5 text-xs text-theme-text-secondary cursor-pointer" title="External specialist reviewer: sees only the applications assigned to them, nothing else in the portal.">
                           <input type="checkbox" checked={!!m.externalReviewer} disabled={terminated} onChange={() => toggleExternal(m)} /> External reviewer
                         </label>
                       )}
@@ -605,7 +609,7 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <div className="space-y-1">
                         {root ? (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[1]}`}>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${tierBadge[1]}`}>
                             Super User
                           </span>
                         ) : (
@@ -622,7 +626,7 @@ export default function UsersPage() {
                             ))}
                           </select>
                         )}
-                        <div className="text-[10px] text-theme-text-secondary">{m.role || tierLabel(m.tier)}</div>
+                        <div className="text-xs text-theme-text-secondary">{m.role || tierLabel(m.tier)}</div>
                       </div>
                     </td>
                     <td className="px-4 py-3 max-w-xs">
@@ -632,23 +636,23 @@ export default function UsersPage() {
                             <span
                               key={p.id}
                               title={`${p.name} (${p.capabilities?.length || 0} capabilities)`}
-                              className="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
+                              className="font-mono text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary-light border border-primary/25"
                             >
                               {p.tag}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-[11px] text-theme-text-secondary">Default Tier Access</span>
+                        <span className="text-xs text-theme-text-secondary">Default Tier Access</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {terminated ? (
-                        <span className="text-danger font-semibold">Terminated</span>
+                        <span className="text-danger dark:text-danger-soft font-semibold">Terminated</span>
                       ) : pending ? (
-                        <span className="text-amber-400 font-semibold">Awaiting set-up</span>
+                        <span className="text-amber-700 dark:text-amber-300 font-semibold">Awaiting set-up</span>
                       ) : (
-                        <span className="text-emerald-400 font-semibold">Active</span>
+                        <span className="text-emerald-700 dark:text-emerald-300 font-semibold">Active</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -659,14 +663,14 @@ export default function UsersPage() {
                           className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-theme-border/20 hover:bg-accent/15 text-theme-text-secondary hover:text-accent font-semibold transition-all cursor-pointer"
                         >
                           <Shield className="h-3.5 w-3.5" />
-                          <span className="text-[11px]">Access</span>
+                          <span className="text-xs">Access</span>
                         </button>
 
                         {pending && (
                           <button
                             onClick={() => resend(m)}
                             disabled={busyId === m.id}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent-strong dark:text-accent-soft hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
                           >
                             {busyId === m.id ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -682,8 +686,8 @@ export default function UsersPage() {
                             onClick={() => toggleStatus(m)}
                             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-semibold cursor-pointer ${
                               terminated
-                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                                : 'bg-danger/15 text-danger hover:bg-danger/25'
+                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25'
+                                : 'bg-danger/15 text-danger dark:text-danger-soft hover:bg-danger/25'
                             }`}
                           >
                             {terminated ? (
@@ -712,7 +716,7 @@ export default function UsersPage() {
         <div className="glass-panel rounded-2xl border border-white/10 overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
+              <tr className="text-left text-xs uppercase tracking-wider text-theme-text-secondary border-b border-theme-border/20">
                 <th className="px-4 py-3">Founder &amp; Auth Email</th>
                 <th className="px-4 py-3">Linked Startup in Registry</th>
                 <th className="px-4 py-3">Registry Sync Status</th>
@@ -738,11 +742,11 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <div className="font-semibold text-theme-text-primary flex items-center gap-1.5">
                         {m.name}
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[4]}`}>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${tierBadge[4]}`}>
                           Founder
                         </span>
                       </div>
-                      <div className="text-theme-text-secondary text-[11px] font-mono">{m.email}</div>
+                      <div className="text-theme-text-secondary text-xs font-mono">{m.email}</div>
                     </td>
 
                     <td className="px-4 py-3">
@@ -752,17 +756,17 @@ export default function UsersPage() {
                             href="/dashboard/incubation"
                             className="font-bold text-theme-text-primary hover:text-accent flex items-center gap-1"
                           >
-                            <Building2 className="h-3.5 w-3.5 text-accent" />
+                            <Building2 className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                             {linkedStartup.name}
                             <ExternalLink className="h-2.5 w-2.5 opacity-60" />
                           </Link>
-                          <div className="flex items-center gap-1.5 text-[10px] text-theme-text-secondary font-mono">
+                          <div className="flex items-center gap-1.5 text-xs text-theme-text-secondary font-mono">
                             <span className="px-1.5 py-0.2 rounded bg-white/10">{linkedStartup.id}</span>
                             {linkedStartup.sector && <span>· {linkedStartup.sector}</span>}
                           </div>
                         </div>
                       ) : (
-                        <div className="text-amber-400 text-[11px] flex items-center gap-1">
+                        <div className="text-amber-700 dark:text-amber-300 text-xs flex items-center gap-1">
                           <AlertCircle className="h-3.5 w-3.5" />
                           <span>Not linked to registry</span>
                         </div>
@@ -771,11 +775,11 @@ export default function UsersPage() {
 
                     <td className="px-4 py-3">
                       {linkedStartup ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                           <CheckCircle2 className="h-3.5 w-3.5" /> Synced with Registry
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
                           <AlertCircle className="h-3.5 w-3.5" /> Unlinked
                         </span>
                       )}
@@ -783,11 +787,11 @@ export default function UsersPage() {
 
                     <td className="px-4 py-3">
                       {terminated ? (
-                        <span className="text-danger font-semibold">Terminated</span>
+                        <span className="text-danger dark:text-danger-soft font-semibold">Terminated</span>
                       ) : pending ? (
-                        <span className="text-amber-400 font-semibold">Awaiting set-up</span>
+                        <span className="text-amber-700 dark:text-amber-300 font-semibold">Awaiting set-up</span>
                       ) : (
-                        <span className="text-emerald-400 font-semibold">Active</span>
+                        <span className="text-emerald-700 dark:text-emerald-300 font-semibold">Active</span>
                       )}
                     </td>
 
@@ -799,14 +803,14 @@ export default function UsersPage() {
                           title="View all details in the Startup Registry"
                         >
                           <Building2 className="h-3.5 w-3.5" />
-                          <span className="text-[11px]">View in Registry</span>
+                          <span className="text-xs">View in Registry</span>
                         </Link>
 
                         {pending && (
                           <button
                             onClick={() => resend(m)}
                             disabled={busyId === m.id}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent/15 text-accent-strong dark:text-accent-soft hover:bg-accent/25 font-semibold cursor-pointer disabled:opacity-60"
                           >
                             {busyId === m.id ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -821,8 +825,8 @@ export default function UsersPage() {
                           onClick={() => toggleStatus(m)}
                           className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-semibold cursor-pointer ${
                             terminated
-                              ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                              : 'bg-danger/15 text-danger hover:bg-danger/25'
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25'
+                              : 'bg-danger/15 text-danger dark:text-danger-soft hover:bg-danger/25'
                           }`}
                         >
                           {terminated ? (
@@ -861,7 +865,7 @@ export default function UsersPage() {
                 <h2 className="text-base font-bold text-theme-text-primary">
                   {tier === 4 ? 'Provision Startup Founder Credentials' : 'Add User / Employee'}
                 </h2>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   {tier === 4
                     ? 'Provisions login credentials for the startup founder. Company profile data is managed in the Startup Registry.'
                     : 'Provision an Employee ID and define their exact access boundaries.'}
@@ -879,7 +883,7 @@ export default function UsersPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block space-y-1">
-                <span className="text-[11px] font-semibold text-theme-text-secondary">
+                <span className="text-xs font-semibold text-theme-text-secondary">
                   {tier === 4 ? 'Founder Full Name *' : 'Full Name *'}
                 </span>
                 <input
@@ -892,7 +896,7 @@ export default function UsersPage() {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[11px] font-semibold text-theme-text-secondary">
+                <span className="text-xs font-semibold text-theme-text-secondary">
                   {tier === 4 ? 'Founder Login Email *' : 'Email Address *'}
                 </span>
                 <input
@@ -910,13 +914,13 @@ export default function UsersPage() {
             {tier !== 4 && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-theme-text-secondary">
+                  <span className="text-xs font-semibold text-theme-text-secondary">
                     Employee ID / Identity Code
                   </span>
                   <button
                     type="button"
                     onClick={() => setEmployeeId(generateNextEmployeeId(members))}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                   >
                     <Sparkles className="h-3 w-3" /> Auto-generate Next
                   </button>
@@ -927,7 +931,7 @@ export default function UsersPage() {
                   placeholder="RTBI-EMP-001"
                   className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/60 border border-theme-border/30 text-xs text-theme-text-primary font-mono focus:border-accent outline-none"
                 />
-                <p className="text-[10px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Used for cross-referencing group policies, physical badges, attendance, and audit logs.
                 </p>
               </div>
@@ -940,7 +944,7 @@ export default function UsersPage() {
                   <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
                     <Rocket className="h-3.5 w-3.5" /> Startup Registry Link
                   </span>
-                  <div className="flex gap-2 text-[10px]">
+                  <div className="flex gap-2 text-xs">
                     <button
                       type="button"
                       onClick={() => setStartupLinkMode('existing')}
@@ -968,7 +972,7 @@ export default function UsersPage() {
 
                 {startupLinkMode === 'existing' ? (
                   <div className="space-y-1">
-                    <label className="text-[11px] text-theme-text-secondary block">
+                    <label className="text-xs text-theme-text-secondary block">
                       Select Startup from Registry:
                     </label>
                     <select
@@ -986,7 +990,7 @@ export default function UsersPage() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    <label className="text-[11px] text-theme-text-secondary block">
+                    <label className="text-xs text-theme-text-secondary block">
                       New Startup Name:
                     </label>
                     <input
@@ -995,9 +999,10 @@ export default function UsersPage() {
                       placeholder="e.g. SolarGrid Technologies"
                       className="w-full px-3 py-2 rounded-xl bg-theme-sidebar/80 border border-theme-border/40 text-xs text-theme-text-primary outline-none focus:border-accent"
                     />
-                    <p className="text-[10px] text-theme-text-secondary">
+                    <p className="text-xs text-theme-text-secondary">
                       This will initialize a new record in the Startup Registry with ID RTBI-S-XXXX-XXX.
                     </p>
+                    <StartupDocumentsPicker value={newStartupDocs} onChange={setNewStartupDocs} />
                   </div>
                 )}
               </div>
@@ -1005,7 +1010,7 @@ export default function UsersPage() {
 
             {/* Tier selection */}
             <div className="space-y-1">
-              <span className="text-[11px] font-semibold text-theme-text-secondary">Portal Tier</span>
+              <span className="text-xs font-semibold text-theme-text-secondary">Portal Tier</span>
               <div className="grid grid-cols-2 gap-2">
                 {TIERS.map(t => (
                   <button
@@ -1024,14 +1029,14 @@ export default function UsersPage() {
                     <div className="font-bold">
                       {t.tier} · {t.label}
                     </div>
-                    <div className="text-[10px] opacity-80">{t.blurb}</div>
+                    <div className="text-xs opacity-80">{t.blurb}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             <label className="block space-y-1">
-              <span className="text-[11px] font-semibold text-theme-text-secondary">
+              <span className="text-xs font-semibold text-theme-text-secondary">
                 {tier === 4 ? 'Credential Role' : 'Designation / Role Title'}
               </span>
               <input
@@ -1047,20 +1052,20 @@ export default function UsersPage() {
               <div className="space-y-2 pt-2 border-t border-theme-border/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] font-bold text-theme-text-primary flex items-center gap-1.5">
-                      <ShieldCheck className="h-3.5 w-3.5 text-accent" /> Group Policies &amp; Access Grants
+                    <span className="text-xs font-bold text-theme-text-primary flex items-center gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Group Policies &amp; Access Grants
                     </span>
-                    <p className="text-[10px] text-theme-text-secondary">
+                    <p className="text-xs text-theme-text-secondary">
                       Select exactly what this person can access from day one.
                     </p>
                   </div>
-                  <span className="text-[10px] font-semibold text-accent">
+                  <span className="text-xs font-semibold text-accent-strong dark:text-accent-soft">
                     {selectedPolicyIds.length} selected
                   </span>
                 </div>
 
                 {policies.length === 0 ? (
-                  <div className="p-3 rounded-xl bg-theme-border/10 text-center text-[11px] text-theme-text-secondary">
+                  <div className="p-3 rounded-xl bg-theme-border/10 text-center text-xs text-theme-text-secondary">
                     No custom group policies exist yet. The employee will receive standard Tier {tier} defaults.
                   </div>
                 ) : (
@@ -1086,14 +1091,14 @@ export default function UsersPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
-                              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
+                              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent-strong dark:text-accent-soft font-bold">
                                 {p.tag}
                               </span>
                             </div>
                             {p.description && (
-                              <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
+                              <p className="text-xs text-theme-text-secondary line-clamp-1">{p.description}</p>
                             )}
-                            <div className="text-[9px] text-theme-text-secondary/80 mt-0.5">
+                            <div className="text-xs text-theme-text-secondary mt-0.5">
                               {p.capabilities?.length || 0} capabilities granted
                             </div>
                           </div>
@@ -1105,10 +1110,10 @@ export default function UsersPage() {
               </div>
             )}
 
-            {formError && <p className="text-xs text-danger">{formError}</p>}
+            {formError && <p className="text-xs text-danger dark:text-danger-soft">{formError}</p>}
 
             <div className="flex items-center justify-between pt-2 border-t border-theme-border/20">
-              <span className="text-[10px] text-theme-text-secondary">
+              <span className="text-xs text-theme-text-secondary">
                 A password setup link will be emailed automatically.
               </span>
               <div className="flex gap-2">
@@ -1146,10 +1151,10 @@ export default function UsersPage() {
             <div className="flex items-center justify-between border-b border-theme-border/20 pb-3">
               <div>
                 <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-accent" />
+                  <ShieldCheck className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
                   Manage Access &amp; Employee ID
                 </h2>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   Update identity details and active group policy assignments for {managingMember.name}.
                 </p>
               </div>
@@ -1167,13 +1172,13 @@ export default function UsersPage() {
             <div className="flex items-center justify-between p-3 rounded-2xl bg-theme-sidebar/60 border border-theme-border/30">
               <div>
                 <div className="font-bold text-sm text-theme-text-primary">{managingMember.name}</div>
-                <div className="text-[11px] text-theme-text-secondary">{managingMember.email}</div>
+                <div className="text-xs text-theme-text-secondary">{managingMember.email}</div>
               </div>
               <div className="text-right">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[managingMember.tier]}`}>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${tierBadge[managingMember.tier]}`}>
                   Tier {managingMember.tier} · {managingMember.division}
                 </span>
-                <div className="text-[10px] text-theme-text-secondary mt-1">{managingMember.role}</div>
+                <div className="text-xs text-theme-text-secondary mt-1">{managingMember.role}</div>
               </div>
             </div>
 
@@ -1181,14 +1186,14 @@ export default function UsersPage() {
             {managingMember.tier !== 4 && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold text-theme-text-secondary">
+                  <label className="text-xs font-semibold text-theme-text-secondary">
                     Employee ID / Identity Code
                   </label>
                   {!editEmployeeId && (
                     <button
                       type="button"
                       onClick={() => setEditEmployeeId(generateNextEmployeeId(members))}
-                      className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline cursor-pointer"
+                      className="flex items-center gap-1 text-xs font-semibold text-accent-strong dark:text-accent-soft hover:underline cursor-pointer"
                     >
                       <Sparkles className="h-3 w-3" /> Generate ID
                     </button>
@@ -1207,10 +1212,10 @@ export default function UsersPage() {
             {managingMember.tier !== 4 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-theme-text-secondary">
+                  <span className="text-xs font-semibold text-theme-text-secondary">
                     Assigned Group Policies ({editPolicyIds.length})
                   </span>
-                  <span className="text-[10px] text-theme-text-secondary">
+                  <span className="text-xs text-theme-text-secondary">
                     Changes take effect immediately on next request
                   </span>
                 </div>
@@ -1242,12 +1247,12 @@ export default function UsersPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-xs text-theme-text-primary">{p.name}</span>
-                              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">
+                              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent-strong dark:text-accent-soft font-bold">
                                 {p.tag}
                               </span>
                             </div>
                             {p.description && (
-                              <p className="text-[10px] text-theme-text-secondary line-clamp-1">{p.description}</p>
+                              <p className="text-xs text-theme-text-secondary line-clamp-1">{p.description}</p>
                             )}
                             <div className="flex flex-wrap gap-1 mt-1">
                               {p.capabilities?.slice(0, 3).map(cap => {

@@ -66,6 +66,7 @@ import {
   DesignSubmissionItem,
   authHeaders,
 } from '@/lib/local-data';
+import { TASK_VERTICALS } from '@/lib/local-data';
 import { canViewTaskExtended, canManageTasks, canCreateTask, canEditTask, canDeleteTask, canRequestTaskExtension, canDecideTaskExtension, canChangeTaskStatus, isHeadRole, getTaskApprovalRequirement, canApprovePendingTask, canViewTaskDelegationTrail, canViewAllDesigns, canSendTaskAllotmentEmail } from '@/lib/permissions';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -105,6 +106,8 @@ export default function TasksPage() {
   // Form State
   const [title, setTitle] = useState('');
   const [selectedEventId, setSelectedEventId] = useState('standalone');
+  const [vertical, setVertical] = useState('');
+  const [externalLink, setExternalLink] = useState('');
   const [assigneeType, setAssigneeType] = useState<'individual' | 'group'>('individual');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState('');
   // Ad-hoc "group" assignment — a task delegated to several individually
@@ -271,6 +274,8 @@ export default function TasksPage() {
   const handleOpenCreate = () => {
     setTitle('');
     setSelectedEventId('standalone');
+    setVertical('');
+    setExternalLink('');
     setAssigneeType('individual');
     if (members.length > 0) setSelectedAssigneeId(members[0].id);
     setSelectedGroupMemberIds([]);
@@ -293,6 +298,8 @@ export default function TasksPage() {
     setEditingTask(task);
     setTitle(task.title);
     setSelectedEventId(task.eventId || 'standalone');
+    setVertical(task.vertical || '');
+    setExternalLink(task.externalLink || '');
     setAssigneeType(task.assigneeType);
     if (task.assigneeType === 'individual') {
       const match = members.find(m => m.name === task.assignee || m.email === task.assigneeEmail);
@@ -343,10 +350,6 @@ export default function TasksPage() {
     e.preventDefault();
     setFormError('');
     if (!title || !dueDate) return;
-    if (taskCategory === 'design' && !briefDescription.trim()) {
-      setFormError('Describe what you want from this design deliverable — the designer needs a real brief, not just a title.');
-      return;
-    }
 
     // Upload any newly attached reference files first (awaited) so the task
     // record only ever stores real url/storageKey values, never inline
@@ -371,6 +374,15 @@ export default function TasksPage() {
         return;
       }
       setIsUploadingAttachments(false);
+    }
+
+    if (selectedEventId === 'standalone' && !vertical) {
+      setFormError('This task is not linked to an event — pick the vertical it belongs to.');
+      return;
+    }
+    if (externalLink.trim() && !/^https?:\/\//i.test(externalLink.trim())) {
+      setFormError('The Monday / Jira link must start with http:// or https://');
+      return;
     }
 
     let eventTitle = 'Standalone';
@@ -413,6 +425,8 @@ export default function TasksPage() {
         title,
         event: eventTitle,
         eventId: eventIdVal,
+        vertical: eventIdVal ? undefined : vertical,
+        externalLink: externalLink.trim() || undefined,
         assignee: assigneeName,
         assigneeId: assigneeIdVal,
         assigneeEmail: assigneeEmailVal,
@@ -445,6 +459,8 @@ export default function TasksPage() {
         title,
         event: eventTitle,
         eventId: eventIdVal,
+        vertical: eventIdVal ? undefined : vertical,
+        externalLink: externalLink.trim() || undefined,
         assignee: assigneeName,
         assigneeId: assigneeIdVal,
         assigneeEmail: assigneeEmailVal,
@@ -704,10 +720,10 @@ export default function TasksPage() {
   // tasks are pushed to the end since they have no event to group under.
   const taskGroups: { key: string; label: string; tasks: TaskItem[] }[] = [];
   sortedTasks.forEach(task => {
-    const key = task.eventId || 'standalone';
+    const key = task.eventId || (task.vertical ? `vertical:${task.vertical}` : 'standalone');
     let group = taskGroups.find(g => g.key === key);
     if (!group) {
-      group = { key, label: task.event || 'Standalone', tasks: [] };
+      group = { key, label: task.eventId ? (task.event || 'Standalone') : task.vertical ? `${task.vertical} (vertical)` : 'Standalone', tasks: [] };
       taskGroups.push(group);
     }
     group.tasks.push(task);
@@ -715,6 +731,7 @@ export default function TasksPage() {
   taskGroups.sort((a, b) => {
     if (a.key === 'standalone') return 1;
     if (b.key === 'standalone') return -1;
+    if (a.key.startsWith('vertical:') !== b.key.startsWith('vertical:')) return a.key.startsWith('vertical:') ? 1 : -1;
     return a.label.localeCompare(b.label);
   });
 
@@ -761,13 +778,13 @@ export default function TasksPage() {
   const getStatusBadge = (status: TaskItem['status']) => {
     switch (status) {
       case 'Assigned':
-        return 'bg-accent/15 text-accent border border-accent/20';
+        return 'bg-accent/15 text-accent-strong dark:text-accent-soft border border-accent/20';
       case 'In Progress':
-        return 'bg-warning/15 text-warning border border-warning/20';
+        return 'bg-warning/15 text-warning dark:text-warning-soft border border-warning/20';
       case 'Completed':
-        return 'bg-success/15 text-success border border-success/20';
+        return 'bg-success/15 text-success dark:text-success-soft border border-success/20';
       case 'Pending Extension':
-        return 'bg-danger/15 text-danger border border-danger/20';
+        return 'bg-danger/15 text-danger dark:text-danger-soft border border-danger/20';
       default:
         return '';
     }
@@ -779,7 +796,7 @@ export default function TasksPage() {
       {/* Notifications */}
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -808,7 +825,7 @@ export default function TasksPage() {
           onClick={() => setTaskViewTab('active')}
           className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px transition-all cursor-pointer ${
             taskViewTab === 'active'
-              ? 'border-accent text-accent'
+              ? 'border-accent text-accent-strong dark:text-accent-soft'
               : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -819,7 +836,7 @@ export default function TasksPage() {
           onClick={() => setTaskViewTab('completed')}
           className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px transition-all cursor-pointer ${
             taskViewTab === 'completed'
-              ? 'border-accent text-accent'
+              ? 'border-accent text-accent-strong dark:text-accent-soft'
               : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
           }`}
         >
@@ -830,7 +847,7 @@ export default function TasksPage() {
       {/* Advisory Board Alert */}
       {user && user.tier === 4 && (
         <div className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <AlertCircle className="h-5 w-5 text-accent shrink-0" />
+          <AlertCircle className="h-5 w-5 text-accent-strong dark:text-accent-soft shrink-0" />
           <span>
             <strong>Advisory Board Notice:</strong> Advisory Board members do not receive operational task assignments. You can review overall center performance and event progress under the Reports module.
           </span>
@@ -841,7 +858,7 @@ export default function TasksPage() {
       {canDecideTaskExtension(user) && tasks.filter(t => t.status === 'Pending Extension').length > 0 && (
         <div className="glass-panel rounded-2xl p-5 border border-danger/30 bg-danger/5 space-y-3">
           <div className="flex items-center gap-2">
-            <Clock className="h-4.5 w-4.5 text-danger" />
+            <Clock className="h-4.5 w-4.5 text-danger dark:text-danger-soft" />
             <h3 className="text-xs font-bold text-theme-text-primary uppercase tracking-wider">
               Extension Requests Awaiting Leadership Decision ({tasks.filter(t => t.status === 'Pending Extension').length})
             </h3>
@@ -852,21 +869,21 @@ export default function TasksPage() {
               <div key={task.id} className="p-3 bg-theme-background/40 border border-theme-border/40 rounded-xl space-y-2 text-xs">
                 <div className="flex justify-between items-start">
                   <h4 className="font-semibold text-theme-text-primary">{task.title}</h4>
-                  <span className="text-[10px] text-theme-text-secondary">{getTaskAssignedDate(task) ? `Assigned: ${getTaskAssignedDate(task)} · ` : ''}Due: {task.dueDate}</span>
+                  <span className="text-xs text-theme-text-secondary">{getTaskAssignedDate(task) ? `Assigned: ${getTaskAssignedDate(task)} · ` : ''}Due: {task.dueDate}</span>
                 </div>
-                <p className="text-[11px] text-theme-text-secondary">
+                <p className="text-xs text-theme-text-secondary">
                   <strong>Assignee:</strong> {task.assignee} &middot; <strong>Reason:</strong> {task.extensionReason || 'No justification provided'}
                 </p>
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => handleDecideExtension(task.id, true)}
-                    className="flex-1 py-1.5 bg-success hover:bg-success/90 text-white font-semibold text-[11px] rounded-lg transition-all cursor-pointer"
+                    className="flex-1 py-1.5 bg-success hover:bg-success/90 text-white font-semibold text-xs rounded-lg transition-all cursor-pointer"
                   >
                     Grant +3 Days
                   </button>
                   <button
                     onClick={() => handleDecideExtension(task.id, false)}
-                    className="flex-1 py-1.5 bg-danger hover:bg-danger/90 text-white font-semibold text-[11px] rounded-lg transition-all cursor-pointer"
+                    className="flex-1 py-1.5 bg-danger hover:bg-danger/90 text-white font-semibold text-xs rounded-lg transition-all cursor-pointer"
                   >
                     Deny
                   </button>
@@ -994,9 +1011,9 @@ export default function TasksPage() {
             <details key={group.key} open className="group glass-panel rounded-2xl p-4">
               <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                 <span className="flex items-center gap-2 text-sm font-bold text-theme-text-primary">
-                  <Briefcase className="h-4 w-4 text-accent" />
+                  <Briefcase className="h-4 w-4 text-accent-strong dark:text-accent-soft" />
                   {group.label}
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-theme-border/30 text-theme-text-secondary">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-theme-border/30 text-theme-text-secondary">
                     {group.tasks.length}
                   </span>
                 </span>
@@ -1025,38 +1042,38 @@ export default function TasksPage() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           {isAnimatingComplete ? (
-                            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 animate-pulse">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 animate-bounce" />
+                            <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 animate-pulse">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300 animate-bounce" />
                               Completed!
                             </span>
                           ) : (
-                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(task.status)}`}>
+                            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(task.status)}`}>
                               {task.status}
                             </span>
                           )}
                           {getTaskAssignedDate(task) && (
-                            <span className="text-[11px] text-theme-text-secondary font-medium flex items-center gap-1.5" title="The day this task was assigned">
+                            <span className="text-xs text-theme-text-secondary font-medium flex items-center gap-1.5" title="The day this task was assigned">
                               <Calendar className="h-3.5 w-3.5 text-theme-text-secondary" />
                               Assigned: {getTaskAssignedDate(task)}
                             </span>
                           )}
-                          <span className="text-[11px] text-theme-text-secondary font-medium flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-accent" />
+                          <span className="text-xs text-theme-text-secondary font-medium flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
                             Due: {task.dueDate}
                             {task.originalDueDate && task.originalDueDate !== task.dueDate && (
-                              <span className="text-[10px] text-warning" title="Deadline before the approved extension">(extended from {task.originalDueDate})</span>
+                              <span className="text-xs text-warning dark:text-warning-soft" title="Deadline before the approved extension">(extended from {task.originalDueDate})</span>
                             )}
                           </span>
                           {task.status === 'Completed' && task.completedAt && (
-                            <span className="text-[11px] text-theme-text-secondary font-medium flex items-center gap-1.5">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                            <span className="text-xs text-theme-text-secondary font-medium flex items-center gap-1.5">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-success dark:text-success-soft" />
                               Completed: {task.completedAt.slice(0, 10)}
                             </span>
                           )}
                           {(() => {
                             const late = getTaskLateness(task);
                             return late ? (
-                              <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-danger/15 text-danger border border-danger/40" title={describeTaskLateness(late)}>
+                              <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-danger/15 text-danger dark:text-danger-soft border border-danger/40" title={describeTaskLateness(late)}>
                                 {late.daysLate} day{late.daysLate === 1 ? '' : 's'} late — no extension
                               </span>
                             ) : null;
@@ -1064,8 +1081,8 @@ export default function TasksPage() {
                         </div>
                 
                 {(task.approvalStatus === 'pending_create' || task.approvalStatus === 'pending_edit') && canSeeTaskApprovalMeta(task) && (
-                  <div className="flex items-center justify-between gap-2 p-2.5 bg-warning/10 border border-warning/25 rounded-xl text-[11px]">
-                    <div className="flex items-center gap-1.5 text-warning font-semibold">
+                  <div className="flex items-center justify-between gap-2 p-2.5 bg-warning/10 border border-warning/25 rounded-xl text-xs">
+                    <div className="flex items-center gap-1.5 text-warning dark:text-warning-soft font-semibold">
                       <Clock className="h-3.5 w-3.5 shrink-0" />
                       <span>
                         {canApprovePendingTask(task, user)
@@ -1077,14 +1094,14 @@ export default function TasksPage() {
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => handleApproveTask(task.id)}
-                          className="p-1 hover:bg-success/15 rounded-md text-success cursor-pointer"
+                          className="p-1 hover:bg-success/15 rounded-md text-success dark:text-success-soft cursor-pointer"
                           title="Approve"
                         >
                           <Check className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => setRejectingTaskId(task.id)}
-                          className="p-1 hover:bg-danger/15 rounded-md text-danger cursor-pointer"
+                          className="p-1 hover:bg-danger/15 rounded-md text-danger dark:text-danger-soft cursor-pointer"
                           title="Reject"
                         >
                           <Ban className="h-3.5 w-3.5" />
@@ -1095,7 +1112,7 @@ export default function TasksPage() {
                 )}
 
                 {task.approvalStatus === 'rejected' && canSeeTaskApprovalMeta(task) && (
-                  <div className="flex items-center gap-1.5 p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-[11px] text-danger font-semibold">
+                  <div className="flex items-center gap-1.5 p-2.5 bg-danger/10 border border-danger/25 rounded-xl text-xs text-danger dark:text-danger-soft font-semibold">
                     <Ban className="h-3.5 w-3.5 shrink-0" />
                     <span>Rejected by {task.decidedBy || 'approver'}{task.rejectionReason ? `: ${task.rejectionReason}` : ''}</span>
                   </div>
@@ -1111,18 +1128,18 @@ export default function TasksPage() {
                     const hasChanges = linkedDesign && linkedDesign.styleStatus === 'Style Rejected';
                     const statusLabel = isApproved ? 'Approved' : hasChanges ? 'Changes Requested' : (linkedDesign?.styleStatus === 'Style Approved' ? 'Style Approved' : 'In Review');
                     return (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-accent/15 border border-accent/30 text-accent text-[10px] font-bold rounded-full">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-accent/15 border border-accent/30 text-accent-strong dark:text-accent-soft text-xs font-bold rounded-full">
                         <Palette className="h-3 w-3" /> {task.designCategory ? `${task.designCategory} Design` : 'Design Task'}
                         {linkedDesign ? (
-                          <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-medium ${
-                            isApproved ? 'bg-success/20 text-success' :
-                            hasChanges ? 'bg-danger/20 text-danger' :
-                            'bg-warning/20 text-warning'
+                          <span className={`px-1.5 py-0.2 rounded-full text-xs font-medium ${
+                            isApproved ? 'bg-success/20 text-success dark:text-success-soft' :
+                            hasChanges ? 'bg-danger/20 text-danger dark:text-danger-soft' :
+                            'bg-warning/20 text-warning dark:text-warning-soft'
                           }`}>
                             {statusLabel}
                           </span>
                         ) : (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-medium bg-theme-border/40 text-theme-text-secondary">
+                          <span className="px-1.5 py-0.2 rounded-full text-xs font-medium bg-theme-border/40 text-theme-text-secondary">
                             Awaiting Upload
                           </span>
                         )}
@@ -1130,17 +1147,20 @@ export default function TasksPage() {
                     );
                   })()}
                   <h3 className="font-bold text-sm text-theme-text-primary leading-snug">{task.title}</h3>
-                  <p className="text-[11px] text-theme-text-secondary flex items-center gap-1">
+                  <p className="text-xs text-theme-text-secondary flex items-center gap-1">
                     <Briefcase className="h-3 w-3" />
-                    Event: <span className="font-medium text-theme-text-primary">{task.event || 'Standalone'}</span>
+                    {task.eventId || !task.vertical ? 'Event: ' : 'Vertical: '}<span className="font-medium text-theme-text-primary">{task.eventId ? task.event : task.vertical || task.event || 'Standalone'}</span>
                   </p>
-                  <p className="text-[11px] text-theme-text-secondary flex items-center gap-1">
-                    {task.assigneeType === 'individual' ? <User className="h-3 w-3 text-accent" /> : <Users className="h-3 w-3 text-warning" />}
+                  {task.externalLink && (
+                    <a href={task.externalLink} target="_blank" rel="noopener noreferrer" className="text-xs text-accent-strong dark:text-accent-soft hover:underline">Open in Monday / Jira ↗</a>
+                  )}
+                  <p className="text-xs text-theme-text-secondary flex items-center gap-1">
+                    {task.assigneeType === 'individual' ? <User className="h-3 w-3 text-accent-strong dark:text-accent-soft" /> : <Users className="h-3 w-3 text-warning dark:text-warning-soft" />}
                     {task.assigneeType === 'group' ? 'Group' : 'Assignee'}:{' '}
                     <span className="font-medium text-theme-text-primary">{task.assignee}</span>
                   </p>
                   {task.decidedBy && (
-                    <p className="text-[10px] text-theme-text-secondary italic pt-1">
+                    <p className="text-xs text-theme-text-secondary italic pt-1">
                       Extension decision: {task.decidedBy} ({task.decidedAt})
                     </p>
                   )}
@@ -1161,15 +1181,15 @@ export default function TasksPage() {
                     <div className="p-3 bg-theme-background/40 border border-theme-border/40 rounded-xl space-y-2.5">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-1.5">
-                          <UserCheck className="h-3.5 w-3.5 text-accent" />
-                          <span className="text-[11px] font-bold text-theme-text-primary">
+                          <UserCheck className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
+                          <span className="text-xs font-bold text-theme-text-primary">
                             Student Acknowledgments ({ackList.length}/{statuses.length})
                           </span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${
                           allDone
-                            ? 'bg-success/15 border-success/30 text-success'
-                            : 'bg-warning/15 border-warning/30 text-warning'
+                            ? 'bg-success/15 border-success/30 text-success dark:text-success-soft'
+                            : 'bg-warning/15 border-warning/30 text-warning dark:text-warning-soft'
                         }`}>
                           {allDone ? 'All Acknowledged' : `${pendingList.length} Pending`}
                         </span>
@@ -1178,14 +1198,14 @@ export default function TasksPage() {
                       {/* Acknowledged students (done it) */}
                       {ackList.length > 0 && (
                         <div className="space-y-1">
-                          <span className="text-[10px] font-semibold text-success uppercase tracking-wider flex items-center gap-1">
+                          <span className="text-xs font-semibold text-success dark:text-success-soft uppercase tracking-wider flex items-center gap-1">
                             <Check className="h-3 w-3" /> Acknowledged ({ackList.length})
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             {ackList.map(s => (
                               <span
                                 key={s.id}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/10 border border-success/20 text-success text-[11px] font-medium"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/10 border border-success/20 text-success dark:text-success-soft text-xs font-medium"
                                 title={s.email ? `${s.name} (${s.email})` : s.name}
                               >
                                 <Check className="h-3 w-3 shrink-0" />
@@ -1199,14 +1219,14 @@ export default function TasksPage() {
                       {/* Pending students (still pending) */}
                       {pendingList.length > 0 && (
                         <div className="space-y-1">
-                          <span className="text-[10px] font-semibold text-warning uppercase tracking-wider flex items-center gap-1">
+                          <span className="text-xs font-semibold text-warning dark:text-warning-soft uppercase tracking-wider flex items-center gap-1">
                             <Clock className="h-3 w-3" /> Still Pending ({pendingList.length})
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             {pendingList.map(s => (
                               <span
                                 key={s.id}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-warning/10 border border-warning/20 text-warning text-[11px] font-medium"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-warning/10 border border-warning/20 text-warning dark:text-warning-soft text-xs font-medium"
                                 title={s.email ? `${s.name} (${s.email})` : s.name}
                               >
                                 <Clock className="h-3 w-3 shrink-0" />
@@ -1234,44 +1254,44 @@ export default function TasksPage() {
                     <div className="p-3 bg-theme-background/40 border border-theme-border/40 rounded-xl space-y-2.5">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-1.5">
-                          <Palette className="h-3.5 w-3.5 text-accent" />
-                          <span className="text-[11px] font-bold text-theme-text-primary">Design Deliverable Status</span>
+                          <Palette className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" />
+                          <span className="text-xs font-bold text-theme-text-primary">Design Deliverable Status</span>
                         </div>
                         {linkedDesign ? (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
                             isApproved
-                              ? 'bg-success/15 border-success/30 text-success'
+                              ? 'bg-success/15 border-success/30 text-success dark:text-success-soft'
                               : hasChanges
-                              ? 'bg-danger/15 border-danger/30 text-danger'
-                              : 'bg-warning/15 border-warning/30 text-warning'
+                              ? 'bg-danger/15 border-danger/30 text-danger dark:text-danger-soft'
+                              : 'bg-warning/15 border-warning/30 text-warning dark:text-warning-soft'
                           }`}>
                             {statusLabel}
                           </span>
                         ) : task.status === 'Completed' ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-success/15 border border-success/30 text-success">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-success/15 border border-success/30 text-success dark:text-success-soft">
                             Completed
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-warning/15 border border-warning/30 text-warning">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-warning/15 border border-warning/30 text-warning dark:text-warning-soft">
                             Awaiting Submission
                           </span>
                         )}
                       </div>
 
                       {linkedDesign ? (
-                        <div className="space-y-2 text-[11px]">
+                        <div className="space-y-2 text-xs">
                           <div className="flex items-center justify-between text-theme-text-secondary flex-wrap gap-1">
                             <span className="truncate max-w-[14rem]">Title: <span className="font-medium text-theme-text-primary">{linkedDesign.title}</span></span>
                             {linkedDesign.designerName && <span>By: <span className="font-medium text-theme-text-primary">{linkedDesign.designerName}</span></span>}
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="p-2 rounded-lg bg-theme-background/60 border border-theme-border/25">
                               <span className="text-theme-text-secondary block">Style Review</span>
                               <span className={`font-semibold ${
-                                linkedDesign.styleStatus === 'Style Approved' ? 'text-success' :
-                                linkedDesign.styleStatus === 'Style Rejected' ? 'text-danger' :
-                                'text-warning'
+                                linkedDesign.styleStatus === 'Style Approved' ? 'text-success dark:text-success-soft' :
+                                linkedDesign.styleStatus === 'Style Rejected' ? 'text-danger dark:text-danger-soft' :
+                                'text-warning dark:text-warning-soft'
                               }`}>
                                 {linkedDesign.styleStatus || 'Pending Review'}
                               </span>
@@ -1279,7 +1299,7 @@ export default function TasksPage() {
                           </div>
 
                           {linkedDesign.styleFeedback && (
-                            <p className="text-[10px] text-theme-text-secondary italic bg-theme-background/40 p-2 rounded-lg border border-theme-border/20">
+                            <p className="text-xs text-theme-text-secondary italic bg-theme-background/40 p-2 rounded-lg border border-theme-border/20">
                               Feedback: {linkedDesign.styleFeedback}
                             </p>
                           )}
@@ -1287,7 +1307,7 @@ export default function TasksPage() {
                           <div className="pt-1 flex items-center justify-end">
                             <Link
                               href={`/dashboard/designs?highlight=${linkedDesign.id}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 hover:bg-accent/25 border border-accent/30 text-accent font-semibold text-[11px] rounded-lg transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/15 hover:bg-accent/25 border border-accent/30 text-accent-strong dark:text-accent-soft font-semibold text-xs rounded-lg transition-all"
                             >
                               <ExternalLink className="h-3 w-3" />
                               Open in Design Module &rarr;
@@ -1295,20 +1315,20 @@ export default function TasksPage() {
                           </div>
                         </div>
                       ) : task.status === 'Completed' ? (
-                        <div className="space-y-1 text-[11px]">
+                        <div className="space-y-1 text-xs">
                           <p className="text-theme-text-secondary">
                             This task has already been completed.
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-2 text-[11px]">
+                        <div className="space-y-2 text-xs">
                           <p className="text-theme-text-secondary">
                             No design submission has been uploaded for this task yet.
                           </p>
                           <div className="pt-1 flex items-center justify-end">
                             <Link
                               href={`/dashboard/designs?sourceTaskId=${task.id}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-primary-light text-white font-semibold text-[11px] rounded-lg transition-all shadow-sm"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-primary-light text-white font-semibold text-xs rounded-lg transition-all shadow-sm"
                             >
                               <Upload className="h-3 w-3" />
                               Submit Design in Portal &rarr;
@@ -1323,7 +1343,7 @@ export default function TasksPage() {
                 {task.taskCategory === 'design' && (task.briefDescription || task.canvaLink || (task.attachments && task.attachments.length > 0)) && (
                   <div className="p-2.5 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-2">
                     {task.briefDescription && (
-                      <p className="text-[11px] text-theme-text-secondary whitespace-pre-wrap">
+                      <p className="text-xs text-theme-text-secondary whitespace-pre-wrap">
                         <span className="font-semibold text-theme-text-primary">Brief: </span>
                         {task.briefDescription}
                       </p>
@@ -1333,7 +1353,7 @@ export default function TasksPage() {
                         href={task.canvaLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded-lg transition-all"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent-strong dark:text-accent-soft text-xs font-medium rounded-lg transition-all"
                       >
                         <ExternalLink className="h-3 w-3 shrink-0" />
                         Canva Reference
@@ -1347,7 +1367,7 @@ export default function TasksPage() {
                             href={f.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10px] font-medium rounded-lg transition-all max-w-full"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent-strong dark:text-accent-soft text-xs font-medium rounded-lg transition-all max-w-full"
                             title={f.name}
                           >
                             <Paperclip className="h-3 w-3 shrink-0" />
@@ -1363,7 +1383,7 @@ export default function TasksPage() {
                   <div className="pt-1">
                     <button
                       onClick={() => setExpandedTrailTaskId(expandedTrailTaskId === task.id ? null : task.id)}
-                      className="flex items-center gap-1 text-[10px] font-semibold text-accent hover:text-primary-light transition-all cursor-pointer"
+                      className="flex items-center gap-1 text-xs font-semibold text-accent-strong dark:text-accent-soft hover:text-primary-light transition-all cursor-pointer"
                     >
                       <GitBranch className="h-3 w-3" />
                       Delegation Flow ({task.delegationTrail.length})
@@ -1372,10 +1392,10 @@ export default function TasksPage() {
                     {expandedTrailTaskId === task.id && (
                       <ol className="mt-2 space-y-1.5 border-l-2 border-accent/25 pl-3">
                         {task.delegationTrail.map((step, i) => (
-                          <li key={i} className="text-[10px] text-theme-text-secondary">
+                          <li key={i} className="text-xs text-theme-text-secondary">
                             <span className={`font-semibold ${
-                              step.action === 'approved' ? 'text-success' :
-                              step.action === 'rejected' ? 'text-danger' :
+                              step.action === 'approved' ? 'text-success dark:text-success-soft' :
+                              step.action === 'rejected' ? 'text-danger dark:text-danger-soft' :
                               'text-theme-text-primary'
                             }`}>
                               {step.action === 'submitted_for_review' ? 'Submitted for review' :
@@ -1387,7 +1407,7 @@ export default function TasksPage() {
                               <> <ArrowRight className="inline h-2.5 w-2.5 mx-0.5" /> <span className="font-medium text-theme-text-primary">{step.targetName}</span></>
                             )}
                             {step.note && <span className="italic"> — {step.note}</span>}
-                            <span className="block text-[9px] opacity-70">{new Date(step.at).toLocaleString()}</span>
+                            <span className="block text-xs opacity-70">{new Date(step.at).toLocaleString()}</span>
                           </li>
                         ))}
                       </ol>
@@ -1400,9 +1420,9 @@ export default function TasksPage() {
               <div className="border-t border-theme-border/20 pt-3 flex items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-1.5">
                   {(task.approvalStatus === 'pending_create' || task.approvalStatus === 'pending_edit') ? (
-                    <span className="text-[11px] text-warning italic font-medium">Pending approval</span>
+                    <span className="text-xs text-warning dark:text-warning-soft italic font-medium">Pending approval</span>
                   ) : task.approvalStatus === 'rejected' ? (
-                    <span className="text-[11px] text-danger italic font-medium">Rejected</span>
+                    <span className="text-xs text-danger dark:text-danger-soft italic font-medium">Rejected</span>
                   ) : task.status === 'Assigned' && (
                     // Acknowledgment is deliberately gated on isTaskAssignee
                     // alone, not canChangeTaskStatus — only the specific
@@ -1414,7 +1434,7 @@ export default function TasksPage() {
                     isTaskAssignee(task, user) && !hasAcknowledgedTask(task, user) ? (
                       <button
                         onClick={() => handleAcknowledgeTask(task.id)}
-                        className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                        className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-xs cursor-pointer"
                       >
                         Acknowledge
                       </button>
@@ -1424,40 +1444,40 @@ export default function TasksPage() {
                       if (isMulti) {
                         const pending = statuses.filter(s => !s.acknowledged);
                         if (pending.length === 0) {
-                          return <span className="text-[11px] text-success italic font-medium">All {statuses.length} members acknowledged</span>;
+                          return <span className="text-xs text-success dark:text-success-soft italic font-medium">All {statuses.length} members acknowledged</span>;
                         }
                         const pendingNames = pending.map(p => p.name).join(', ');
                         return (
-                          <span className="text-[11px] text-theme-text-secondary italic" title={pendingNames}>
-                            Awaiting acknowledgment from: <span className="text-warning font-medium">{pendingNames}</span>
+                          <span className="text-xs text-theme-text-secondary italic" title={pendingNames}>
+                            Awaiting acknowledgment from: <span className="text-warning dark:text-warning-soft font-medium">{pendingNames}</span>
                           </span>
                         );
                       }
-                      return <span className="text-[11px] text-theme-text-secondary italic">Awaiting acknowledgement from {task.assignee}</span>;
+                      return <span className="text-xs text-theme-text-secondary italic">Awaiting acknowledgement from {task.assignee}</span>;
                     })()
                   )}
                   {task.status === 'In Progress' && (
                     <>
                       {canChangeTaskStatus(task, user) ? (
                         isAnimatingComplete ? (
-                          <span className="px-3 py-1 bg-emerald-500 text-white font-extrabold rounded-lg text-[11px] flex items-center gap-1.5 shadow-md shadow-emerald-500/30 animate-pulse">
+                          <span className="px-3 py-1 bg-emerald-500 text-white font-extrabold rounded-lg text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/30 animate-pulse">
                             <Check className="h-3.5 w-3.5 stroke-[3]" /> Done!
                           </span>
                         ) : (
                           <button
                             onClick={() => handleOptimisticComplete(task.id)}
-                            className="px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer active:scale-95"
+                            className="px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-xs cursor-pointer active:scale-95"
                           >
                             Complete
                           </button>
                         )
                       ) : (
-                        <span className="text-[11px] text-theme-text-secondary italic">In progress — {task.assignee}</span>
+                        <span className="text-xs text-theme-text-secondary italic">In progress — {task.assignee}</span>
                       )}
                       {canRequestTaskExtension(task, user) && (
                         <button
                           onClick={() => setExtensionTask(task)}
-                          className="px-2 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                          className="px-2 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-xs cursor-pointer"
                           title="Request deadline extension for self or department team member"
                         >
                           Extend
@@ -1466,7 +1486,7 @@ export default function TasksPage() {
                     </>
                   )}
                   {task.status === 'Completed' && (
-                    <span className="text-[11px] text-success font-semibold flex items-center gap-1">
+                    <span className="text-xs text-success dark:text-success-soft font-semibold flex items-center gap-1">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Done
                     </span>
                   )}
@@ -1486,7 +1506,7 @@ export default function TasksPage() {
                     (
                       <button
                         onClick={() => handleAcknowledgeTask(task.id)}
-                        className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                        className="px-2.5 py-1 bg-accent hover:bg-primary-light text-white font-semibold rounded-lg transition-all text-xs cursor-pointer"
                       >
                         Acknowledge (your part)
                       </button>
@@ -1516,7 +1536,7 @@ export default function TasksPage() {
                     {canDeleteTask(user, task) && (
                       <button
                         onClick={() => setDeletingTaskId(task.id)}
-                        className="p-1 hover:bg-danger/10 rounded-md text-danger transition-all cursor-pointer"
+                        className="p-1 hover:bg-danger/10 rounded-md text-danger dark:text-danger-soft transition-all cursor-pointer"
                         title="Delete Task"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -1558,7 +1578,7 @@ export default function TasksPage() {
                 type="button"
                 onClick={() => handleSendAllotmentEmail(editingTask)}
                 disabled={isSendingAllotmentEmail}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-accent/10 hover:bg-accent/15 disabled:opacity-60 disabled:cursor-not-allowed text-accent text-xs font-semibold rounded-xl border border-accent/20 transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-accent/10 hover:bg-accent/15 disabled:opacity-60 disabled:cursor-not-allowed text-accent-strong dark:text-accent-soft text-xs font-semibold rounded-xl border border-accent/20 transition-all cursor-pointer"
                 title="Manually send the assignee(s) an email that this task has been allotted to them"
               >
                 <Mail className="h-3.5 w-3.5" />
@@ -1567,7 +1587,7 @@ export default function TasksPage() {
             )}
 
             {formError && (
-              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger text-xs flex items-center gap-2">
+              <div className="p-3 bg-danger/10 border border-danger/25 rounded-xl text-danger dark:text-danger-soft text-xs flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -1585,135 +1605,6 @@ export default function TasksPage() {
                   className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                 />
               </div>
-
-              <div className="space-y-2">
-                <label className="block font-medium text-theme-text-secondary">Task Type</label>
-                <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-theme-text-primary">
-                    <input
-                      type="radio"
-                      name="taskCategory"
-                      checked={taskCategory === 'general'}
-                      onChange={() => setTaskCategory('general')}
-                      className="accent-accent"
-                    />
-                    General Task
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-theme-text-primary">
-                    <input
-                      type="radio"
-                      name="taskCategory"
-                      checked={taskCategory === 'design'}
-                      onChange={() => setTaskCategory('design')}
-                      className="accent-accent"
-                    />
-                    <Palette className="h-3.5 w-3.5 text-accent" />
-                    Design Task
-                  </label>
-                </div>
-              </div>
-
-              {taskCategory === 'design' && (
-                <div className="space-y-3 p-3 bg-accent/5 border border-accent/20 rounded-xl">
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">
-                      Design Category / Type *
-                    </label>
-                    <select
-                      value={designCategory}
-                      onChange={(e) => {
-                        const cat = e.target.value as DesignSubmissionItem['category'];
-                        setDesignCategory(cat);
-                      }}
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent text-xs"
-                    >
-                      <option value="Poster">Poster</option>
-                      <option value="Postage">Postage</option>
-                      <option value="Banner">Banner</option>
-                      <option value="Social Media">Social Media</option>
-                      <option value="Brochure">Brochure</option>
-                      <option value="Certificates">Certificates</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">
-                      Design Brief — what do you want from this project? *
-                    </label>
-                    <textarea
-                      required={taskCategory === 'design'}
-                      value={briefDescription}
-                      onChange={(e) => setBriefDescription(e.target.value)}
-                      placeholder="Describe the deliverable in detail: purpose, dimensions/format, colors/theme, text/copy to include, deadline context, examples to follow..."
-                      rows={4}
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent resize-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary flex items-center gap-1.5">
-                      <Paperclip className="h-3.5 w-3.5" />
-                      Reference Attachments ({existingAttachments.length + attachedFiles.length}/5)
-                    </label>
-                    <FileDropzone
-                      onFilesSelected={handleAttachmentFilesSelected}
-                      multiple
-                      compact
-                      disabled={existingAttachments.length + attachedFiles.length >= 5}
-                      label="Click to upload or drag and drop reference files"
-                      hint="Mockups, logos, style guides, briefs — up to 5 files, 15 MB each"
-                    />
-
-                    {existingAttachments.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        {existingAttachments.map((f, i) => (
-                          <div key={f.storageKey || f.url || i} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-theme-border/30 bg-theme-background/20 text-[11px]">
-                            <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-accent hover:underline truncate">
-                              <Download className="h-3 w-3 shrink-0" />
-                              <span className="truncate">{f.name}</span>
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => removeExistingAttachment(i)}
-                              className="h-5 w-5 flex items-center justify-center rounded-md text-theme-text-secondary hover:text-danger hover:bg-danger/10 transition-all cursor-pointer shrink-0"
-                              title="Remove attachment"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {attachedFiles.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        {attachedFiles.map((file, i) => (
-                          <FilePreviewRow
-                            key={`${file.name}-${i}`}
-                            file={file}
-                            status={isUploadingAttachments ? 'uploading' : 'idle'}
-                            onRemove={() => removeAttachedFile(i)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-medium text-theme-text-secondary">
-                      Canva Link (optional)
-                    </label>
-                    <input
-                      type="url"
-                      value={canvaLink}
-                      onChange={(e) => setCanvaLink(e.target.value)}
-                      placeholder="https://www.canva.com/design/..."
-                      className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
-                    />
-                  </div>
-                </div>
-              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -1737,6 +1628,31 @@ export default function TasksPage() {
                     className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
                   />
                 </div>
+              </div>
+
+              {selectedEventId === 'standalone' && (
+                <div className="space-y-1.5">
+                  <label className="block font-medium text-theme-text-secondary">Vertical * <span className="font-normal">(task not linked to an event)</span></label>
+                  <select
+                    value={vertical}
+                    onChange={(e) => setVertical(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
+                  >
+                    <option value="">Select vertical…</option>
+                    {TASK_VERTICALS.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="block font-medium text-theme-text-secondary">Monday / Jira link (optional)</label>
+                <input
+                  type="url"
+                  value={externalLink}
+                  onChange={(e) => setExternalLink(e.target.value)}
+                  placeholder="https://… link to the matching Monday item or Jira issue"
+                  className="w-full px-4 py-2.5 bg-theme-background/30 border border-theme-card-border rounded-xl text-theme-text-primary focus:outline-none focus:border-accent"
+                />
               </div>
 
               {/* Assignee Selection */}
@@ -1970,7 +1886,7 @@ export default function TasksPage() {
           <div className="glass-panel w-full max-w-md rounded-3xl p-6 flex flex-col space-y-4 relative border border-white/15 shadow-2xl">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
-                <Ban className="h-4.5 w-4.5 text-danger" />
+                <Ban className="h-4.5 w-4.5 text-danger dark:text-danger-soft" />
                 Reject Submission
               </h2>
               <button

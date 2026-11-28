@@ -15,7 +15,8 @@ export const saveIncubationSettings = (s: IncubationSettings) =>
   call<IncubationSettings>('/api/incubation/settings', { method: 'PUT', body: JSON.stringify(s) });
 
 export const fetchStartups = () => call<Startup[]>('/api/incubation/startups');
-export const createStartup = (payload: Partial<Startup>) =>
+export type DocUpload = { name: string; type: string; dataUrl: string };
+export const createStartup = (payload: Partial<Startup> & { documents?: Record<string, DocUpload> }) =>
   call<Startup>('/api/incubation/startups', { method: 'POST', body: JSON.stringify(payload) });
 export const updateStartup = (id: string, payload: Partial<Startup>) =>
   call<Startup>(`/api/incubation/startups/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
@@ -54,6 +55,8 @@ export const updateRecord = (kind: string, id: string, body: Record<string, unkn
 // ---- Onboarding
 export const fetchOnboarding = (startupId: string) => call<{ startup: Startup; onboarding: OnboardingRecord; gate: GateResult }>(`/api/incubation/onboarding/${encodeURIComponent(startupId)}`);
 export const saveOnboarding = (startupId: string, body: unknown) => call<GateResult>(`/api/incubation/onboarding/${encodeURIComponent(startupId)}`, { method: 'PUT', body: JSON.stringify(body) });
+export const uploadOnboardingDocuments = (startupId: string, documents: Record<string, DocUpload>) =>
+  call<{ ok: boolean; uploaded: number }>(`/api/incubation/onboarding/${encodeURIComponent(startupId)}/documents`, { method: 'POST', body: JSON.stringify({ documents }) });
 export const activateStartup = (startupId: string) => call<{ ok: boolean; basis: string }>(`/api/incubation/onboarding/${encodeURIComponent(startupId)}/activate`, { method: 'POST' });
 
 // ---- Alerts / calendar / KPI

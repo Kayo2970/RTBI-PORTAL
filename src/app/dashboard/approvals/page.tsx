@@ -88,9 +88,9 @@ const entityLink = (req: ApprovalRequest) => {
 };
 
 const statusBadge = (status: ApprovalRequest['status']) => {
-  if (status === 'approved') return 'bg-success/15 text-success border-success/30';
-  if (status === 'rejected') return 'bg-danger/15 text-danger border-danger/30';
-  return 'bg-warning/15 text-warning border-warning/30';
+  if (status === 'approved') return 'bg-success/15 text-success dark:text-success-soft border-success/30';
+  if (status === 'rejected') return 'bg-danger/15 text-danger dark:text-danger-soft border-danger/30';
+  return 'bg-warning/15 text-warning dark:text-warning-soft border-warning/30';
 };
 
 export default function ApprovalsPage() {
@@ -303,14 +303,14 @@ export default function ApprovalsPage() {
     <div className="p-6 md:p-8 space-y-6">
       {successMsg && (
         <div className="flex items-center gap-3 p-4 bg-success/15 border border-success/20 rounded-2xl text-theme-text-primary text-xs animate-in fade-in duration-300">
-          <Check className="h-5 w-5 text-success shrink-0" />
+          <Check className="h-5 w-5 text-success dark:text-success-soft shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       <div>
         <h1 className="text-xl font-bold text-theme-text-primary flex items-center gap-2">
-          <UserCheck className="h-5 w-5 text-accent" />
+          <UserCheck className="h-5 w-5 text-accent-strong dark:text-accent-soft" />
           Approvals
         </h1>
         <p className="text-xs text-theme-text-secondary">Requests to sign off on announcements, tasks, events, designs and forms</p>
@@ -321,29 +321,29 @@ export default function ApprovalsPage() {
       <div className="flex items-center gap-2 border-b border-theme-border/20">
         <button
           onClick={() => setTab('inbox')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${tab === 'inbox' ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${tab === 'inbox' ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
         >
           <Inbox className="h-3.5 w-3.5" />
           Awaiting My Decision
           {pendingInboxCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-accent text-white text-[10px] font-bold">{pendingInboxCount}</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-accent text-white text-xs font-bold">{pendingInboxCount}</span>
           )}
         </button>
         <button
           onClick={() => setTab('sent')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${tab === 'sent' ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${tab === 'sent' ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
         >
           <Send className="h-3.5 w-3.5" />
           Sent By Me
         </button>
         <button
           onClick={() => setTab('decided')}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${tab === 'decided' ? 'border-accent text-accent' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${tab === 'decided' ? 'border-accent text-accent-strong dark:text-accent-soft' : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'}`}
         >
           <History className="h-3.5 w-3.5" />
           Decided
           {decidedInbox.length > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-theme-border/40 text-theme-text-secondary text-[10px] font-bold">{decidedInbox.length}</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-theme-border/40 text-theme-text-secondary text-xs font-bold">{decidedInbox.length}</span>
           )}
         </button>
       </div>
@@ -378,7 +378,7 @@ export default function ApprovalsPage() {
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2.5">
-                      <div className="p-2 rounded-xl bg-accent/15 text-accent shrink-0">
+                      <div className="p-2 rounded-xl bg-accent/15 text-accent-strong dark:text-accent-soft shrink-0">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div>
@@ -391,24 +391,24 @@ export default function ApprovalsPage() {
                           </button>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-accent font-semibold uppercase tracking-wider bg-accent/10 px-1.5 py-0.5 rounded">
+                          <span className="text-xs text-accent-strong dark:text-accent-soft font-semibold uppercase tracking-wider bg-accent/10 px-1.5 py-0.5 rounded">
                             {req.entityType}
                           </span>
                           {req.approverLabel && (
-                            <span className="text-[10px] text-theme-text-secondary">
+                            <span className="text-xs text-theme-text-secondary">
                               ({req.approverLabel})
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge(req.status)} shrink-0`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${statusBadge(req.status)} shrink-0`}>
                       {req.status === 'pending' ? 'Pending' : req.status === 'approved' ? 'Approved' : 'Rejected'}
                     </span>
                   </div>
 
                   {/* Requester Context */}
-                  <p className="text-theme-text-secondary text-[11px]">
+                  <p className="text-theme-text-secondary text-xs">
                     {tab === 'sent' ? (
                       <>Sent to <span className="font-semibold text-theme-text-primary">{req.targetMemberName}</span> for approval.</>
                     ) : req.status === 'pending' ? (
@@ -426,10 +426,10 @@ export default function ApprovalsPage() {
                       title="Click to view detailed overview"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1">
-                          <Info className="h-3 w-3 text-accent" /> Overview Preview
+                        <span className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1">
+                          <Info className="h-3 w-3 text-accent-strong dark:text-accent-soft" /> Overview Preview
                         </span>
-                        <span className="text-[10px] text-accent group-hover:underline flex items-center gap-0.5 font-medium">
+                        <span className="text-xs text-accent-strong dark:text-accent-soft group-hover:underline flex items-center gap-0.5 font-medium">
                           View details <ChevronRight className="h-3 w-3" />
                         </span>
                       </div>
@@ -437,7 +437,7 @@ export default function ApprovalsPage() {
                       {/* Announcement Preview */}
                       {entityResolved.type === 'announcement' && (
                         <div className="space-y-1 text-theme-text-primary">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary">
+                          <div className="flex items-center gap-2 text-xs text-theme-text-secondary">
                             <span className="px-1.5 py-0.5 rounded bg-theme-border/30 text-theme-text-primary font-medium">
                               Scope: {entityResolved.item.scope}
                             </span>
@@ -445,7 +445,7 @@ export default function ApprovalsPage() {
                               <span>By {entityResolved.item.authorName}</span>
                             )}
                           </div>
-                          <p className="line-clamp-2 text-theme-text-primary text-[11px] leading-relaxed font-normal italic">
+                          <p className="line-clamp-2 text-theme-text-primary text-xs leading-relaxed font-normal italic">
                             "{entityResolved.item.content}"
                           </p>
                         </div>
@@ -453,20 +453,20 @@ export default function ApprovalsPage() {
 
                       {/* Task Preview */}
                       {entityResolved.type === 'task' && (
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary flex-wrap">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2 text-xs text-theme-text-secondary flex-wrap">
                             {entityResolved.item.dueDate && <span>Due: {entityResolved.item.dueDate}</span>}
                             {entityResolved.item.assignee && <span>Assignee: {entityResolved.item.assignee}</span>}
-                            {entityResolved.item.event && <span className="text-accent">({entityResolved.item.event})</span>}
+                            {entityResolved.item.event && <span className="text-accent-strong dark:text-accent-soft">({entityResolved.item.event})</span>}
                           </div>
                           {entityResolved.item.briefDescription && (
-                            <p className="line-clamp-2 text-theme-text-primary text-[11px] italic">
+                            <p className="line-clamp-2 text-theme-text-primary text-xs italic">
                               "{entityResolved.item.briefDescription}"
                             </p>
                           )}
                           {entityResolved.item.attachments && entityResolved.item.attachments.length > 0 && (
-                            <div className="flex items-center gap-1 text-[10px] text-theme-text-secondary pt-0.5">
-                              <Paperclip className="h-3 w-3 text-accent" /> {entityResolved.item.attachments.length} attachment(s)
+                            <div className="flex items-center gap-1 text-xs text-theme-text-secondary pt-0.5">
+                              <Paperclip className="h-3 w-3 text-accent-strong dark:text-accent-soft" /> {entityResolved.item.attachments.length} attachment(s)
                             </div>
                           )}
                         </div>
@@ -474,15 +474,15 @@ export default function ApprovalsPage() {
 
                       {/* Event Preview */}
                       {entityResolved.type === 'event' && (
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary flex-wrap">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2 text-xs text-theme-text-secondary flex-wrap">
                             <span>
                               {entityResolved.item.datesTBD ? 'Dates TBD' : `${entityResolved.item.startDate} ${entityResolved.item.endDate ? `to ${entityResolved.item.endDate}` : ''}`}
                             </span>
                             {entityResolved.item.location && <span>• {entityResolved.item.location}</span>}
                           </div>
                           {entityResolved.item.description && (
-                            <p className="line-clamp-2 text-theme-text-primary text-[11px]">
+                            <p className="line-clamp-2 text-theme-text-primary text-xs">
                               {entityResolved.item.description}
                             </p>
                           )}
@@ -491,14 +491,14 @@ export default function ApprovalsPage() {
 
                       {/* Design Preview */}
                       {entityResolved.type === 'design' && (
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary flex-wrap">
-                            <span className="px-1.5 py-0.5 rounded bg-accent/15 text-accent font-semibold">{entityResolved.item.category}</span>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2 text-xs text-theme-text-secondary flex-wrap">
+                            <span className="px-1.5 py-0.5 rounded bg-accent/15 text-accent-strong dark:text-accent-soft font-semibold">{entityResolved.item.category}</span>
                             <span>By {entityResolved.item.designerName}</span>
                             {entityResolved.item.eventName && <span>• {entityResolved.item.eventName}</span>}
                           </div>
                           {entityResolved.item.description && (
-                            <p className="line-clamp-2 text-theme-text-primary text-[11px]">
+                            <p className="line-clamp-2 text-theme-text-primary text-xs">
                               {entityResolved.item.description}
                             </p>
                           )}
@@ -508,8 +508,8 @@ export default function ApprovalsPage() {
 
                       {/* Member Preview */}
                       {entityResolved.type === 'member' && (
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-2 text-[10px] text-theme-text-secondary flex-wrap">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2 text-xs text-theme-text-secondary flex-wrap">
                             <span className="font-semibold text-theme-text-primary">{entityResolved.item.role}</span>
                             <span>• {entityResolved.item.division}</span>
                             {entityResolved.item.department && <span>({entityResolved.item.department})</span>}
@@ -520,20 +520,20 @@ export default function ApprovalsPage() {
                   )}
 
                   {req.message && (
-                    <p className="bg-theme-background/30 border-l-2 border-accent/40 px-3 py-2 rounded-lg text-theme-text-secondary italic text-[11px]">
+                    <p className="bg-theme-background/30 border-l-2 border-accent/40 px-3 py-2 rounded-lg text-theme-text-secondary italic text-xs">
                       "{req.message}"
                     </p>
                   )}
 
                   {req.status !== 'pending' && req.decisionNote && (
-                    <p className="bg-theme-background/30 border-l-2 border-theme-border/40 px-3 py-2 rounded-lg text-theme-text-secondary text-[11px]">
+                    <p className="bg-theme-background/30 border-l-2 border-theme-border/40 px-3 py-2 rounded-lg text-theme-text-secondary text-xs">
                       Note: {req.decisionNote}
                     </p>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-theme-border/20 mt-2">
-                  <span className="flex items-center gap-1 text-[10px] text-theme-text-secondary">
+                  <span className="flex items-center gap-1 text-xs text-theme-text-secondary">
                     <Clock className="h-3 w-3" />
                     {new Date(req.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                   </span>
@@ -541,17 +541,17 @@ export default function ApprovalsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setOverviewModalRequest(req)}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-theme-border/20 hover:bg-theme-border/40 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                      className="flex items-center gap-1 px-2.5 py-1 bg-theme-border/20 hover:bg-theme-border/40 text-theme-text-primary font-semibold rounded-lg transition-all text-xs cursor-pointer"
                       title="Inspect full overview"
                     >
-                      <Eye className="h-3 w-3 text-accent" /> Overview
+                      <Eye className="h-3 w-3 text-accent-strong dark:text-accent-soft" /> Overview
                     </button>
 
                     {tab === 'inbox' && req.status === 'pending' && (
                       req.autoGenerated && !directlyResolvable(req.entityType) ? (
                         <Link
                           href={entityLink(req)}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 bg-accent/15 hover:bg-accent/25 text-accent-strong dark:text-accent-soft font-semibold rounded-lg transition-all text-xs cursor-pointer"
                           title="This needs a full review — decide it from its own module."
                         >
                           Review <ChevronRight className="h-3 w-3" />
@@ -560,13 +560,13 @@ export default function ApprovalsPage() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => setDecisionNoteFor({ id: req.id, decision: 'approved' })}
-                            className="flex items-center gap-1 px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-all text-xs cursor-pointer"
                           >
                             <Check className="h-3 w-3" /> Approve
                           </button>
                           <button
                             onClick={() => setDecisionNoteFor({ id: req.id, decision: 'rejected' })}
-                            className="flex items-center gap-1 px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-xs cursor-pointer"
                           >
                             <X className="h-3 w-3" /> Reject
                           </button>
@@ -577,7 +577,7 @@ export default function ApprovalsPage() {
                     {tab === 'sent' && req.status === 'pending' && (
                       <button
                         onClick={() => handleWithdraw(req.id)}
-                        className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-[11px] cursor-pointer"
+                        className="px-2.5 py-1 bg-theme-border/30 hover:bg-theme-border/50 text-theme-text-primary font-semibold rounded-lg transition-all text-xs cursor-pointer"
                       >
                         Withdraw
                       </button>
@@ -602,15 +602,15 @@ export default function ApprovalsPage() {
               {/* Header */}
               <div className="flex items-start justify-between gap-4 border-b border-theme-border/20 pb-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-3 rounded-2xl bg-accent/15 text-accent shrink-0">
+                  <div className="p-3 rounded-2xl bg-accent/15 text-accent-strong dark:text-accent-soft shrink-0">
                     <Icon className="h-6 w-6" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-accent font-bold uppercase tracking-wider bg-accent/15 px-2 py-0.5 rounded-md">
+                      <span className="text-xs text-accent-strong dark:text-accent-soft font-bold uppercase tracking-wider bg-accent/15 px-2 py-0.5 rounded-md">
                         {req.entityType}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge(req.status)}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${statusBadge(req.status)}`}>
                         {req.status === 'pending' ? 'Pending Approval' : req.status === 'approved' ? 'Approved' : 'Rejected'}
                       </span>
                     </div>
@@ -635,15 +635,15 @@ export default function ApprovalsPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Target Audience</p>
-                        <p className="text-xs font-semibold text-accent mt-0.5">{entityResolved.item.scope}</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Target Audience</p>
+                        <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft mt-0.5">{entityResolved.item.scope}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Author</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Author</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.authorName}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Publication Time</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Publication Time</p>
                         <p className="text-xs text-theme-text-secondary mt-0.5">
                           {entityResolved.item.publishedAt ? new Date(entityResolved.item.publishedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Draft'}
                         </p>
@@ -652,7 +652,7 @@ export default function ApprovalsPage() {
 
                     <div className="p-4 rounded-2xl bg-theme-background/60 border border-theme-border/40 space-y-2">
                       <p className="text-xs font-bold uppercase tracking-wider text-theme-text-secondary flex items-center gap-1.5">
-                        <Megaphone className="h-4 w-4 text-accent" /> Announcement Content Body
+                        <Megaphone className="h-4 w-4 text-accent-strong dark:text-accent-soft" /> Announcement Content Body
                       </p>
                       <div className="text-xs text-theme-text-primary whitespace-pre-wrap leading-relaxed bg-theme-background/30 p-3.5 rounded-xl border border-theme-border/20 font-sans">
                         {entityResolved.item.content}
@@ -666,16 +666,16 @@ export default function ApprovalsPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Assignee</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Assignee</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.assignee}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Due Date</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Due Date</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.dueDate || 'No deadline'}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Linked Event</p>
-                        <p className="text-xs font-semibold text-accent mt-0.5">{entityResolved.item.event || 'None'}</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Linked Event</p>
+                        <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft mt-0.5">{entityResolved.item.event || 'None'}</p>
                       </div>
                     </div>
 
@@ -688,8 +688,8 @@ export default function ApprovalsPage() {
 
                     {entityResolved.item.attachments && entityResolved.item.attachments.length > 0 && (
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30 space-y-2">
-                        <p className="text-[11px] font-bold text-theme-text-secondary flex items-center gap-1.5">
-                          <Paperclip className="h-3.5 w-3.5 text-accent" /> Attached Reference Files ({entityResolved.item.attachments.length})
+                        <p className="text-xs font-bold text-theme-text-secondary flex items-center gap-1.5">
+                          <Paperclip className="h-3.5 w-3.5 text-accent-strong dark:text-accent-soft" /> Attached Reference Files ({entityResolved.item.attachments.length})
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {entityResolved.item.attachments.map((att, idx) => (
@@ -698,7 +698,7 @@ export default function ApprovalsPage() {
                               href={att.url || att.dataUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-theme-border/30 hover:bg-theme-border/50 text-xs text-accent transition-all font-medium"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-theme-border/30 hover:bg-theme-border/50 text-xs text-accent-strong dark:text-accent-soft transition-all font-medium"
                             >
                               <Paperclip className="h-3 w-3" /> {att.name}
                             </a>
@@ -714,13 +714,13 @@ export default function ApprovalsPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Dates</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Dates</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">
                           {entityResolved.item.datesTBD ? 'Dates TBD' : `${entityResolved.item.startDate} ${entityResolved.item.endDate ? `to ${entityResolved.item.endDate}` : ''}`}
                         </p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Location</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Location</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.location || 'TBD'}</p>
                       </div>
                     </div>
@@ -737,15 +737,15 @@ export default function ApprovalsPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Category</p>
-                        <p className="text-xs font-semibold text-accent mt-0.5">{entityResolved.item.category}</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Category</p>
+                        <p className="text-xs font-semibold text-accent-strong dark:text-accent-soft mt-0.5">{entityResolved.item.category}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Designer</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Designer</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.designerName}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-theme-background/40 border border-theme-border/30">
-                        <p className="text-[10px] uppercase font-bold text-theme-text-secondary">Event</p>
+                        <p className="text-xs uppercase font-bold text-theme-text-secondary">Event</p>
                         <p className="text-xs font-semibold text-theme-text-primary mt-0.5">{entityResolved.item.eventName || 'Independent'}</p>
                       </div>
                     </div>
@@ -773,7 +773,7 @@ export default function ApprovalsPage() {
                 {/* Requester's Personal Message */}
                 {req.message && (
                   <div className="p-3.5 bg-accent/10 border-l-3 border-accent rounded-xl space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider font-bold text-accent">Message from Requester</p>
+                    <p className="text-xs uppercase tracking-wider font-bold text-accent-strong dark:text-accent-soft">Message from Requester</p>
                     <p className="text-xs text-theme-text-primary italic">"{req.message}"</p>
                   </div>
                 )}
@@ -783,7 +783,7 @@ export default function ApprovalsPage() {
               <div className="pt-4 border-t border-theme-border/20 flex items-center justify-between gap-3 flex-wrap">
                 <Link
                   href={entityLink(req)}
-                  className="flex items-center gap-1.5 text-xs text-accent hover:underline font-semibold"
+                  className="flex items-center gap-1.5 text-xs text-accent-strong dark:text-accent-soft hover:underline font-semibold"
                 >
                   <ExternalLink className="h-3.5 w-3.5" /> Open in {req.entityType} module
                 </Link>
@@ -803,7 +803,7 @@ export default function ApprovalsPage() {
                           setDecisionNoteFor({ id: req.id, decision: 'rejected' });
                           setOverviewModalRequest(null);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-danger/15 hover:bg-danger/25 text-danger font-semibold rounded-xl transition-all text-xs cursor-pointer border border-danger/20"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-danger/15 hover:bg-danger/25 text-danger dark:text-danger-soft font-semibold rounded-xl transition-all text-xs cursor-pointer border border-danger/20"
                       >
                         <X className="h-3.5 w-3.5" /> Reject
                       </button>
@@ -838,17 +838,17 @@ export default function ApprovalsPage() {
             {reviewing && (
               <div className="space-y-2 text-xs">
                 <div className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-1">
-                  <p className="text-[10px] uppercase tracking-wide text-theme-text-secondary font-bold">{reviewing.entityType}</p>
+                  <p className="text-xs uppercase tracking-wide text-theme-text-secondary font-bold">{reviewing.entityType}</p>
                   <p className="font-semibold text-theme-text-primary">{reviewing.entityTitle}</p>
                 </div>
                 <div className="p-3 bg-theme-background/30 border border-theme-border/30 rounded-xl space-y-1">
-                  <p className="text-[10px] uppercase tracking-wide text-theme-text-secondary font-bold">Requested By</p>
+                  <p className="text-xs uppercase tracking-wide text-theme-text-secondary font-bold">Requested By</p>
                   <p className="font-semibold text-theme-text-primary">{reviewing.requesterName}</p>
                   {reviewing.requesterEmail && <p className="text-theme-text-secondary">{reviewing.requesterEmail}</p>}
                 </div>
                 {reviewing.message && (
                   <div className="p-3 bg-theme-background/30 border-l-2 border-accent/40 rounded-xl">
-                    <p className="text-[10px] uppercase tracking-wide text-theme-text-secondary font-bold mb-1">What They Told You</p>
+                    <p className="text-xs uppercase tracking-wide text-theme-text-secondary font-bold mb-1">What They Told You</p>
                     <p className="text-theme-text-primary italic">"{reviewing.message}"</p>
                   </div>
                 )}
@@ -862,8 +862,8 @@ export default function ApprovalsPage() {
               placeholder={reviewing?.entityType === 'incubation' ? (decisionNoteFor.decision === 'approved' ? 'Approval reference (minutes / order number) — required' : 'Reason for rejecting the decision — required') : 'Add your comments / feedback for the submitter...'}
               className="w-full px-3 py-2 text-xs rounded-xl border border-theme-border/40 bg-theme-background/30 text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40 resize-none"
             />
-            {decideError && <p className="text-[11px] text-danger">{decideError}</p>}
-            <p className="text-[11px] text-theme-text-secondary">
+            {decideError && <p className="text-xs text-danger dark:text-danger-soft">{decideError}</p>}
+            <p className="text-xs text-theme-text-secondary">
               Your decision and comments will be automatically emailed to {reviewing?.requesterEmail ? <span className="font-semibold text-theme-text-primary">{reviewing.requesterEmail}</span> : 'the submitter'}.
             </p>
             <div className="flex items-center justify-end gap-2.5">

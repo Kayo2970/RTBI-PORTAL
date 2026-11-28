@@ -37,6 +37,13 @@ export async function canWriteKind(def: KindDef, actor: any): Promise<boolean> {
   return def.write === 'managers' ? canManageStartupsServer(actor) : isInternalStaff(actor);
 }
 
+/** Staff write per the kind's rule; tier-4 founders may write only kinds flagged `startupCanWrite`, and only for their own startup. */
+export async function canWriteRecord(def: KindDef, actor: any, startupId: string | undefined): Promise<boolean> {
+  if (await canWriteKind(def, actor)) return true;
+  if (!def.startupCanWrite || !startupId || actor?.tier !== 4) return false;
+  return (await visibleStartupsFor(actor)).some(s => s.id === startupId);
+}
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Coerces and checks one submitted field; returns [value, error]. */

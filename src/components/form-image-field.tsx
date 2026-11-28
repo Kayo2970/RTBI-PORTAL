@@ -79,8 +79,8 @@ export function FormImageField({ label, hint, kind, value, onChange, showPreview
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
       </div>
-      <p className="text-[10px] text-theme-text-secondary">{hint} Drive images must be shared as &quot;Anyone with the link&quot;.</p>
-      {error && <p className="text-[11px] text-danger">{error}</p>}
+      <p className="text-xs text-theme-text-secondary">{hint} Drive images must be shared as &quot;Anyone with the link&quot;.</p>
+      {error && <p className="text-xs text-danger dark:text-danger-soft">{error}</p>}
       {value && showPreview && (
         <div className="relative h-24 rounded-xl overflow-hidden border border-theme-card-border">
           {/* eslint-disable-next-line @next/next/no-img-element */}

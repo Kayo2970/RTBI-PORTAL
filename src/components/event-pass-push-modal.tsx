@@ -120,13 +120,13 @@ export function EventPassPushModal({
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-accent/15 via-transparent to-primary/10">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/40 flex items-center justify-center text-accent shadow-inner">
+            <div className="h-10 w-10 rounded-2xl bg-accent/20 border border-accent/40 flex items-center justify-center text-accent-strong dark:text-accent-soft shadow-inner">
               <Bell className="h-5 w-5 animate-pulse" />
             </div>
             <div>
               <h2 className="text-base font-bold text-theme-text-primary flex items-center gap-2">
                 Broadcast Live Lock-Screen Push
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-accent/20 text-accent border border-accent/30">
+                <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-accent/20 text-accent-strong dark:text-accent-soft border border-accent/30">
                   APNs & Google
                 </span>
               </h2>
@@ -153,7 +153,7 @@ export function EventPassPushModal({
                 onClick={() => setTargetType('all')}
                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
                   targetType === 'all'
-                    ? 'bg-accent/20 border-accent text-accent font-semibold shadow-sm'
+                    ? 'bg-accent/20 border-accent text-accent-strong dark:text-accent-soft font-semibold shadow-sm'
                     : 'bg-white/5 border-white/10 text-theme-text-secondary hover:bg-white/10'
                 }`}
               >
@@ -165,7 +165,7 @@ export function EventPassPushModal({
                 onClick={() => setTargetType('category')}
                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
                   targetType === 'category'
-                    ? 'bg-accent/20 border-accent text-accent font-semibold shadow-sm'
+                    ? 'bg-accent/20 border-accent text-accent-strong dark:text-accent-soft font-semibold shadow-sm'
                     : 'bg-white/5 border-white/10 text-theme-text-secondary hover:bg-white/10'
                 }`}
               >
@@ -177,7 +177,7 @@ export function EventPassPushModal({
                 onClick={() => setTargetType('single')}
                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
                   targetType === 'single'
-                    ? 'bg-accent/20 border-accent text-accent font-semibold shadow-sm'
+                    ? 'bg-accent/20 border-accent text-accent-strong dark:text-accent-soft font-semibold shadow-sm'
                     : 'bg-white/5 border-white/10 text-theme-text-secondary hover:bg-white/10'
                 }`}
               >
@@ -231,7 +231,7 @@ export function EventPassPushModal({
               <label className="text-xs font-semibold text-theme-text-secondary uppercase tracking-wider">
                 Push Notification Text
               </label>
-              <span className="text-[10px] text-theme-text-secondary">
+              <span className="text-xs text-theme-text-secondary">
                 {message.length} / 160 characters
               </span>
             </div>
@@ -241,14 +241,14 @@ export function EventPassPushModal({
               placeholder="e.g. Keynote starting in Hall A turnstiles at 11:30 AM..."
               rows={3}
               maxLength={200}
-              className="w-full px-4 py-3 rounded-2xl border border-white/15 bg-white/5 text-sm text-theme-text-primary placeholder:text-theme-text-secondary/50 focus:outline-none focus:border-accent transition-all resize-none shadow-inner"
+              className="w-full px-4 py-3 rounded-2xl border border-white/15 bg-white/5 text-sm text-theme-text-primary placeholder:text-theme-text-secondary focus:outline-none focus:border-accent transition-all resize-none shadow-inner"
             />
           </div>
 
           {/* Quick Pre-written Templates */}
           <div>
-            <span className="text-[11px] font-medium text-theme-text-secondary flex items-center gap-1.5 mb-2">
-              <Sparkles className="h-3 w-3 text-accent" /> Quick broadcast templates:
+            <span className="text-xs font-medium text-theme-text-secondary flex items-center gap-1.5 mb-2">
+              <Sparkles className="h-3 w-3 text-accent-strong dark:text-accent-soft" /> Quick broadcast templates:
             </span>
             <div className="flex flex-wrap gap-1.5">
               {quickTemplates.map((tmpl, idx) => (
@@ -256,7 +256,7 @@ export function EventPassPushModal({
                   key={idx}
                   type="button"
                   onClick={() => setMessage(tmpl)}
-                  className="text-[11px] text-left px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-accent/15 border border-white/10 hover:border-accent/40 text-theme-text-secondary hover:text-accent transition-all"
+                  className="text-xs text-left px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-accent/15 border border-white/10 hover:border-accent/40 text-theme-text-secondary hover:text-accent transition-all"
                 >
                   {tmpl}
                 </button>
@@ -269,8 +269,8 @@ export function EventPassPushModal({
             <div
               className={`p-4 rounded-2xl border flex items-start gap-3 text-xs ${
                 result.success
-                  ? 'bg-success/10 border-success/30 text-success'
-                  : 'bg-danger/10 border-danger/30 text-danger'
+                  ? 'bg-success/10 border-success/30 text-success dark:text-success-soft'
+                  : 'bg-danger/10 border-danger/30 text-danger dark:text-danger-soft'
               }`}
             >
               {result.success ? (
@@ -281,7 +281,7 @@ export function EventPassPushModal({
               <div className="flex-1">
                 <p className="font-semibold">{result.message}</p>
                 {result.details && result.details.errors && result.details.errors.length > 0 && (
-                  <ul className="mt-1 list-disc list-inside text-[11px] opacity-80">
+                  <ul className="mt-1 list-disc list-inside text-xs opacity-80">
                     {result.details.errors.map((e: string, i: number) => (
                       <li key={i}>{e}</li>
                     ))}
@@ -294,7 +294,7 @@ export function EventPassPushModal({
 
         {/* Footer Actions */}
         <div className="px-6 py-4 border-t border-white/10 bg-white/5 flex items-center justify-between">
-          <p className="text-[11px] text-theme-text-secondary/70">
+          <p className="text-xs text-theme-text-secondary">
             Instant lock-screen alert to all Apple & Google Wallets.
           </p>
           <div className="flex items-center gap-2.5">

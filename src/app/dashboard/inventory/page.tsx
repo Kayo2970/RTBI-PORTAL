@@ -17,6 +17,7 @@ import { getEvents } from '@/lib/local-data';
 import { exportStickersPdf, findItemByScan } from '@/lib/inventory-qr';
 import { ScanModal } from '@/components/inventory/scan-modal';
 import { Field, Modal, Badge, Banner, Panel, inputCls, btnPrimary, btnGhost, fmtDateTime } from '@/components/billing-ui';
+import { askConfirm } from '@/components/ui/confirm-dialog';
 
 interface FormState {
   name: string;
@@ -248,7 +249,7 @@ export default function InventoryPage() {
   }
 
   async function archive(i: InventoryItem) {
-    if (!confirm(`Archive "${i.name}"? It will be hidden from stock lists; its history is kept.`)) return;
+    if (!await askConfirm(`Archive "${i.name}"? It will be hidden from stock lists; its history is kept.`)) return;
     try {
       await api(`/api/inventory/${i.id}`, 'PATCH', { active: false });
       await load();
@@ -280,9 +281,9 @@ export default function InventoryPage() {
       {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
 
       <div className="grid grid-cols-3 gap-3">
-        <Panel><p className="text-[11px] text-theme-text-secondary">Items</p><p className="text-lg font-bold text-theme-text-primary">{active.length}</p></Panel>
-        <Panel><p className="text-[11px] text-theme-text-secondary">Low / out of stock</p><p className={`text-lg font-bold ${lowCount ? 'text-red-500' : 'text-theme-text-primary'}`}>{lowCount}</p></Panel>
-        <Panel><p className="text-[11px] text-theme-text-secondary">Events supplied</p><p className="text-lg font-bold text-theme-text-primary">{eventUsage.length}</p></Panel>
+        <Panel><p className="text-xs text-theme-text-secondary">Items</p><p className="text-lg font-bold text-theme-text-primary">{active.length}</p></Panel>
+        <Panel><p className="text-xs text-theme-text-secondary">Low / out of stock</p><p className={`text-lg font-bold ${lowCount ? 'text-red-500' : 'text-theme-text-primary'}`}>{lowCount}</p></Panel>
+        <Panel><p className="text-xs text-theme-text-secondary">Events supplied</p><p className="text-lg font-bold text-theme-text-primary">{eventUsage.length}</p></Panel>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -385,7 +386,7 @@ export default function InventoryPage() {
                     <td className="p-3 font-semibold">
                       <span>{i.name}</span>
                       {i.sku ? (
-                        <span className="block font-mono text-[11px] font-normal text-theme-text-secondary tracking-wide mt-0.5">
+                        <span className="block font-mono text-xs font-normal text-theme-text-secondary tracking-wide mt-0.5">
                           Code: {i.sku}
                         </span>
                       ) : null}
@@ -433,7 +434,7 @@ export default function InventoryPage() {
             <Panel key={ev.eventId} className="!p-0 overflow-x-auto">
               <div className="flex items-center justify-between p-3 border-b border-theme-card-border">
                 <h3 className="text-sm font-bold text-theme-text-primary">{ev.eventName}</h3>
-                <span className="text-[11px] text-theme-text-secondary">{ev.lines.size} item{ev.lines.size === 1 ? '' : 's'} · {Math.round(ev.total * 1000) / 1000} units used</span>
+                <span className="text-xs text-theme-text-secondary">{ev.lines.size} item{ev.lines.size === 1 ? '' : 's'} · {Math.round(ev.total * 1000) / 1000} units used</span>
               </div>
               <table className="w-full text-xs">
                 <thead>
@@ -638,7 +639,7 @@ export default function InventoryPage() {
             </Field>
 
             {form.id && (
-              <p className="text-[11px] text-theme-text-secondary">
+              <p className="text-xs text-theme-text-secondary">
                 Change stock levels with the stock in / out / adjust buttons so every movement is audited.
               </p>
             )}

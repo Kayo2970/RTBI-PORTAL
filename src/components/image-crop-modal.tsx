@@ -344,12 +344,12 @@ export function ImageCropModal({
         {/* Header */}
         <div className="p-4 sm:px-5 sm:py-3.5 border-b border-theme-card-border flex items-center justify-between bg-theme-header-bg/50 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent shrink-0">
+            <div className="h-8 w-8 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent-strong dark:text-accent-soft shrink-0">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
               <h3 className="font-semibold text-sm sm:text-base text-theme-text-primary">{title}</h3>
-              <p className="text-[11px] sm:text-xs text-theme-text-secondary mt-0.5">{description}</p>
+              <p className="text-xs sm:text-xs text-theme-text-secondary mt-0.5">{description}</p>
             </div>
           </div>
           <button
@@ -429,7 +429,7 @@ export function ImageCropModal({
             </div>
 
             {/* Drag Hint Badge */}
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] text-white/80 font-medium flex items-center gap-1 pointer-events-none">
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs text-white/80 font-medium flex items-center gap-1 pointer-events-none">
               <Move className="h-3 w-3" />
               Drag to frame
             </div>
@@ -495,7 +495,7 @@ export function ImageCropModal({
               {/* Side-by-side Mini Previews (Circular Avatar & Card Badge) */}
               <div className="flex items-center gap-2">
                 <div className="text-right">
-                  <p className="text-[9px] uppercase tracking-wider font-semibold text-theme-text-secondary">Preview</p>
+                  <p className="text-xs uppercase tracking-wider font-semibold text-theme-text-secondary">Preview</p>
                 </div>
                 {/* Circular preview */}
                 <div

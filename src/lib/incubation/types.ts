@@ -181,13 +181,13 @@ export const SCREENING_AREAS = [
 export const DECISION_OPTIONS = ['Selected', 'Selected subject to conditions', 'Waitlisted', 'Further information required', 'Not selected'] as const;
 export type DecisionOption = (typeof DECISION_OPTIONS)[number];
 
-export const APPLICATION_STATUSES = ['Received', 'Clarification required', 'Ineligible', 'Eligible', 'Evaluation', 'Decision recorded', 'Decision final'] as const;
+export const APPLICATION_STATUSES = ['Received', 'Clarification required', 'Ineligible', 'Eligible', 'Evaluation', 'Decision recorded', 'Decision final', 'Withdrawn'] as const;
 
 export interface ApplicationFile { name: string; url: string; storageKey: string; type?: string; label?: string }
 
 export interface ScreeningRecord {
   at: string; by: string;
-  checks: Record<string, { result: 'yes' | 'no' | 'na'; evidence?: string }>;
+  checks: Record<string, { result: 'yes' | 'no' | 'na'; evidence?: string; file?: ApplicationFile }>;
   outcome: 'eligible' | 'clarification' | 'ineligible';
   criterion?: string;
 }
@@ -199,7 +199,7 @@ export interface CoiDeclaration { memberId: string; memberName: string; at: stri
 export interface EvaluatorScorecard {
   memberId: string; memberName: string; specialist?: boolean;
   scores: Record<string, number>; weighted: number;
-  recommendation?: string; comments?: string; submittedAt: string;
+  recommendation?: string; comments?: string; evidenceFiles?: ApplicationFile[]; submittedAt: string;
 }
 
 export interface ApplicationDecision {
