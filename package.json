@@ -18,6 +18,7 @@
     "adm-zip": "^0.6.1",
     "dictionary-en": "^4.0.0",
     "dictionary-en-gb": "^3.0.0",
+    "docx": "^9.16.1",
     "gsap": "^3.15.1",
     "html2canvas": "^1.4.1",
     "isomorphic-dompurify": "^4.7.0",

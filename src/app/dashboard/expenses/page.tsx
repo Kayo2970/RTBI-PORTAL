@@ -48,6 +48,7 @@ import { EXPENSE_HEADS, ExpenseHeadKey, getExpenseHeadLabel } from '@/lib/financ
 import { canAddExpense, canDeleteExpense, canManageAnnualBudget } from '@/lib/permissions';
 import { downloadCsv, toCsvRow } from '@/lib/csv';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
+import { IdnDrafter } from '@/components/expenses/idn-drafter';
 import { EmptyState } from '@/components/ui/empty-state';
 import { askConfirm } from '@/components/ui/confirm-dialog';
 
@@ -150,6 +151,7 @@ export default function ExpensesPage() {
   const [expEventId, setExpEventId] = useState('');
   const [expFiles, setExpFiles] = useState<File[]>([]);
   const [expIdnFiles, setExpIdnFiles] = useState<File[]>([]);
+  const [idnOpen, setIdnOpen] = useState(false);
   const [expError, setExpError] = useState('');
   const [expSaving, setExpSaving] = useState(false);
   const [expProgress, setExpProgress] = useState(0);
@@ -943,6 +945,14 @@ export default function ExpensesPage() {
                     </span>
                     <span className="text-xs text-theme-text-secondary">Optional · max {MAX_BILLS} files (10MB each)</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setIdnOpen(true)}
+                    disabled={expSaving}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-accent/40 bg-accent/10 text-xs font-semibold text-accent-strong dark:text-accent-soft hover:bg-accent/20 cursor-pointer disabled:opacity-60"
+                  >
+                    <FileText className="h-4 w-4" /> Draft IDN automatically from these details
+                  </button>
                   <FileDropzone
                     accept="image/png,image/jpeg,image/webp,application/pdf"
                     multiple
@@ -1030,6 +1040,24 @@ export default function ExpensesPage() {
             </div>
           </form>
         </div>
+      )}
+
+      {idnOpen && (
+        <IdnDrafter
+          seed={{
+            vendor: expVendor,
+            amount: expAmountNum,
+            billDate: expDate,
+            description: expDesc,
+            headLabel: expHead ? getExpenseHeadLabel(expHead) : '',
+          }}
+          onClose={() => setIdnOpen(false)}
+          onAttach={(file, total) => {
+            setExpIdnFiles(prev => [...prev, file].slice(0, MAX_BILLS));
+            if (!expAmount && total > 0) setExpAmount(String(total));
+            flash('IDN drafted and attached as ① IDN. Download the DOCX from the drafter if you need to edit it.');
+          }}
+        />
       )}
 
       {/* Bill Viewer Modal */}
