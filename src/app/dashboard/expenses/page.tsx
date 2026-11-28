@@ -941,7 +941,7 @@ export default function ExpensesPage() {
                     <span className="text-xs font-semibold text-theme-text-secondary">
                       ① IDN / Delivery Note (PDF / Images)
                     </span>
-                    <span className="text-[10px] text-theme-text-secondary">Optional · max {MAX_BILLS} files (10MB each)</span>
+                    <span className="text-xs text-theme-text-secondary">Optional · max {MAX_BILLS} files (10MB each)</span>
                   </div>
                   <FileDropzone
                     accept="image/png,image/jpeg,image/webp,application/pdf"
