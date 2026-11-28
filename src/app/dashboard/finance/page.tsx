@@ -33,6 +33,7 @@ import {
   TrendingUp,
   Edit2,
   Landmark,
+  FileBarChart,
 } from 'lucide-react';
 import {
   getAnnualBudget,
@@ -57,6 +58,7 @@ import { EXPENSE_HEADS, ExpenseHeadKey, getExpenseHeadLabel } from '@/lib/financ
 import { canAddExpense, canDeleteExpense, canManageAnnualBudget, canManageIncome } from '@/lib/permissions';
 import { downloadCsv, toCsvRow } from '@/lib/csv';
 import { FileDropzone, FilePreviewRow, createProgressTracker } from '@/components/ui/file-dropzone';
+import { StatementModal } from '@/components/finance/statement-modal';
 import { IdnDrafter } from '@/components/expenses/idn-drafter';
 import { EmptyState } from '@/components/ui/empty-state';
 import { askConfirm } from '@/components/ui/confirm-dialog';
@@ -166,6 +168,7 @@ export default function FinancePage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [toast, setToast] = useState('');
   const [tab, setTab] = useState<Tab>('expenses');
+  const [statementOpen, setStatementOpen] = useState(false);
 
   // Annual budget modal
   const [budgetOpen, setBudgetOpen] = useState(false);
@@ -514,6 +517,13 @@ export default function FinancePage() {
               <Edit2 className="h-3.5 w-3.5" /> {budget ? 'Edit Annual Budget' : 'Set Annual Budget'}
             </button>
           )}
+
+          <button
+            onClick={() => setStatementOpen(true)}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl border border-theme-border/40 hover:bg-white/5 text-xs text-theme-text-secondary hover:text-theme-text-primary font-semibold transition-all cursor-pointer"
+          >
+            <FileBarChart className="h-3.5 w-3.5" /> Monthly Statement
+          </button>
 
           <Link
             href="/dashboard/invoices"
@@ -1321,6 +1331,8 @@ export default function FinancePage() {
           </form>
         </ModalShell>
       )}
+
+      {statementOpen && <StatementModal preparedBy={user?.name || 'Staff'} onClose={() => setStatementOpen(false)} />}
 
       {/* Bill Viewer Modal */}
       {viewingReceipt && (
