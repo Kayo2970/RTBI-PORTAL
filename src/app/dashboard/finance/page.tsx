@@ -221,8 +221,10 @@ export default function FinancePage() {
     refreshFinanceFromServer();
 
     window.addEventListener('leads-data-sync', refresh);
+    window.addEventListener('rtbi-data-sync', refresh); // fired when refreshFinanceFromServer hydrates localStorage
     window.addEventListener('storage', refresh);
     return () => {
+      window.removeEventListener('rtbi-data-sync', refresh);
       window.removeEventListener('leads-data-sync', refresh);
       window.removeEventListener('storage', refresh);
     };
@@ -474,7 +476,7 @@ export default function FinancePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8 space-y-6 pb-12">
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
